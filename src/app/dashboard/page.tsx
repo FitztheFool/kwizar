@@ -10,6 +10,7 @@ interface Quiz {
   id: string;
   title: string;
   description: string | null;
+  isPublic: boolean;
   _count: {
     questions: number;
   };
