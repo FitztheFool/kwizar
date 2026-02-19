@@ -9,6 +9,7 @@ interface Quiz {
   id: string;
   title: string;
   description: string | null;
+  isPublic: boolean;
   creatorId?: string;
   creator: {
     username: string;
@@ -146,7 +147,6 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {quizzes.map((quiz) => {
-              const isCompleted = completedQuizIds.includes(quiz.id);
               const score = myScores.find((s) => s.quiz.id === quiz.id);
               const totalPoints = quizPoints[quiz.id] || 0;
 
@@ -155,7 +155,6 @@ export default function HomePage() {
                   key={quiz.id}
                   quiz={quiz}
                   currentUserId={session?.user?.id}
-                  isCompleted={isCompleted}
                   score={score?.totalScore}
                   totalPoints={totalPoints}
                 />

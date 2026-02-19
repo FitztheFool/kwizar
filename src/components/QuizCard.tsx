@@ -45,8 +45,8 @@ export default function QuizCard({
   return (
     <div
       className={`bg-gray-50 rounded-xl p-6 border-2 transition-all relative ${isLocked
-          ? 'border-gray-200 opacity-70'
-          : 'border-gray-200 hover:border-blue-400 hover:shadow-xl'
+        ? 'border-gray-200 opacity-70'
+        : 'border-gray-200 hover:border-blue-400 hover:shadow-xl'
         }`}
     >
       {/* Badges */}
@@ -124,8 +124,8 @@ export default function QuizCard({
         <Link
           href={`/quiz/${quiz.id}`}
           className={`block w-full text-center py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg ${isPerfect
-              ? 'bg-green-500 hover:bg-green-600 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+            ? 'bg-green-500 hover:bg-green-600 text-white'
+            : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
         >
           {isPerfect ? 'Rejouer' : 'Jouer'}
