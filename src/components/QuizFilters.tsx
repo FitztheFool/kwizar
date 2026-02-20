@@ -7,15 +7,11 @@ interface Category {
   name: string;
 }
 
-type SortOption = 'name_asc' | 'name_desc' | 'category';
-
 interface QuizFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
   categoryId: string;
   onCategoryChange: (value: string) => void;
-  sort: SortOption;
-  onSortChange: (value: SortOption) => void;
   categories: Category[];
   onQuizzesChange: (quizzes: any[]) => void;
 }
@@ -25,8 +21,6 @@ export default function QuizFilters({
   onSearchChange,
   categoryId,
   onCategoryChange,
-  sort,
-  onSortChange,
   categories,
   onQuizzesChange,
 }: QuizFiltersProps) {
