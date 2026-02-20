@@ -94,7 +94,7 @@ Utilise uniquement le type MCQ ou TRUE_FALSE. Pour TRUE_FALSE, mets exactement 2
         );
     }
 
-    const botUser = await prisma.user.findUnique({ where: { username: `Aléatoire` } });
+    const botUser = await prisma.user.findUnique({ where: { username: `RANDOM` } });
 
     const quiz = await prisma.quiz.create({
         data: {

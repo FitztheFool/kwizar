@@ -39,21 +39,54 @@ async function main() {
   // Utilisateurs
   const passwordHash = await hash(`password123`, 10);
 
-  const [Aléatoire, admin, alice, bob, charlie] = await Promise.all([
-    prisma.user.create({
-      data: { username: `Aléatoire`, email: `aleatoire@quiz.app`, passwordHash, role: Role.USER },
+  const [admin, randomUser, alice, bob, charlie] = await Promise.all([
+    prisma.user.upsert({
+      where: { email: "admin@quiz.app" },
+      update: {},
+      create: {
+        username: "Admin",
+        email: "admin@quiz.app",
+        passwordHash,
+        role: Role.ADMIN,
+      },
     }),
-    prisma.user.create({
-      data: { username: `admin`, email: `admin@example.com`, passwordHash, role: Role.ADMIN },
+
+    prisma.user.upsert({
+      where: { email: "aleatoire@quiz.app" },
+      update: {},
+      create: {
+        username: "Aléatoire",
+        email: "aleatoire@quiz.app",
+        passwordHash,
+        role: Role.RANDOM,
+      },
     }),
+
     prisma.user.create({
-      data: { username: `alice`, email: `alice@example.com`, passwordHash, role: Role.USER },
+      data: {
+        username: "alice",
+        email: "alice@example.com",
+        passwordHash,
+        role: Role.USER,
+      },
     }),
+
     prisma.user.create({
-      data: { username: `bob`, email: `bob@example.com`, passwordHash, role: Role.USER },
+      data: {
+        username: "bob",
+        email: "bob@example.com",
+        passwordHash,
+        role: Role.USER,
+      },
     }),
+
     prisma.user.create({
-      data: { username: `charlie`, email: `charlie@example.com`, passwordHash, role: Role.USER },
+      data: {
+        username: "charlie",
+        email: "charlie@example.com",
+        passwordHash,
+        role: Role.USER,
+      },
     }),
   ]);
 
