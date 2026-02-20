@@ -7,6 +7,7 @@ import Link from 'next/link';
 import QuizCard from '@/components/QuizCard';
 import QuizFilters from '@/components/QuizFilters';
 import Pagination from '@/components/Pagination';
+import AdminPanel from '@/components/AdminPanel';
 
 const PAGE_SIZE = 6;
 
@@ -32,7 +33,7 @@ interface UserScore {
   completedAt: string;
 }
 
-type TabType = 'available' | 'my-quizzes' | 'scores';
+type TabType = 'available' | 'my-quizzes' | 'scores' | 'admin';
 
 async function fetchQuizPoints(quizzesList: Quiz[]): Promise<Record<string, number>> {
   const pointsMap: Record<string, number> = {};
@@ -184,7 +185,7 @@ export default function DashboardPage() {
               <div className="text-4xl font-bold">{myScores.length}</div>
               <div className="text-xs opacity-80 mt-1">sur {quizzes.length} disponibles</div>
             </div>
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
               <div className="text-sm opacity-90 mb-2">Mes Quiz Créés</div>
               <div className="text-4xl font-bold">{myQuizzes.length}</div>
               <div className="text-xs opacity-80 mt-1">quiz personnalisés</div>
@@ -202,9 +203,21 @@ export default function DashboardPage() {
                   {tab === 'available' ? 'Quiz disponibles' : tab === 'my-quizzes' ? 'Mes quiz' : 'Mes scores'}
                 </button>
               ))}
+              {/* Onglet admin conditionnel */}
+              {session.user?.role === 'ADMIN' && (
+                <button
+                  onClick={() => setActiveTab('admin')}
+                  className={`pb-4 px-2 font-semibold text-base transition-colors border-b-4 ${activeTab === 'admin'
+                    ? 'border-red-600 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  🛡️ Admin
+                </button>
+              )}
             </div>
           </div>
-        </div>
+        </div>{/* ← fin du header */}
 
         {/* Tab: Quiz disponibles */}
         {activeTab === 'available' && (
@@ -246,6 +259,12 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Tab: Panel Admin */}
+        {activeTab === 'admin' && session.user?.role === 'ADMIN' && (
+          <div className="max-w-7xl mx-auto">
+            <AdminPanel />
+          </div>
+        )}
         {/* Tab: Mes quiz */}
         {activeTab === 'my-quizzes' && (
           <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
@@ -336,7 +355,8 @@ export default function DashboardPage() {
             )}
           </div>
         )}
+
       </div>
-    </div>
+    </div >
   );
 }
