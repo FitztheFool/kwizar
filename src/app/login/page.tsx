@@ -32,7 +32,7 @@ function LoginForm() {
 
   // Évite le flash du formulaire pendant la vérification
   if (status === 'loading' || status === 'authenticated') {
-    return <LoginFallback />;
+    return null;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,17 +131,6 @@ function LoginForm() {
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
-
-          {/* Demo accounts hint */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-700 font-medium mb-2">
-              Comptes de test (si seed exécuté) :
-            </p>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>📧 alice@example.com / 🔑 password123</li>
-              <li>📧 bob@example.com / 🔑 password123</li>
-            </ul>
-          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">

@@ -120,6 +120,8 @@ export async function POST(
         const correctTextList = correctAnswers.map(a => answerLabel(a).trim().toLowerCase());
         const strictOrder = (question as any).strictOrder ?? false;
 
+        userTexts = userAnswer?.freeText?.split('||').map(t => t.trim()) ?? [];
+
         let correctCount = 0;
         if (strictOrder) {
           correctCount = userTextList.filter((t, i) => t === correctTextList[i]).length;
@@ -137,7 +139,7 @@ export async function POST(
           questionId: question.id,
           questionText: question.content,
           type: question.type as any,
-          points: question.points,
+          points: earnedPoints,
           isCorrect,
           correctAnswerTexts: correctTexts,
           userAnswerTexts: userTexts,

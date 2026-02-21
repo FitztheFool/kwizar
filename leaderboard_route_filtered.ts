@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     if (quizId) {
       // Classement par quiz spécifique
       const scores = await prisma.score.findMany({
-        where: {
+        where: { 
           quizId,
           user: {
             role: {

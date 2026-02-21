@@ -90,6 +90,22 @@ export async function GET(
           };
         }
 
+        if (q.type === 'MULTI_TEXT') {
+          const correctAnswers = q.answers.filter(a => a.isCorrect);
+          return {
+            id: q.id,
+            text: q.content,
+            type: q.type,
+            points: q.points,
+            strictOrder: (q as any).strictOrder ?? false,
+            answers: correctAnswers.map((a) => ({
+              id: a.id,
+              text: a.content,
+              isCorrect: true,
+            })),
+          };
+        }
+
         return {
           id: q.id,
           text: q.content,
@@ -146,11 +162,10 @@ export async function PUT(
       );
     }
 
-    if (existingQuiz.creatorId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 403 }
-      );
+    if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Non autorisé' },
+        { status: 403 })
+        ;
     }
 
     await prisma.$transaction(async (tx) => {
@@ -229,7 +244,7 @@ export async function DELETE(
       );
     }
 
-    if (existingQuiz.creatorId !== session.user.id) {
+    if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Non autorisé' },
         { status: 403 }

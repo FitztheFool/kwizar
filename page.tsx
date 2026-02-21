@@ -1,3 +1,4 @@
+// app/quiz/[id]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -421,10 +422,11 @@ export default function QuizPage() {
               {questionResults.map((result, index) => (
                 <div
                   key={result.questionId}
-                  className={`p-5 rounded-xl border-2 ${result.isCorrect
-                    ? 'border-green-400 bg-green-50'
-                    : 'border-red-400 bg-red-50'
-                    }`}
+                  className={`p-5 rounded-xl border-2 ${
+                    result.isCorrect
+                      ? 'border-green-400 bg-green-50'
+                      : 'border-red-400 bg-red-50'
+                  }`}
                 >
                   {/* En-tête question */}
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -437,10 +439,11 @@ export default function QuizPage() {
                         {result.isCorrect ? '✓' : '✗'}
                       </span>
                       <span
-                        className={`text-xs font-bold px-2 py-1 rounded-full ${result.isCorrect
-                          ? 'bg-green-200 text-green-800'
-                          : 'bg-red-200 text-red-800'
-                          }`}
+                        className={`text-xs font-bold px-2 py-1 rounded-full ${
+                          result.isCorrect
+                            ? 'bg-green-200 text-green-800'
+                            : 'bg-red-200 text-red-800'
+                        }`}
                       >
                         {result.earnedPoints > 0 ? `+${result.earnedPoints} pts` : '0 pt'}
                       </span>
@@ -449,14 +452,26 @@ export default function QuizPage() {
 
                   {/* Corps selon le type */}
                   {result.type === 'MULTI_TEXT' ? (
-                    <div className="mt-2">
-                      <div className={`text-sm mb-2 ${result.isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                        <span className="font-medium">Votre réponse : </span>
-                        {result.userAnswerText
-                          ? <span>{result.userAnswerText}</span>
-                          : <span className="italic opacity-70">Aucune réponse</span>
-                        }
-                      </div>
+                    <div className="space-y-2 mt-2">
+                      {/* Réponses de l utilisateur */}
+                      {result.userAnswerText.split(', ').filter(t => t.trim()).map((userText, i) => {
+                        const isGood = result.correctAnswerText.split(', ').some(
+                          c => c.trim().toLowerCase() === userText.trim().toLowerCase()
+                        );
+                        return (
+                          <div
+                            key={i}
+                            className={`text-sm px-3 py-1.5 rounded-lg border-2 font-medium ${
+                              isGood
+                                ? 'bg-green-50 border-green-400 text-green-800'
+                                : 'bg-red-50 border-red-400 text-red-800'
+                            }`}
+                          >
+                            {isGood ? '✓' : '✗'} {userText}
+                          </div>
+                        );
+                      })}
+                      {/* Encadré bleu réponses attendues */}
                       <div className="border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2">
                         <p className="text-sm font-medium text-blue-800 mb-2">Réponses attendues :</p>
                         <div className="space-y-1">
@@ -468,10 +483,11 @@ export default function QuizPage() {
                             return (
                               <div
                                 key={i}
-                                className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${isGood
-                                  ? 'bg-green-50 border-green-300 text-green-800'
-                                  : 'bg-white border-blue-200 text-blue-700'
-                                  }`}
+                                className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${
+                                  isGood
+                                    ? 'bg-green-50 border-green-300 text-green-800'
+                                    : 'bg-white border-blue-200 text-blue-700'
+                                }`}
                               >
                                 {isGood ? '✓' : '•'} {c}
                               </div>
@@ -518,7 +534,7 @@ export default function QuizPage() {
       ? freeTextAnswer.trim().length > 0
       : currentQuestion.type === 'MULTI_TEXT'
         ? multiTextAnswers.length === (currentQuestion.answers?.length ?? 0) &&
-        multiTextAnswers.every(t => t.trim().length > 0)
+          multiTextAnswers.every(t => t.trim().length > 0)
         : currentQuestion.type === 'MCQ'
           ? selectedAnswers.length > 0
           : selectedAnswer !== '';
@@ -568,14 +584,15 @@ export default function QuizPage() {
                     key={answer.id}
                     onClick={() => handleAnswerSelect(answer.id)}
                     disabled={showFeedback}
-                    className={`w-full p-4 rounded-lg border-2 transition-all ${showCorrect
-                      ? 'border-green-500 bg-green-50'
-                      : showWrong
-                        ? 'border-red-500 bg-red-50'
-                        : isSelected
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                      } ${showFeedback ? 'cursor-not-allowed' : ''}`}
+                    className={`w-full p-4 rounded-lg border-2 transition-all ${
+                      showCorrect
+                        ? 'border-green-500 bg-green-50'
+                        : showWrong
+                          ? 'border-red-500 bg-red-50'
+                          : isSelected
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    } ${showFeedback ? 'cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-800">{answer.text}</span>
@@ -602,14 +619,15 @@ export default function QuizPage() {
                   return (
                     <label
                       key={answer.id}
-                      className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${showCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : showWrong
-                          ? 'border-red-500 bg-red-50'
-                          : isSelected
-                            ? 'border-blue-600 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                        } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${
+                        showCorrect
+                          ? 'border-green-500 bg-green-50'
+                          : showWrong
+                            ? 'border-red-500 bg-red-50'
+                            : isSelected
+                              ? 'border-blue-600 bg-blue-50'
+                              : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <input
                         type="checkbox"
@@ -644,8 +662,9 @@ export default function QuizPage() {
               {showFeedback && (
                 <div>
                   <div
-                    className={`mt-4 p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
-                      }`}
+                    className={`mt-4 p-4 rounded-lg border-2 ${
+                      isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
+                    }`}
                   >
                     <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-900' : 'text-red-900'}`}>
                       {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
@@ -673,11 +692,13 @@ export default function QuizPage() {
           {/* MULTI_TEXT */}
           {currentQuestion.type === 'MULTI_TEXT' && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-600 mb-3 italic">
-                {currentQuestion.strictOrder
-                  ? '💡 Remplissez chaque champ dans le bon ordre'
-                  : "💡 Remplissez chaque champ avec une bonne réponse (l'ordre n'a pas d'importance)"}
-              </p>
+              {!showFeedback && (
+                <p className="text-sm text-gray-600 mb-3 italic">
+                  {currentQuestion.strictOrder
+                    ? '💡 Remplissez chaque champ dans le bon ordre'
+                    : "💡 Remplissez chaque champ avec une bonne réponse (l'ordre n'a pas d'importance)"}
+                </p>
+              )}
 
               {/* Inputs masqués après validation */}
               {!showFeedback &&
@@ -697,25 +718,47 @@ export default function QuizPage() {
 
               {/* Résultats après validation */}
               {showFeedback && (
-                <div className="border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2">
-                  <p className="text-sm font-medium text-blue-800 mb-2">Réponses attendues :</p>
-                  <div className="space-y-1">
-                    {currentQuestion.answers?.map((answer, i) => {
-                      const isGood = multiTextAnswers.some(
-                        u => u.trim().toLowerCase() === answer.text.trim().toLowerCase()
-                      );
-                      return (
-                        <div
-                          key={i}
-                          className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${isGood
-                            ? 'bg-green-50 border-green-300 text-green-800'
-                            : 'bg-white border-blue-200 text-blue-700'
+                <div className="space-y-2">
+                  {/* Réponses de l utilisateur */}
+                  {multiTextAnswers.map((userText, i) => {
+                    const isGood = currentQuestion.answers?.some(
+                      a => a.text.trim().toLowerCase() === userText.trim().toLowerCase()
+                    );
+                    return (
+                      <div
+                        key={i}
+                        className={`text-sm px-3 py-1.5 rounded-lg border-2 font-medium ${
+                          isGood
+                            ? 'bg-green-50 border-green-400 text-green-800'
+                            : 'bg-red-50 border-red-400 text-red-800'
+                        }`}
+                      >
+                        {isGood ? '✓' : '✗'} {userText}
+                      </div>
+                    );
+                  })}
+                  {/* Encadré bleu réponses attendues */}
+                  <div className="border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2 mt-1">
+                    <p className="text-sm font-medium text-blue-800 mb-2">Réponses attendues :</p>
+                    <div className="space-y-1">
+                      {currentQuestion.answers?.map((answer, i) => {
+                        const isGood = multiTextAnswers.some(
+                          u => u.trim().toLowerCase() === answer.text.trim().toLowerCase()
+                        );
+                        return (
+                          <div
+                            key={i}
+                            className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${
+                              isGood
+                                ? 'bg-green-50 border-green-300 text-green-800'
+                                : 'bg-white border-blue-200 text-blue-700'
                             }`}
-                        >
-                          {isGood ? '✓' : '•'} {answer.text}
-                        </div>
-                      );
-                    })}
+                          >
+                            {isGood ? '✓' : '•'} {answer.text}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -728,10 +771,11 @@ export default function QuizPage() {
           currentQuestion.type !== 'TEXT' &&
           currentQuestion.type !== 'MULTI_TEXT' && (
             <div
-              className={`mb-6 p-4 rounded-lg border-2 ${isCorrect
-                ? 'bg-green-100 border-green-500'
-                : 'bg-red-100 border-red-500'
-                }`}
+              className={`mb-6 p-4 rounded-lg border-2 ${
+                isCorrect
+                  ? 'bg-green-100 border-green-500'
+                  : 'bg-red-100 border-red-500'
+              }`}
             >
               <p className={`font-semibold ${isCorrect ? 'text-green-900' : 'text-red-900'}`}>
                 {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
@@ -745,10 +789,11 @@ export default function QuizPage() {
             <button
               onClick={handleValidateAnswer}
               disabled={!canProceed}
-              className={`px-8 py-3 rounded-lg font-medium transition-all ${canProceed
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+              className={`px-8 py-3 rounded-lg font-medium transition-all ${
+                canProceed
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Valider ma réponse
             </button>
@@ -756,10 +801,11 @@ export default function QuizPage() {
             <button
               onClick={handleNextQuestion}
               disabled={isSubmitting}
-              className={`px-8 py-3 rounded-lg font-medium transition-all ${isSubmitting
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                }`}
+              className={`px-8 py-3 rounded-lg font-medium transition-all ${
+                isSubmitting
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+              }`}
             >
               {isSubmitting
                 ? 'Envoi en cours...'
