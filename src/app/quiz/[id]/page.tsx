@@ -98,6 +98,7 @@ export default function QuizPage() {
       }
       if (!response.ok) throw new Error('Erreur lors du chargement du quiz');
       const quizData = await response.json();
+      console.log('creator reçu:', quizData.creator); // ← ajoute cette ligne
       if (quizData.randomizeQuestions) {
         quizData.questions = [...quizData.questions].sort(() => Math.random() - 0.5);
       }
@@ -359,6 +360,21 @@ export default function QuizPage() {
                 </p>
                 <p className="text-base opacity-80">{percentage}% des points obtenus</p>
               </div>
+              {/* Bandeau non connecté */}
+              {status === 'unauthenticated' && (
+                <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl px-5 py-4 mb-6 shadow-sm">
+                  <span className="text-xl shrink-0">🔒</span>
+                  <p className="text-sm">
+                    Vos scores ne sont enregistrés que lorsque vous êtes connecté.{' '}
+                    <Link
+                      href={`/login?callbackUrl=${encodeURIComponent(`/quiz/${quizId}`)}`}
+                      className="font-semibold underline hover:text-amber-900 transition-colors"
+                    >
+                      Se connecter
+                    </Link>
+                  </p>
+                </div>
+              )}
               <div className="flex gap-4 justify-center flex-wrap">
                 <button
                   onClick={handleRestart}
@@ -388,21 +404,6 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Bandeau non connecté */}
-          {status === 'unauthenticated' && (
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl px-5 py-4 mb-6 shadow-sm">
-              <span className="text-xl shrink-0">🔒</span>
-              <p className="text-sm">
-                Vos scores ne sont enregistrés que lorsque vous êtes connecté.{' '}
-                <Link
-                  href={`/login?callbackUrl=${encodeURIComponent(`/quiz/${quizId}`)}`}
-                  className="font-semibold underline hover:text-amber-900 transition-colors"
-                >
-                  Se connecter
-                </Link>
-              </p>
-            </div>
-          )}
 
           {/* Bandeau créateur */}
           {quiz.creatorId === session?.user?.id && (
@@ -533,6 +534,22 @@ export default function QuizPage() {
           <p className="text-gray-600 mb-4">{quiz.description}</p>
           <p className="text-sm text-gray-500">Par {quiz.creator.name}</p>
         </div>
+
+        {/* Bandeau non connecté */}
+        {status === 'unauthenticated' && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl px-5 py-4 mb-6 shadow-sm">
+            <span className="text-xl shrink-0">🔒</span>
+            <p className="text-sm">
+              Vos scores ne sont enregistrés que lorsque vous êtes connecté.{' '}
+              <Link
+                href={`/login?callbackUrl=${encodeURIComponent(`/quiz/${quizId}`)}`}
+                className="font-semibold underline hover:text-amber-900 transition-colors"
+              >
+                Se connecter
+              </Link>
+            </p>
+          </div>
+        )}
 
         {/* Progress */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
@@ -738,6 +755,7 @@ export default function QuizPage() {
               </p>
             </div>
           )}
+
 
         {/* Actions */}
         <div className="flex justify-end gap-4">

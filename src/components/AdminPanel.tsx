@@ -162,8 +162,8 @@ export default function AdminPanel() {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${activeTab === tab.key
-                                ? 'bg-red-600 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-red-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         {tab.emoji} {tab.label}
@@ -269,8 +269,8 @@ export default function AdminPanel() {
                                                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
                                                     disabled={user.role === 'ADMIN'}
                                                     className={`text-xs font-bold px-2 py-1 rounded-full border ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700 border-red-200' :
-                                                            user.role === 'RANDOM' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                                                                'bg-blue-100 text-blue-700 border-blue-200'
+                                                        user.role === 'RANDOM' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                                                            'bg-blue-100 text-blue-700 border-blue-200'
                                                         }`}
                                                 >
                                                     <option value="USER">USER</option>

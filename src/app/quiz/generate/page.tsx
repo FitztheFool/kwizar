@@ -1,174 +1,240 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import QuizForm from '@/components/QuizForm';
 
 interface Category {
     id: string;
     name: string;
 }
 
+const DIFFICULTIES = [
+    { value: 'facile', label: '🟢 Facile', desc: 'Questions simples, accessibles à tous' },
+    { value: 'normal', label: '🟡 Normal', desc: 'Questions de niveau intermédiaire' },
+    { value: 'difficile', label: '🔴 Difficile', desc: 'Questions pointues pour experts' },
+];
+
 export default function GenerateQuizPage() {
-    const router = useRouter();
     const { status } = useSession();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
-    const [categoryId, setCategoryId] = useState(``);
+    const router = useRouter();
+    const [subject, setSubject] = useState('');
     const [questionCount, setQuestionCount] = useState(5);
-    const [difficulty, setDifficulty] = useState(`medium`);
-    const [provider, setProvider] = useState(`groq`);
+    const [categoryId, setCategoryId] = useState('');
+    const [difficulty, setDifficulty] = useState('normal');
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(``);
-    const submitting = useRef(false); // ← verrou anti-spam
+    const [error, setError] = useState<string | null>(null);
+    const [generatedData, setGeneratedData] = useState<any | null>(null);
+    const [usedProvider, setUsedProvider] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch(`/api/categories`)
+        if (status === 'unauthenticated') {
+            router.push(`/login?callbackUrl=${encodeURIComponent('/quiz/generate')}`);
+        }
+    }, [status, router]);
+
+    useEffect(() => {
+        fetch('/api/categories')
             .then((r) => r.json())
-            .then((data) => {
-                setCategories(data);
-                setLoadingCategories(false);
-            })
-            .catch(() => setLoadingCategories(false));
+            .then(setCategories)
+            .catch(() => { });
     }, []);
 
-    if (status === `loading`) {
+    if (status === 'loading' || status === 'unauthenticated') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="animate-pulse text-gray-500 text-lg">Chargement...</div>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent" />
             </div>
         );
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Bloquer si déjà en cours
-        if (submitting.current) return;
-        submitting.current = true;
+    async function handleGenerate(mode: 'play' | 'edit') {
+        if (!subject.trim()) return;
         setLoading(true);
-        setError(``);
-
+        setError(null);
+        setUsedProvider(null);
         try {
-            const res = await fetch(`/api/quiz/generate`, {
-                method: `POST`,
-                headers: { 'Content-Type': `application/json` },
-                body: JSON.stringify({ categoryId, questionCount, difficulty, provider }),
+            const res = await fetch('/api/quiz/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject, questionCount, difficulty }),
             });
-
+            if (!res.ok) throw new Error((await res.json()).error ?? 'Erreur de génération');
             const data = await res.json();
 
-            if (res.status === 429) {
-                const providerName = provider === `groq` ? `Groq` : `Gemini`;
-                setError(`⚠️ Quota atteint pour ${providerName}. Essayez un autre modèle IA ou réessayez plus tard.`);
+            setUsedProvider(data.provider ?? null);
+
+            if (mode === 'edit') {
+                const normalized = {
+                    ...data,
+                    categoryId: categoryId || '',
+                    questions: data.questions.map((q: any, qi: number) => ({
+                        ...q,
+                        tempId: `gen_q_${qi}`,
+                        answers: q.answers.map((a: any, ai: number) => ({
+                            ...a,
+                            tempId: `gen_q_${qi}_a_${ai}`,
+                        })),
+                    })),
+                };
+                setGeneratedData(normalized);
                 return;
             }
 
-            if (!res.ok) {
-                setError(data.error || `Erreur lors de la génération`);
-                return;
-            }
-
-            router.push(`/quiz/${data.quiz.id}`);
-        } catch {
-            setError(`Une erreur est survenue`);
+            // mode === 'play' : sauvegarde avec créateur RANDOM puis redirige
+            const saveRes = await fetch('/api/quiz', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: data.title,
+                    description: data.description || '',
+                    isPublic: true,
+                    randomizeQuestions: true,
+                    categoryId: categoryId || null,
+                    creatorRole: 'RANDOM',
+                    questions: data.questions.map((q: any) => ({
+                        text: q.text,
+                        type: q.type,
+                        points: q.points,
+                        strictOrder: q.strictOrder ?? false,
+                        answers: q.answers.map((a: any) => ({
+                            content: a.text,
+                            isCorrect: a.isCorrect,
+                        })),
+                    })),
+                }),
+            });
+            if (!saveRes.ok) throw new Error('Erreur lors de la sauvegarde');
+            const saved = await saveRes.json();
+            router.push(`/quiz/${saved.id}`);
+        } catch (e: any) {
+            setError(e.message);
         } finally {
             setLoading(false);
-            submitting.current = false; // ← libérer le verrou seulement en cas d'erreur
         }
-    };
+    }
+
+    if (generatedData) {
+        return (
+            <div>
+                {usedProvider && (
+                    <div className="max-w-4xl mx-auto px-4 pt-6">
+                        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-4 py-2 text-sm">
+                            🤖 Quiz généré par <span className="font-semibold capitalize ml-1">{usedProvider}</span> — vérifiez et modifiez avant de publier.
+                        </div>
+                    </div>
+                )}
+                <QuizForm mode="create" initialData={generatedData} />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-            <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">🤖 Générer un quiz</h1>
-                    <p className="mt-2 text-gray-600">L'IA crée un quiz personnalisé pour vous</p>
-                </div>
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">✨ Générer un quiz</h1>
+                <p className="text-gray-500 text-sm mb-1">L'IA crée un quiz que vous pourrez modifier avant de publier.</p>
+                <p className="text-xs text-gray-400 mb-6">
+                    Modèle : <span className="font-medium">Gemini 2.0 Flash</span> (fallback : Groq Llama 3.3)
+                </p>
 
-                <div className="card">
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                            {error}
-                        </div>
-                    )}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+                )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Catégorie
-                            </label>
-                            {loadingCategories ? (
-                                <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-                            ) : (
-                                <select
-                                    value={categoryId}
-                                    onChange={(e) => setCategoryId(e.target.value)}
-                                    className="input-field"
-                                    required
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Sujet du quiz</label>
+                        <input
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleGenerate('play')}
+                            placeholder="Ex: La Révolution française, JavaScript, Anatomie..."
+                            className="w-full border rounded-lg p-3 focus:outline-none focus:border-blue-600"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Difficulté</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {DIFFICULTIES.map((d) => (
+                                <button
+                                    key={d.value}
+                                    type="button"
+                                    onClick={() => setDifficulty(d.value)}
+                                    title={d.desc}
+                                    className={`py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors ${difficulty === d.value
+                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                                        }`}
                                 >
-                                    <option value="">Choisir une catégorie...</option>
-                                    {categories.map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
+                                    {d.label}
+                                </button>
+                            ))}
                         </div>
+                    </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre de questions
-                            </label>
-                            <select
-                                value={questionCount}
-                                onChange={(e) => setQuestionCount(Number(e.target.value))}
-                                className="input-field"
-                            >
-                                <option value={5}>5 questions</option>
-                                <option value={10}>10 questions</option>
-                                <option value={15}>15 questions</option>
-                            </select>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre de questions : <span className="font-bold text-blue-600">{questionCount}</span>
+                        </label>
+                        <input
+                            type="range"
+                            min={3}
+                            max={15}
+                            value={questionCount}
+                            onChange={(e) => setQuestionCount(Number(e.target.value))}
+                            className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                            <span>3</span><span>15</span>
                         </div>
+                    </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Difficulté
-                            </label>
-                            <select
-                                value={difficulty}
-                                onChange={(e) => setDifficulty(e.target.value)}
-                                className="input-field"
-                            >
-                                <option value="easy">Facile</option>
-                                <option value="medium">Moyen</option>
-                                <option value="hard">Difficile</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Catégorie <span className="text-gray-400 font-normal">(facultatif)</span>
+                        </label>
+                        <select
+                            value={categoryId}
+                            onChange={(e) => setCategoryId(e.target.value)}
+                            className="w-full border rounded-lg p-3 focus:outline-none focus:border-blue-600">
+                            <option value="">Aucune catégorie</option>
+                            {categories.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Modèle IA
-                            </label>
-                            <select
-                                value={provider}
-                                onChange={(e) => setProvider(e.target.value)}
-                                className="input-field"
-                            >
-                                <option value="groq">⚡ Groq (Llama 3.3)</option>
-                                <option value="gemini">🧠 Gemini 2.0 Flash</option>
-                            </select>
-                        </div>
-
+                    <div className="flex flex-col gap-3 pt-1">
                         <button
-                            type="submit"
-                            disabled={loading || loadingCategories}
-                            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleGenerate('play')}
+                            disabled={loading || !subject.trim()}
+                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${loading || !subject.trim()
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
                         >
-                            {loading ? `⏳ Génération en cours...` : `✨ Générer le quiz`}
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                    Génération en cours...
+                                </span>
+                            ) : '🎮 Générer et jouer'}
                         </button>
-                    </form>
+                        <button
+                            onClick={() => handleGenerate('edit')}
+                            disabled={loading || !subject.trim()}
+                            className={`w-full py-3 rounded-lg font-semibold border-2 transition-colors ${loading || !subject.trim()
+                                ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                                : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                                }`}
+                        >
+                            ✏️ Générer et modifier
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

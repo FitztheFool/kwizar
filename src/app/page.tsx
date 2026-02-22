@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import QuizCard from '@/components/QuizCard';
@@ -24,6 +24,7 @@ interface Quiz {
   creator: { username: string };
   category?: { name: string } | null;
   _count: { questions: number };
+  questions?: { points: number }[];
 }
 
 interface UserScore {
@@ -31,27 +32,19 @@ interface UserScore {
   totalScore: number;
 }
 
-async function fetchQuizPoints(quizzesList: Quiz[]): Promise<Record<string, number>> {
-  const pointsMap: Record<string, number> = {};
-  await Promise.all(
-    quizzesList.map(async (quiz) => {
-      try {
-        const res = await fetch(`/api/quiz/${quiz.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          pointsMap[quiz.id] = data.questions?.reduce((sum: number, q: any) => sum + (q.points || 0), 0) || 0;
-        }
-      } catch (err) {
-        console.error(`Erreur points quiz ${quiz.id}:`, err);
-      }
-    })
-  );
-  return pointsMap;
-}
+const computePoints = (quizzesList: Quiz[]) => {
+  const map: Record<string, number> = {};
+  quizzesList.forEach((q: any) => {
+    map[q.id] = q.questions?.reduce((sum: number, qq: any) => sum + (qq.points || 0), 0) || 0;
+  });
+  return map;
+};
 
 export default function HomePage() {
   const { data: session, status } = useSession();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [myScores, setMyScores] = useState<UserScore[]>([]);
   const [quizPoints, setQuizPoints] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -60,27 +53,29 @@ export default function HomePage() {
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
 
+  const fetchQuizzes = useCallback(async (p = 1, s = '', cat = '') => {
+    const params = new URLSearchParams({ page: String(p), pageSize: String(PAGE_SIZE) });
+    if (s) params.set('search', s);
+    if (cat) params.set('categoryId', cat);
+    const res = await fetch(`/api/quiz?${params}`);
+    if (res.ok) {
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : data.quizzes;
+      setQuizzes(list);
+      setTotal(Array.isArray(data) ? list.length : data.total);
+      setTotalPages(Array.isArray(data) ? Math.ceil(list.length / PAGE_SIZE) : data.totalPages);
+      setQuizPoints(prev => ({ ...prev, ...computePoints(list) }));
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const [catRes, quizRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/quiz'),
-        ]);
-
-        if (cancelled) return;
-
-        if (catRes.ok) setCategories(await catRes.json());
-
-        if (quizRes.ok) {
-          const quizData: Quiz[] = await quizRes.json();
-          setQuizzes(quizData);
-          fetchQuizPoints(quizData).then((points) => {
-            if (!cancelled) setQuizPoints(points);
-          });
-        }
+        const catRes = await fetch('/api/categories');
+        if (!cancelled && catRes.ok) setCategories(await catRes.json());
+        await fetchQuizzes(1);
       } catch (err) {
         console.error('Erreur chargement initial:', err);
       } finally {
@@ -89,7 +84,7 @@ export default function HomePage() {
     })();
 
     return () => { cancelled = true; };
-  }, []);
+  }, [fetchQuizzes]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -99,15 +94,22 @@ export default function HomePage() {
       .catch(console.error);
   }, [status]);
 
-  const handleQuizzesChange = async (data: Quiz[]) => {
-    setQuizzes(data);
-    setPage(1);
-    const points = await fetchQuizPoints(data);
-    setQuizPoints(points);
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    fetchQuizzes(p, search, categoryId);
   };
 
-  const totalPages = Math.ceil(quizzes.length / PAGE_SIZE);
-  const paginatedQuizzes = quizzes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const handleSearchChange = (v: string) => {
+    setSearch(v);
+    setPage(1);
+    fetchQuizzes(1, v, categoryId);
+  };
+
+  const handleCategoryChange = (v: string) => {
+    setCategoryId(v);
+    setPage(1);
+    fetchQuizzes(1, search, v);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -123,7 +125,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="card text-center">
-            <div className="text-4xl font-bold text-primary-600">{quizzes.length}</div>
+            <div className="text-4xl font-bold text-primary-600">{total}</div>
             <div className="text-gray-600 mt-2">Quiz disponibles</div>
           </div>
           <Link href="/quiz/generate" className="card text-center hover:shadow-lg transition-shadow cursor-pointer border-2 border-green-400 hover:border-green-500">
@@ -142,11 +144,15 @@ export default function HomePage() {
           </div>
           <QuizFilters
             search={search}
-            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            onSearchChange={handleSearchChange}
             categoryId={categoryId}
-            onCategoryChange={(v) => { setCategoryId(v); setPage(1); }}
+            onCategoryChange={handleCategoryChange}
             categories={categories}
-            onQuizzesChange={handleQuizzesChange}
+            onQuizzesChange={(data) => {
+              setQuizzes(data);
+              setPage(1);
+              setQuizPoints(prev => ({ ...prev, ...computePoints(data) }));
+            }}
           />
         </div>
 
@@ -163,7 +169,7 @@ export default function HomePage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-              {paginatedQuizzes.map((quiz) => {
+              {quizzes.map((quiz) => {
                 const score = myScores.find((s) => s.quiz.id === quiz.id);
                 const totalPoints = quizPoints[quiz.id] || 0;
                 return (
@@ -177,7 +183,7 @@ export default function HomePage() {
                 );
               })}
             </div>
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
           </>
         )}
       </div>

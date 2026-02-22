@@ -113,7 +113,7 @@ export default function QuizForm({
     title: initialData?.title ?? '',
     description: initialData?.description ?? '',
     isPublic: initialData?.isPublic ?? true,
-    randomizeQuestions: initialData?.randomizeQuestions ?? false,
+    randomizeQuestions: initialData?.randomizeQuestions !== undefined ? initialData.randomizeQuestions : true,
     categoryId: initialData?.categoryId ?? '',
     questions: initialData?.questions?.length
       ? (initialData.questions as QuestionForm[]).map(q => ({
