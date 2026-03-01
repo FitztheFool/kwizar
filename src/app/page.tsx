@@ -32,9 +32,10 @@ interface UserScore {
   totalScore: number;
 }
 
-const computePoints = (quizzesList: Quiz[]) => {
+const computePoints = (quizzesList: Quiz[] | any) => {
   const map: Record<string, number> = {};
-  quizzesList.forEach((q: any) => {
+  const list: Quiz[] = Array.isArray(quizzesList) ? quizzesList : quizzesList?.quizzes ?? [];
+  list.forEach((q: any) => {
     map[q.id] = q.questions?.reduce((sum: number, qq: any) => sum + (qq.points || 0), 0) || 0;
   });
   return map;
@@ -148,10 +149,12 @@ export default function HomePage() {
             categoryId={categoryId}
             onCategoryChange={handleCategoryChange}
             categories={categories}
-            onQuizzesChange={(data) => {
-              setQuizzes(data);
+
+            onQuizzesChange={(data: any) => {
+              const list = Array.isArray(data) ? data : data?.quizzes ?? [];
+              setQuizzes(list);
               setPage(1);
-              setQuizPoints(prev => ({ ...prev, ...computePoints(data) }));
+              setQuizPoints(prev => ({ ...prev, ...computePoints(list) }));
             }}
           />
         </div>
