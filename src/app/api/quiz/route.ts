@@ -72,6 +72,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    if (!Array.isArray(body.questions) || body.questions.length > 15) {
+      return NextResponse.json(
+        { error: 'Un quiz ne peut pas dépasser 15 questions.' },
+        { status: 400 }
+      );
+    }
     const { title, description, isPublic, randomizeQuestions, categoryId, questions, creatorRole } = body;
 
     // Si creatorRole === 'RANDOM', on utilise l'utilisateur système RANDOM

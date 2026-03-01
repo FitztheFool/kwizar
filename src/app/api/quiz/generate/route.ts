@@ -5,6 +5,7 @@ import { buildPrompt } from '@/lib/prompt';
 function validateQuizJSON(json: any): string | null {
     if (!json.title || typeof json.title !== 'string') return 'Champ "title" manquant';
     if (!Array.isArray(json.questions) || json.questions.length === 0) return 'Champ "questions" manquant ou vide';
+    if (json.questions.length > 15) return 'Un quiz ne peut pas dépasser 15 questions';
 
     for (const [i, q] of json.questions.entries()) {
         if (!q.text) return `Question ${i + 1} : champ "text" manquant`;
@@ -26,6 +27,10 @@ function validateQuizJSON(json: any): string | null {
 
 export async function POST(req: NextRequest) {
     const { subject, questionCount = 5, difficulty = 'normal' } = await req.json();
+
+    if (questionCount > 15) {
+        return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
+    }
 
     if (!subject?.trim()) {
         return NextResponse.json({ error: 'Sujet requis' }, { status: 400 });

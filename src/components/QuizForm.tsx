@@ -221,6 +221,7 @@ export default function QuizForm({
   }
 
   function addQuestion() {
+    if (form.questions.length >= 15) return;
     const last = form.questions[form.questions.length - 1];
     const qi = form.questions.length - 1;
 
@@ -705,9 +706,10 @@ export default function QuizForm({
         <button
           type="button"
           onClick={addQuestion}
-          className="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50"
+          disabled={form.questions.length >= 15}
+          className={`px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 ${form.questions.length >= 15 ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          + Ajouter une question
+          + Ajouter une question {form.questions.length >= 15 && '(max 15)'}
         </button>
 
         <div className="flex items-center gap-3">

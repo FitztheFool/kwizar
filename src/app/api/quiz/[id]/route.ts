@@ -148,6 +148,12 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+    if (!Array.isArray(body.questions) || body.questions.length > 15) {
+      return NextResponse.json(
+        { error: 'Un quiz ne peut pas dépasser 15 questions.' },
+        { status: 400 }
+      );
+    }
     const { title, description, isPublic, randomizeQuestions, questions } = body;
 
     const existingQuiz = await prisma.quiz.findUnique({
