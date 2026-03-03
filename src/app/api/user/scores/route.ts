@@ -14,7 +14,7 @@ export async function GET() {
       );
     }
 
-    const scores = await prisma.score.findMany({
+    const scores = await prisma.attempt.findMany({
       where: {
         userId: session.user.id,
       },
@@ -23,15 +23,35 @@ export async function GET() {
           select: {
             id: true,
             title: true,
+            questions: { select: { points: true } },
           },
         },
       },
       orderBy: {
-        completedAt: 'desc',
+        createdAt: 'desc',
       },
     });
 
-    return NextResponse.json(scores);
+    // Reformater pour garder la même structure qu'avant
+    return NextResponse.json(
+      Object.values(
+        scores.reduce((acc, a) => {
+          const quizId = a.quiz.id;
+          const maxScore = a.quiz.questions.reduce((sum, q) => sum + q.points, 0);
+          if (!acc[quizId] || a.score > acc[quizId].totalScore) {
+            acc[quizId] = {
+              quiz: { id: a.quiz.id, title: a.quiz.title },
+              totalScore: a.score,
+              completedAt: a.createdAt,
+              maxScore,
+              attempts: scores.filter(s => s.quiz.id === quizId).length, // ← nombre d'essais
+            };
+          }
+          return acc;
+        }, {} as Record<string, any>)
+      ).sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+    );
+
   } catch (error) {
     console.error('Erreur lors de la récupération des scores:', error);
     return NextResponse.json(

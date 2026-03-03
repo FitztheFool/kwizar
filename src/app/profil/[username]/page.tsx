@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
 import QuizCard from '@/components/QuizCard';
 import Pagination from '@/components/Pagination';
+import ScoreList from '@/components/ScoreList';
 
 const PAGE_SIZE = 6;
 
@@ -50,7 +50,7 @@ const computePoints = (quizzesList: Quiz[]) => {
 export default function PlayerProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const id = params?.id as string;
+  const username = params?.username as string;
 
   const { data: session, status: sessionStatus } = useSession();
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -62,18 +62,17 @@ export default function PlayerProfilePage() {
   const [quizPoints, setQuizPoints] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (!id) return;
+    if (!username) return;
+    if (sessionStatus === 'loading') return;
 
-    if (sessionStatus === 'loading') return; // on attend que la session soit prête
-
-    if (sessionStatus === 'authenticated' && session?.user?.id === id) {
+    if (sessionStatus === 'authenticated' && session?.user?.username === username) {
       router.replace('/dashboard');
       return;
     }
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/profil/${id}`);
+        const res = await fetch(`/api/profil/${username}`);
         if (!res.ok) { setNotFound(true); return; }
         const data = await res.json();
         setProfile(data);
@@ -86,7 +85,7 @@ export default function PlayerProfilePage() {
     };
 
     fetchProfile();
-  }, [id, session]);
+  }, [username, sessionStatus]);
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -221,40 +220,7 @@ export default function PlayerProfilePage() {
             ) : (
               <>
                 <div className="space-y-4">
-                  {paginatedScores.map((score, index) => {
-                    const totalPoints = quizPoints[score.quiz.id] || 0;
-                    const isPerfect = totalPoints > 0 && score.totalScore === totalPoints;
-                    return (
-                      <div
-                        key={index}
-                        className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-xl transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-                      >
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-gray-900 mb-1">{score.quiz.title}</h4>
-                          <p className="text-sm text-gray-500">
-                            Complété le{' '}
-                            {new Date(score.completedAt).toLocaleDateString('fr-FR', {
-                              year: 'numeric', month: 'long', day: 'numeric',
-                            })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <div className="text-right">
-                            <div className={`text-3xl font-bold ${isPerfect ? 'text-green-600' : 'text-orange-500'}`}>
-                              {score.totalScore}{totalPoints > 0 ? `/${totalPoints}` : ''}
-                            </div>
-                            <div className="text-xs text-gray-500">points</div>
-                          </div>
-                          <Link
-                            href={`/quiz/${score.quiz.id}`}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-                          >
-                            Jouer →
-                          </Link>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <ScoreList scores={paginatedScores} />
                 </div>
                 <Pagination currentPage={scorePage} totalPages={scoreTotalPages} onPageChange={setScorePage} />
               </>

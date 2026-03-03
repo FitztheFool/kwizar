@@ -39,12 +39,12 @@ export async function GET(
             createdAt: 'asc',
           },
         },
-        scores: {
+        attempts: {
           select: {
-            totalScore: true,
+            score: true,
           },
           orderBy: {
-            totalScore: 'desc',
+            score: 'desc',
           },
           take: 1,
         },
@@ -119,7 +119,7 @@ export async function GET(
           })),
         };
       }),
-      bestScore: quiz.scores[0]?.totalScore ?? null,
+      bestScore: quiz.attempts[0]?.score ?? null,
     };
 
     return NextResponse.json(formattedQuiz, { status: 200 });

@@ -6,34 +6,26 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function LoginForm() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // ✅ lire directement le callbackUrl (pas de state)
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
+
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [callbackUrl, setCallbackUrl] = useState<string>('/dashboard');
 
-  useEffect(() => {
-    // Récupérer l'URL de callback depuis les paramètres de recherche
-    const callback = searchParams.get('callbackUrl');
-    if (callback) {
-      setCallbackUrl(callback);
-    }
-  }, [searchParams]);
-
-  // Redirection si déjà connecté
+  // ✅ si déjà connecté -> va sur callbackUrl, pas /dashboard
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace('/dashboard');
+      router.replace(callbackUrl);
     }
-  }, [status, router]);
+  }, [status, router, callbackUrl]);
 
-  // Évite le flash du formulaire pendant la vérification
-  if (status === 'loading' || status === 'authenticated') {
-    return null;
-  }
+  if (status === 'loading' || status === 'authenticated') return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,16 +37,17 @@ function LoginForm() {
         identifier,
         password,
         redirect: false,
+        callbackUrl, // ✅ important
       });
 
       if (result?.error) {
         setError('Email ou mot de passe incorrect');
       } else {
-        // Rediriger vers l'URL de callback ou le dashboard par défaut
-        router.push(callbackUrl);
+        // ✅ NextAuth renvoie parfois result.url
+        router.push(result?.url ?? callbackUrl);
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('Une erreur est survenue');
     } finally {
       setLoading(false);
@@ -64,25 +57,19 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        {/* Logo/Title */}
         <div className="text-center mb-8">
           <Link href="/" className="text-4xl font-bold text-gray-900">
             🎯 Quiz App
           </Link>
-          <p className="mt-2 text-gray-600">
-            Connectez-vous pour continuer
-          </p>
+          <p className="mt-2 text-gray-600">Connectez-vous pour continuer</p>
         </div>
 
-        {/* Login Form */}
         <div className="card">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Connexion</h2>
 
           {callbackUrl !== '/dashboard' && (
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
-              <p className="text-sm">
-                🔒 Vous devez être connecté pour accéder à cette page
-              </p>
+              <p className="text-sm">🔒 Vous devez être connecté pour accéder à cette page</p>
             </div>
           )}
 
@@ -123,11 +110,7 @@ function LoginForm() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
+            <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
@@ -136,10 +119,11 @@ function LoginForm() {
             <p className="text-gray-600">
               Pas encore de compte ?{' '}
               <Link
-                href={`/register${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
+                href={`/register${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''
+                  }`}
                 className="text-primary-600 hover:text-primary-700 font-semibold"
               >
-                S'inscrire
+                S&apos;inscrire
               </Link>
             </p>
           </div>

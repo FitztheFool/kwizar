@@ -8,115 +8,94 @@ export async function GET(req: NextRequest) {
     const quizId = searchParams.get('quizId');
 
     if (quizId) {
-      // Classement par quiz spécifique
-      const scores = await prisma.score.findMany({
+      const attempts = await prisma.attempt.findMany({
         where: {
           quizId,
-          user: {
-            role: {
-              notIn: ['ADMIN', 'RANDOM']  // ← FILTRAGE AJOUTÉ
-            }
-          }
+          user: { role: { notIn: ['ADMIN', 'RANDOM'] } },
         },
         include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-            },
-          },
-          quiz: {
-            select: {
-              title: true,
-            },
-          },
+          user: { select: { id: true, username: true } },
+          quiz: { select: { title: true } },
         },
-        orderBy: {
-          totalScore: 'desc',
-        },
+        orderBy: { score: 'desc' },
         take: 100,
       });
 
-      const leaderboard = scores.map((score, index) => ({
-        rank: index + 1,
-        username: score.user.username,
-        userId: score.user.id,
-        score: score.totalScore,
-        completedAt: score.completedAt,
-        quizTitle: score.quiz.title,
-      }));
+      const bestByUser = new Map<string, typeof attempts[0]>();
+      for (const attempt of attempts) {
+        const existing = bestByUser.get(attempt.userId);
+        if (!existing || attempt.score > existing.score) {
+          bestByUser.set(attempt.userId, attempt);
+        }
+      }
 
-      return NextResponse.json({
-        type: 'quiz',
-        quizId,
-        leaderboard,
-      });
+      const leaderboard = Array.from(bestByUser.values())
+        .sort((a, b) => b.score - a.score)
+        .map((attempt, index) => ({
+          rank: index + 1,
+          username: attempt.user.username,
+          userId: attempt.user.id,
+          score: attempt.score,
+          completedAt: attempt.createdAt,
+          quizTitle: attempt.quiz.title,
+        }));
+
+      return NextResponse.json({ type: 'quiz', quizId, leaderboard });
     }
 
-    // Classement global (somme de tous les scores par utilisateur)
-    // D'abord, récupérer les utilisateurs éligibles (non ADMIN/RANDOM)
+    // Classement global — meilleur score par quiz par utilisateur
     const eligibleUsers = await prisma.user.findMany({
-      where: {
-        role: {
-          notIn: ['ADMIN', 'RANDOM']  // ← FILTRAGE AJOUTÉ
-        }
-      },
-      select: { id: true }
+      where: { role: { notIn: ['ADMIN', 'RANDOM'] } },
+      select: { id: true, username: true },
     });
 
-    const eligibleUserIds = eligibleUsers.map(u => u.id);
+    const eligibleUserIds = eligibleUsers.map((u) => u.id);
 
-    const aggregatedScores = await prisma.score.groupBy({
-      by: ['userId'],
-      where: {
-        userId: {
-          in: eligibleUserIds  // ← Uniquement les utilisateurs éligibles
-        }
-      },
-      _sum: {
-        totalScore: true,
-      },
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _sum: {
-          totalScore: 'desc',
-        },
-      },
-      take: 100,
+    // Récupérer toutes les tentatives des utilisateurs éligibles
+    const allAttempts = await prisma.attempt.findMany({
+      where: { userId: { in: eligibleUserIds } },
+      select: { userId: true, quizId: true, score: true },
     });
 
-    // Enrichir avec les données utilisateur
-    const leaderboard = await Promise.all(
-      aggregatedScores.map(async (score, index) => {
-        const user = await prisma.user.findUnique({
-          where: { id: score.userId },
-          select: {
-            id: true,
-            username: true,
-          },
-        });
+    // Pour chaque utilisateur, garder le meilleur score par quiz puis sommer
+    const totalByUser = new Map<string, { total: number; quizzes: Set<string> }>();
 
+    for (const attempt of allAttempts) {
+      if (!totalByUser.has(attempt.userId)) {
+        totalByUser.set(attempt.userId, { total: 0, quizzes: new Set() });
+      }
+
+      const userEntry = totalByUser.get(attempt.userId)!;
+
+      // Recalculer le meilleur score pour ce quiz
+      const bestForThisQuiz = allAttempts
+        .filter((a) => a.userId === attempt.userId && a.quizId === attempt.quizId)
+        .reduce((max, a) => Math.max(max, a.score), 0);
+
+      // Mettre à jour seulement si ce quiz n'a pas encore été comptabilisé
+      if (!userEntry.quizzes.has(attempt.quizId)) {
+        userEntry.quizzes.add(attempt.quizId);
+        userEntry.total += bestForThisQuiz;
+      }
+    }
+
+    const leaderboard = Array.from(totalByUser.entries())
+      .map(([userId, data]) => {
+        const user = eligibleUsers.find((u) => u.id === userId);
         return {
-          rank: index + 1,
+          userId,
           username: user?.username || 'Utilisateur inconnu',
-          userId: score.userId,
-          totalScore: score._sum.totalScore || 0,
-          quizzesCompleted: score._count.id,
+          totalScore: data.total,
+          quizzesCompleted: data.quizzes.size,
         };
       })
-    );
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 100)
+      .map((entry, index) => ({ rank: index + 1, ...entry }));
 
-    return NextResponse.json({
-      type: 'global',
-      leaderboard,
-    });
+    return NextResponse.json({ type: 'global', leaderboard });
   } catch (error) {
     console.error('Erreur lors de la récupération du classement:', error);
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

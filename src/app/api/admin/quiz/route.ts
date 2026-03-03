@@ -1,26 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     const auth = await requireAdmin();
     if (auth.error) return auth.error;
 
-    const quizzes = await prisma.quiz.findMany({
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            isPublic: true,
-            createdAt: true,
-            creator: { select: { username: true } },
-            category: { select: { name: true } },
-            _count: { select: { questions: true, scores: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-    });
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
-    return NextResponse.json(quizzes);
+    const [quizzes, total] = await Promise.all([
+        prisma.quiz.findMany({
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                isPublic: true,
+                createdAt: true,
+                creator: { select: { username: true } },
+                category: { select: { name: true } },
+                _count: { select: { questions: true, attempts: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        }),
+        prisma.quiz.count(),
+    ]);
+
+    return NextResponse.json({ quizzes, total, totalPages: Math.ceil(total / pageSize) });
 }
 
 export async function DELETE(req: NextRequest) {

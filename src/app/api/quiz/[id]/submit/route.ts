@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { createAnonymousUser } from '@/lib/createAnonymousUser';
 
 interface UserAnswer {
   questionId: string;
@@ -36,9 +37,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // ✅ 1) quizId d'abord
+    const { id: quizId } = await params;
+
     const session = await getServerSession(authOptions);
 
-    const { id: quizId } = await params;
     const body = await request.json();
     const answers = (body?.answers ?? []) as UserAnswer[];
 
@@ -116,20 +119,21 @@ export async function POST(
       }
 
       if (question.type === 'MULTI_TEXT') {
-        const userTextList = userAnswer?.freeText?.split('||').map(t => t.trim().toLowerCase()) ?? [];
-        const correctTextList = correctAnswers.map(a => answerLabel(a).trim().toLowerCase());
+        const userTextList =
+          userAnswer?.freeText?.split('||').map((t) => t.trim().toLowerCase()) ?? [];
+        const correctTextList = correctAnswers.map((a) => answerLabel(a).trim().toLowerCase());
         const strictOrder = (question as any).strictOrder ?? false;
 
-        userTexts = userAnswer?.freeText?.split('||').map(t => t.trim()) ?? [];
+        userTexts = userAnswer?.freeText?.split('||').map((t) => t.trim()) ?? [];
 
         let correctCount = 0;
         if (strictOrder) {
           correctCount = userTextList.filter((t, i) => t === correctTextList[i]).length;
         } else {
-          correctCount = userTextList.filter(t => correctTextList.includes(t)).length;
+          correctCount = userTextList.filter((t) => correctTextList.includes(t)).length;
         }
 
-        const pointsPerAnswer = question.points / correctTextList.length;
+        const pointsPerAnswer = correctTextList.length > 0 ? question.points / correctTextList.length : 0;
         const earnedPoints = Math.round(correctCount * pointsPerAnswer);
 
         isCorrect = correctCount === correctTextList.length;
@@ -146,7 +150,7 @@ export async function POST(
           userFreeText: userAnswer?.freeText,
         });
 
-        continue; // skip le totalScore générique en bas
+        continue;
       }
 
       if (isCorrect) totalScore += question.points;
@@ -163,33 +167,28 @@ export async function POST(
       });
     }
 
-    // Sauvegarde uniquement si l'utilisateur est connecté et n'est pas le créateur
-    if (session?.user?.id && session.user.id !== quiz.creatorId) {
-      const existingScore = await prisma.score.findUnique({
-        where: {
-          userId_quizId: {
-            userId: session.user.id,
-            quizId: quizId,
-          },
+    // ✅ 2) Sauvegarde Attempt UNE SEULE FOIS, après calcul
+    // règle existante : on ne sauvegarde pas si l'utilisateur connecté est le créateur
+    const isLogged = !!session?.user?.id;
+    const isCreator = isLogged && session!.user!.id === quiz.creatorId;
+
+    if (!isCreator) {
+      let userId: string;
+
+      if (isLogged) {
+        userId = session!.user!.id;
+      } else {
+        const anon = await createAnonymousUser();
+        userId = anon.id;
+      }
+
+      await prisma.attempt.create({
+        data: {
+          userId,
+          quizId,
+          score: totalScore,
         },
       });
-
-      if (!existingScore || totalScore > existingScore.totalScore) {
-        await prisma.score.upsert({
-          where: {
-            userId_quizId: {
-              userId: session.user.id,
-              quizId: quizId,
-            },
-          },
-          update: { totalScore },
-          create: {
-            userId: session.user.id,
-            quizId: quizId,
-            totalScore,
-          },
-        });
-      }
     }
 
     return NextResponse.json({

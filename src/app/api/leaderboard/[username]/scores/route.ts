@@ -19,12 +19,12 @@ export async function GET(
             return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
         }
 
-        const scores = await prisma.score.findMany({
+        const attempts = await prisma.attempt.findMany({
             where: { userId: user.id },
-            orderBy: { completedAt: 'desc' },
+            orderBy: { createdAt: 'desc' },
             select: {
-                totalScore: true,
-                completedAt: true,
+                score: true,
+                createdAt: true,
                 quiz: {
                     select: {
                         id: true,
@@ -37,12 +37,12 @@ export async function GET(
             },
         });
 
-        const quizScores = scores.map((s) => ({
-            quizId: s.quiz.id,
-            quizTitle: s.quiz.title,
-            score: s.totalScore,
-            maxScore: s.quiz.questions.reduce((sum, q) => sum + q.points, 0),
-            completedAt: s.completedAt.toISOString(),
+        const quizScores = attempts.map((a) => ({
+            quizId: a.quiz.id,
+            quizTitle: a.quiz.title,
+            score: a.score,
+            maxScore: a.quiz.questions.reduce((sum, q) => sum + q.points, 0),
+            completedAt: a.createdAt.toISOString(),
         }));
 
         return NextResponse.json({ quizScores });

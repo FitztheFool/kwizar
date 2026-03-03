@@ -137,7 +137,12 @@ export default function LeaderboardPage() {
                         <div className="text-2xl font-bold">{getMedalEmoji(entry.rank)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{entry.username}</div>
+                        <Link
+                          href={session?.user?.username === entry.username ? '/dashboard' : `/profil/${entry.username}`}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        >
+                          {entry.username}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button

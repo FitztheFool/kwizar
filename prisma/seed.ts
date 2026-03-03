@@ -12,7 +12,6 @@ async function main() {
   // ─── 1. Nettoyage ─────────────────────────────────────────────────────────
   await prisma.answer.deleteMany();
   await prisma.question.deleteMany();
-  await prisma.score.deleteMany();
   await prisma.attempt.deleteMany();
   await prisma.quiz.deleteMany();
   await prisma.category.deleteMany();
@@ -861,6 +860,59 @@ async function main() {
     }
   }
 
+  // ─── 5. Attempts pour Faros et User ──────────────────────────────────────
+  console.log('\n🎮 Création des attempts...');
+
+  const allQuizzes = await prisma.quiz.findMany({
+    select: {
+      id: true,
+      questions: {
+        select: { points: true }
+      }
+    }
+  });
+
+  const getMaxScore = (quiz: typeof allQuizzes[0]) =>
+    quiz.questions.reduce((sum, q) => sum + q.points, 0);
+
+  const getRandScore = (max: number) =>
+    Math.floor(Math.random() * (max + 1));
+
+  const getDaysAgo = (days: number) =>
+    new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  // Sélectionner 20 quiz aléatoires
+  const shuffle = (arr: typeof allQuizzes) => arr.sort(() => Math.random() - 0.5);
+  const farosQuizzes = shuffle([...allQuizzes]).slice(0, 20);
+  const userQuizzes = shuffle([...allQuizzes]).slice(0, 20);
+
+  for (let i = 0; i < farosQuizzes.length; i++) {
+    const quiz = farosQuizzes[i];
+    const max = getMaxScore(quiz);
+    await prisma.attempt.create({
+      data: {
+        userId: farosUser.id,
+        quizId: quiz.id,
+        score: getRandScore(max),
+        createdAt: getDaysAgo(Math.floor(Math.random() * 30)),
+      },
+    });
+  }
+
+  for (let i = 0; i < userQuizzes.length; i++) {
+    const quiz = userQuizzes[i];
+    const max = getMaxScore(quiz);
+    await prisma.attempt.create({
+      data: {
+        userId: anonUser.id,
+        quizId: quiz.id,
+        score: getRandScore(max),
+        createdAt: getDaysAgo(Math.floor(Math.random() * 30)),
+      },
+    });
+  }
+
+  console.log('✅ 20 attempts créés pour Faros et User');
   console.log(`\n✨ Seed terminé ! ${createdCount} quiz créés avec succès.`);
 }
 
