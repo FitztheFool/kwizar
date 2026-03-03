@@ -146,7 +146,7 @@ export default function LobbyPage() {
                                         {p.userId === lobby.hostId && <span title="Host">👑</span>}
                                         {p.userId === me.userId && <span className="text-xs opacity-60">(moi)</span>}
                                     </div>
-                                    <span className="text-xs opacity-60">{p.userId.slice(0, 6)}</span>
+                                    {/*<span className="text-xs opacity-60">{p.userId.slice(0, 6)}</span>*/}
                                 </div>
                             ))}
 
