@@ -21,7 +21,7 @@ interface Quiz {
   isPublic: boolean;
   creatorId?: string;
   createdAt?: string;
-  creator: { username: string };
+  creator: { id: string; username: string };
   category?: { name: string } | null;
   _count: { questions: number };
   questions?: { points: number }[];
