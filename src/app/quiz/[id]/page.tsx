@@ -199,7 +199,7 @@ export default function QuizPage() {
             sessionStorage.setItem(`quiz_result_${quizId}`, JSON.stringify(payload));
 
             if (lobbyCode) {
-                socket.emit('lobby:playerFinished', { totalScore: result.score });
+                socket.emit('lobby:playerFinished', { totalScore: result.score, questionResults });
             }
 
             router.push(`/quiz/${quizId}/result${lobbyCode ? `?lobby=${lobbyCode}` : ''}`);
@@ -225,13 +225,22 @@ export default function QuizPage() {
         if (idx === currentQuiz.questions.length - 1) {
             submitQuiz(newAnswers);
         } else {
-            setCurrentQuestionIndex(i => i + 1);
+            const nextIndex = idx + 1;
+            setCurrentQuestionIndex(nextIndex);
             setSelectedAnswer('');
             setSelectedAnswers([]);
             setFreeTextAnswer('');
             setMultiTextAnswers([]);
             setShowFeedback(false);
             setIsCorrect(false);
+
+            // ✅ Progression via timer
+            if (lobbyCode) {
+                socket.emit('lobby:playerProgress', {
+                    currentQuestion: nextIndex + 1,
+                    totalQuestions: currentQuiz.questions.length,
+                });
+            }
         }
     }, [buildCurrentAnswer, submitQuiz]);
 
@@ -271,6 +280,14 @@ export default function QuizPage() {
                 data.questions = [...data.questions].sort(() => Math.random() - 0.5);
             }
             setQuiz(data);
+
+            // ✅ Émet la progression initiale (question 1) dès le chargement
+            if (lobbyCode) {
+                socket.emit('lobby:playerProgress', {
+                    currentQuestion: 1,
+                    totalQuestions: data.questions.length,
+                });
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         } finally {
@@ -317,13 +334,22 @@ export default function QuizPage() {
         if (currentQuestionIndex === quiz.questions.length - 1) {
             submitQuiz(newAnswers);
         } else {
-            setCurrentQuestionIndex(i => i + 1);
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
             setSelectedAnswer('');
             setSelectedAnswers([]);
             setFreeTextAnswer('');
             setMultiTextAnswers([]);
             setShowFeedback(false);
             setIsCorrect(false);
+
+            // ✅ Émet la progression en temps réel aux autres joueurs du lobby
+            if (lobbyCode) {
+                socket.emit('lobby:playerProgress', {
+                    currentQuestion: nextIndex + 1,
+                    totalQuestions: quiz.questions.length,
+                });
+            }
         }
     };
 

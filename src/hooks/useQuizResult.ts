@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getSocket } from '@/lib/socket';
@@ -19,6 +19,7 @@ export interface LeaderboardEntry {
     userId: string;
     username: string;
     totalScore: number;
+    questionResults: QuestionResult[];
 }
 
 export interface PlayerProgress {
@@ -37,33 +38,59 @@ export function useQuizResult() {
     const quizId = params?.id as string;
     const lobbyCodeFromUrl = searchParams.get('lobby');
 
-    // Lecture synchrone au premier rendu — évite les problèmes de double montage
-    // en Strict Mode où le cleanup d'un useEffect supprimerait le sessionStorage
-    // avant la seconde exécution
     const [payload] = useState<ResultPayload | null>(() => {
         if (typeof window === 'undefined') return null;
         try {
             const raw = sessionStorage.getItem(`quiz_result_${quizId}`);
             return raw ? JSON.parse(raw) : null;
-        } catch {
-            return null;
-        }
+        } catch { return null; }
     });
 
-    // Supprime le sessionStorage au démontage
+    const [timeMode] = useState<string | null>(() => {
+        if (typeof window === 'undefined') return null;
+        const code = new URLSearchParams(window.location.search).get('lobby');
+        return sessionStorage.getItem(`lobby_timeMode_${code}`) ?? null;
+    });
+
+    const [timePerQuestion] = useState<number>(() => {
+        if (typeof window === 'undefined') return 0;
+        const code = new URLSearchParams(window.location.search).get('lobby');
+        return parseInt(sessionStorage.getItem(`lobby_timePerQuestion_${code}`) ?? '0', 10);
+    });
+
     useEffect(() => {
         return () => { sessionStorage.removeItem(`quiz_result_${quizId}`); };
     }, [quizId]);
 
     const lobbyCode = lobbyCodeFromUrl ?? payload?.lobbyCode ?? null;
 
-    // ─── Lobby socket ──────────────────────────────────────────────────────────
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [playerProgress, setPlayerProgress] = useState<PlayerProgress[]>([]);
     const [totalPlayers, setTotalPlayers] = useState(0);
     const [allFinished, setAllFinished] = useState(false);
+    const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const timeModeRef = useRef(timeMode);
+    const timePerQuestionRef = useRef(timePerQuestion);
+    timeModeRef.current = timeMode;
+    timePerQuestionRef.current = timePerQuestion;
 
     const socket = useMemo(() => getSocket(), []);
+
+    const startCountdown = (initialSeconds: number) => {
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        setTimeLeft(initialSeconds);
+        countdownRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev === null || prev <= 1) {
+                    if (countdownRef.current) clearInterval(countdownRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
 
     useEffect(() => {
         if (!lobbyCode || !session?.user?.id) return;
@@ -75,30 +102,58 @@ export function useQuizResult() {
         }) => {
             setTotalPlayers(total);
             setLeaderboard(lb);
-            if (done) setAllFinished(true);
+            if (done) {
+                setAllFinished(true);
+                setTimeLeft(null);
+                if (countdownRef.current) clearInterval(countdownRef.current);
+            }
         };
 
-        const onProgress = (progress: PlayerProgress[]) => setPlayerProgress(progress);
+        const onProgress = (progress: PlayerProgress[]) => {
+            setPlayerProgress(progress);
+            // ✅ Ne pas toucher au countdown ici — il est géré uniquement par game:perQuestionTimeLeft
+        };
+
+        const onTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
+            if (timeModeRef.current === 'total') setTimeLeft(t);
+        };
+
+        // ✅ Le serveur envoie le timeLeft recalculé à chaque progression d'un joueur
+        // On recalibre le countdown uniquement si la valeur change significativement
+        // (joueur le plus en retard a avancé d'une question → le max diminue)
+        const onServerTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
+            if (timeModeRef.current === 'per_question') {
+                setTimeLeft(prev => {
+                    // Premier démarrage ou recalibrage si différence > 5s
+                    if (prev === null || Math.abs(t - prev) > 5) {
+                        startCountdown(t);
+                        return t;
+                    }
+                    return prev;
+                });
+            }
+        };
 
         socket.on('game:leaderboard', onLeaderboard);
         socket.on('game:progress', onProgress);
+        socket.on('game:timeLeft', onTimeLeft);
+        socket.on('game:perQuestionTimeLeft', onServerTimeLeft);
 
-        // Rejoint la room lobby (le socket l'a quittée en naviguant vers /quiz)
-        // puis demande l'état actuel
         socket.emit('lobby:rejoin', {
             lobbyId: lobbyCode,
             userId: session.user.id,
             username: session.user.username ?? session.user.email ?? 'User',
         });
-        socket.emit('lobby:getLeaderboard');
 
         return () => {
             socket.off('game:leaderboard', onLeaderboard);
             socket.off('game:progress', onProgress);
+            socket.off('game:timeLeft', onTimeLeft);
+            socket.off('game:perQuestionTimeLeft', onServerTimeLeft);
+            if (countdownRef.current) clearInterval(countdownRef.current);
         };
     }, [lobbyCode, socket, session?.user?.id, session?.user?.username, session?.user?.email]);
 
-    // ─── Actions ───────────────────────────────────────────────────────────────
     const handleRestart = () => {
         router.push(`/quiz/${quizId}${lobbyCode ? `?lobby=${lobbyCode}` : ''}`);
     };
@@ -114,6 +169,7 @@ export function useQuizResult() {
         playerProgress,
         totalPlayers,
         allFinished,
+        timeLeft,
         handleRestart,
     };
 }

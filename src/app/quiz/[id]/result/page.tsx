@@ -2,11 +2,18 @@
 
 import Link from 'next/link';
 import QuizResults from '@/components/QuizResults';
+import { useRouter } from 'next/navigation';
 import { useQuizResult, LeaderboardEntry } from '@/hooks/useQuizResult';
 
 const PODIUM_EMOJIS = ['🥇', '🥈', '🥉'];
 
+function generateLobbyCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 export default function QuizResultPage() {
+    const router = useRouter();
     const {
         quizId,
         lobbyCode,
@@ -18,10 +25,10 @@ export default function QuizResultPage() {
         playerProgress,
         totalPlayers,
         allFinished,
+        timeLeft,
         handleRestart,
     } = useQuizResult();
 
-    // ─── Loading ──────────────────────────────────────────────────────────────
     if (authStatus === 'loading') {
         return <LoadingScreen text="Chargement des résultats..." />;
     }
@@ -53,6 +60,7 @@ export default function QuizResultPage() {
                 playerProgress={playerProgress}
                 totalPlayers={totalPlayers}
                 currentUserId={session?.user?.id}
+                timeLeft={timeLeft}
             />
         );
     }
@@ -113,8 +121,11 @@ export default function QuizResultPage() {
                         )}
 
                         <div className="flex gap-3 justify-center mt-8 flex-wrap">
-                            <button onClick={handleRestart} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                                Rejouer
+                            <button
+                                onClick={() => router.push(`/lobby/${generateLobbyCode()}`)}
+                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                Nouveau lobby
                             </button>
                             <Link href="/dashboard" className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
                                 Dashboard
@@ -130,56 +141,41 @@ export default function QuizResultPage() {
                         <h3 className="text-2xl font-bold text-gray-800 mb-6">📋 Récapitulatif</h3>
                         <div className="space-y-4">
                             {payload.questionResults.map((result, index) => (
-                                <div key={result.questionId} className={`p-5 rounded-xl border-2 ${result.isCorrect ? 'border-green-400 bg-green-50' : 'border-red-400 bg-red-50'}`}>
-                                    <div className="flex items-start justify-between gap-3 mb-3">
-                                        <p className="font-semibold text-gray-900">
-                                            <span className="text-gray-500 font-normal mr-2">Q{index + 1}.</span>
-                                            {result.questionText}
+                                <div key={result.questionId} className="border border-gray-200 rounded-xl overflow-hidden">
+                                    <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="font-semibold text-gray-800">
+                                                <span className="text-gray-400 font-normal mr-2">Q{index + 1}.</span>
+                                                {result.questionText}
+                                            </p>
+                                            <span className="text-xs text-gray-500 shrink-0 font-medium">{result.points} pts</span>
+                                        </div>
+                                        <p className="text-xs text-blue-600 mt-1">
+                                            ✅ <span className="font-medium">{result.correctAnswerText}</span>
                                         </p>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            <span className={`text-xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                                                {result.isCorrect ? '✓' : '✗'}
-                                            </span>
-                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${result.isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-                                                {result.earnedPoints > 0 ? `+${result.earnedPoints} pts` : '0 pt'}
-                                            </span>
-                                        </div>
                                     </div>
-
-                                    {result.type === 'MULTI_TEXT' ? (
-                                        <div className="mt-2">
-                                            <p className={`text-sm mb-2 ${result.isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                                                <span className="font-medium">Votre réponse : </span>
-                                                {result.userAnswerText || <span className="italic opacity-70">Aucune réponse</span>}
-                                            </p>
-                                            <div className="border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2">
-                                                <p className="text-sm font-medium text-blue-800 mb-2">Réponses attendues :</p>
-                                                <div className="space-y-1">
-                                                    {result.correctAnswerText.split(', ').map((c, i) => {
-                                                        const isGood = result.userAnswerText.split(', ').some(u => u.trim().toLowerCase() === c.trim().toLowerCase());
-                                                        return (
-                                                            <div key={i} className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${isGood ? 'bg-green-50 border-green-300 text-green-800' : 'bg-white border-blue-200 text-blue-700'}`}>
-                                                                {isGood ? '✓' : '•'} {c}
-                                                            </div>
-                                                        );
-                                                    })}
+                                    <div className="divide-y divide-gray-100">
+                                        {leaderboard.map((entry) => {
+                                            const playerResult = entry.questionResults?.find(r => r.questionId === result.questionId);
+                                            return (
+                                                <div key={entry.userId} className="flex items-center gap-3 px-5 py-3">
+                                                    <span className={`text-lg w-5 text-center font-bold ${playerResult ? (playerResult.isCorrect ? 'text-green-500' : 'text-red-500') : 'text-gray-300'}`}>
+                                                        {playerResult ? (playerResult.isCorrect ? '✓' : '✗') : '—'}
+                                                    </span>
+                                                    <span className="font-medium text-gray-700 text-sm w-24 shrink-0">
+                                                        {entry.username}
+                                                        {entry.userId === session?.user?.id && <span className="text-gray-400 text-xs ml-1">(moi)</span>}
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full flex-1 ${playerResult ? (playerResult.isCorrect ? 'text-green-700' : 'text-red-600') : 'text-gray-400 italic'}`}>
+                                                        {playerResult?.userAnswerText || 'Aucune réponse'}
+                                                    </span>
+                                                    <span className={`text-xs font-bold shrink-0 ${playerResult?.isCorrect ? 'text-green-600' : 'text-gray-400'}`}>
+                                                        {playerResult ? `${playerResult.earnedPoints}/${playerResult.points} pts` : '—'}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <p className={`text-sm mb-2 ${result.isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                                                <span className="font-medium">Votre réponse : </span>
-                                                {result.userAnswerText || <span className="italic opacity-70">Aucune réponse</span>}
-                                            </p>
-                                            {!result.isCorrect && (
-                                                <div className="text-sm text-blue-800 bg-blue-50 border border-blue-300 rounded-lg px-3 py-2">
-                                                    <span className="font-medium">✅ Réponse attendue : </span>
-                                                    {result.correctAnswerText}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -217,15 +213,27 @@ function LoadingScreen({ text }: { text: string }) {
     );
 }
 
-function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, totalPlayers, currentUserId }: {
+function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, totalPlayers, currentUserId, timeLeft }: {
     score: number;
     totalPoints: number;
     leaderboard: LeaderboardEntry[];
     playerProgress: ReturnType<typeof useQuizResult>['playerProgress'];
     totalPlayers: number;
     currentUserId?: string;
+    timeLeft: number | null;
 }) {
     const finishedCount = leaderboard.length;
+
+    // ✅ Progress bar basée sur la progression du joueur le plus en retard
+    const notDone = playerProgress.filter(p => !leaderboard.find(l => l.userId === p.userId));
+    const mostBehind = notDone.length > 0
+        ? notDone.reduce((max, p) =>
+            (p.totalQuestions - p.currentQuestion) > (max.totalQuestions - max.currentQuestion) ? p : max
+          , notDone[0])
+        : null;
+    const timerPct = mostBehind && mostBehind.totalQuestions > 0
+        ? Math.max(0, ((mostBehind.totalQuestions - mostBehind.currentQuestion + 1) / mostBehind.totalQuestions) * 100)
+        : 0;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -245,15 +253,28 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
                 </div>
 
                 <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-3">
                         <h2 className="font-bold text-gray-800">Joueurs</h2>
                         <span className="text-sm text-gray-500">{finishedCount} / {totalPlayers || '?'} terminé{finishedCount > 1 ? 's' : ''}</span>
                     </div>
 
+                    {/* Temps max restant */}
+                    {timeLeft !== null && timeLeft > 0 && (
+                        <div className="flex justify-between items-center mb-4 text-sm">
+                            <span className="text-gray-500">⏱ Temps max restant</span>
+                            <span className={`font-bold tabular-nums ${timeLeft <= 10 ? 'text-red-500' : 'text-blue-600'}`}>
+                                {timeLeft >= 60
+                                    ? `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')}`
+                                    : `${timeLeft}s`}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* ✅ Progress bar basée sur la progression du joueur le plus en retard */}
                     <div className="w-full bg-gray-100 rounded-full h-2 mb-5">
                         <div
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                            style={{ width: totalPlayers ? `${(finishedCount / totalPlayers) * 100}%` : '0%' }}
+                            className="h-2 rounded-full transition-all duration-500 bg-blue-500"
+                            style={{ width: `${timerPct}%` }}
                         />
                     </div>
 
@@ -267,7 +288,7 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
                                             {entry.username}
                                             {entry.userId === currentUserId && <span className="text-gray-400 text-xs ml-1">(moi)</span>}
                                         </span>
-                                        <span className="text-sm font-bold text-green-600">{entry.totalScore} pts</span>
+                                        <span className="text-sm font-bold text-green-600">{entry.totalScore}/{totalPoints} pts</span>
                                     </div>
                                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                                         <div className="bg-green-400 h-1.5 rounded-full w-full" />
