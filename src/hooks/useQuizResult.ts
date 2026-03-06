@@ -36,6 +36,7 @@ export function useQuizResult() {
     const router = useRouter();
     const { data: session, status } = useSession();
     const quizId = params?.id as string;
+    const [isHost, setIsHost] = useState(false);
     const lobbyCodeFromUrl = searchParams.get('lobby');
 
     const [payload] = useState<ResultPayload | null>(() => {
@@ -69,6 +70,8 @@ export function useQuizResult() {
     const [totalPlayers, setTotalPlayers] = useState(0);
     const [allFinished, setAllFinished] = useState(false);
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+    const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const timeModeRef = useRef(timeMode);
@@ -111,20 +114,15 @@ export function useQuizResult() {
 
         const onProgress = (progress: PlayerProgress[]) => {
             setPlayerProgress(progress);
-            // ✅ Ne pas toucher au countdown ici — il est géré uniquement par game:perQuestionTimeLeft
         };
 
         const onTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
             if (timeModeRef.current === 'total') setTimeLeft(t);
         };
 
-        // ✅ Le serveur envoie le timeLeft recalculé à chaque progression d'un joueur
-        // On recalibre le countdown uniquement si la valeur change significativement
-        // (joueur le plus en retard a avancé d'une question → le max diminue)
         const onServerTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
             if (timeModeRef.current === 'per_question') {
                 setTimeLeft(prev => {
-                    // Premier démarrage ou recalibrage si différence > 5s
                     if (prev === null || Math.abs(t - prev) > 5) {
                         startCountdown(t);
                         return t;
@@ -134,10 +132,19 @@ export function useQuizResult() {
             }
         };
 
+        const onLobbyState = ({ hostId }: { hostId: string }) => {
+            setIsHost(hostId === session?.user?.id);
+        };
+
         socket.on('game:leaderboard', onLeaderboard);
         socket.on('game:progress', onProgress);
         socket.on('game:timeLeft', onTimeLeft);
         socket.on('game:perQuestionTimeLeft', onServerTimeLeft);
+        socket.on('lobby:state', onLobbyState);
+
+        socket.on('lobby:redirectTo', ({ newLobbyId }) => {
+            router.push(`/lobby/${newLobbyId}`);
+        });
 
         socket.emit('lobby:rejoin', {
             lobbyId: lobbyCode,
@@ -150,6 +157,7 @@ export function useQuizResult() {
             socket.off('game:progress', onProgress);
             socket.off('game:timeLeft', onTimeLeft);
             socket.off('game:perQuestionTimeLeft', onServerTimeLeft);
+            socket.off('lobby:state', onLobbyState);
             if (countdownRef.current) clearInterval(countdownRef.current);
         };
     }, [lobbyCode, socket, session?.user?.id, session?.user?.username, session?.user?.email]);
@@ -170,6 +178,7 @@ export function useQuizResult() {
         totalPlayers,
         allFinished,
         timeLeft,
+        isHost,
         handleRestart,
     };
 }

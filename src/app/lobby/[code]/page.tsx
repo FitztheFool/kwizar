@@ -49,6 +49,7 @@ export default function LobbyPage() {
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [quizPage, setQuizPage] = useState(1);
     const [quizTotalPages, setQuizTotalPages] = useState(1);
+    const [copied, setCopied] = useState(false)
     const QUIZ_PAGE_SIZE = 10;
 
     const fetchQuizList = useCallback(async (p = 1) => {
@@ -166,8 +167,22 @@ export default function LobbyPage() {
                 {/* Header */}
                 <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl md:text-2xl font-bold">
+                        <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
                             Lobby <span className="font-mono">{lobbyId}</span>
+                            <div className="relative">
+                                <button onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/lobby/${lobbyId}`)
+                                    setCopied(true)
+                                    setTimeout(() => setCopied(false), 2000)
+                                }}>
+                                    ⧉
+                                </button>
+                                {copied && (
+                                    <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded whitespace-nowrap">
+                                        Collé !
+                                    </span>
+                                )}
+                            </div>
                         </h1>
                         <p className="text-sm opacity-70">
                             {isHost ? '👑 Vous êtes Host' : lobby.hostId ? 'En attente du host…' : 'Connexion…'}

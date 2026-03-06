@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 interface QuizScore {
+  createdAt: any;
   quizId: string;
   quizTitle: string;
   score: number;
@@ -232,7 +233,7 @@ export default function LeaderboardPage() {
                     const color = getPercentageColor(pct);
                     return (
                       <li
-                        key={qs.quizId}
+                        key={`${qs.quizId}-${qs.completedAt}`}
                         className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex items-center gap-4"
                       >
                         <div className="flex-1 min-w-0">
@@ -275,7 +276,8 @@ export default function LeaderboardPage() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }
