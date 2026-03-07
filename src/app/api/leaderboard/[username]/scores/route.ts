@@ -37,13 +37,15 @@ export async function GET(
             },
         });
 
-        const quizScores = attempts.map((a) => ({
-            quizId: a.quiz.id,
-            quizTitle: a.quiz.title,
-            score: a.score,
-            maxScore: a.quiz.questions.reduce((sum, q) => sum + q.points, 0),
-            completedAt: a.createdAt.toISOString(),
-        }));
+        const quizScores = attempts
+            .filter(a => a.quiz !== null)
+            .map((a) => ({
+                quizId: a.quiz!.id,
+                quizTitle: a.quiz!.title,
+                score: a.score,
+                maxScore: a.quiz!.questions.reduce((sum, q) => sum + q.points, 0),
+                completedAt: a.createdAt.toISOString(),
+            }));
 
         return NextResponse.json({ quizScores });
     } catch (error) {

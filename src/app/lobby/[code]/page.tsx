@@ -103,11 +103,9 @@ export default function LobbyPage() {
         const onState = (state: LobbyState) => setLobby({
             ...state,
             unoOptions: {
-                stackable: false,
-                jumpIn: false,
-                teamMode: 'none',
-                teamWinMode: 'one',
                 ...(state.unoOptions ?? {}),
+                teamMode: state.unoOptions?.teamMode ?? 'none',
+                teamWinMode: state.unoOptions?.teamWinMode ?? 'one',
             },
             teams: state.teams ?? null,
         });
@@ -250,11 +248,10 @@ export default function LobbyPage() {
                             <h2 className="font-bold text-lg mb-3">
                                 Participants
                                 {lobby.gameType === 'uno' && (
-                                    <span className={`ml-2 text-xs font-normal ${
-                                        is2v2
+                                    <span className={`ml-2 text-xs font-normal ${is2v2
                                             ? playerCount > 4 ? 'text-red-500' : playerCount === 4 ? 'text-green-500' : 'text-gray-400'
                                             : playerCount > 8 ? 'text-red-500' : 'text-gray-400'
-                                    }`}>
+                                        }`}>
                                         ({playerCount}/{is2v2 ? 4 : 8})
                                     </span>
                                 )}

@@ -55,7 +55,7 @@ export default function QuizResultPage() {
 
     // Reset lobby quiz selection then navigate back — clears the checkbox for everyone
     const handleRejouer = () => {
-        if (lobbyCode) socket.emit('lobby:restart');
+        if (lobbyCode) socket?.emit('lobby:restart');
         router.push(`/lobby/${lobbyCode}`);
     };
 

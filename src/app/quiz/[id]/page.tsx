@@ -112,7 +112,7 @@ export default function QuizPage() {
     // ✅ quiz:join au montage (une fois le quiz chargé et lobbyCode présent)
     useEffect(() => {
         if (!lobbyCode || !quizId || !session?.user?.id || !timeMode) return;
-        socket.emit('quiz:join', {
+        socket?.emit('quiz:join', {
             lobbyId: lobbyCode,
             quizId,
             userId: session.user.id,
@@ -211,7 +211,7 @@ export default function QuizPage() {
 
             if (lobbyCode) {
                 // ✅ quiz:playerFinished (était lobby:playerFinished)
-                socket.emit('quiz:playerFinished', { totalScore: result.score, questionResults });
+                socket?.emit('quiz:playerFinished', { totalScore: result.score, questionResults });
             }
 
             router.push(`/quiz/${quizId}/result${lobbyCode ? `?lobby=${lobbyCode}` : ''}`);
@@ -247,7 +247,7 @@ export default function QuizPage() {
 
             // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
-                socket.emit('quiz:playerProgress', {
+                socket?.emit('quiz:playerProgress', {
                     currentQuestion: nextIndex + 1,
                     totalQuestions: currentQuiz.questions.length,
                 });
@@ -293,7 +293,7 @@ export default function QuizPage() {
 
             // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
-                socket.emit('quiz:playerProgress', {
+                socket?.emit('quiz:playerProgress', {
                     currentQuestion: 1,
                     totalQuestions: data.questions.length,
                 });
@@ -355,7 +355,7 @@ export default function QuizPage() {
 
             // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
-                socket.emit('quiz:playerProgress', {
+                socket?.emit('quiz:playerProgress', {
                     currentQuestion: nextIndex + 1,
                     totalQuestions: quiz.questions.length,
                 });

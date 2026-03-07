@@ -134,6 +134,8 @@ export function useQuizResult() {
             setIsHost(hostId === session?.user?.id);
         };
 
+        if (!socket) return;
+
         socket.on('game:leaderboard', onLeaderboard);
         socket.on('game:progress', onProgress);
         socket.on('game:timeLeft', onTimeLeft);

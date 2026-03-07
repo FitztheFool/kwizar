@@ -29,15 +29,14 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      const leaderboard = Array.from(bestByUser.values())
-        .sort((a, b) => b.score - a.score)
-        .map((attempt, index) => ({
-          rank: index + 1,
+      const leaderboard = attempts
+        .filter(attempt => attempt.quiz !== null)
+        .map(attempt => ({
           username: attempt.user.username,
           userId: attempt.user.id,
           score: attempt.score,
           completedAt: attempt.createdAt,
-          quizTitle: attempt.quiz.title,
+          quizTitle: attempt.quiz!.title,
         }));
 
       return NextResponse.json({ type: 'quiz', quizId, leaderboard });
@@ -73,7 +72,7 @@ export async function GET(req: NextRequest) {
         .reduce((max, a) => Math.max(max, a.score), 0);
 
       // Mettre à jour seulement si ce quiz n'a pas encore été comptabilisé
-      if (!userEntry.quizzes.has(attempt.quizId)) {
+      if (attempt.quizId && !userEntry.quizzes.has(attempt.quizId)) {
         userEntry.quizzes.add(attempt.quizId);
         userEntry.total += bestForThisQuiz;
       }

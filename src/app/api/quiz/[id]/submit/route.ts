@@ -187,6 +187,8 @@ export async function POST(
           userId,
           quizId,
           score: totalScore,
+          gameType: 'QUIZ',
+          gameId: crypto.randomUUID(),
         },
       });
     }

@@ -49,20 +49,22 @@ export async function GET(
     }
 
     const groupedScores = Object.values(
-      user.attempts.reduce((acc, a) => {
-        const quizId = a.quiz.id;
-        const maxScore = a.quiz.questions.reduce((sum, q) => sum + q.points, 0);
-        if (!acc[quizId] || a.score > acc[quizId].totalScore) {
-          acc[quizId] = {
-            quiz: { id: a.quiz.id, title: a.quiz.title },
-            totalScore: a.score,
-            completedAt: a.createdAt,
-            maxScore,
-            attempts: user.attempts.filter(s => s.quiz.id === quizId).length,
-          };
-        }
-        return acc;
-      }, {} as Record<string, any>)
+      user.attempts
+        .filter((a): a is typeof a & { quiz: NonNullable<typeof a.quiz> } => a.quiz !== null)
+        .reduce((acc, a) => {
+          const quizId = a.quiz.id;
+          const maxScore = a.quiz.questions.reduce((sum, q) => sum + q.points, 0);
+          if (!acc[quizId] || a.score > acc[quizId].totalScore) {
+            acc[quizId] = {
+              quiz: { id: a.quiz.id, title: a.quiz.title },
+              totalScore: a.score,
+              completedAt: a.createdAt,
+              maxScore,
+              attempts: user.attempts.filter(s => s.quiz?.id === quizId).length,
+            };
+          }
+          return acc;
+        }, {} as Record<string, any>)
     ).sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
 
     return NextResponse.json({
