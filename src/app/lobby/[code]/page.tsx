@@ -249,8 +249,8 @@ export default function LobbyPage() {
                                 Participants
                                 {lobby.gameType === 'uno' && (
                                     <span className={`ml-2 text-xs font-normal ${is2v2
-                                            ? playerCount > 4 ? 'text-red-500' : playerCount === 4 ? 'text-green-500' : 'text-gray-400'
-                                            : playerCount > 8 ? 'text-red-500' : 'text-gray-400'
+                                        ? playerCount > 4 ? 'text-red-500' : playerCount === 4 ? 'text-green-500' : 'text-gray-400'
+                                        : playerCount > 8 ? 'text-red-500' : 'text-gray-400'
                                         }`}>
                                         ({playerCount}/{is2v2 ? 4 : 8})
                                     </span>

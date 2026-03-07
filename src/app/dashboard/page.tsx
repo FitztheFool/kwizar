@@ -207,12 +207,14 @@ export default function DashboardPage() {
     useEffect(() => {
         if (status === 'unauthenticated') {
             router.push('/login?callbackUrl=' + encodeURIComponent('/dashboard'));
-        } else if (status === 'authenticated') {
+            return;
+        }
+        if (status === 'authenticated') {
             fetchData();
             setActiveTab(getTabFromHash());
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [status, router, fetchData]);
+    }, [status]);
 
     const handlePageChange = (p: number) => {
         setPage(p);

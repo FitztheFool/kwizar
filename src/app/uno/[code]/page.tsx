@@ -133,6 +133,8 @@ export default function UnoPage() {
     const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
     const inactivityIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+    const [unoReady, setUnoReady] = useState(false);
+
     const me = useMemo(() => ({
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
@@ -160,6 +162,7 @@ export default function UnoPage() {
         const onLobbyState = (s: LobbyState) => setLobbyState(s);
         const onGameState = (s: GameState) => {
             setGameState(s);
+            if (!s.isMyTurn) { setUnoReady(false); }
             setInactivitySeconds(null);
             setInactivityUserId(null);
             if (inactivityIntervalRef.current) {
@@ -234,16 +237,18 @@ export default function UnoPage() {
         if (card.value === 'wild' || card.value === 'wild4') {
             setShowColorPicker(true);
         } else {
-            socket?.emit('uno:playCard', { cardId: card.id, sayUno: gameState.hand.length - 1 === 1 });
+            socket?.emit('uno:playCard', { cardId: card.id, sayUno: gameState.hand.length - 1 === 1 ? unoReady : false });
             setSelectedCard(null);
+            setUnoReady(false);
         }
     };
 
     const handleColorChoice = (color: string) => {
         if (!selectedCard) return;
-        socket?.emit('uno:playCard', { cardId: selectedCard.id, chosenColor: color, sayUno: (gameState?.hand.length ?? 1) - 1 === 1 });
+        socket?.emit('uno:playCard', { cardId: selectedCard.id, chosenColor: color, sayUno: (gameState?.hand.length ?? 1) - 1 === 1 ? unoReady : false });
         setSelectedCard(null);
         setShowColorPicker(false);
+        setUnoReady(false);
     };
 
     if (status === 'loading') {
@@ -591,11 +596,23 @@ export default function UnoPage() {
                     {/* Ma main */}
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-400">Ma main ({gameState.hand.length} cartes)</span>
+                        {gameState.hand.length === 2 && gameState.isMyTurn && (
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <span className="text-xs text-gray-400">UNO</span>
+                                <div
+                                    onClick={() => setUnoReady(r => !r)}
+                                    className={`relative w-10 h-6 rounded-full transition-colors duration-200
+                    ${unoReady ? 'bg-yellow-400' : 'bg-gray-600'}`}>
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200
+                    ${unoReady ? 'translate-x-5' : 'translate-x-1'}`} />
+                                </div>
+                            </label>
+                        )}
                         {gameState.hand.length === 1 && (
-                            <button onClick={() => socket?.emit('uno:sayUno')}
-                                className="text-xs bg-yellow-400 text-gray-900 px-3 py-1 rounded-full font-bold hover:bg-yellow-300 transition animate-bounce">
-                                UNO !
-                            </button>
+                            <span className={`text-xs px-3 py-1 rounded-full font-bold
+            ${unoReady ? 'bg-yellow-400 text-gray-900' : 'bg-red-500 text-white animate-pulse'}`}>
+                                {unoReady ? '✅ UNO déclaré' : '⚠️ UNO non déclaré !'}
+                            </span>
                         )}
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2 justify-center flex-wrap">
