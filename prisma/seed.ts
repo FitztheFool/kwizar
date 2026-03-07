@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { PrismaClient, QuestionType } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { computeUnoScore } from '../src/lib/unoRewards';
 
 const prisma = new PrismaClient();
 
@@ -47,7 +48,7 @@ async function main() {
   const farosUser = await prisma.user.upsert({
     where: { email: 'faros@quiz.app' },
     update: {},
-    create: { email: 'faros@quiz.app', username: 'Faros', role: 'ADMIN', passwordHash: defaultPasswordHash },
+    create: { email: 'faros@quiz.app', username: 'Faros', role: 'USER', passwordHash: defaultPasswordHash },
   });
 
   console.log(`✅ Utilisateur créé: ${adminUser.username}`);
@@ -894,6 +895,8 @@ async function main() {
         userId: farosUser.id,
         quizId: quiz.id,
         score: getRandScore(max),
+        gameType: 'QUIZ',
+        gameId: crypto.randomUUID(),  // ← ajouter
         createdAt: getDaysAgo(Math.floor(Math.random() * 30)),
       },
     });
@@ -907,6 +910,8 @@ async function main() {
         userId: anonUser.id,
         quizId: quiz.id,
         score: getRandScore(max),
+        gameType: 'QUIZ',
+        gameId: crypto.randomUUID(),
         createdAt: getDaysAgo(Math.floor(Math.random() * 30)),
       },
     });
@@ -914,6 +919,36 @@ async function main() {
 
   console.log('✅ 20 attempts créés pour Faros et User');
   console.log(`\n✨ Seed terminé ! ${createdCount} quiz créés avec succès.`);
+
+  // ─── Parties UNO ──────────────────────────────────────────────────────────
+  console.log('\n🎴 Création des parties UNO...');
+
+  const unoPlayers = [farosUser, anonUser, adminUser, randomUser];
+
+  for (let g = 0; g < 10; g++) {
+    const gameId = crypto.randomUUID();
+    const playerCount = Math.floor(Math.random() * 6) + 2; // 2 à 8 joueurs
+    const participants = [...unoPlayers].sort(() => Math.random() - 0.5).slice(0, playerCount);
+
+    for (let p = 0; p < participants.length; p++) {
+      const rank = p + 1;
+      await prisma.attempt.create({
+        data: {
+          userId: participants[p].id,
+          score: computeUnoScore(rank),
+          gameType: 'UNO',
+          placement: rank,
+          gameId,
+          quizId: null,
+          createdAt: getDaysAgo(Math.floor(Math.random() * 30)),
+        },
+      });
+    }
+
+    console.log(`  ✅ Partie UNO ${g + 1}/10 — ${playerCount} joueurs`);
+  }
+
+  console.log('✅ 10 parties UNO créées');
 }
 
 main()

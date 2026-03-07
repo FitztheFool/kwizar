@@ -91,7 +91,9 @@ export default function HomePage() {
     if (status !== 'authenticated') return;
     fetch('/api/user/scores')
       .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data) setMyScores(data); })
+      .then((data) => {
+        setMyScores(data?.scores ?? []);
+      })
       .catch(console.error);
   }, [status]);
 

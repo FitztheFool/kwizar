@@ -1,118 +1,129 @@
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  enum Role {
-    USER
-    RANDOM
-    ADMIN
-    ANONYMOUS
-  }
+enum Role {
+  USER
+  RANDOM
+  ADMIN
+  ANONYMOUS
+}
 
-  enum QuestionType {
-    TRUE_FALSE
-    MCQ
-    TEXT
-    MULTI_TEXT
-  }
+enum QuestionType {
+  TRUE_FALSE
+  MCQ
+  TEXT
+  MULTI_TEXT
+}
 
-  model User {
-    id           String   @id @default(cuid())
-    username     String   @unique
-    email        String   @unique
-    passwordHash String
-    role         Role     @default(USER)
-    isAnonymous  Boolean  @default(false)
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+enum GameType {
+  QUIZ
+  UNO
+}
 
-    createdQuizzes Quiz[]
-    attempts       Attempt[]
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  isAnonymous  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-    @@map("users")
-  }
+  createdQuizzes Quiz[]
+  attempts       Attempt[]
 
-  model Quiz {
-    id                 String    @id @default(cuid())
-    title              String
-    description        String?   @db.Text
-    randomizeQuestions Boolean   @default(false)
-    isPublic           Boolean   @default(true)
-    categoryId         String?
-    category           Category? @relation(fields: [categoryId], references: [id])
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime  @updatedAt
+  @@map("users")
+}
 
-    creatorId String
-    creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+model Quiz {
+  id                 String    @id @default(cuid())
+  title              String
+  description        String?   @db.Text
+  randomizeQuestions Boolean   @default(false)
+  isPublic           Boolean   @default(true)
+  categoryId         String?
+  category           Category? @relation(fields: [categoryId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-    questions Question[]
-    attempts  Attempt[]
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
-    @@index([categoryId])
-    @@index([creatorId])
-    @@index([isPublic])
-    @@map("quizzes")
-  }
+  questions Question[]
+  attempts  Attempt[]
 
-  model Question {
-    id          String       @id @default(cuid())
-    type        QuestionType
-    content     String       @db.Text
-    points      Int          @default(1)
-    strictOrder Boolean      @default(false)
-    createdAt   DateTime     @default(now())
-    updatedAt   DateTime     @updatedAt
+  @@index([categoryId])
+  @@index([creatorId])
+  @@index([isPublic])
+  @@map("quizzes")
+}
 
-    quizId  String
-    quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-    answers Answer[]
+model Question {
+  id          String       @id @default(cuid())
+  type        QuestionType
+  content     String       @db.Text
+  points      Int          @default(1)
+  strictOrder Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-    @@index([quizId])
-    @@map("questions")
-  }
+  quizId  String
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
 
-  model Answer {
-    id        String   @id @default(cuid())
-    content   String   @db.Text
-    isCorrect Boolean  @default(false)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  @@index([quizId])
+  @@map("questions")
+}
 
-    questionId String
-    question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+model Answer {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  isCorrect Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([questionId])
-    @@map("answers")
-  }
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  model Category {
-    id        String   @id @default(cuid())
-    name      String   @unique
-    slug      String   @unique
-    createdAt DateTime @default(now())
+  @@index([questionId])
+  @@map("answers")
+}
 
-    quizzes Quiz[]
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
 
-    @@map("categories")
-  }
+  quizzes Quiz[]
 
-  model Attempt {
-    id        String   @id @default(cuid())
-    score     Int
-    createdAt DateTime @default(now())
+  @@map("categories")
+}
 
-    userId String
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Attempt {
+  id        String   @id @default(cuid())
+  score     Int
+  gameType  GameType @default(QUIZ)
+  gameId    String
+  // UNO : position finale (1 = gagnant, 2 = 2ème, etc.)
+  placement Int?
+  createdAt DateTime @default(now())
 
-    quizId String
-    quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId, quizId])
-    @@map("attempts")
-  }
+  // nullable pour les parties UNO
+  quizId String?
+  quiz   Quiz?   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId])
+  @@index([userId, gameType])
+  @@map("attempts")
+}

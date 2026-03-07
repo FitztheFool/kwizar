@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
 
     const q = (searchParams.get('q') || '').trim();
     const hideAnonymous = parseBool(searchParams.get('hideAnonymous'), false);
-
     const sort = (searchParams.get('sort') || 'createdAt_desc') as SortKey;
 
     const where: any = {};
@@ -50,7 +49,7 @@ export async function GET(req: NextRequest) {
         ];
     }
 
-    const [users, total] = await Promise.all([
+    const [rawUsers, total] = await Promise.all([
         prisma.user.findMany({
             where,
             select: {
@@ -59,7 +58,8 @@ export async function GET(req: NextRequest) {
                 email: true,
                 role: true,
                 createdAt: true,
-                _count: { select: { createdQuizzes: true, attempts: true } },
+                _count: { select: { createdQuizzes: true } },
+                attempts: { select: { gameType: true } },
             },
             orderBy: getOrderBy(sort),
             skip: (page - 1) * pageSize,
@@ -67,6 +67,12 @@ export async function GET(req: NextRequest) {
         }),
         prisma.user.count({ where }),
     ]);
+
+    const users = rawUsers.map(({ attempts, ...user }) => ({
+        ...user,
+        quizAttempts: attempts.filter(a => a.gameType === 'QUIZ').length,
+        unoAttempts: attempts.filter(a => a.gameType === 'UNO').length,
+    }));
 
     return NextResponse.json({
         users,
@@ -87,13 +93,11 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 });
     }
 
-    // ✅ Validation simple des rôles possibles
     const allowedRoles = new Set(['USER', 'RANDOM', 'ADMIN', 'ANONYMOUS']);
     if (!allowedRoles.has(role)) {
         return NextResponse.json({ error: 'Rôle invalide' }, { status: 400 });
     }
 
-    // ✅ Optionnel : empêcher de modifier ADMIN et ANONYMOUS
     const target = await prisma.user.findUnique({
         where: { id: userId },
         select: { role: true },
@@ -127,11 +131,6 @@ export async function DELETE(req: NextRequest) {
     if (target?.role === 'ADMIN') {
         return NextResponse.json({ error: 'Impossible de supprimer un admin' }, { status: 403 });
     }
-
-    // Optionnel : empêcher suppression des anonymes
-    // if (target?.role === 'ANONYMOUS') {
-    //   return NextResponse.json({ error: 'Impossible de supprimer un anonyme' }, { status: 403 });
-    // }
 
     await prisma.user.delete({ where: { id: userId } });
     return NextResponse.json({ success: true });
