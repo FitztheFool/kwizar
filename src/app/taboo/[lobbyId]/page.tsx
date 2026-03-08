@@ -49,13 +49,14 @@ export default function TabooGamePage() {
     const [attemptInput, setAttemptInput] = useState('');
 
     const myId = session?.user?.id ?? '';
+    const myTeam = game?.teams?.[myId] ?? null;
 
     const [localTraps, setLocalTraps] = useState<string[]>([]);
     const focusedSlot = useRef<number | null>(null);
 
     // Sync depuis serveur sauf pour le slot en cours d'édition
     useEffect(() => {
-        if (!game || !myTeam) return;
+        if (!game || myTeam === null) return;
         const allPlayers = game.players.filter(p => p.team === myTeam);
         const merged = Array.from({ length: game.trapWordCount }, (_, i) => {
             if (focusedSlot.current === i) return localTraps[i] ?? '';
@@ -85,7 +86,6 @@ export default function TabooGamePage() {
 
         socket.on('taboo:state', (state: TabooState) => {
             console.log('mon myId:', myId, 'trapsByPlayer keys:', Object.keys(state.trapsByPlayer));
-
             setGame(state);
         });
 
@@ -134,7 +134,6 @@ export default function TabooGamePage() {
     if (status !== 'authenticated') return null;
 
     const isHost = game.hostId === myId;
-    const myTeam = game.teams?.[myId] ?? null;
     const isCurrentTeam = myTeam === game.currentTeam;
     const isAdversary = myTeam !== game.currentTeam && myTeam !== null;
 
@@ -149,19 +148,15 @@ export default function TabooGamePage() {
         setAttemptInput('');
     };
 
-    // Traps fusionnés de toute l'équipe (tous les slots de tous les coéquipiers)
-    const teamTraps = Array.from({ length: game.trapWordCount }, (_, i) => {
-        // Cherche la première valeur non vide pour ce slot parmi tous les coéquipiers + moi
-        const allPlayers = game.players.filter(p => p.team === myTeam);
-        for (const p of allPlayers) {
-            const val = game.trapsByPlayer?.[p.userId]?.[i];
-            if (val && val.trim()) return val;
-        }
-        return '';
-    });
-
     const handleTrapChange = (i: number, value: string) => {
-        const next = Array.from({ length: game.trapWordCount }, (_, idx) => teamTraps[idx] ?? '');
+        const next = Array.from({ length: game.trapWordCount }, (_, idx) => {
+            const allPlayers = game.players.filter(p => p.team === myTeam);
+            for (const p of allPlayers) {
+                const val = game.trapsByPlayer?.[p.userId]?.[idx];
+                if (val && val.trim()) return val;
+            }
+            return '';
+        });
         next[i] = value;
         socket?.emit('taboo:submitTraps', { lobbyId, traps: next });
     };
@@ -203,7 +198,6 @@ export default function TabooGamePage() {
         const nextTeamLabel = game.currentTeam === 0 ? '🔵 Équipe Bleue' : '🔴 Équipe Rouge';
         const isMyTurnNext = isCurrentTeam;
         const wordToPiege = myTeam === 0 ? game.team1Word : game.team0Word;
-        const teammates = game.players.filter(p => p.team === myTeam && p.userId !== myId);
 
         return (
             <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center px-4 gap-6 text-center" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -240,7 +234,6 @@ export default function TabooGamePage() {
                                     <p className="text-xs text-white/40 mb-2">🤝 Pièges de l'équipe</p>
                                     <div className="space-y-2">
                                         {Array.from({ length: game.trapWordCount }).map((_, i) => {
-                                            // Valeur fusionnée : première valeur non vide parmi tous les coéquipiers
                                             const allTeamPlayers = game.players.filter(p => p.team === myTeam);
                                             const mergedValue = (() => {
                                                 for (const p of allTeamPlayers) {
@@ -253,19 +246,10 @@ export default function TabooGamePage() {
                                             return (
                                                 <input
                                                     key={i}
-                                                    value={mergedValue}
-                                                    onChange={e => {
-                                                        const next = Array.from({ length: game.trapWordCount }, (_, idx) => {
-                                                            const allPlayers = game.players.filter(p => p.team === myTeam);
-                                                            for (const p of allPlayers) {
-                                                                const val = game.trapsByPlayer?.[p.userId]?.[idx];
-                                                                if (val && val.trim()) return val;
-                                                            }
-                                                            return '';
-                                                        });
-                                                        next[i] = e.target.value;
-                                                        socket?.emit('taboo:submitTraps', { lobbyId, traps: next });
-                                                    }}
+                                                    value={localTraps[i] ?? mergedValue}
+                                                    onFocus={() => { focusedSlot.current = i; }}
+                                                    onBlur={() => { focusedSlot.current = null; }}
+                                                    onChange={e => handleTrapChange(i, e.target.value)}
                                                     placeholder={`Mot piégé ${i + 1}`}
                                                     className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 placeholder:text-white/20"
                                                 />
@@ -330,7 +314,6 @@ export default function TabooGamePage() {
         <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bebas+Neue&display=swap');`}</style>
 
-            {/* Header */}
             <div className="border-b border-white/10 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${game.currentTeam === 0 ? 'bg-blue-500/20 text-blue-300' : 'bg-red-500/20 text-red-300'}`}>
@@ -361,7 +344,6 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col md:flex-row gap-0 overflow-hidden">
                 <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
 
-                    {/* Carte mot */}
                     <div className={`w-full max-w-sm rounded-3xl border-2 p-8 text-center ${isCurrentTeam ? 'border-white/20 bg-white/5' : 'border-white/10 bg-white/3'}`}>
                         <p className="text-xs text-white/30 uppercase tracking-widest mb-3">
                             {isCurrentTeam ? 'Mot à faire deviner' : 'Mot en cours'}
@@ -384,7 +366,6 @@ export default function TabooGamePage() {
                         )}
                     </div>
 
-                    {/* Input tentative */}
                     {isCurrentTeam && game.phase === 'playing' && !game.paused && (
                         <div className="w-full max-w-sm flex gap-2">
                             <input
@@ -400,7 +381,6 @@ export default function TabooGamePage() {
                         </div>
                     )}
 
-                    {/* Boutons d'action */}
                     <div className="flex gap-3 flex-wrap justify-center">
                         <button
                             onClick={() => socket?.emit('taboo:pause', { lobbyId })}
@@ -433,7 +413,6 @@ export default function TabooGamePage() {
                     </p>
                 </div>
 
-                {/* Historique */}
                 <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-white/10 flex flex-col">
                     <div className="px-4 py-3 border-b border-white/10">
                         <p className="text-xs text-white/40 uppercase tracking-widest">Historique</p>
