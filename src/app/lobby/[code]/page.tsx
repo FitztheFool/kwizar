@@ -120,6 +120,8 @@ export default function LobbyPage() {
                 setLobby(currentLobby => {
                     sessionStorage.setItem(`taboo_teams_${lobbyId}`, JSON.stringify(currentLobby.teams ?? {}));
                     sessionStorage.setItem(`taboo_hostId_${lobbyId}`, currentLobby.hostId ?? '');
+                    sessionStorage.setItem(`taboo_orators_${lobbyId}`, JSON.stringify(currentLobby.orators ?? { '0': null, '1': null }));
+
                     return currentLobby;
                 });
                 router.push(`/taboo/${lobbyId}/game`);
