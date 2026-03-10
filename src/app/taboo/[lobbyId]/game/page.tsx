@@ -352,14 +352,11 @@ export default function TabooGamePage() {
                         </div>
                     )}
 
-                    {isHost ? (
-                        <button onClick={() => socketRef.current?.emit('taboo:nextTurn', { lobbyId })}
-                            className="mt-2 w-full px-8 py-4 rounded-2xl bg-green-500 hover:bg-green-400 font-bold text-lg transition-all shadow-lg shadow-green-500/20">
-                            ➡ Tour suivant
-                        </button>
-                    ) : (
-                        <p className="text-white/30 text-sm mt-2">En attente du host…</p>
-                    )}
+
+                    <button onClick={() => socketRef.current?.emit('taboo:nextTurn', { lobbyId })}
+                        className="mt-2 w-full px-8 py-4 rounded-2xl bg-green-500 hover:bg-green-400 font-bold text-lg transition-all shadow-lg shadow-green-500/20">
+                        ➡ Tour suivant
+                    </button>
                 </div>
             </div>
         );
