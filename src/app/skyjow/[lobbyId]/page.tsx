@@ -464,7 +464,7 @@ export default function skyjowGamePage() {
             <div className="min-h-screen bg-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-5xl mb-4 animate-bounce">🃏</div>
-                    <LoadingSpinner message="Chargement de la partie…" bg="bg-slate-900" color="border-slate-300" />
+                    <LoadingSpinner message="Chargement de la partie…" />
                 </div>
             </div>
         );

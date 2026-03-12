@@ -205,7 +205,7 @@ export default function TabooGamePage() {
         }
     }, [game?.attempts]);
 
-    if (status === 'loading' || !game) return <LoadingSpinner bg="bg-[#0d0d0d]" color="border-red-500" />;
+    if (status === 'loading' || !game) return <LoadingSpinner />;
     if (status !== 'authenticated') return null;
 
     const isHost = game.hostId === myId;
