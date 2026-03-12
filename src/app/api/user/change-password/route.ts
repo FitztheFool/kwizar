@@ -23,14 +23,14 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { password: true },
+      select: { passwordHash: true },
     });
 
-    if (!user?.password) {
+    if (!user?.passwordHash) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const valid = await bcrypt.compare(currentPassword, user.password);
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!valid) {
       return NextResponse.json({ error: 'Mot de passe actuel incorrect' }, { status: 400 });
     }
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const hashed = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { password: hashed },
+      data: { passwordHash: hashed },
     });
 
     return NextResponse.json({ success: true });
