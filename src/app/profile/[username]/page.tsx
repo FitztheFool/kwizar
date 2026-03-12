@@ -72,7 +72,7 @@ export default function PlayerProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/profil/${username}`);
+        const res = await fetch(`/api/profile/${username}`);
         if (!res.ok) { setNotFound(true); return; }
         const data = await res.json();
         setProfile(data);
@@ -88,7 +88,7 @@ export default function PlayerProfilePage() {
   }, [username, sessionStatus]);
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
           <p className="mt-4 text-gray-600 text-lg font-semibold">Chargement...</p>
@@ -99,7 +99,7 @@ export default function PlayerProfilePage() {
 
   if (notFound || !profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-2xl font-bold text-gray-700 mb-2">Joueur introuvable</p>
           <p className="text-gray-500 mb-6">Ce profil n'existe pas ou n'est pas accessible.</p>
@@ -122,11 +122,11 @@ export default function PlayerProfilePage() {
   const paginatedScores = profile.scores.slice((scorePage - 1) * PAGE_SIZE, scorePage * PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mb-8">
           <button
             onClick={() => router.back()}
             className="text-sm text-gray-500 hover:text-gray-700 mb-6 inline-flex items-center gap-1 transition-colors"
@@ -139,7 +139,7 @@ export default function PlayerProfilePage() {
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{displayName}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{displayName}</h1>
               <p className="text-gray-500 text-sm">Profil joueur</p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function PlayerProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div className="mt-8 border-b-2 border-gray-200">
+          <div className="mt-8 border-b-2 border-gray-200 dark:border-gray-700">
             <div className="flex gap-6">
               {(['quizzes', 'scores'] as TabType[]).map((tab) => (
                 <button
@@ -184,7 +184,7 @@ export default function PlayerProfilePage() {
 
         {/* Tab: Quiz créés */}
         {activeTab === 'quizzes' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Quiz créés par {displayName}</h2>
             {profile.quizzes.length === 0 ? (
               <div className="text-center py-16">
@@ -210,12 +210,12 @@ export default function PlayerProfilePage() {
 
         {/* Tab: Scores */}
         {activeTab === 'scores' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Scores de {displayName}</h2>
             {profile.scores.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-gray-600 text-lg mb-2">Aucun score enregistré</p>
-                <p className="text-gray-500">Ce joueur n'a encore complété aucun quiz.</p>
+                <p className="text-gray-500 dark:text-gray-400">Ce joueur n'a encore complété aucun quiz.</p>
               </div>
             ) : (
               <>

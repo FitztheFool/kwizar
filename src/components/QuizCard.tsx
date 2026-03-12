@@ -58,9 +58,9 @@ export default function QuizCard({
 
   return (
     <div
-      className={`bg-gray-50 rounded-xl p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
-        ? 'border-gray-200 opacity-70'
-        : 'border-gray-200 hover:border-blue-400 hover:shadow-xl'
+      className={`bg-white dark:bg-gray-900 rounded-xl p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
+        ? 'border-gray-200 dark:border-gray-700 opacity-70'
+        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl'
         }`}
     >
       {/* Badges */}
@@ -84,20 +84,20 @@ export default function QuizCard({
 
       {/* Contenu — flex-1 pousse le bouton en bas */}
       <div className="flex-1">
-        <h3 className="text-lg font-bold text-gray-900 line-clamp-2 min-h-[3.5rem]">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white dark:text-white line-clamp-2 min-h-[3.5rem]">
           {quiz.title}
         </h3>
 
-        <p className="text-sm text-gray-500 line-clamp-2 min-h-[2.5rem]">
+        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 min-h-[2.5rem]">
           {quiz.description || 'Aucune description'}
         </p>
 
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-4">
           <span className="flex items-center gap-1">
             📝 {quiz._count.questions} questions
           </span>
           {quiz.category && (
-            <span className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">
               🏷️ {quiz.category.name}
             </span>
           )}
@@ -109,17 +109,17 @@ export default function QuizCard({
         </div>
 
         {formattedDate && (
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
             🕐 Créé le {formattedDate}
           </p>
         )}
       </div>
 
       {quiz.creator?.username && (
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
           👤 Créé par{' '}
           <Link
-            href={currentUserId === quiz.creator.id ? '/dashboard' : `/profil/${quiz.creator.username}`}
+            href={currentUserId === quiz.creator.id ? '/dashboard' : `/profile/${quiz.creator.username}`}
             className="font-semibold text-blue-600 hover:underline transition-colors"
           >
             {quiz.creator.username}

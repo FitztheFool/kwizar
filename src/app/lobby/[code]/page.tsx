@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
 
 type Player = { userId: string; username: string };
-type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow';
+type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow' | 'yahtzee';
 
 type UnoOptions = {
     stackable: boolean;
@@ -124,6 +124,8 @@ export default function LobbyPage() {
                 router.push(`/taboo/${lobbyId}/game`);
             } else if (payload.gameType === 'skyjow') {
                 router.push(`/skyjow/${payload.lobbyId ?? lobbyId}`);
+            } else if (payload.gameType === 'yahtzee') {
+                router.push(`/yahtzee/${lobbyId}`);
             } else {
                 sessionStorage.setItem(`lobby_timeMode_${lobbyId}`, payload.timeMode ?? 'none');
                 sessionStorage.setItem(`lobby_timePerQuestion_${lobbyId}`, String(payload.timePerQuestion ?? 15));
@@ -194,7 +196,7 @@ export default function LobbyPage() {
         ? is2v2 ? playerCount === 4 && unoTeamsReady : playerCount >= 2 && playerCount <= 8
         : lobby.gameType === 'taboo'
             ? tabooTeamsValid
-            : lobby.gameType === 'skyjow'
+            : lobby.gameType === 'skyjow' || lobby.gameType === 'yahtzee'
                 ? playerCount >= 2 && playerCount <= 8
                 : playerCount >= 2 && !!lobby.quizId;
 
@@ -204,6 +206,11 @@ export default function LobbyPage() {
             if (playerCount < 2) return '⏳ Min. 2 joueurs';
             if (playerCount > 8) return '⛔ Max. 8 joueurs';
             return '🂠 Lancer Skyjow !';
+        }
+        if (lobby.gameType === 'yahtzee') {
+            if (playerCount < 2) return '⏳ Min. 2 joueurs';
+            if (playerCount > 8) return '⛔ Max. 8 joueurs';
+            return '🎲 Lancer Yahtzee !';
         }
         if (canStart) return `🚀 Lancer ${lobby.gameType === 'uno' ? 'UNO' : lobby.gameType === 'taboo' ? 'Taboo' : 'le quiz'} !`;
         if (lobby.gameType === 'taboo') {
@@ -218,10 +225,10 @@ export default function LobbyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
 
-                <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm flex items-center justify-between">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 md:p-6 shadow-sm flex items-center justify-between">
                     <div>
                         <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
                             Lobby <span className="font-mono">{lobbyId}</span>
@@ -238,7 +245,7 @@ export default function LobbyPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
 
                     {/* ── Panneau gauche ── */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm space-y-5">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm space-y-5">
 
                         {/* Participants */}
                         <div>
@@ -327,12 +334,16 @@ export default function LobbyPage() {
                         <div>
                             <h2 className="font-bold text-sm text-gray-500 uppercase mb-2">Jeu</h2>
                             <div className="grid grid-cols-2 gap-2">
-                                {(['quiz', 'uno', 'taboo', 'skyjow'] as GameType[]).map((g) => (
+                                {(['quiz', 'uno', 'taboo', 'skyjow', 'yahtzee'] as GameType[]).map((g) => (
                                     <button key={g} onClick={() => isHost && setGameType(g)} disabled={!isHost}
                                         className={`py-2 rounded-lg border-2 font-semibold text-xs transition-all
                                             ${lobby.gameType === g ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}
                                             ${!isHost ? 'cursor-default opacity-70' : 'cursor-pointer'}`}>
-                                        {g === 'quiz' ? '🎯 Quiz' : g === 'uno' ? '🃏 UNO' : g === 'taboo' ? '🚫 Taboo' : '🂠 Skyjow'}
+                                        {g === 'quiz' ? '🎯 Quiz'
+                                            : g === 'uno' ? '🃏 UNO'
+                                                : g === 'taboo' ? '🚫 Taboo'
+                                                    : g === 'skyjow' ? '🂠 Skyjow'
+                                                        : '🎲 Yahtzee'}
                                     </button>
                                 ))}
                             </div>
@@ -351,7 +362,7 @@ export default function LobbyPage() {
                                         className="w-4 h-4 accent-blue-500"
                                     />
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-700">Éliminer les lignes</p>
+                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Éliminer les lignes</p>
                                         <p className="text-xs text-gray-400">4 cartes identiques sur une même ligne → ligne éliminée</p>
                                     </div>
                                 </label>
@@ -456,11 +467,11 @@ export default function LobbyPage() {
 
                     {/* ── Zone centrale ── */}
                     {lobby.gameType === 'quiz' ? (
-                        <div className="bg-white rounded-xl p-4 shadow-sm lg:col-span-2">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm lg:col-span-2">
                             <h2 className="font-bold text-lg mb-3">Quiz</h2>
                             <div className="flex gap-2 mb-3">
                                 <input type="text" value={quizSearch} onChange={(e) => { setQuizSearch(e.target.value); fetchQuizList(1); }} placeholder="Rechercher un quiz..." className="flex-1 border rounded-lg px-3 py-2 text-sm" />
-                                <select value={quizCategory} onChange={(e) => { setQuizCategory(e.target.value); fetchQuizList(1); }} className="border rounded-lg px-3 py-2 text-sm text-gray-600">
+                                <select value={quizCategory} onChange={(e) => { setQuizCategory(e.target.value); fetchQuizList(1); }} className="border rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
                                     <option value="">Toutes les catégories</option>
                                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
@@ -489,7 +500,7 @@ export default function LobbyPage() {
                             )}
                         </div>
                     ) : lobby.gameType === 'taboo' ? (
-                        <div className="bg-white rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
                             <div className="text-6xl">🚫</div>
                             <h2 className="text-xl font-bold">Taboo</h2>
                             <div className="text-sm text-gray-500 space-y-2 max-w-sm">
@@ -510,7 +521,7 @@ export default function LobbyPage() {
                             </div>
                         </div>
                     ) : lobby.gameType === 'skyjow' ? (
-                        <div className="bg-white rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
                             <div className="text-6xl">🂠</div>
                             <h2 className="text-xl font-bold">Skyjow</h2>
                             <div className="text-sm text-gray-500 space-y-2 max-w-sm">
@@ -518,7 +529,7 @@ export default function LobbyPage() {
                                 <p>À votre tour : piochez ou prenez la défausse, puis échangez avec une de vos cartes — ou jetez la carte piochée et <strong>retournez une carte cachée</strong>.</p>
                                 <p>Si vous avez <strong>3 cartes identiques dans une colonne</strong>, elle est éliminée du plateau !{lobby.skyjowOptions?.eliminateRows ? ' Idem pour les lignes (4 identiques) !' : ''}</p>
                                 <p>Dès qu'un joueur retourne toutes ses cartes, tout le monde joue <strong>un dernier tour</strong>. Si le déclencheur n'a pas le score le plus bas, son score est <strong>doublé</strong>.</p>
-                                <p className="font-semibold text-gray-700">Le jeu s'arrête quand un joueur atteint <strong>100 pts</strong>. Le moins de points gagne ! 🏆</p>
+                                <p className="font-semibold text-gray-700 dark:text-gray-200">Le jeu s'arrête quand un joueur atteint <strong>100 pts</strong>. Le moins de points gagne ! 🏆</p>
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center text-xs mt-1">
                                 <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-semibold">🟢 -2 pts (×5)</span>
@@ -533,8 +544,30 @@ export default function LobbyPage() {
                                     : <span className="text-orange-400">⏳ {playerCount}/2 — min. 2 joueurs</span>}
                             </div>
                         </div>
+                    ) : lobby.gameType === 'yahtzee' ? (
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
+                            <div className="text-6xl">🎲</div>
+                            <h2 className="text-xl font-bold">Yahtzee</h2>
+                            <div className="text-sm text-gray-500 space-y-2 max-w-sm">
+                                <p>Chaque joueur lance <strong>5 dés</strong> jusqu'à 3 fois par tour. Gardez les dés de votre choix entre chaque lancer.</p>
+                                <p>Remplissez votre feuille de score en choisissant une <strong>catégorie</strong> après chaque série de lancers.</p>
+                                <p>La partie dure <strong>13 tours</strong> par joueur. Le joueur avec le <strong>score le plus élevé</strong> gagne ! 🏆</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 justify-center text-xs mt-2">
+                                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold">🎯 Yahtzee = 50 pts</span>
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">📈 Bonus +35 si ≥63</span>
+                                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-semibold">🔥 Bonus Yahtzee +100</span>
+                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">🎰 13 catégories</span>
+                            </div>
+                            <div className="mt-1 text-xs text-gray-400">
+                                2 à 8 joueurs ·{' '}
+                                {playerCount >= 2
+                                    ? <span className="text-green-500 font-semibold">✅ {playerCount} joueurs — prêt à jouer !</span>
+                                    : <span className="text-orange-400">⏳ {playerCount}/2 — min. 2 joueurs</span>}
+                            </div>
+                        </div>
                     ) : (
-                        <div className="bg-white rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
                             <div className="text-6xl">{is2v2 ? '👥' : '🃏'}</div>
                             <h2 className="text-xl font-bold">UNO {is2v2 ? '— Mode 2v2' : ''}</h2>
                             {is2v2 ? (
@@ -566,7 +599,7 @@ export default function LobbyPage() {
                     )}
 
                     {/* ── Chat ── */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
                         <h2 className="font-bold text-lg mb-3">Chat</h2>
                         <div className="h-64 overflow-auto border rounded-lg p-3 bg-gray-50">
                             {messages.map((m, i) => <div key={i} className="mb-2"><b>{m.username}</b>: {m.text}</div>)}

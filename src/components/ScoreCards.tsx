@@ -44,7 +44,7 @@ export function StatCard({
                     <p className={`text-xs font-semibold tracking-wide uppercase ${labelColorClass}`}>
                         {label}
                     </p>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">
+                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
                         {value}
                         {suffix && <span className="text-lg font-semibold text-gray-500 ml-1">{suffix}</span>}
                     </p>

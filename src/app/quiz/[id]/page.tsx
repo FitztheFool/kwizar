@@ -382,7 +382,7 @@ export default function QuizPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
                 <div className="max-w-2xl mx-auto px-4 py-12">
-                    <div className="bg-white rounded-xl shadow-2xl p-8 text-center">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 text-center">
                         <div className="text-red-500 text-6xl mb-4">⚠️</div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">Erreur</h2>
                         <p className="text-gray-600 mb-6">{error}</p>
@@ -413,10 +413,10 @@ export default function QuizPage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
 
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">{quiz.title}</h1>
                     <p className="text-gray-600 mb-4">{quiz.description}</p>
-                    <p className="text-sm text-gray-500">Par {quiz.creator.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Par {quiz.creator.name}</p>
                 </div>
 
                 {status === 'unauthenticated' && (
@@ -432,9 +432,9 @@ export default function QuizPage() {
                 )}
 
                 {/* Progress + Timer */}
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700">Question {currentQuestionIndex + 1} sur {quiz.questions.length}</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Question {currentQuestionIndex + 1} sur {quiz.questions.length}</span>
                         <span className="text-sm font-medium text-blue-600">{currentQuestion.points} point{currentQuestion.points > 1 ? 's' : ''}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -456,7 +456,7 @@ export default function QuizPage() {
                 </div>
 
                 {/* Question card */}
-                <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mb-6">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-6">{currentQuestion.text}</h2>
 
                     {currentQuestion.type === 'TRUE_FALSE' && currentQuestion.answers && (

@@ -91,17 +91,17 @@ export default function LeaderboardView({ game }: Props) {
     const label = config?.label ?? GAME_LABELS[game];
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-                <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
 
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 border border-gray-200 text-3xl flex-shrink-0">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-3xl flex-shrink-0">
                             {GAME_ICONS[game]}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Leaderboard {label}</h1>
-                            <p className="text-sm text-gray-500 mt-0.5">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leaderboard {label}</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                                 {pagination
                                     ? `${pagination.total} joueur${pagination.total > 1 ? 's' : ''} classé${pagination.total > 1 ? 's' : ''}`
                                     : 'Chargement…'
@@ -111,11 +111,11 @@ export default function LeaderboardView({ game }: Props) {
                     </div>
 
                     {/* Description — toujours visible */}
-                    <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+                    <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
                             📊 Calcul des points
                         </p>
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-gray-700 dark:text-gray-200">
                             {config?.description ?? DESCRIPTIONS[game]}
                         </p>
                     </div>
@@ -126,10 +126,10 @@ export default function LeaderboardView({ game }: Props) {
                             <div className="flex items-center gap-3">
                                 <span className="text-2xl">{MEDAL[myEntry.rank] ?? `#${myEntry.rank}`}</span>
                                 <div>
-                                    <p className="font-bold text-gray-900">
+                                    <p className="font-bold text-gray-900 dark:text-white">
                                         {myEntry.username} <span className="text-xs text-gray-400 font-normal">(moi)</span>
                                     </p>
-                                    <p className="text-xs text-gray-500">{myEntry.detail}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{myEntry.detail}</p>
                                 </div>
                             </div>
                             <div className="text-right">
@@ -153,42 +153,42 @@ export default function LeaderboardView({ game }: Props) {
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto rounded-xl border border-gray-100">
+                            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                                 <table className="min-w-full divide-y divide-gray-100">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-gray-50 dark:bg-gray-800">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Rang</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Joueur</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{scoreLabel}</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Détail</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">Rang</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-50">
+                                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
                                         {leaderboard.map(entry => {
                                             const isMe = entry.userId === session?.user?.id;
                                             const isPodium = entry.rank <= 3;
                                             return (
                                                 <tr key={entry.userId}
-                                                    className={`transition-colors ${isMe ? 'bg-blue-50 font-semibold' : isPodium ? 'bg-yellow-50/50' : 'hover:bg-gray-50'}`}>
+                                                    className={`transition-colors ${isMe ? 'bg-blue-50 dark:bg-blue-900/20 font-semibold' : isPodium ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         {MEDAL[entry.rank]
                                                             ? <span className="text-xl">{MEDAL[entry.rank]}</span>
-                                                            : <span className="text-sm text-gray-500 font-semibold">#{entry.rank}</span>
+                                                            : <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">#{entry.rank}</span>
                                                         }
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className={`text-sm ${isMe ? 'text-blue-700' : 'text-gray-800'}`}>
+                                                        <span className={`text-sm ${isMe ? 'text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>
                                                             {entry.username}
                                                             {isMe && <span className="ml-1 text-xs opacity-60">(moi)</span>}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className={`text-sm font-bold ${isPodium || isMe ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                        <span className={`text-sm font-bold ${isPodium || isMe ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
                                                             {entry.score}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
-                                                        <span className="text-xs text-gray-400">{entry.detail}</span>
+                                                        <span className="text-xs text-gray-400 dark:text-gray-500">{entry.detail}</span>
                                                     </td>
                                                 </tr>
                                             );
@@ -200,21 +200,21 @@ export default function LeaderboardView({ game }: Props) {
                             {/* Pagination */}
                             {pagination && pagination.totalPages > 1 && (
                                 <div className="flex items-center justify-between mt-4 px-1">
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">
                                         Page {pagination.page}/{pagination.totalPages} · {pagination.total} joueur{pagination.total > 1 ? 's' : ''}
                                     </p>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setPage(p => p - 1)}
                                             disabled={page === 1}
-                                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
                                             ← Précédent
                                         </button>
                                         <button
                                             onClick={() => setPage(p => p + 1)}
                                             disabled={page === pagination.totalPages}
-                                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                                            className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
                                             Suivant →
                                         </button>

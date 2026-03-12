@@ -321,7 +321,7 @@ export default function AdminPanel() {
     ];
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">🛡️ Administration</h2>
 
             <div className="flex flex-wrap gap-2 mb-6">
@@ -378,13 +378,13 @@ export default function AdminPanel() {
                                             </thead>
                                             <tbody>
                                                 {stats.topQuizzes.map((quiz, i) => (
-                                                    <tr key={quiz.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                    <tr key={quiz.id} className="border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">
                                                         <td className="px-4 py-3 font-medium">
                                                             <Link href={`/quiz/${quiz.id}`} className="text-blue-600 hover:text-blue-800 font-medium">
                                                                 {i + 1}. {quiz.title}
                                                             </Link>
                                                         </td>
-                                                        <td className="px-4 py-3 text-center text-gray-500">{quiz.questionCount}</td>
+                                                        <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">{quiz.questionCount}</td>
                                                         <td className="px-4 py-3 text-center">{quiz.playCount}</td>
                                                         <td className="px-4 py-3 text-center text-orange-600 font-semibold">{quiz.avgScore} pts</td>
                                                         <td className="px-4 py-3 text-center text-green-600 font-semibold">{quiz.maxScore} pts</td>
@@ -398,7 +398,7 @@ export default function AdminPanel() {
 
                                 <div>
                                     <div className="flex items-center gap-3 mb-4">
-                                        <h3 className="text-lg font-bold text-gray-900">🕐 Activité récente</h3>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">🕐 Activité récente</h3>
                                         {loadingActivity && (
                                             <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
                                         )}
@@ -407,7 +407,7 @@ export default function AdminPanel() {
                                     <select
                                         value={activityPeriod}
                                         onChange={(e) => setActivityPeriod(Number(e.target.value))}
-                                        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600"
+                                        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-300"
                                     >
                                         <option value={-1}>Aujourd'hui</option>
                                         <option value={1}>Dernières 24h</option>
@@ -427,7 +427,7 @@ export default function AdminPanel() {
                                                 const userHref =
                                                     session?.user?.username === activity.user.username
                                                         ? '/dashboard'
-                                                        : `/profil/${activity.user.username}`;
+                                                        : `/profile/${activity.user.username}`;
 
                                                 return (
                                                     <div
@@ -444,8 +444,8 @@ export default function AdminPanel() {
                                                             </Link>
                                                             <span
                                                                 className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isUno
-                                                                        ? 'bg-orange-100 text-orange-700'
-                                                                        : 'bg-blue-100 text-blue-700'
+                                                                    ? 'bg-orange-100 text-orange-700'
+                                                                    : 'bg-blue-100 text-blue-700'
                                                                     }`}
                                                             >
                                                                 {isUno ? 'UNO' : 'Quiz'}
@@ -548,20 +548,20 @@ export default function AdminPanel() {
                                     <tbody>
                                         {users.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="px-4 py-6 text-center text-gray-500">Aucun utilisateur trouvé</td>
+                                                <td colSpan={7} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Aucun utilisateur trouvé</td>
                                             </tr>
                                         ) : (
                                             users.map((user) => (
-                                                <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">
                                                     <td className="px-4 py-3 font-semibold">
                                                         <Link
-                                                            href={session?.user?.username === user.username ? '/dashboard' : `/profil/${user.username}`}
+                                                            href={session?.user?.username === user.username ? '/dashboard' : `/profile/${user.username}`}
                                                             className="text-blue-600 hover:underline transition-colors"
                                                         >
                                                             {user.username}
                                                         </Link>
                                                     </td>
-                                                    <td className="px-4 py-3 text-gray-500">{user.email}</td>
+                                                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{user.email}</td>
                                                     <td className="px-4 py-3 text-center">{user._count.createdQuizzes}</td>
                                                     <td className="px-4 py-3 text-center text-blue-600 font-medium">{user.quizAttempts}</td>
                                                     <td className="px-4 py-3 text-center text-orange-600 font-medium">{user.unoAttempts}</td>
@@ -623,19 +623,19 @@ export default function AdminPanel() {
                                     </thead>
                                     <tbody>
                                         {quizzes.map((quiz) => (
-                                            <tr key={quiz.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <tr key={quiz.id} className="border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">
                                                 <td className="px-4 py-3 font-medium">
                                                     <Link href={`/quiz/${quiz.id}`} className="text-blue-600 hover:text-blue-800 font-medium">{quiz.title}</Link>
                                                 </td>
-                                                <td className="px-4 py-3 text-gray-500">
+                                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                                                     <Link
-                                                        href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/profil/${quiz.creator.username}`}
+                                                        href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/profile/${quiz.creator.username}`}
                                                         className="text-blue-600 hover:underline transition-colors"
                                                     >
                                                         {quiz.creator.username}
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-3 text-gray-500">{quiz.category?.name ?? '—'}</td>
+                                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quiz.category?.name ?? '—'}</td>
                                                 <td className="px-4 py-3 text-center">{quiz._count.questions}</td>
                                                 <td className="px-4 py-3 text-center">{quiz._count.attempts}</td>
                                                 <td className="px-4 py-3 text-center">
@@ -678,7 +678,7 @@ export default function AdminPanel() {
                             </div>
                             <div className="space-y-2">
                                 {categories.map((cat) => (
-                                    <div key={cat.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+                                    <div key={cat.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700">
                                         {editingCategory?.id === cat.id ? (
                                             <input
                                                 type="text"

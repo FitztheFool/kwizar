@@ -28,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (status === 'loading') return <>{children}</>;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
 
             {/* Overlay mobile */}
             {sidebarOpen && (
@@ -62,7 +62,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 flex flex-col min-w-0">
 
                 {/* Topbar mobile */}
-                <div className="md:hidden flex items-center gap-3 bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+                <div className="md:hidden flex items-center gap-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sticky top-0 z-10">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="p-2 rounded-lg hover:bg-gray-100 transition-colors"

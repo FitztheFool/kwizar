@@ -79,31 +79,31 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Logo/Title */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-4xl font-bold text-gray-900">
+          <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
             🎯 Quiz App
           </Link>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
             Créez votre compte gratuitement
           </p>
         </div>
 
         {/* Register Form */}
         <div className="card">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Inscription</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Inscription</h2>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Nom d'utilisateur
               </label>
               <input
@@ -119,7 +119,7 @@ function RegisterForm() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
@@ -135,7 +135,7 @@ function RegisterForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Mot de passe
               </label>
               <input
@@ -148,13 +148,13 @@ function RegisterForm() {
                 placeholder="••••••••"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Minimum 6 caractères
               </p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Confirmer le mot de passe
               </label>
               <input
@@ -179,7 +179,7 @@ function RegisterForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Déjà un compte ?{' '}
               <Link 
                 href={`/login${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
@@ -192,7 +192,7 @@ function RegisterForm() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-600 hover:text-gray-900">
+          <Link href="/" className="text-gray-600 hover:text-gray-900 dark:text-white">
             ← Retour à l'accueil
           </Link>
         </div>
@@ -203,15 +203,15 @@ function RegisterForm() {
 
 function RegisterFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="text-4xl font-bold text-gray-900">🎯 Quiz App</div>
-          <p className="mt-2 text-gray-600">Chargement...</p>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white">🎯 Quiz App</div>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Chargement...</p>
         </div>
         <div className="card">
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
           </div>
         </div>
       </div>

@@ -115,13 +115,13 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl mb-4">
+          <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl mb-4">
             Testez vos connaissances
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Jouez à des quiz, gagnez des points et grimpez dans le classement !
           </p>
         </div>
@@ -129,21 +129,21 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="card text-center">
             <div className="text-4xl font-bold text-primary-600">{total}</div>
-            <div className="text-gray-600 mt-2">Quiz disponibles</div>
+            <div className="text-gray-600 dark:text-gray-300 mt-2">Quiz disponibles</div>
           </div>
           <Link href="/quiz/generate" className="card text-center hover:shadow-lg transition-shadow cursor-pointer border-2 border-green-400 hover:border-green-500">
             <div className="text-4xl font-bold text-green-500">✨</div>
-            <div className="text-gray-600 mt-2 font-semibold">Générer un quiz</div>
+            <div className="text-gray-600 dark:text-gray-300 mt-2 font-semibold">Générer un quiz</div>
           </Link>
           <Link href="/leaderboard" className="card text-center hover:shadow-lg transition-shadow cursor-pointer border-2 border-yellow-300 hover:border-yellow-400" style={{ boxShadow: '0 0 0 1px #fde68a' }}>
             <div className="text-4xl font-bold text-yellow-500">∞</div>
-            <div className="text-gray-600 mt-2 font-semibold">Voir le classement</div>
+            <div className="text-gray-600 dark:text-gray-300 mt-2 font-semibold">Voir le classement</div>
           </Link>
         </div>
 
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">Quiz disponibles</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Quiz disponibles</h3>
           </div>
           <QuizFilters
             search={search}
@@ -164,12 +164,12 @@ export default function HomePage() {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-gray-600">Chargement des quiz...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Chargement des quiz...</p>
           </div>
         ) : quizzes.length === 0 ? (
           <div className="card text-center py-12">
-            <p className="text-gray-600 text-lg">Aucun quiz disponible pour le moment.</p>
-            <p className="text-gray-500 mt-2">Connectez-vous pour créer le premier !</p>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">Aucun quiz disponible pour le moment.</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Connectez-vous pour créer le premier !</p>
           </div>
         ) : (
           <>

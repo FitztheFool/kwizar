@@ -62,7 +62,7 @@ export default function QuizFilters({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-3 items-end">
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 flex flex-wrap gap-3 items-end">
       <div className="flex-1 min-w-[180px]">
         <label className="block text-xs font-medium text-gray-500 mb-1">🔍 Recherche</label>
         <input

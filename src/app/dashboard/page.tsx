@@ -208,7 +208,7 @@ export default function DashboardPage() {
 
     if (status === 'loading' || loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
                     <p className="mt-4 text-gray-600 text-lg font-semibold">Chargement...</p>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
         <main className="flex-1 p-4 md:p-8">
 
             {activeTab === 'available' && (
-                <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Quiz disponibles</h2>
                     <div className="mb-6">
                         <QuizFilters
@@ -271,9 +271,9 @@ export default function DashboardPage() {
             {activeTab === 'admin' && session.user?.role === 'ADMIN' && <AdminPanel />}
 
             {activeTab === 'my-quizzes' && (
-                <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {plural(myQuizzesTotal, 'Mon quiz', 'Mes quizzes')}
                         </h2>
                         <span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">{myQuizzesTotal}</span>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                     {myQuizzes.length === 0 ? (
                         <div className="text-center py-16">
                             <p className="text-gray-600 text-lg mb-2">Aucun quiz créé</p>
-                            <p className="text-gray-500">Créez votre premier quiz personnalisé</p>
+                            <p className="text-gray-500 dark:text-gray-400">Créez votre premier quiz personnalisé</p>
                         </div>
                     ) : (
                         <>
@@ -318,44 +318,44 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'quiz-score' && (
-                <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Mes scores Quiz</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         <div className="rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-xs font-semibold tracking-wide text-blue-700 uppercase">Score total</p>
-                                    <p className="mt-2 text-3xl font-bold text-gray-900">{totalQuizScore} pts</p>
+                                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{totalQuizScore} pts</p>
                                 </div>
                                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-xl shadow-inner">🧠</div>
                             </div>
-                            <p className="mt-3 text-sm text-gray-500">Total cumulé sur tous tes quiz complétés</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Total cumulé sur tous tes quiz complétés</p>
                         </div>
                         <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-xs font-semibold tracking-wide text-emerald-700 uppercase">{plural(myScores.length, 'Quiz complété', 'Quizzes complétés')}</p>
-                                    <p className="mt-2 text-3xl font-bold text-gray-900">{myScores.length}</p>
+                                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{myScores.length}</p>
                                 </div>
                                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-xl shadow-inner">✅</div>
                             </div>
-                            <p className="mt-3 text-sm text-gray-500">Nombre de quiz terminés avec un score enregistré</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Nombre de quiz terminés avec un score enregistré</p>
                         </div>
                         <div className="rounded-2xl border border-violet-200/60 bg-gradient-to-br from-violet-50 to-white p-5 shadow-sm">
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-xs font-semibold tracking-wide text-violet-700 uppercase">{plural(myQuizzesTotal, 'Quiz créé', 'Quizzes créés')}</p>
-                                    <p className="mt-2 text-3xl font-bold text-gray-900">{myQuizzesTotal}</p>
+                                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{myQuizzesTotal}</p>
                                 </div>
                                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-xl shadow-inner">✍️</div>
                             </div>
-                            <p className="mt-3 text-sm text-gray-500">Tes quiz publiés ou conservés dans ton espace</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Tes quiz publiés ou conservés dans ton espace</p>
                         </div>
                     </div>
                     {myScores.length === 0 ? (
                         <div className="text-center py-16">
                             <p className="text-gray-600 text-lg mb-2">Aucun score enregistré</p>
-                            <p className="text-gray-500">Complétez des quiz pour voir vos scores ici</p>
+                            <p className="text-gray-500 dark:text-gray-400">Complétez des quiz pour voir vos scores ici</p>
                         </div>
                     ) : (
                         <>

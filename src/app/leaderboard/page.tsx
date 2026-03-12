@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
           <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
             🏆 Classement Global
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 dark:text-gray-300">
             Les meilleurs joueurs de Quiz App
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function LeaderboardPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-              <p className="mt-4 text-gray-600">Chargement du classement...</p>
+              <p className="mt-4 text-gray-600 dark:text-gray-300">Chargement du classement...</p>
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="text-center py-12">
@@ -139,7 +139,7 @@ export default function LeaderboardPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link
-                          href={session?.user?.username === entry.username ? '/dashboard' : `/profil/${entry.username}`}
+                          href={session?.user?.username === entry.username ? '/dashboard' : `/profile/${entry.username}`}
                           className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                         >
                           {entry.username}
@@ -157,7 +157,7 @@ export default function LeaderboardPage() {
                         </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{entry.quizzesCompleted || '-'}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{entry.quizzesCompleted || '-'}</div>
                       </td>
                     </tr>
                   ))}
@@ -189,13 +189,13 @@ export default function LeaderboardPage() {
           onClick={closeModal}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div>
-                <h2 className="text-xl font-extrabold text-gray-900">
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
                   {getMedalEmoji(selectedUser.rank)}&nbsp;{selectedUser.username}
                 </h2>
                 <p className="text-sm text-gray-500 mt-0.5">
@@ -222,7 +222,7 @@ export default function LeaderboardPage() {
                   <p className="text-gray-500 text-sm">Chargement des scores...</p>
                 </div>
               ) : !selectedUser.quizScores || selectedUser.quizScores.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">
+                <div className="text-center py-10 text-gray-500 dark:text-gray-400">
                   <p className="text-3xl mb-2">📭</p>
                   <p>Aucun détail disponible pour ce joueur.</p>
                 </div>

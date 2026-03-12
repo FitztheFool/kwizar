@@ -66,7 +66,7 @@ export default function QuizResultPage() {
     if (notFound || !payload) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md mx-4">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 text-center max-w-md mx-4">
                     <div className="text-6xl mb-4">🔍</div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Résultats introuvables</h2>
                     <p className="text-gray-600 mb-6">
@@ -100,7 +100,7 @@ export default function QuizResultPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
                 <div className="max-w-3xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-                    <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 mb-8">
 
                         {/* Header */}
                         <div className="text-center mb-6">
@@ -245,7 +245,7 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
             <div className="max-w-lg w-full">
 
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-4 flex items-center justify-between">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-4 flex items-center justify-between">
                     <div>
                         <p className="font-bold text-gray-800">Quiz terminé ! 🎉</p>
                         <p className="text-sm text-gray-400">En attente des autres joueurs…</p>
@@ -256,18 +256,18 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
                     </span>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
                     <div className="flex justify-between items-center mb-3">
                         <h2 className="font-bold text-gray-800">Joueurs</h2>
                         {/* ✅ #8 — Use ?? instead of || to correctly handle totalPlayers === 0 */}
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                             {finishedPlayersCount} / {totalPlayers ?? '?'} terminé{finishedPlayersCount > 1 ? 's' : ''}
                         </span>
                     </div>
 
                     {timeLeft !== null && timeLeft > 0 && (
                         <div className="flex justify-between items-center mb-4 text-sm">
-                            <span className="text-gray-500">⏱ Temps max restant</span>
+                            <span className="text-gray-500 dark:text-gray-400">⏱ Temps max restant</span>
                             <span className={`font-bold tabular-nums ${timeLeft <= 10 ? 'text-red-500' : 'text-blue-600'}`}>
                                 {timeLeft >= 60
                                     ? `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')}`
@@ -297,7 +297,7 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
                                 <span className="text-green-500 text-lg w-6 text-center">✓</span>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                             {entry.username}
                                             {entry.userId === currentUserId && <MeTag />}
                                         </span>
@@ -330,7 +330,7 @@ function LobbyWaitingRoom({ score, totalPoints, leaderboard, playerProgress, tot
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className="text-sm font-medium text-gray-600">{player.username}</span>
+                                            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{player.username}</span>
                                             <span className="text-xs text-gray-400">{player.currentQuestion}/{player.totalQuestions}</span>
                                         </div>
                                         {/* ✅ #10 — Accessible progress bar */}

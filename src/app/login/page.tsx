@@ -55,33 +55,33 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <Link href="/" className="text-4xl font-bold text-gray-900">
+          <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
             🎯 Quiz App
           </Link>
-          <p className="mt-2 text-gray-600">Connectez-vous pour continuer</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Connectez-vous pour continuer</p>
         </div>
 
         <div className="card">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Connexion</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Connexion</h2>
 
           {callbackUrl !== '/dashboard' && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg">
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-lg">
               <p className="text-sm">🔒 Vous devez être connecté pour accéder à cette page</p>
             </div>
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email ou pseudo
               </label>
               <input
@@ -96,7 +96,7 @@ function LoginForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Mot de passe
               </label>
               <input
@@ -116,7 +116,7 @@ function LoginForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Pas encore de compte ?{' '}
               <Link
                 href={`/register${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''
@@ -130,7 +130,7 @@ function LoginForm() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-600 hover:text-gray-900">
+          <Link href="/" className="text-gray-600 hover:text-gray-900 dark:text-white">
             ← Retour à l'accueil
           </Link>
         </div>
@@ -141,11 +141,11 @@ function LoginForm() {
 
 function LoginFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="text-4xl font-bold text-gray-900">🎯 Quiz App</div>
-          <p className="mt-2 text-gray-600">Chargement...</p>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white">🎯 Quiz App</div>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Chargement...</p>
         </div>
         <div className="card">
           <div className="flex justify-center">

@@ -439,7 +439,7 @@ export default function QuizForm({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
           {mode === 'create' ? 'Créer un quiz' : 'Modifier le quiz'}
         </h1>
@@ -492,7 +492,7 @@ export default function QuizForm({
             </select>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
             <input
               type="checkbox"
               checked={form.isPublic}
@@ -500,7 +500,7 @@ export default function QuizForm({
             />
             Quiz public
           </label>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
             <input
               type="checkbox"
               checked={form.randomizeQuestions}
@@ -516,7 +516,7 @@ export default function QuizForm({
         {form.questions.map((q, qi) => (
           <div
             key={q.id || q.tempId}
-            className={`bg-white rounded-xl shadow-lg p-6 transition-all ${hasQuestionErrors(qi) ? 'ring-2 ring-red-400 border border-red-400' : ''}`}
+            className={`bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 transition-all ${hasQuestionErrors(qi) ? 'ring-2 ring-red-400 border border-red-400' : ''}`}
           >
             {hasQuestionErrors(qi) && (
               <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm font-medium">
@@ -612,7 +612,7 @@ export default function QuizForm({
               ) : q.type === 'MULTI_TEXT' ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">Réponses attendues</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Réponses attendues</p>
                     <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -639,7 +639,7 @@ export default function QuizForm({
                       <button
                         type="button"
                         onClick={() => deleteAnswer(qi, ai)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-200"
                         disabled={q.answers.length <= 1}
                       >
                         Suppr.
@@ -678,7 +678,7 @@ export default function QuizForm({
                         <button
                           type="button"
                           onClick={() => deleteAnswer(qi, ai)}
-                          className="text-sm text-gray-500 hover:text-gray-700"
+                          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-200"
                           disabled={q.answers.length <= 2}
                         >
                           Suppr.
@@ -716,7 +716,7 @@ export default function QuizForm({
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-3 rounded-lg font-medium border border-gray-300 bg-white hover:bg-gray-50"
+            className="px-6 py-3 rounded-lg font-medium border border-gray-300 bg-white hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             Annuler
           </button>

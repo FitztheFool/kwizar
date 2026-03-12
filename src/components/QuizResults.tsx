@@ -69,7 +69,7 @@ export default function QuizResults({
 
                 {/* ── Carte score (masquée en mode lobby) ── */}
                 {!hideHeader && (
-                    <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 mb-8">
                         <div className="text-center">
                             <div className="text-6xl mb-4">
                                 {percentage >= 80 ? '🏆' : percentage >= 60 ? '👍' : '📚'}
@@ -144,7 +144,7 @@ export default function QuizResults({
                 )}
 
                 {/* ── Récapitulatif ── */}
-                <div className="bg-white rounded-xl shadow-2xl p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8">
                     <h3 className="text-2xl font-bold text-gray-800 mb-6">📋 Récapitulatif</h3>
                     <div className="space-y-4">
                         {questionResults.map((result, index) => (
@@ -227,7 +227,7 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                 : `p-5 rounded-xl border-2 ${result.isCorrect ? 'border-green-400 bg-green-50' : 'border-red-400 bg-red-50'}`
         }>
             {isMultiplayer ? (
-                <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between gap-2">
                         <p className="font-semibold text-gray-800">
                             <span className="text-gray-400 font-normal mr-2">Q{index + 1}.</span>
@@ -241,7 +241,7 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                 </div>
             ) : (
                 <div className="flex items-start justify-between gap-3 mb-3">
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-gray-900 dark:text-white">
                         <span className="text-gray-500 font-normal mr-2">Q{index + 1}.</span>
                         {result.questionText}
                     </p>

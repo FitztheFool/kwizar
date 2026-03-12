@@ -137,8 +137,8 @@ export default function GenerateQuizPage() {
     const isDisabled = loading || !subject.trim();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-md">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">✨ Générer un quiz</h1>
                 <p className="text-gray-500 text-sm mb-1">L'IA crée un quiz que vous pourrez modifier avant de publier.</p>
                 <p className="text-xs text-gray-400 mb-6">
@@ -222,8 +222,8 @@ export default function GenerateQuizPage() {
                             onClick={() => handleGenerate('play')}
                             disabled={isDisabled}
                             className={`w-full py-3 rounded-lg font-semibold transition-colors ${isDisabled
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
                                 }`}
                         >
                             {loadingMode === 'play' ? (
@@ -239,9 +239,9 @@ export default function GenerateQuizPage() {
                         <button
                             onClick={() => handleGenerate('edit')}
                             disabled={isDisabled}
-                            className={`w-full py-3 rounded-lg font-semibold border-2 transition-colors ${isDisabled
-                                ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                                : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${isDisabled
+                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
                                 }`}
                         >
                             {loadingMode === 'edit' ? (

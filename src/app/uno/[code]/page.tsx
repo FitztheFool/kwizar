@@ -330,7 +330,7 @@ export default function UnoPage() {
                     <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-400' : 'text-gray-500'}`}>
                         {s.score > 0 ? `+${s.score}` : '0'}
                     </span>
-                    <div className="text-xs text-gray-500">pts</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">pts</div>
                 </div>
             </div>
         );

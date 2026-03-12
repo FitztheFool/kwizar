@@ -9,7 +9,7 @@ export default function Footer() {
                     <p className="text-sm">
                         Testez vos connaissances et défiez vos amis
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                         © {new Date().getFullYear()} — Propulsé par Next.js, Prisma et PostgreSQL
                     </p>
                 </div>
