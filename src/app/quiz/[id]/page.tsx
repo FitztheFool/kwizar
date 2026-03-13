@@ -82,7 +82,6 @@ export default function QuizPage() {
 
     const quizRef = useRef<Quiz | null>(null);
 
-    // Sync refs avec les states
     useEffect(() => { selectedAnswerRef.current = selectedAnswer; }, [selectedAnswer]);
     useEffect(() => { selectedAnswersRef.current = selectedAnswers; }, [selectedAnswers]);
     useEffect(() => { freeTextAnswerRef.current = freeTextAnswer; }, [freeTextAnswer]);
@@ -110,7 +109,6 @@ export default function QuizPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quizId, status]);
 
-    // ✅ quiz:join au montage (une fois le quiz chargé et lobbyCode présent)
     useEffect(() => {
         if (!lobbyCode || !quizId || !session?.user?.id || !timeMode) return;
         socket?.emit('quiz:join', {
@@ -211,7 +209,6 @@ export default function QuizPage() {
             sessionStorage.setItem(`quiz_result_${quizId}`, JSON.stringify(payload));
 
             if (lobbyCode) {
-                // ✅ quiz:playerFinished (était lobby:playerFinished)
                 socket?.emit('quiz:playerFinished', { totalScore: result.score, questionResults });
             }
 
@@ -246,7 +243,6 @@ export default function QuizPage() {
             setShowFeedback(false);
             setIsCorrect(false);
 
-            // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
                 socket?.emit('quiz:playerProgress', {
                     currentQuestion: nextIndex + 1,
@@ -292,7 +288,6 @@ export default function QuizPage() {
             }
             setQuiz(data);
 
-            // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
                 socket?.emit('quiz:playerProgress', {
                     currentQuestion: 1,
@@ -354,7 +349,6 @@ export default function QuizPage() {
             setShowFeedback(false);
             setIsCorrect(false);
 
-            // ✅ quiz:playerProgress (était lobby:playerProgress)
             if (lobbyCode) {
                 socket?.emit('quiz:playerProgress', {
                     currentQuestion: nextIndex + 1,
@@ -372,12 +366,12 @@ export default function QuizPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
                 <div className="max-w-2xl mx-auto px-4 py-12">
                     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 text-center">
                         <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Erreur</h2>
-                        <p className="text-gray-600 mb-6">{error}</p>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Erreur</h2>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
                         <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block">
                             Retour à l&apos;accueil
                         </Link>
@@ -402,21 +396,22 @@ export default function QuizPage() {
                     : selectedAnswer !== '';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900">
             <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
 
+                {/* Quiz header */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">{quiz.title}</h1>
-                    <p className="text-gray-600 mb-4">{quiz.description}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Par {quiz.creator.name}</p>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">{quiz.title}</h1>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">{quiz.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">Par {quiz.creator.name}</p>
                 </div>
 
                 {status === 'unauthenticated' && (
-                    <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-xl px-5 py-4 mb-6 shadow-sm">
+                    <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 rounded-xl px-5 py-4 mb-6 shadow-sm">
                         <span className="text-xl shrink-0">🔒</span>
                         <p className="text-sm">
                             Vos scores ne sont enregistrés que lorsque vous êtes connecté.{' '}
-                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/quiz/${quizId}`)}`} className="font-semibold underline hover:text-amber-900 transition-colors">
+                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/quiz/${quizId}`)}`} className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors">
                                 Se connecter
                             </Link>
                         </p>
@@ -426,21 +421,21 @@ export default function QuizPage() {
                 {/* Progress + Timer */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Question {currentQuestionIndex + 1} sur {quiz.questions.length}</span>
-                        <span className="text-sm font-medium text-blue-600">{currentQuestion.points} point{currentQuestion.points > 1 ? 's' : ''}</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Question {currentQuestionIndex + 1} sur {quiz.questions.length}</span>
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{currentQuestion.points} point{currentQuestion.points > 1 ? 's' : ''}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-3 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
                     </div>
 
                     {lobbyCode && timeMode && timeMode !== 'none' && timeLeft !== null && (
                         <div className="mt-4">
-                            <p className={`text-sm font-medium mb-1 ${timeLeft <= 10 ? 'text-red-500' : 'text-gray-600'}`}>
+                            <p className={`text-sm font-medium mb-1 ${timeLeft <= 10 ? 'text-red-500 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
                                 {timeMode === 'total'
                                     ? timeLeft >= 60 ? `⏱ Il vous reste ${Math.floor(timeLeft / 60)} min ${timeLeft % 60}s pour finir le quiz` : `⏱ Il vous reste ${timeLeft}s pour finir le quiz`
                                     : `⏱ Il vous reste ${timeLeft}s pour répondre`}
                             </p>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div className={`h-2 rounded-full transition-all duration-1000 ${timeLeft <= 10 ? 'bg-red-500' : 'bg-orange-400'}`} style={{ width: `${(timeLeft / timePerQuestion) * 100}%` }} />
                             </div>
                         </div>
@@ -449,8 +444,9 @@ export default function QuizPage() {
 
                 {/* Question card */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">{currentQuestion.text}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6">{currentQuestion.text}</h2>
 
+                    {/* TRUE_FALSE */}
                     {currentQuestion.type === 'TRUE_FALSE' && currentQuestion.answers && (
                         <div className="space-y-3">
                             {currentQuestion.answers.map((answer) => {
@@ -459,11 +455,20 @@ export default function QuizPage() {
                                 const showWrong = showFeedback && isSelected && !answer.isCorrect;
                                 return (
                                     <button key={answer.id} onClick={() => handleAnswerSelect(answer.id)} disabled={showFeedback}
-                                        className={`w-full p-4 rounded-lg border-2 transition-all ${showCorrect ? 'border-green-500 bg-green-50' : showWrong ? 'border-red-500 bg-red-50' : isSelected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'} ${showFeedback ? 'cursor-not-allowed' : ''}`}>
+                                        className={`w-full p-4 rounded-lg border-2 transition-all text-left
+                                            ${showCorrect
+                                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-600'
+                                                : showWrong
+                                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-600'
+                                                    : isSelected
+                                                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500'
+                                                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                            }
+                                            ${showFeedback ? 'cursor-not-allowed' : ''}`}>
                                         <div className="flex items-center justify-between">
-                                            <span className="font-medium text-gray-800">{answer.text}</span>
-                                            {showCorrect && <span className="text-green-600 text-xl">✓</span>}
-                                            {showWrong && <span className="text-red-600 text-xl">✗</span>}
+                                            <span className="font-medium text-gray-800 dark:text-gray-200">{answer.text}</span>
+                                            {showCorrect && <span className="text-green-600 dark:text-green-400 text-xl">✓</span>}
+                                            {showWrong && <span className="text-red-600 dark:text-red-400 text-xl">✗</span>}
                                         </div>
                                     </button>
                                 );
@@ -471,20 +476,30 @@ export default function QuizPage() {
                         </div>
                     )}
 
+                    {/* MCQ */}
                     {currentQuestion.type === 'MCQ' && currentQuestion.answers && (
                         <div>
-                            <p className="text-sm text-gray-600 mb-3 italic">💡 Plusieurs réponses peuvent être correctes - Sélectionnez toutes les bonnes réponses</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">💡 Plusieurs réponses peuvent être correctes - Sélectionnez toutes les bonnes réponses</p>
                             <div className="space-y-3">
                                 {currentQuestion.answers.map((answer) => {
                                     const isSelected = selectedAnswers.includes(answer.id);
                                     const showCorrect = showFeedback && answer.isCorrect;
                                     const showWrong = showFeedback && isSelected && !answer.isCorrect;
                                     return (
-                                        <label key={answer.id} className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${showCorrect ? 'border-green-500 bg-green-50' : showWrong ? 'border-red-500 bg-red-50' : isSelected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'} ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                                            <input type="checkbox" className="h-5 w-5" checked={isSelected} onChange={() => handleMultipleAnswerToggle(answer.id)} disabled={showFeedback} />
-                                            <span className="font-medium text-gray-800 flex-1">{answer.text}</span>
-                                            {showCorrect && <span className="text-green-600 text-xl">✓</span>}
-                                            {showWrong && <span className="text-red-600 text-xl">✗</span>}
+                                        <label key={answer.id} className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-3
+                                            ${showCorrect
+                                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-600'
+                                                : showWrong
+                                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-600'
+                                                    : isSelected
+                                                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500'
+                                                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                            }
+                                            ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                                            <input type="checkbox" className="h-5 w-5 accent-blue-600" checked={isSelected} onChange={() => handleMultipleAnswerToggle(answer.id)} disabled={showFeedback} />
+                                            <span className="font-medium text-gray-800 dark:text-gray-200 flex-1">{answer.text}</span>
+                                            {showCorrect && <span className="text-green-600 dark:text-green-400 text-xl">✓</span>}
+                                            {showWrong && <span className="text-red-600 dark:text-red-400 text-xl">✗</span>}
                                         </label>
                                     );
                                 })}
@@ -492,20 +507,33 @@ export default function QuizPage() {
                         </div>
                     )}
 
+                    {/* TEXT */}
                     {currentQuestion.type === 'TEXT' && (
                         <div>
-                            <textarea value={freeTextAnswer} onChange={e => setFreeTextAnswer(e.target.value)} placeholder="Saisissez votre réponse..." className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:outline-none min-h-32 resize-none" disabled={showFeedback} />
-                            <p className="text-sm text-gray-500 mt-2">Cette question vaut {currentQuestion.points} points</p>
+                            <textarea
+                                value={freeTextAnswer}
+                                onChange={e => setFreeTextAnswer(e.target.value)}
+                                placeholder="Saisissez votre réponse..."
+                                className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-600 dark:focus:border-blue-500 focus:outline-none min-h-32 resize-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
+                                disabled={showFeedback}
+                            />
+                            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Cette question vaut {currentQuestion.points} points</p>
                             {showFeedback && (
                                 <div>
-                                    <div className={`mt-4 p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
-                                        <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-900' : 'text-red-900'}`}>{isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}</p>
-                                        <p className={`text-sm ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>Votre réponse : <span className="font-medium">{freeTextAnswer.trim()}</span></p>
+                                    <div className={`mt-4 p-4 rounded-lg border-2 ${isCorrect
+                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600'
+                                        : 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'}`}>
+                                        <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
+                                            {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
+                                        </p>
+                                        <p className={`text-sm ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'}`}>
+                                            Votre réponse : <span className="font-medium">{freeTextAnswer.trim()}</span>
+                                        </p>
                                     </div>
                                     {!isCorrect && (
-                                        <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-400 rounded-lg">
-                                            <p className="font-semibold text-blue-900 mb-2">Réponse attendue :</p>
-                                            <p className="text-blue-800 font-medium">{currentQuestion.answers?.[0]?.text || currentQuestion.correctAnswerText || 'Non disponible'}</p>
+                                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg">
+                                            <p className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Réponse attendue :</p>
+                                            <p className="text-blue-800 dark:text-blue-400 font-medium">{currentQuestion.answers?.[0]?.text || currentQuestion.correctAnswerText || 'Non disponible'}</p>
                                         </div>
                                     )}
                                 </div>
@@ -513,22 +541,32 @@ export default function QuizPage() {
                         </div>
                     )}
 
+                    {/* MULTI_TEXT */}
                     {currentQuestion.type === 'MULTI_TEXT' && (
                         <div className="space-y-3">
-                            <p className="text-sm text-gray-600 mb-3 italic">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 italic">
                                 {currentQuestion.strictOrder ? '💡 Remplissez chaque champ dans le bon ordre' : "💡 Remplissez chaque champ avec une bonne réponse (l'ordre n'a pas d'importance)"}
                             </p>
                             {!showFeedback && currentQuestion.answers?.map((_, i) => (
-                                <input key={i} value={multiTextAnswers[i] || ''} onChange={e => { const u = [...multiTextAnswers]; u[i] = e.target.value; setMultiTextAnswers(u); }} placeholder={`Réponse ${i + 1}`} className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:outline-none" />
+                                <input
+                                    key={i}
+                                    value={multiTextAnswers[i] || ''}
+                                    onChange={e => { const u = [...multiTextAnswers]; u[i] = e.target.value; setMultiTextAnswers(u); }}
+                                    placeholder={`Réponse ${i + 1}`}
+                                    className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-600 dark:focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
+                                />
                             ))}
                             {showFeedback && (
-                                <div className="border-2 border-blue-300 bg-blue-50 rounded-lg px-3 py-2">
-                                    <p className="text-sm font-medium text-blue-800 mb-2">Réponses attendues :</p>
+                                <div className="border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2">
+                                    <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Réponses attendues :</p>
                                     <div className="space-y-1">
                                         {currentQuestion.answers?.map((answer, i) => {
                                             const isGood = multiTextAnswers.some(u => u.trim().toLowerCase() === answer.text.trim().toLowerCase());
                                             return (
-                                                <div key={i} className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${isGood ? 'bg-green-50 border-green-300 text-green-800' : 'bg-white border-blue-200 text-blue-700'}`}>
+                                                <div key={i} className={`text-sm px-3 py-1.5 rounded-lg border font-medium
+                                                    ${isGood
+                                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
+                                                        : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'}`}>
                                                     {isGood ? '✓' : '•'} {answer.text}
                                                 </div>
                                             );
@@ -540,19 +578,35 @@ export default function QuizPage() {
                     )}
                 </div>
 
+                {/* Feedback banner (TRUE_FALSE / MCQ) */}
                 {showFeedback && currentQuestion.type !== 'TEXT' && currentQuestion.type !== 'MULTI_TEXT' && (
-                    <div className={`mb-6 p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500'}`}>
-                        <p className={`font-semibold ${isCorrect ? 'text-green-900' : 'text-red-900'}`}>{isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}</p>
+                    <div className={`mb-6 p-4 rounded-lg border-2 ${isCorrect
+                        ? 'bg-green-100 dark:bg-green-900/20 border-green-500 dark:border-green-600'
+                        : 'bg-red-100 dark:bg-red-900/20 border-red-500 dark:border-red-600'}`}>
+                        <p className={`font-semibold ${isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
+                            {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
+                        </p>
                     </div>
                 )}
 
+                {/* Action buttons */}
                 <div className="flex justify-end gap-4">
                     {!showFeedback ? (
-                        <button onClick={handleValidateAnswer} disabled={!canProceed} className={`px-8 py-3 rounded-lg font-medium transition-all ${canProceed ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                        <button
+                            onClick={handleValidateAnswer}
+                            disabled={!canProceed}
+                            className={`px-8 py-3 rounded-lg font-medium transition-all ${canProceed
+                                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                                : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'}`}>
                             Valider ma réponse
                         </button>
                     ) : (
-                        <button onClick={handleNextQuestion} disabled={isSubmitting} className={`px-8 py-3 rounded-lg font-medium transition-all ${isSubmitting ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'}`}>
+                        <button
+                            onClick={handleNextQuestion}
+                            disabled={isSubmitting}
+                            className={`px-8 py-3 rounded-lg font-medium transition-all ${isSubmitting
+                                ? 'bg-gray-400 dark:bg-gray-600 text-white cursor-not-allowed'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'}`}>
                             {isSubmitting ? 'Envoi en cours...' : isLastQuestion ? 'Voir mes résultats 🎯' : 'Question suivante →'}
                         </button>
                     )}
