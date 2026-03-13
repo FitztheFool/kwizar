@@ -424,31 +424,31 @@ export default function LobbyPage() {
                                 <h2 className="text-sm font-semibold text-gray-500 uppercase">Options Taboo</h2>
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1">Durée d'un tour</label>
-                                    <select value={lobby.tabooOptions.turnDuration} onChange={e => isHost && setTabooOption({ turnDuration: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white text-sm disabled:opacity-60">
+                                    <select value={lobby.tabooOptions.turnDuration} onChange={e => isHost && setTabooOption({ turnDuration: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white disabled:opacity-60">
                                         {[15, 30, 45, 60, 90, 120, 180, 240, 300].map(t => <option key={t} value={t}>{t}s</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1">Nombre de rounds</label>
-                                    <select value={lobby.tabooOptions.totalRounds} onChange={e => isHost && setTabooOption({ totalRounds: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white text-sm disabled:opacity-60">
+                                    <select value={lobby.tabooOptions.totalRounds} onChange={e => isHost && setTabooOption({ totalRounds: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white disabled:opacity-60">
                                         {[1, 2, 3, 4, 5, 7, 10].map(r => <option key={r} value={r}>{r} round{r > 1 ? 's' : ''}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1">Mots piégés max</label>
-                                    <select value={lobby.tabooOptions.trapWordCount} onChange={e => isHost && setTabooOption({ trapWordCount: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white text-sm disabled:opacity-60">
+                                    <select value={lobby.tabooOptions.trapWordCount} onChange={e => isHost && setTabooOption({ trapWordCount: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white disabled:opacity-60">
                                         {[2, 3, 4, 5, 6, 7, 8, 10].map(n => <option key={n} value={n}>{n} mots</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1">Temps chercher mots piégés</label>
-                                    <select value={lobby.tabooOptions.trapDuration} onChange={e => isHost && setTabooOption({ trapDuration: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white text-sm disabled:opacity-60">
+                                    <select value={lobby.tabooOptions.trapDuration} onChange={e => isHost && setTabooOption({ trapDuration: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white disabled:opacity-60">
                                         {[15, 30, 45, 60, 90, 120, 180].map(t => <option key={t} value={t}>{t}s</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs text-gray-500 mb-1">Tentatives max par tour</label>
-                                    <select value={lobby.tabooOptions.maxAttempts} onChange={e => isHost && setTabooOption({ maxAttempts: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white text-sm disabled:opacity-60">
+                                    <select value={lobby.tabooOptions.maxAttempts} onChange={e => isHost && setTabooOption({ maxAttempts: Number(e.target.value) })} disabled={!isHost} className="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white disabled:opacity-60">
                                         {[3, 5, 7, 10, 15, 20, 30].map(n => <option key={n} value={n}>{n} tentatives</option>)}
                                     </select>
                                 </div>
