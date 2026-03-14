@@ -6,17 +6,15 @@ import { usePathname, useRouter } from 'next/navigation';
 import { randomLobbyId } from '@/lib/utils';
 import type { TabType } from '@/types/dashboard';
 
-const QUIZ_NAV_ITEMS: { tab?: TabType; label: string; icon: string; href?: string }[] = [
-    { tab: 'available', label: 'Quiz disponibles', icon: '🎯', href: '/quiz/available' },
-    { tab: 'my-quizzes', label: 'Mes quiz', icon: '📝', href: '/quiz/my-quizzes' },
+const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
+    { label: 'Quiz disponibles', icon: '🎯', href: '/quiz/available' },
+    { label: 'Mes quiz', icon: '📝', href: '/quiz/my-quizzes' },
     { label: '', icon: '' },
-    { tab: 'generate', label: 'Générer un quiz (IA)', icon: '✨', href: '/quiz/generate' },
-    { tab: 'create', label: 'Créer un quiz', icon: '➕', href: '/quiz/create' },
+    { label: 'Générer un quiz (IA)', icon: '✨', href: '/quiz/generate' },
+    { label: 'Créer un quiz', icon: '➕', href: '/quiz/create' },
 ];
 
 interface SidebarProps {
-    activeTab: TabType | null;
-    onTabChange: (tab: TabType) => void;
     isOpen: boolean;
     onClose: () => void;
     isAuthenticated: boolean;
@@ -25,24 +23,16 @@ interface SidebarProps {
     userEmail?: string | null;
 }
 
-export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAuthenticated, userRole, userName, userEmail }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, userName, userEmail }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
     const [collapsed, setCollapsed] = useState(true);
     const [quizMenuOpen, setQuizMenuOpen] = useState(false);
     const [lobbyMenuOpen, setLobbyMenuOpen] = useState(false);
 
-    const isQuizTab = QUIZ_NAV_ITEMS.some(n => n.tab === activeTab);
-    const isQuizHref = QUIZ_NAV_ITEMS.some(n => n.href && pathname === n.href);
-    const quizSectionActive = isQuizTab || isQuizHref;
-    const lobbySectionActive = activeTab === 'lobbies' || pathname.startsWith('/lobby/');
+    const quizSectionActive = QUIZ_NAV_ITEMS.some(n => n.href && pathname.startsWith(n.href));
     const isCreatingLobby = pathname.startsWith('/lobby/');
-
-    // Navigue vers /dashboard/:tab et ferme le menu mobile
-    const handleTab = (tab: TabType) => {
-        onTabChange(tab);
-        onClose();
-    };
+    const lobbySectionActive = pathname.startsWith('/lobby/') || pathname.startsWith('/lobbies');
 
     useEffect(() => {
         if (quizSectionActive) setQuizMenuOpen(true);
@@ -59,9 +49,9 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
         `}>
 
             {/* Header */}
-            <div className="px-3 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+            <div className="px-3 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 {!collapsed && (
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                             {isAuthenticated ? 'Dashboard' : 'Menu'}
                         </h1>
@@ -72,7 +62,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
                 )}
                 <button
                     onClick={() => setCollapsed(prev => !prev)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 dark:text-gray-500 ml-auto flex-shrink-0"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 dark:text-gray-500 flex-shrink-0"
                     title={collapsed ? 'Ouvrir' : 'Réduire'}
                 >
                     {collapsed ? '→' : '←'}
@@ -105,10 +95,9 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
 
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <button
-                                    onClick={() => router.push(`/lobby/${randomLobbyId()}`)}
+                                <Link href={`/lobby/${randomLobbyId()}`}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-                                        ${isCreatingLobby
+                ${isCreatingLobby
                                             ? 'bg-green-50 text-green-700'
                                             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                                         }`}
@@ -116,19 +105,18 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
                                     <span className="text-sm">➕</span>
                                     Créer un lobby
                                     {isCreatingLobby && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500" />}
-                                </button>
-                                <button
-                                    onClick={() => handleTab('lobbies')}
+                                </Link>
+                                <Link href="/lobbies"
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-                                        ${activeTab === 'lobbies'
+                ${pathname.startsWith('/lobbies')
                                             ? 'bg-green-50 text-green-700'
                                             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                                         }`}
                                 >
                                     <span className="text-sm">🔍</span>
                                     Voir les lobbies
-                                    {activeTab === 'lobbies' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500" />}
-                                </button>
+                                    {pathname.startsWith('/lobbies') && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500" />}
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -175,16 +163,16 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
                                     );
                                 })
                             ) : (
-                                <Link href="/dashboard/available"
+                                <Link href="/quiz/available"
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-                                        ${pathname === '/dashboard/available'
+        ${pathname === '/quiz/available'
                                             ? 'bg-blue-50 text-blue-700'
                                             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                                         }`}
                                 >
                                     <span className="text-sm">🎯</span>
                                     Quiz disponibles
-                                    {pathname === '/dashboard/available' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                                    {pathname === '/quiz/available' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
                                 </Link>
                             )}
                         </div>
@@ -192,11 +180,10 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
                 </div>
 
                 {/* ── Leaderboard ── */}
-                <button
-                    onClick={() => router.push('/leaderboard/uno')}
+                <Link href="/leaderboard/uno"
                     title="Leaderboard"
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-                        ${pathname.startsWith('/leaderboard/')
+        ${pathname.startsWith('/leaderboard/')
                             ? 'bg-yellow-50 text-yellow-700'
                             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                         }`}
@@ -208,28 +195,60 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onClose, isAut
                             {pathname.startsWith('/leaderboard/') && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-yellow-500" />}
                         </>
                     )}
-                </button>
+                </Link>
+
+                {/* ── Dashboard ── */}
+                {isAuthenticated && (
+                    <Link href="/dashboard"
+                        title="Dashboard"
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
+            ${pathname === '/dashboard'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                    >
+                        <span className="text-base flex-shrink-0">🎛️</span>
+                        {!collapsed && (
+                            <>
+                                <span>Dashboard</span>
+                                {pathname === '/dashboard' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                            </>
+                        )}
+                    </Link>
+                )}
 
                 {/* ── Paramètres ── */}
-                <button onClick={() => router.push('/settings')} title="Paramètres"
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white">
+                <Link href="/settings"
+                    title="Paramètres"
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
+        ${pathname === '/settings'
+                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                >
                     <span className="text-base flex-shrink-0">⚙️</span>
-                    {!collapsed && 'Paramètres'}
-                </button>
+                    {!collapsed && (
+                        <>
+                            <span>Paramètres</span>
+                            {pathname === '/settings' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-gray-500" />}
+                        </>
+                    )}
+                </Link>
 
                 {/* ── Admin ── */}
                 {isAuthenticated && userRole === 'ADMIN' && (
-                    <button onClick={() => handleTab('admin')} title="Admin"
+                    <Link href="/admin"
+                        title="Admin"
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-                            ${activeTab === 'admin'
+            ${pathname === '/admin'
                                 ? 'bg-red-50 text-red-700'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                             }`}
                     >
                         <span className="text-base flex-shrink-0">🛡️</span>
                         {!collapsed && 'Admin'}
-                        {!collapsed && activeTab === 'admin' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500" />}
-                    </button>
+                        {!collapsed && pathname === '/admin' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500" />}
+                    </Link>
                 )}
 
                 {/* ── Connexion (non connectés) ── */}

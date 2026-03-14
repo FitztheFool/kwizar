@@ -16,12 +16,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     // Sync activeTab with current path
     useEffect(() => {
-        if (pathname.startsWith('/dashboard')) {
-            const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
-            const validTabs: TabType[] = ['available', 'my-quizzes', 'quiz-score', 'admin'];
-            setActiveTab(validTabs.includes(hash as TabType) ? (hash as TabType) : 'available');
-        } else {
-            setActiveTab(null);
+        const updateActiveTab = () => {
+            if (pathname.startsWith('/dashboard')) {
+                const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
+                const validTabs: TabType[] = ['available', 'my-quizzes', 'quiz-score', 'admin', 'lobbies'];
+                setActiveTab(validTabs.includes(hash as TabType) ? (hash as TabType) : 'available');
+            } else {
+                setActiveTab(null);
+            }
+        };
+
+        updateActiveTab();
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('hashchange', updateActiveTab);
+            return () => window.removeEventListener('hashchange', updateActiveTab);
         }
     }, [pathname]);
 
@@ -40,16 +49,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Sidebar */}
             <Sidebar
-                activeTab={activeTab}
-                onTabChange={(tab) => {
-                    setActiveTab(tab);
-                    if (!pathname.startsWith('/dashboard')) {
-                        router.push(`/dashboard#${tab}`);
-                    } else {
-                        window.history.replaceState(null, '', `/dashboard#${tab}`);
-                        window.dispatchEvent(new HashChangeEvent('hashchange'));
-                    }
-                }}
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
                 isAuthenticated={status === 'authenticated'}

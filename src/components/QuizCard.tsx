@@ -155,10 +155,7 @@ export default function QuizCard({
       ) : (
         <Link
           href={`/quiz/${quiz.id}`}
-          className={`block w-full text-center py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg ${isPerfect
-            ? 'bg-green-500 hover:bg-green-600 text-white'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 transform hover:scale-105 active:scale-95"
         >
           {isPerfect ? 'Rejouer' : 'Jouer'}
         </Link>

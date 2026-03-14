@@ -6,6 +6,7 @@ let unoSocket: Socket | null = null;
 let tabooSocket: Socket | null = null;
 let skyjowSocket: Socket | null = null;
 let yahtzeeSocket: Socket | null = null;
+let puissance4Socket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -59,4 +60,11 @@ export function getYahtzeeSocket(): Socket | null {
     if (!yahtzeeSocket) yahtzeeSocket = createSocket(process.env.NEXT_PUBLIC_YAHTZEE_SERVER_URL ?? "http://localhost:10005", "Yahtzee Socket");
     if (!yahtzeeSocket.connected) yahtzeeSocket.connect();
     return yahtzeeSocket;
+}
+
+export function getPuissance4Socket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!puissance4Socket) puissance4Socket = createSocket(process.env.NEXT_PUBLIC_P4_SOCKET_URL ?? "http://localhost:10006", "Puissance 4 Socket");
+    if (!puissance4Socket.connected) puissance4Socket.connect();
+    return puissance4Socket;
 }

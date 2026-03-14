@@ -108,9 +108,6 @@ export default function QuizResults({
                                 <Link href="/dashboard" className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
                                     Dashboard
                                 </Link>
-                                <Link href="/leaderboard" className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium">
-                                    Classement
-                                </Link>
                                 <Link href="/" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium">
                                     Accueil
                                 </Link>
@@ -166,8 +163,8 @@ function AnswerText({ result }: { result: QuestionResult }) {
                             const isGood = result.userAnswerText.split(', ').some(u => u.trim().toLowerCase() === c.trim().toLowerCase());
                             return (
                                 <div key={i} className={`text-sm px-3 py-1.5 rounded-lg border font-medium ${isGood
-                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
-                                        : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
+                                    : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
                                     }`}>
                                     {isGood ? '✓' : '•'} {c}
                                 </div>
@@ -239,8 +236,8 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                             {result.isCorrect ? '✓' : '✗'}
                         </span>
                         <span className={`text-xs font-bold px-2 py-1 rounded-full ${result.isCorrect
-                                ? 'bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-300'
-                                : 'bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-300'
+                            ? 'bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-300'
+                            : 'bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-300'
                             }`}>
                             {result.earnedPoints > 0 ? `+${result.earnedPoints} pts` : '0 pt'}
                         </span>
@@ -256,8 +253,8 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                         return (
                             <div key={entry.userId} className={`flex items-center gap-3 px-5 py-3 ${isMe ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                                 <span className={`text-lg w-5 text-center font-bold ${playerResult
-                                        ? (playerResult.isCorrect ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400')
-                                        : 'text-gray-300 dark:text-gray-600'
+                                    ? (playerResult.isCorrect ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400')
+                                    : 'text-gray-300 dark:text-gray-600'
                                     }`}>
                                     {playerResult ? (playerResult.isCorrect ? '✓' : '✗') : '—'}
                                 </span>
@@ -266,8 +263,8 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                                     {isMe && <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">(moi)</span>}
                                 </span>
                                 <span className={`text-xs flex-1 ${playerResult
-                                        ? (playerResult.isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400')
-                                        : 'text-gray-400 dark:text-gray-500 italic'
+                                    ? (playerResult.isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400')
+                                    : 'text-gray-400 dark:text-gray-500 italic'
                                     }`}>
                                     {playerResult?.userAnswerText || 'Aucune réponse'}
                                 </span>

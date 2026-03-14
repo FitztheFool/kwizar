@@ -8,7 +8,7 @@ import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
 
 type Player = { userId: string; username: string };
-type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow' | 'yahtzee';
+type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow' | 'yahtzee' | 'puissance4';
 
 type UnoOptions = {
     stackable: boolean;
@@ -124,9 +124,11 @@ export default function LobbyPage() {
             } else if (payload.gameType === 'taboo') {
                 router.push(`/taboo/${lobbyId}/game`);
             } else if (payload.gameType === 'skyjow') {
-                router.push(`/skyjow/${payload.lobbyId ?? lobbyId}`);
+                router.push(`/skyjow/${lobbyId}`);
             } else if (payload.gameType === 'yahtzee') {
                 router.push(`/yahtzee/${lobbyId}`);
+            } else if (payload.gameType === 'puissance4') {
+                router.push(`/puissance4/${lobbyId}`);
             } else {
                 sessionStorage.setItem(`lobby_timeMode_${lobbyId}`, payload.timeMode ?? 'none');
                 sessionStorage.setItem(`lobby_timePerQuestion_${lobbyId}`, String(payload.timePerQuestion ?? 15));
@@ -193,9 +195,11 @@ export default function LobbyPage() {
         ? is2v2 ? playerCount === 4 && unoTeamsReady : playerCount >= 2 && playerCount <= 8
         : lobby.gameType === 'taboo'
             ? tabooTeamsValid
-            : lobby.gameType === 'skyjow' || lobby.gameType === 'yahtzee'
-                ? playerCount >= 2 && playerCount <= 8
-                : playerCount >= 2 && !!lobby.quizId;
+            : lobby.gameType === 'puissance4'
+                ? playerCount === 2
+                : lobby.gameType === 'skyjow' || lobby.gameType === 'yahtzee'
+                    ? playerCount >= 2 && playerCount <= 8
+                    : playerCount >= 2 && !!lobby.quizId;
 
     const startLabel = () => {
         if (!isHost) return 'En attente du host…';
@@ -208,6 +212,11 @@ export default function LobbyPage() {
             if (playerCount < 2) return '⏳ Min. 2 joueurs';
             if (playerCount > 8) return '⛔ Max. 8 joueurs';
             return '🎲 Lancer Yahtzee !';
+        }
+        if (lobby.gameType === 'puissance4') {
+            if (playerCount < 2) return `⏳ Min. 2 joueurs (${playerCount}/2)`;
+            if (playerCount > 2) return '⛔ Exactement 2 joueurs';
+            return '🔴 Lancer Puissance 4 !';
         }
         if (canStart) return `🚀 Lancer ${lobby.gameType === 'uno' ? 'UNO' : lobby.gameType === 'taboo' ? 'Taboo' : 'le quiz'} !`;
         if (lobby.gameType === 'taboo') {
@@ -331,7 +340,7 @@ export default function LobbyPage() {
                         <div>
                             <h2 className="font-bold text-sm text-gray-500 dark:text-white uppercase mb-2">Jeu</h2>
                             <div className="grid grid-cols-2 gap-2">
-                                {(['quiz', 'uno', 'taboo', 'skyjow', 'yahtzee'] as GameType[]).map((g) => (
+                                {(['quiz', 'uno', 'taboo', 'skyjow', 'yahtzee', 'puissance4'] as GameType[]).map((g) => (
                                     <button key={g} onClick={() => isHost && setGameType(g)} disabled={!isHost}
                                         className={`py-2 rounded-lg border-2 font-semibold text-xs transition-all
                                             ${lobby.gameType === g ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'}
@@ -340,7 +349,8 @@ export default function LobbyPage() {
                                             : g === 'uno' ? '🃏 UNO'
                                                 : g === 'taboo' ? '🗣️ Taboo'
                                                     : g === 'skyjow' ? '🂠 Skyjow'
-                                                        : '🎲 Yahtzee'}
+                                                        : g === 'puissance4' ? '🔘 Puissance 4'
+                                                            : '🎲 Yahtzee'}
                                     </button>
                                 ))}
                             </div>
@@ -561,6 +571,30 @@ export default function LobbyPage() {
                                 {playerCount >= 2
                                     ? <span className="text-green-500 font-semibold">✅ {playerCount} joueurs — prêt à jouer !</span>
                                     : <span className="text-orange-400">⏳ {playerCount}/2 — min. 2 joueurs</span>}
+                            </div>
+                        </div>
+                    ) : lobby.gameType === 'puissance4' ? (
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm lg:col-span-2 flex flex-col items-center justify-center text-center gap-4">
+                            <div className="text-6xl">🔴</div>
+                            <h2 className="text-xl font-bold">Puissance 4</h2>
+                            <div className="text-sm text-gray-500 space-y-2 max-w-sm">
+                                <p>Deux joueurs s'affrontent sur une grille <strong>7 × 6</strong>.</p>
+                                <p>À tour de rôle, choisissez une colonne. Votre pion tombe en bas. <strong>Alignez 4 pions</strong> horizontalement, verticalement ou en diagonale pour gagner !</p>
+                                <p>Un <strong>timer de 30 secondes</strong> par tour. Si le temps est écoulé, le coup est joué automatiquement. 🏆</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 justify-center text-xs mt-2">
+                                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-semibold">🔴 Joueur 1</span>
+                                <span className="text-gray-400">vs</span>
+                                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">🟡 Joueur 2</span>
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">⏱ 30s / tour</span>
+                                <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-semibold">7×6 grille</span>
+                            </div>
+                            <div className="mt-1 text-xs text-gray-400">
+                                Exactement 2 joueurs ·{' '}
+                                {playerCount === 2
+                                    ? <span className="text-green-500 font-semibold">✅ Prêt à jouer !</span>
+                                    : <span className="text-orange-400">⏳ {playerCount}/2 — en attente d'un adversaire</span>
+                                }
                             </div>
                         </div>
                     ) : (
