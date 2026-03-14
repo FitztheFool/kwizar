@@ -40,3 +40,7 @@ export const GAME_CONFIG = {
         description: 'Classement basé sur le score total cumulé sur toutes les parties. Chaque catégorie bien remplie rapporte des points, avec des bonus pour la section haute (≥63 pts = +35) et les Yahtzee supplémentaires (+100 chacun).',
     },
 } as const;
+
+export const GAME_EMOJI_MAP = Object.fromEntries(
+    Object.values(GAME_CONFIG).map(g => [g.gameType, g.icon])
+) as Record<string, string>;

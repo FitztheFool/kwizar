@@ -124,7 +124,7 @@ export default function GenerateQuizPage() {
         return (
             <div>
                 <div className="max-w-4xl mx-auto px-4 pt-6">
-                    <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-4 py-2 text-sm">
+                    <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-lg px-4 py-2 text-sm">
                         🤖 Quiz généré par <span className="font-semibold ml-1">Groq — Llama 3.3</span> — vérifiez et modifiez avant de publier.
                     </div>
                 </div>
@@ -138,31 +138,31 @@ export default function GenerateQuizPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-md">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">✨ Générer un quiz</h1>
-                <p className="text-gray-500 text-sm mb-1">L'IA crée un quiz que vous pourrez modifier avant de publier.</p>
-                <p className="text-xs text-gray-400 mb-6">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">✨ Générer un quiz</h1>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">L'IA crée un quiz que vous pourrez modifier avant de publier.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
                     Modèle : <span className="font-medium">Groq — Llama 3.3 70B</span>
                 </p>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg text-sm">{error}</div>
                 )}
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Sujet du quiz</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sujet du quiz</label>
                         <input
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleGenerate('play')}
                             placeholder="Ex: La Révolution française, JavaScript, Anatomie..."
-                            className="w-full border rounded-lg p-3 focus:outline-none focus:border-blue-600"
+                            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={loading}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Difficulté</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Difficulté</label>
                         <div className="grid grid-cols-3 gap-2">
                             {DIFFICULTIES.map((d) => (
                                 <button
@@ -172,8 +172,8 @@ export default function GenerateQuizPage() {
                                     title={d.desc}
                                     disabled={loading}
                                     className={`py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors ${difficulty === d.value
-                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                                        ? 'border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
                                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     {d.label}
@@ -183,8 +183,8 @@ export default function GenerateQuizPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Nombre de questions : <span className="font-bold text-blue-600">{questionCount}</span>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Nombre de questions : <span className="font-bold text-blue-600 dark:text-blue-400">{questionCount}</span>
                         </label>
                         <input
                             type="range"
@@ -192,23 +192,23 @@ export default function GenerateQuizPage() {
                             max={15}
                             value={questionCount}
                             onChange={(e) => setQuestionCount(Number(e.target.value))}
-                            className="w-full disabled:opacity-50"
+                            className="w-full disabled:opacity-50 accent-blue-600 dark:accent-blue-400"
                             disabled={loading}
                         />
-                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
                             <span>3</span><span>15</span>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Catégorie <span className="text-gray-400 font-normal">(facultatif)</span>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Catégorie <span className="text-gray-400 dark:text-gray-500 font-normal">(facultatif)</span>
                         </label>
                         <select
                             value={categoryId}
                             onChange={(e) => setCategoryId(e.target.value)}
                             disabled={loading}
-                            className="w-full border rounded-lg p-3 focus:outline-none focus:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed">
                             <option value="">Aucune catégorie</option>
                             {categories.map((c) => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -232,7 +232,7 @@ export default function GenerateQuizPage() {
                                 </span>
                             ) : '🎮 Générer et jouer'}
                         </button>
-                        <p className="text-xs text-gray-400 text-center -mt-1">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 text-center -mt-1">
                             ⚠️ Le quiz ne vous appartiendra pas. Utilisez <span className="font-medium">Générer et modifier</span> pour en être propriétaire.
                         </p>
                         <button

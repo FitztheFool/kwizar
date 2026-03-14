@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
+import { GAME_CONFIG, GAME_EMOJI_MAP } from '@/lib/gameConfig';
 
 interface AdminUser {
     id: string;
@@ -87,14 +88,6 @@ const SECTION_ID: Record<AdminTab, string> = {
 };
 
 const PLACEMENT_EMOJI: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-
-const GAME_EMOJI: Record<GameType, string> = {
-    QUIZ: '🎯',
-    UNO: '🎴',
-    TABOO: '🚫',
-    SKYJOW: '✈️',
-    YAHTZEE: '🎲',
-};
 
 const GAME_BADGE: Record<GameType, string> = {
     QUIZ: 'bg-blue-100   dark:bg-blue-900/40   text-blue-700   dark:text-blue-400',
@@ -468,7 +461,7 @@ export default function AdminPanel() {
                                         .map(([type, { count, points }]) => (
                                             <div key={type} className={`${GAME_BADGE[type]} border rounded-xl p-3.5 flex items-center gap-3.5`} style={{ width: '220px' }}>
                                                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0 opacity-80 ${GAME_BADGE[type]}`}>
-                                                    {GAME_EMOJI[type]}
+                                                    {GAME_EMOJI_MAP[type]}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="text-[11px] font-bold uppercase tracking-widest opacity-70 mb-1.5">{type}</div>
@@ -588,7 +581,7 @@ export default function AdminPanel() {
                                                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                     }`}
                                             >
-                                                {g === 'ALL' ? '🎮 Tous' : `${GAME_EMOJI[g]} ${g}`}
+                                                {g === 'ALL' ? '🎮 Tous' : `${GAME_EMOJI_MAP[g]} ${g}`}
                                             </button>
                                         ))}
                                     </div>
@@ -630,7 +623,7 @@ export default function AdminPanel() {
                                                                                             {player.username}
                                                                                         </Link>
                                                                                         <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${GAME_BADGE[activity.gameType]}`}>
-                                                                                            {GAME_EMOJI[activity.gameType]} {activity.gameType}
+                                                                                            {GAME_EMOJI_MAP[activity.gameType]} {activity.gameType}
                                                                                         </span>
                                                                                     </div>
                                                                                 </td>

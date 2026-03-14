@@ -1,5 +1,6 @@
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import LobbyChat from '@/components/Chat';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -63,7 +64,6 @@ export default function LobbyPage() {
     });
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [chatText, setChatText] = useState('');
     const [quizList, setQuizList] = useState<{ id: string; title: string; _count: { questions: number } }[]>([]);
     const [quizSearch, setQuizSearch] = useState('');
     const [quizCategory, setQuizCategory] = useState('');
@@ -178,12 +178,7 @@ export default function LobbyPage() {
         if (!isHost || !confirm(`Donner le rôle d'hôte à ${targetUsername} ?`)) return;
         socket?.emit('lobby:transferHost', { targetUserId });
     };
-    const sendChat = () => {
-        const text = chatText.trim();
-        if (!text || !socket) return;
-        socket.emit('chat:send', { text });
-        setChatText('');
-    };
+
     const setTime = (t: number) => socket?.emit('lobby:setTimePerQuestion', { timePerQuestion: t });
     const setGameType = (gameType: GameType) => socket?.emit('lobby:setGameType', { gameType });
     const setUnoOption = (key: keyof UnoOptions, value: boolean | string) => socket?.emit('lobby:setUnoOptions', { [key]: value });
@@ -600,18 +595,10 @@ export default function LobbyPage() {
                         </div>
                     )}
 
-                    {/* ── Chat ── */}
-                    <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
-                        <h2 className="font-bold text-lg mb-3">Chat</h2>
-                        <div className="h-64 overflow-auto border rounded-lg p-3 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-                            {messages.map((m, i) => <div key={i} className="mb-2"><b>{m.username}</b>: {m.text}</div>)}
-                            {messages.length === 0 && <div className="text-sm opacity-60">Aucun message…</div>}
-                        </div>
-                        <div className="mt-3 flex flex-col gap-2">
-                            <input value={chatText} onChange={e => setChatText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendChat(); }} className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white" placeholder="Écrire un message…" />
-                            <button onClick={sendChat} className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Envoyer</button>
-                        </div>
-                    </div>
+                    <LobbyChat
+                        messages={messages}
+                        onSend={(text) => socket?.emit('chat:send', { text })}
+                    />
                 </div>
             </div>
         </div>

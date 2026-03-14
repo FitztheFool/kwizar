@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import DiscordButton from '@/components/DiscordButton';
 
 function RegisterForm() {
   const router = useRouter();
@@ -67,7 +68,7 @@ function RegisterForm() {
         setError(data.error || 'Une erreur est survenue');
       } else {
         // Rediriger vers la page de login avec le callback URL
-        const loginUrl = callbackUrl !== '/dashboard' 
+        const loginUrl = callbackUrl !== '/dashboard'
           ? `/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}`
           : '/login?registered=true';
         router.push(loginUrl);
@@ -179,10 +180,24 @@ function RegisterForm() {
             </button>
           </form>
 
+          <div className="mt-6">
+            <div className="mt-4">
+              <DiscordButton callbackUrl={callbackUrl} />
+            </div>
+            <div className="relative mt-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">ou</span>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-300">
               Déjà un compte ?{' '}
-              <Link 
+              <Link
                 href={`/login${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
                 className="text-primary-600 hover:text-primary-700 font-semibold"
               >
