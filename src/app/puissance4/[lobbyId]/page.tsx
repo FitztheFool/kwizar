@@ -153,10 +153,10 @@ export default function Puissance4Page() {
         if (!isMyTurn || dropping || !gameState) return;
         if (gameState.grid[0][col] !== null) return; // colonne pleine
         setDropping(true);
-        socket.emit('p4:drop', { lobbyId, col });
+        socket?.emit('p4:drop', { lobbyId, col });
     }, [isMyTurn, dropping, gameState, socket, lobbyId]);
 
-    const handleRematch = () => socket.emit('p4:rematch', { lobbyId });
+    const handleRematch = () => socket?.emit('p4:rematch', { lobbyId });
 
     if (status === 'loading') {
         return (
@@ -167,7 +167,7 @@ export default function Puissance4Page() {
     }
 
     const winnerPlayer = gameState?.winner !== null && gameState?.winner !== 'draw'
-        ? players.find(p => p.colorIndex === gameState.winner)
+        ? players.find(p => p.colorIndex === gameState?.winner)
         : null;
 
     return (

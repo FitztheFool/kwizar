@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
         if (!gameMap.has(key)) continue; // belongs to a game not on this page
         const game = gameMap.get(key)!;
         if (!game.players.some(p => p.username === a.user.username)) {
-            game.players.push({ username: a.user.username, score: a.score, placement: a.placement });
+            game.players.push({ username: a.user.username ?? 'Anonyme', score: a.score, placement: a.placement });
         }
     }
 
