@@ -1,0 +1,170 @@
+'use client';
+import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import Pagination from '@/components/Pagination';
+import { GAME_EMOJI_MAP } from '@/lib/gameConfig';
+
+interface RecentActivity {
+    gameId: string;
+    gameType: string;
+    createdAt: string;
+    quiz: { id: string; title: string } | null;
+    score: number;
+    placement: number | null;
+}
+
+interface Stats {
+    user: { id: string; username: string; image: string | null };
+    gameStats: Record<string, { count: number; points: number; wins: number }>;
+    totalGames: number;
+    recentActivity: RecentActivity[];
+    pagination: { page: number; pageSize: number; totalGames: number; totalPages: number };
+}
+
+const PLACEMENT_EMOJI: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+const GAME_BADGE: Record<string, string> = {
+    QUIZ: 'bg-blue-100   dark:bg-blue-900/40   text-blue-700   dark:text-blue-400',
+    UNO: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400',
+    TABOO: 'bg-red-100    dark:bg-red-900/40    text-red-700    dark:text-red-400',
+    SKYJOW: 'bg-sky-100    dark:bg-sky-900/40    text-sky-700    dark:text-sky-400',
+    YAHTZEE: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400',
+    PUISSANCE4: 'bg-rose-100   dark:bg-rose-900/40   text-rose-700   dark:text-rose-400',
+};
+
+interface Props {
+    username: string;
+    currentUsername?: string;
+}
+
+export default function UserStats({ username, currentUsername }: Props) {
+    const [stats, setStats] = useState<Stats | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+
+    const fetchStats = useCallback(async (p = 1) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/user/${username}/stats?page=${p}`);
+            if (res.ok) setStats(await res.json());
+        } finally {
+            setLoading(false);
+        }
+    }, [username]);
+
+    useEffect(() => { fetchStats(1); }, [fetchStats]);
+
+    const handlePageChange = (p: number) => { setPage(p); fetchStats(p); };
+
+    if (loading) return (
+        <div className="flex items-center justify-center py-12" >
+            <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+        </div>
+    );
+
+    if (!stats) return <p className="text-gray-500 text-sm" > Impossible de charger les statistiques.</p>;
+
+    return (
+        <div className="space-y-8" >
+            <div>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3" >🎮 Statistiques </h2>
+                < div className="flex flex-wrap gap-3" >
+                    {
+                        Object.entries(stats.gameStats)
+                            .sort((a, b) => b[1].count - a[1].count)
+                            .map(([type, { count, points, wins }]) => (
+                                <div key={type} className={`${GAME_BADGE[type] ?? 'bg-gray-100 text-gray-600'} border rounded-xl p-3.5 flex items-center gap-3.5`} style={{ minWidth: 180 }
+                                }>
+                                    <div className="text-2xl" > {GAME_EMOJI_MAP[type] ?? '🎮'} </div>
+                                    < div >
+                                        <div className="text-[11px] font-bold uppercase tracking-widest opacity-70 mb-1" > {type} </div>
+                                        < div className="flex items-center gap-3" >
+                                            <div>
+                                                <div className="text-lg font-bold tabular-nums leading-none" > {count} </div>
+                                                < div className="text-[11px] opacity-60" > parties </div>
+                                            </div>
+                                            < div className="w-px self-stretch opacity-20 bg-current" />
+                                            <div>
+                                                <div className="text-lg font-bold tabular-nums leading-none" > {points} </div>
+                                                < div className="text-[11px] opacity-60" > points </div>
+                                                {count > 0 && (
+                                                    <div className={`text-xs font-bold mt-1 ${wins / count >= 0.6 ? 'text-green-400' : wins / count >= 0.4 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                        {Math.round((wins / count) * 100)}% victoires
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                </div>
+            </div>
+
+            < div >
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3" >🕐 Activité récente </h2>
+                {
+                    stats.recentActivity.length === 0 ? (
+                        <p className="text-gray-500 dark:text-gray-400 text-sm" > Aucune partie jouée pour l'instant.</p>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700" >
+                                <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 text-sm" >
+                                    <thead className="bg-gray-50 dark:bg-gray-800" >
+                                        <tr>
+                                            {
+                                                ['Jeu', 'Partie', 'Quiz', 'Score', 'Placement', 'Date'].map(h => (
+                                                    <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide" > {h} </th>
+                                                ))
+                                            }
+                                        </tr>
+                                    </thead>
+                                    < tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800" >
+                                        {
+                                            stats.recentActivity.map((a) => (
+                                                <tr key={a.gameId} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" >
+                                                    <td className="px-3 py-2 whitespace-nowrap" >
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${GAME_BADGE[a.gameType] ?? 'bg-gray-100 text-gray-600'}`} >
+                                                            {GAME_EMOJI_MAP[a.gameType] ?? '🎮'} {a.gameType}
+                                                        </span>
+                                                    </td>
+                                                    < td className="px-3 py-2 whitespace-nowrap font-mono text-xs text-gray-400" > {a.gameId} </td>
+                                                    < td className="px-3 py-2 whitespace-nowrap" >
+                                                        {
+                                                            a.quiz ? (
+                                                                <Link href={`/quiz/${a.quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs" > {a.quiz.title} </Link>
+                                                            ) : (
+                                                                <span className="text-gray-400" >—</span>
+                                                            )
+                                                        }
+                                                    </td>
+                                                    < td className="px-3 py-2 whitespace-nowrap" >
+                                                        <span className="font-bold text-gray-900 dark:text-white" > {a.score} </span>
+                                                        < span className="text-xs text-gray-400 ml-1" > pts </span>
+                                                    </td>
+                                                    < td className="px-3 py-2 whitespace-nowrap text-center" >
+                                                        {
+                                                            a.placement != null
+                                                                ? <span className="text-base"> {PLACEMENT_EMOJI[a.placement] ?? `#${a.placement}`} </span>
+                                                                : < span className="text-gray-400" >—</span>}
+                                                    </td>
+                                                    < td className="px-3 py-2 whitespace-nowrap text-xs text-gray-400" >
+                                                        {new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                                                        {' '}
+                                                        {new Date(a.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {
+                                stats.pagination.totalPages > 1 && (
+                                    <Pagination currentPage={page} totalPages={stats.pagination.totalPages} onPageChange={handlePageChange} />
+                                )
+                            }
+                        </>
+                    )}
+            </div>
+        </div>
+    );
+}

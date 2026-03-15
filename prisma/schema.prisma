@@ -27,6 +27,7 @@ enum GameType {
   TABOO
   SKYJOW
   YAHTZEE
+  PUISSANCE4
 }
 
 model Account {
@@ -81,6 +82,8 @@ model User {
   isAnonymous  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  deactivatedAt  DateTime?
+  deletedAt  DateTime?
 
   createdQuizzes Quiz[]
   attempts       Attempt[]

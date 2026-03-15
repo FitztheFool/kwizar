@@ -39,6 +39,14 @@ export const GAME_CONFIG = {
         scoreLabel: 'Score total',
         description: 'Classement basé sur le score total cumulé sur toutes les parties. Chaque catégorie bien remplie rapporte des points, avec des bonus pour la section haute (≥63 pts = +35) et les Yahtzee supplémentaires (+100 chacun).',
     },
+    puissance4: {
+        gameType: 'PUISSANCE4' as const,
+        label: 'Puissance 4',
+        icon: '🔴',
+        higherIsBetter: true,
+        scoreLabel: 'Points',
+        description: 'Classement basé sur le nombre de victoires cumulées. Chaque victoire rapporte 10 points. En cas de match nul, aucun point n\'est attribué.',
+    },
 } as const;
 
 export const GAME_EMOJI_MAP = Object.fromEntries(

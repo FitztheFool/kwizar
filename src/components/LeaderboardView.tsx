@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { GAME_CONFIG } from '@/lib/gameConfig';
 import Pagination from '@/components/Pagination';
 
-type Game = 'uno' | 'skyjow' | 'taboo' | 'quiz' | 'yahtzee';
+type Game = 'uno' | 'skyjow' | 'taboo' | 'quiz' | 'yahtzee' | 'puissance4';
 
 interface LeaderboardEntry {
     rank: number;

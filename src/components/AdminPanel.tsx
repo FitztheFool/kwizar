@@ -35,7 +35,7 @@ interface AdminCategory {
     _count: { quizzes: number };
 }
 
-type GameType = 'QUIZ' | 'UNO' | 'TABOO' | 'SKYJOW' | 'YAHTZEE';
+type GameType = 'QUIZ' | 'UNO' | 'TABOO' | 'SKYJOW' | 'YAHTZEE' | 'PUISSANCE4';
 
 interface RecentActivity {
     createdAt: string;
@@ -95,6 +95,7 @@ const GAME_BADGE: Record<GameType, string> = {
     TABOO: 'bg-red-100    dark:bg-red-900/40    text-red-700    dark:text-red-400',
     SKYJOW: 'bg-sky-100    dark:bg-sky-900/40    text-sky-700    dark:text-sky-400',
     YAHTZEE: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400',
+    PUISSANCE4: 'bg-rose-100  dark:bg-rose-900/40  text-rose-700   dark:text-rose-400',
 };
 
 export default function AdminPanel() {
@@ -572,7 +573,7 @@ export default function AdminPanel() {
 
                                     {/* Game type filter pills */}
                                     <div className="flex flex-wrap gap-2 mb-3">
-                                        {(['ALL', 'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE'] as const).map((g) => (
+                                        {(['ALL', 'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE', 'PUISSANCE4'] as const).map((g) => (
                                             <button
                                                 key={g}
                                                 onClick={() => setGameFilter(g)}
@@ -628,7 +629,7 @@ export default function AdminPanel() {
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="px-3 py-2 whitespace-nowrap font-mono text-xs text-gray-400 dark:text-gray-500">
-                                                                                    {activity.gameId.slice(0, 8)}…
+                                                                                    {activity.gameId}
                                                                                 </td>
                                                                                 <td className="px-3 py-2 whitespace-nowrap">
                                                                                     {activity.quiz ? (

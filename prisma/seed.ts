@@ -22,6 +22,9 @@ async function main() {
   console.log('🌱 Début du seed...');
 
   // ─── 1. Nettoyage ─────────────────────────────────────────────────────────
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
   await prisma.answer.deleteMany();
   await prisma.question.deleteMany();
   await prisma.attempt.deleteMany();
@@ -93,6 +96,8 @@ async function main() {
   console.log(`✅ Utilisateur créé: ${anonUser1.username}`);
   console.log(`✅ Utilisateur créé: ${anonUser2.username}`);
   console.log(`✅ Utilisateur créé: ${anonUser3.username}`);
+  console.log(`✅ Utilisateur créé: ${anonUser4.username}`);
+  console.log(`✅ Utilisateur créé: ${anonUser5.username}`);
   console.log(`✅ Utilisateur créé: ${farosUser.username}`);
 
   // ─── 3. MOTS ────────────────────────────────────────────────────────
@@ -687,6 +692,45 @@ async function main() {
     console.log(`  ✅ Partie Yahtzee ${g + 1}/${totalYahtzeeGames} — ${playerCount} joueurs — scores: ${ranked.map(r => r.score).join(', ')}`);
   }
   console.log(`✅ ${totalYahtzeeGames} parties Yahtzee créées`);
+
+  // ─── 10. Parties PUISSANCE4 ───────────────────────────────────────────────
+  console.log('\n🔴 Création des parties Puissance 4...');
+
+  const p4Players = [farosUser, anonUser, anonUser1, anonUser2, anonUser3, anonUser4, anonUser5];
+  const totalP4Games = 30;
+
+  for (let g = 0; g < totalP4Games; g++) {
+    const gameId = crypto.randomUUID();
+    const baseDaysAgo = Math.floor((g / totalP4Games) * 60);
+    const jitterHours = Math.floor(Math.random() * 24);
+    const gameDate = new Date(Date.now() - baseDaysAgo * 24 * 60 * 60 * 1000 - jitterHours * 60 * 60 * 1000);
+
+    const shuffled = shufflePlayers(p4Players);
+    const player1 = shuffled[0];
+    const player2 = shuffled[1];
+
+    const isDraw = Math.random() < 0.15; // 15% de nuls
+    const winnerIndex = Math.random() < 0.5 ? 0 : 1;
+    const players = [player1, player2];
+
+    for (let p = 0; p < 2; p++) {
+      const isWinner = !isDraw && p === winnerIndex;
+      await prisma.attempt.create({
+        data: {
+          userId: players[p].id,
+          score: isWinner ? 10 : 0,
+          gameType: 'PUISSANCE4',
+          placement: isDraw ? 1 : (isWinner ? 1 : 2),
+          gameId,
+          quizId: null,
+          trapScore: 0,
+          createdAt: new Date(gameDate.getTime() + p * 1000),
+        },
+      });
+    }
+    console.log(`  ✅ Partie P4 ${g + 1}/${totalP4Games} — ${player1.username} vs ${player2.username} — ${isDraw ? 'Nul' : `${players[winnerIndex].username} gagne`}`);
+  }
+  console.log(`✅ ${totalP4Games} parties Puissance 4 créées`);
 
   console.log(`\n✨ Seed terminé ! ${createdCount} quiz créés avec succès.`);
 }

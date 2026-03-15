@@ -185,15 +185,9 @@ export default function Puissance4Page() {
       `}</style>
 
             <div
-                className="min-h-screen flex flex-col items-center justify-center p-4 gap-6"
-                style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)' }}
+                className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 gap-6"
             >
                 {/* ── Header ── */}
-                <div className="flex items-center gap-3 text-white/60 text-sm">
-                    <button onClick={() => router.push('/dashboard')} className="hover:text-white transition-colors">← Dashboard</button>
-                    <span>/</span>
-                    <span className="font-mono text-white/40">{lobbyId}</span>
-                </div>
 
                 <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'system-ui, sans-serif' }}>
                     Puissance <span style={{ color: '#f59e0b' }}>4</span>

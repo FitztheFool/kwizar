@@ -88,15 +88,6 @@ export default function HomePage() {
     return () => { cancelled = true; };
   }, [fetchQuizzes]);
 
-  useEffect(() => {
-    if (status !== 'authenticated') return;
-    fetch('/api/user/scores')
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        setMyScores(data?.scores ?? []);
-      })
-      .catch(console.error);
-  }, [status]);
 
   const handlePageChange = (p: number) => {
     setPage(p);
@@ -136,7 +127,7 @@ export default function HomePage() {
             <div className="text-4xl font-bold text-green-500">✨</div>
             <div className="text-gray-600 dark:text-gray-300 mt-2 font-semibold">Générer un quiz</div>
           </Link>
-          <Link href="/leaderboard" className="card text-center hover:shadow-lg transition-shadow cursor-pointer border-2 border-yellow-300 hover:border-yellow-400" style={{ boxShadow: '0 0 0 1px #fde68a' }}>
+          <Link href="/leaderboard/uno" className="card text-center hover:shadow-lg transition-shadow cursor-pointer border-2 border-yellow-300 hover:border-yellow-400" style={{ boxShadow: '0 0 0 1px #fde68a' }}>
             <div className="text-4xl font-bold text-yellow-500">∞</div>
             <div className="text-gray-600 dark:text-gray-300 mt-2 font-semibold">Voir le classement</div>
           </Link>

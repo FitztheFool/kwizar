@@ -1,4 +1,3 @@
-// src/lib/auth.ts
 import { NextAuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -46,9 +45,16 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 const isPasswordValid = await compare(credentials.password, user.passwordHash);
-
                 if (!isPasswordValid) {
                     throw new Error('Mot de passe incorrect');
+                }
+
+                // Réactivation automatique si compte désactivé
+                if (user.deactivatedAt) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { deactivatedAt: null },
+                    });
                 }
 
                 return {
@@ -56,16 +62,35 @@ export const authOptions: NextAuthOptions = {
                     email: user.email ?? '',
                     username: user.username ?? '',
                     role: user.role,
+                    image: user.image ?? null,
                 };
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async signIn({ user, account }) {
+            // OAuth : réactiver si compte désactivé
+            if (account?.provider !== 'credentials') {
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: user.id },
+                    select: { deactivatedAt: true },
+                });
+                if (dbUser?.deactivatedAt) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { deactivatedAt: null },
+                    });
+                }
+            }
+            return true;
+        },
+        async jwt({ token, user, trigger, session: sessionData }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
                 token.username = user.username || user.name || '';
+                token.image = user.image ?? null;
+                token.email = user.email ?? null;  // ← ajou
             }
             return token;
         },
@@ -74,6 +99,8 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.username = token.username as string;
+                session.user.image = token.image as string ?? null;
+                session.user.email = token.email as string ?? null;  // ← ajoute
             }
             return session;
         },
@@ -85,6 +112,14 @@ export const authOptions: NextAuthOptions = {
                 where: { id: user.id },
                 data: { username },
             });
+        },
+        signIn: async ({ user, account }) => {
+            if (account?.provider !== 'credentials' && user.image) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { image: user.image },
+                });
+            }
         },
     },
     logger: {
