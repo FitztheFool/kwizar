@@ -720,7 +720,7 @@ async function main() {
           userId: players[p].id,
           score: isWinner ? 10 : 0,
           gameType: 'PUISSANCE4',
-          placement: isDraw ? 1 : (isWinner ? 1 : 2),
+          placement: isDraw ? null : (isWinner ? 1 : 2),
           gameId,
           quizId: null,
           trapScore: 0,

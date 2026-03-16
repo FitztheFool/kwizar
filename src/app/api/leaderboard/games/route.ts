@@ -65,16 +65,16 @@ export async function GET(req: NextRequest) {
             });
         }
 
-        // UNO, SKYJOW, TABOO
+        // UNO, SKYJOW, TABOO, PUISSANCE4, ...
         const attempts = await prisma.attempt.findMany({
             where: { userId: { in: eligibleUserIds }, gameType: config.gameType as GameType },
             select: { userId: true, score: true, trapScore: true, placement: true, gameId: true, createdAt: true },
             orderBy: { createdAt: 'asc' },
         });
 
-        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; turnsPlayed: number }>();
+        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; turnsPlayed: number; draws: number }>();
         for (const a of attempts) {
-            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], turnsPlayed: 0 });
+            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], turnsPlayed: 0, draws: 0 });
             const u = byUser.get(a.userId)!;
             if (game === 'taboo') {
                 u.turnsPlayed += 1;
@@ -82,7 +82,11 @@ export async function GET(req: NextRequest) {
                 u.scores.push(a.score);
                 u.trapScores.push(a.trapScore ?? 0);
             }
-            if (a.placement !== null) u.placements.push(a.placement);
+            if (a.placement === null) {
+                u.draws += 1;
+            } else {
+                u.placements.push(a.placement);
+            }
         }
 
         // Taboo : prendre uniquement le dernier attempt par (userId, gameId) = score final de la partie
@@ -110,6 +114,7 @@ export async function GET(req: NextRequest) {
                 const totalTrapScore = data.trapScores.reduce((s, v) => s + v, 0);
                 const avgScore = gamesPlayed > 0 ? Math.round(totalScore / gamesPlayed) : 0;
                 const wins = data.placements.filter(p => p === 1).length;
+                const draws = data.draws;
                 const score = game === 'skyjow' ? avgScore : totalScore;
 
                 let detail: string;
@@ -122,6 +127,9 @@ export async function GET(req: NextRequest) {
                         break;
                     case 'yahtzee':
                         detail = `Moy. ${avgScore} pts · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'puissance4':
+                        detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${draws} nul${draws > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                         break;
                     default:
                         detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;

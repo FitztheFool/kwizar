@@ -68,7 +68,7 @@ function useDebounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: n
 function OptionRow({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-slate-300">{label}</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{label}</span>
             <div className="flex-shrink-0">{children}</div>
         </div>
     );
@@ -82,8 +82,8 @@ function OptionSelect({ value, onChange, options, disabled }: {
 }) {
     return (
         <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-            className="bg-slate-700/60 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/60 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-            {options.map(o => <option key={o.v} value={o.v} className="bg-slate-800">{o.label}</option>)}
+            className="bg-gray-100 dark:bg-slate-700/60 border border-gray-300 dark:border-slate-600/50 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/60 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            {options.map(o => <option key={o.v} value={o.v} className="bg-white dark:bg-slate-800">{o.label}</option>)}
         </select>
     );
 }
@@ -91,9 +91,9 @@ function OptionSelect({ value, onChange, options, disabled }: {
 function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
     return (
         <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-slate-300">{label}</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{label}</span>
             <button type="button" onClick={() => !disabled && onChange(!checked)} disabled={disabled}
-                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${checked ? 'bg-blue-500' : 'bg-slate-600'} ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
+                className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${checked ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-600'} ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
             </button>
         </div>
@@ -136,21 +136,21 @@ function QuizSearch({ isHost, onSelect, selectedId, selectedTitle }: {
                 onBlur={() => setTimeout(() => setOpen(false), 150)}
                 placeholder="Rechercher un quiz…"
                 disabled={!isHost}
-                className="w-full bg-slate-700/60 border border-slate-600/50 rounded-lg px-3 py-1.5 text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gray-100 dark:bg-slate-700/60 border border-gray-300 dark:border-slate-600/50 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {open && results.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600/50 rounded-lg shadow-xl overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600/50 rounded-lg shadow-xl overflow-hidden">
                     {results.map(q => (
                         <button key={q.id} onMouseDown={() => { onSelect(q.id, q.title); setQuery(''); setOpen(false); }}
-                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-700 transition-colors ${selectedId === q.id ? 'bg-blue-600/20 text-blue-300' : 'text-slate-200'}`}>
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${selectedId === q.id ? 'bg-blue-600/20 text-blue-600 dark:text-blue-300' : 'text-gray-800 dark:text-slate-200'}`}>
                             <span className="font-medium truncate">{q.title}</span>
-                            <span className="text-slate-500 flex-shrink-0 ml-2">{q._count.questions}q</span>
+                            <span className="text-gray-400 dark:text-slate-500 flex-shrink-0 ml-2">{q._count.questions}q</span>
                         </button>
                     ))}
                 </div>
             )}
             {selectedId && selectedTitle && (
-                <p className="text-xs text-green-400 mt-1">✅ {selectedTitle}</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">✅ {selectedTitle}</p>
             )}
         </div>
     );
@@ -325,73 +325,85 @@ export default function LobbyCodePage() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <main className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <div className="relative w-full max-w-lg py-8">
 
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 mb-4 text-3xl">🎮</div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">{meta?.title || 'Lobby'}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{meta?.title || 'Lobby'}</h1>
                     <div className="flex items-center justify-center gap-2 mt-1">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isHost ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-700/50 text-slate-400'}`}>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isHost ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-gray-200 dark:bg-slate-700/50 text-gray-500 dark:text-slate-400'}`}>
                             {isHost ? '👑 Host' : '👤 Participant'}
                         </span>
                     </div>
                 </div>
 
-                <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl p-6 space-y-6">
+                <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-gray-200 dark:border-slate-700/50 rounded-2xl shadow-2xl p-6 space-y-6">
 
                     {/* Titre */}
                     <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Titre du lobby</label>
+                        <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Titre du lobby</label>
                         {isHost ? (
                             <input type="text" value={meta?.title ?? ''} maxLength={60}
                                 onChange={e => { setMeta(prev => ({ ...prev, title: e.target.value })); emitTitle(e.target.value.trim()); }}
-                                className="w-full bg-slate-800/60 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all" />
+                                className="w-full bg-gray-100 dark:bg-slate-800/60 border border-gray-300 dark:border-slate-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all" />
                         ) : (
-                            <div className="w-full bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3 text-slate-300 text-sm">{meta?.title || '—'}</div>
+                            <div className="w-full bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3 text-gray-700 dark:text-slate-300 text-sm">{meta?.title || '—'}</div>
                         )}
                     </div>
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                            Description <span className="text-slate-600 font-normal normal-case">(optionnel)</span>
+                        <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                            Description <span className="text-gray-400 dark:text-slate-600 font-normal normal-case">(optionnel)</span>
                         </label>
                         {isHost ? (
                             <textarea value={meta?.description ?? ''} maxLength={200} rows={2}
                                 onChange={e => { setMeta(prev => ({ ...prev, description: e.target.value })); emitDescription(e.target.value.trim()); }}
                                 placeholder="Décrivez votre partie…"
-                                className="w-full bg-slate-800/60 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all resize-none" />
+                                className="w-full bg-gray-100 dark:bg-slate-800/60 border border-gray-300 dark:border-slate-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all resize-none" />
                         ) : (
                             meta?.description
-                                ? <div className="w-full bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3 text-slate-300 text-sm">{meta.description}</div>
-                                : <div className="text-slate-600 text-xs italic">Aucune description</div>
+                                ? <div className="w-full bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3 text-gray-700 dark:text-slate-300 text-sm">{meta.description}</div>
+                                : <div className="text-gray-400 dark:text-slate-600 text-xs italic">Aucune description</div>
                         )}
                     </div>
 
-                    <div className="border-t border-slate-700/50" />
+                    <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
-                    {/* Lien d'invitation */}
-                    <div className="flex items-center gap-2 bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3">
-                        <span className="text-xs text-slate-400 flex-1 truncate">{typeof window !== 'undefined' ? `${window.location.origin}/lobby/create/${lobbyId}` : `…/lobby/create/${lobbyId}`}</span>
+                    {/* Code d'invitation */}
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3">
+                        <span className="text-xs text-gray-500 dark:text-slate-400 flex-1 truncate">
+                            Code lobby : <span className="font-bold text-gray-900 dark:text-white tracking-widest">{lobbyId}</span>
+                        </span>
                         <div className="relative flex-shrink-0">
-                            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                                className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20">
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`)
+                                    setCopied(true)
+                                    setTimeout(() => setCopied(false), 2000)
+                                }}
+                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20"
+                            >
                                 {copied ? '✅ Copié !' : '⧉ Copier le lien'}
                             </button>
                         </div>
                     </div>
 
+                    <div className="border-t border-gray-200 dark:border-slate-700/50" />
+
                     {/* Jeu */}
                     <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Jeu</label>
+                        <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Jeu</label>
                         <div className="grid grid-cols-3 gap-2">
                             {GAME_OPTIONS.map(g => (
                                 <button key={g.value} onClick={() => isHost && handleGameTypeChange(g.value)}
                                     className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all
-                                        ${gameType === g.value ? 'border-blue-500 bg-blue-500/15 text-blue-300' : 'border-slate-700/50 bg-slate-800/40 text-slate-400'}
-                                        ${isHost && gameType !== g.value ? 'hover:border-slate-600 hover:text-slate-300 cursor-pointer' : 'cursor-default'}`}>
+                                        ${gameType === g.value
+                                            ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-300'
+                                            : 'border-gray-200 dark:border-slate-700/50 bg-gray-100 dark:bg-slate-800/40 text-gray-500 dark:text-slate-400'}
+                                        ${isHost && gameType !== g.value ? 'hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-300 cursor-pointer' : 'cursor-default'}`}>
                                     <span className="text-xl">{g.icon}</span>
                                     <span>{g.label}</span>
                                 </button>
@@ -401,13 +413,15 @@ export default function LobbyCodePage() {
 
                     {/* Options UNO */}
                     {gameType === 'uno' && (
-                        <div className={`bg-slate-800/40 rounded-xl p-4 space-y-3 border border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Options UNO</p>
+                        <div className={`bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Options UNO</p>
                             <div className="grid grid-cols-2 gap-2">
                                 {([{ v: 'none', label: '👤 Solo', desc: '2–8' }, { v: '2v2', label: '👥 2v2', desc: '4 joueurs' }] as const).map(opt => (
                                     <button key={opt.v} onClick={() => isHost && handleUnoTeamMode(opt.v)}
                                         className={`py-2 px-3 rounded-lg border-2 text-xs font-semibold transition-all flex flex-col items-center
-                                            ${unoTeamMode === opt.v ? 'border-blue-500 bg-blue-500/15 text-blue-300' : 'border-slate-600/50 text-slate-400 hover:border-slate-500'}`}>
+                                            ${unoTeamMode === opt.v
+                                                ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-300'
+                                                : 'border-gray-200 dark:border-slate-600/50 text-gray-500 dark:text-slate-400 hover:border-gray-300 dark:hover:border-slate-500'}`}>
                                         <span>{opt.label}</span><span className="opacity-60 font-normal">{opt.desc}</span>
                                     </button>
                                 ))}
@@ -425,8 +439,8 @@ export default function LobbyCodePage() {
 
                     {/* Options Taboo */}
                     {gameType === 'taboo' && (
-                        <div className={`bg-slate-800/40 rounded-xl p-4 space-y-3 border border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Options Taboo</p>
+                        <div className={`bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Options Taboo</p>
                             <OptionRow label="Durée d'un tour"><OptionSelect value={tabooTurnDuration} onChange={v => { setTabooTurnDuration(Number(v)); socket?.emit('lobby:setTabooOptions', { turnDuration: Number(v) }); }} options={[15, 30, 45, 60, 90, 120, 180, 240, 300].map(t => ({ v: t, label: `${t}s` }))} disabled={!isHost} /></OptionRow>
                             <OptionRow label="Rounds"><OptionSelect value={tabooTotalRounds} onChange={v => { setTabooTotalRounds(Number(v)); socket?.emit('lobby:setTabooOptions', { totalRounds: Number(v) }); }} options={[1, 2, 3, 4, 5, 7, 10].map(r => ({ v: r, label: `${r}` }))} disabled={!isHost} /></OptionRow>
                             <OptionRow label="Mots piégés"><OptionSelect value={tabooTrapWordCount} onChange={v => { setTabooTrapWordCount(Number(v)); socket?.emit('lobby:setTabooOptions', { trapWordCount: Number(v) }); }} options={[2, 3, 4, 5, 6, 7, 8, 10].map(n => ({ v: n, label: `${n}` }))} disabled={!isHost} /></OptionRow>
@@ -437,8 +451,8 @@ export default function LobbyCodePage() {
 
                     {/* Options Quiz */}
                     {gameType === 'quiz' && (
-                        <div className={`bg-slate-800/40 rounded-xl p-4 space-y-3 border border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Options Quiz</p>
+                        <div className={`bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Options Quiz</p>
                             <OptionRow label="Quiz">
                                 <QuizSearch isHost={isHost} selectedId={selectedQuizId} selectedTitle={selectedQuizTitle}
                                     onSelect={(id, title) => {
@@ -462,61 +476,62 @@ export default function LobbyCodePage() {
 
                     {/* Options Skyjow */}
                     {gameType === 'skyjow' && (
-                        <div className={`bg-slate-800/40 rounded-xl p-4 space-y-3 border border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Options Skyjow</p>
+                        <div className={`bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
+                            <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Options Skyjow</p>
                             <Toggle checked={skyjowEliminateRows} onChange={v => { setSkyjowEliminateRows(v); socket?.emit('lobby:setSkyjowOptions', { eliminateRows: v }); }} label="Éliminer les lignes (4 identiques)" disabled={!isHost} />
                         </div>
                     )}
 
                     {(gameType === 'yahtzee' || gameType === 'puissance4') && (
-                        <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700/30 text-center">
-                            <p className="text-xs text-slate-500 italic">{gameType === 'yahtzee' ? '🎲 Yahtzee — aucune option.' : '🔘 Puissance 4 — exactement 2 joueurs.'}</p>
+                        <div className="bg-gray-50 dark:bg-slate-800/40 rounded-xl p-3 border border-gray-200 dark:border-slate-700/30 text-center">
+                            <p className="text-xs text-gray-400 dark:text-slate-500 italic">{gameType === 'yahtzee' ? '🎲 Yahtzee — aucune option.' : '🔘 Puissance 4 — exactement 2 joueurs.'}</p>
                         </div>
                     )}
 
-                    <div className="border-t border-slate-700/50" />
+                    <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
                     {/* Joueurs max + Visibilité */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Joueurs max</label>
+                            <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Joueurs max</label>
                             {isHost ? (
                                 <select value={maxPlayers} onChange={e => { setMaxPlayersState(Number(e.target.value)); socket?.emit('lobby:setMeta', { maxPlayers: Number(e.target.value) }); }} disabled={isMaxLocked}
-                                    className="w-full bg-slate-800/60 border border-slate-600/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all appearance-none cursor-pointer disabled:opacity-50">
-                                    {MAX_PLAYERS_BY_GAME[gameType].map(n => <option key={n} value={n} className="bg-slate-800">{n} joueurs</option>)}
+                                    className="w-full bg-gray-100 dark:bg-slate-800/60 border border-gray-300 dark:border-slate-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all appearance-none cursor-pointer disabled:opacity-50">
+                                    {MAX_PLAYERS_BY_GAME[gameType].map(n => <option key={n} value={n} className="bg-white dark:bg-slate-800">{n} joueurs</option>)}
                                 </select>
                             ) : (
-                                <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3 text-slate-300 text-sm">{maxPlayers} joueurs</div>
+                                <div className="bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3 text-gray-700 dark:text-slate-300 text-sm">{maxPlayers} joueurs</div>
                             )}
                         </div>
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Visibilité</label>
+                            <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Visibilité</label>
                             {isHost ? (
-                                <div className="flex rounded-xl border border-slate-600/50 overflow-hidden h-[46px]">
+                                <div className="flex rounded-xl border border-gray-300 dark:border-slate-600/50 overflow-hidden h-[46px]">
                                     <button onClick={() => { setIsPublicState(true); socket?.emit('lobby:setMeta', { isPublic: true }); }}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all ${isPublic ? 'bg-blue-600 text-white' : 'bg-slate-800/60 text-slate-400 hover:text-slate-300'}`}>
+                                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all ${isPublic ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-800/60 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'}`}>
                                         🌍 <span>Public</span>
                                     </button>
                                     <button onClick={() => { setIsPublicState(false); socket?.emit('lobby:setMeta', { isPublic: false }); }}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all border-l border-slate-600/50 ${!isPublic ? 'bg-indigo-600 text-white' : 'bg-slate-800/60 text-slate-400 hover:text-slate-300'}`}>
+                                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all border-l border-gray-300 dark:border-slate-600/50 ${!isPublic ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-slate-800/60 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'}`}>
                                         🔒 <span>Privé</span>
                                     </button>
                                 </div>
                             ) : (
-                                <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3 text-slate-300 text-sm">{isPublic ? '🌍 Public' : '🔒 Privé'}</div>
+                                <div className="bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3 text-gray-700 dark:text-slate-300 text-sm">{isPublic ? '🌍 Public' : '🔒 Privé'}</div>
                             )}
                         </div>
                     </div>
 
-                    <div className="border-t border-slate-700/50" />
+                    <div className="border-t border-gray-200 dark:border-slate-700/50" />
+
                     {/* Équipes — Taboo ou UNO 2v2 */}
                     {(gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2')) && (
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Équipes</h2>
+                                <h2 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Équipes</h2>
                                 {isHost && (
                                     <button onClick={() => socket?.emit('lobby:shuffleTeams')}
-                                        className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline">
+                                        className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors underline">
                                         🔀 Mélanger
                                     </button>
                                 )}
@@ -528,26 +543,26 @@ export default function LobbyCodePage() {
                                     return (
                                         <div key={team} className={`rounded-xl border p-3 space-y-2 ${team === 0 ? 'border-blue-500/30 bg-blue-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
                                             <div className="flex items-center justify-between">
-                                                <span className={`text-xs font-semibold ${team === 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                                                <span className={`text-xs font-semibold ${team === 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {team === 0 ? '🔵 Équipe Bleue' : '🔴 Équipe Rouge'}
                                                 </span>
                                                 <button
                                                     onClick={() => socket?.emit('lobby:setTeam', { team })}
                                                     className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-all ${myTeam === team
                                                         ? (team === 0 ? 'bg-blue-500 text-white' : 'bg-red-500 text-white')
-                                                        : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}>
+                                                        : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-300 dark:hover:bg-slate-600'}`}>
                                                     {myTeam === team ? '✓ Rejoint' : 'Rejoindre'}
                                                 </button>
                                             </div>
                                             <div className="space-y-1">
                                                 {teamPlayers.map(p => (
-                                                    <div key={p.userId} className="flex items-center gap-2 text-xs text-slate-300">
+                                                    <div key={p.userId} className="flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
                                                         <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-blue-400' : 'bg-red-400'}`} />
                                                         {p.username}
-                                                        {p.userId === hostId && <span className="text-yellow-400">👑</span>}
+                                                        {p.userId === hostId && <span className="text-yellow-500 dark:text-yellow-400">👑</span>}
                                                     </div>
                                                 ))}
-                                                {teamPlayers.length === 0 && <p className="text-xs text-slate-600 italic">Aucun joueur</p>}
+                                                {teamPlayers.length === 0 && <p className="text-xs text-gray-400 dark:text-slate-600 italic">Aucun joueur</p>}
                                             </div>
                                         </div>
                                     );
@@ -557,52 +572,52 @@ export default function LobbyCodePage() {
                                 const t0 = players.filter(p => teams?.[p.userId] === 0).length;
                                 const t1 = players.filter(p => teams?.[p.userId] === 1).length;
                                 return t0 >= 2 && t1 >= 2
-                                    ? <p className="text-xs text-green-400 mt-2">✅ Équipes prêtes !</p>
-                                    : <p className="text-xs text-orange-400 mt-2">⚠️ Minimum 2 joueurs par équipe</p>;
+                                    ? <p className="text-xs text-green-600 dark:text-green-400 mt-2">✅ Équipes prêtes !</p>
+                                    : <p className="text-xs text-orange-500 dark:text-orange-400 mt-2">⚠️ Minimum 2 joueurs par équipe</p>;
                             })()}
                         </div>
                     )}
+
                     {/* Participants live */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Participants</h2>
-                            <span className="text-xs text-slate-500">{players.length}{maxPlayers ? `/${maxPlayers}` : ''}</span>
-
+                            <h2 className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Participants</h2>
+                            <span className="text-xs text-gray-400 dark:text-slate-500">{players.length}{maxPlayers ? `/${maxPlayers}` : ''}</span>
                         </div>
                         <div className="space-y-2">
                             {players.map(p => (
-                                <div key={p.userId} className="flex items-center gap-3 bg-slate-800/40 border border-slate-700/30 rounded-xl px-3 py-2">
-                                    <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                                    <span className="text-sm text-white font-medium flex-1">{p.username}</span>
-                                    {p.userId === hostId && <span className="text-xs text-yellow-400">👑 Host</span>}
-                                    {p.userId === me && <span className="text-xs text-slate-500">(moi)</span>}
+                                <div key={p.userId} className="flex items-center gap-3 bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-3 py-2">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                                    <span className="text-sm text-gray-900 dark:text-white font-medium flex-1">{p.username}</span>
+                                    {p.userId === hostId && <span className="text-xs text-yellow-500 dark:text-yellow-400">👑 Host</span>}
+                                    {p.userId === me && <span className="text-xs text-gray-400 dark:text-slate-500">(moi)</span>}
                                 </div>
                             ))}
-                            {players.length === 0 && <div className="text-center py-4 text-slate-500 text-sm">En attente de joueurs…</div>}
+                            {players.length === 0 && <div className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">En attente de joueurs…</div>}
                         </div>
                         {maxPlayers > 0 && (
-                            <div className="mt-3 w-full bg-slate-700/50 rounded-full h-1.5">
+                            <div className="mt-3 w-full bg-gray-200 dark:bg-slate-700/50 rounded-full h-1.5">
                                 <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500"
                                     style={{ width: `${Math.min((players.length / maxPlayers) * 100, 100)}%` }} />
                             </div>
                         )}
                     </div>
 
-                    <div className="border-t border-slate-700/50" />
+                    <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
                     {/* Actions */}
                     <div className="flex gap-3">
                         <button onClick={() => { socket?.emit('lobby:leave'); router.push('/'); }}
-                            className="px-5 py-3 rounded-xl border border-slate-600/50 text-slate-400 text-sm font-semibold hover:border-slate-500 hover:text-slate-300 transition-all">
+                            className="px-5 py-3 rounded-xl border border-gray-300 dark:border-slate-600/50 text-gray-500 dark:text-slate-400 text-sm font-semibold hover:border-gray-400 dark:hover:border-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-all">
                             Quitter
                         </button>
                         {isHost ? (
                             <button onClick={() => socket?.emit('lobby:start')} disabled={!canStart}
-                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-lg shadow-green-500/20 disabled:shadow-none">
+                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-300 dark:disabled:from-slate-700 disabled:to-gray-300 dark:disabled:to-slate-700 disabled:text-gray-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-lg shadow-green-500/20 disabled:shadow-none">
                                 {canStart ? `🚀 Lancer ${selectedGame?.label ?? 'la partie'} !` : '⏳ En attente de joueurs…'}
                             </button>
                         ) : (
-                            <div className="flex-1 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-500 text-sm font-semibold text-center">
+                            <div className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
                                 ⏳ En attente du host…
                             </div>
                         )}

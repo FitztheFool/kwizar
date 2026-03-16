@@ -2,9 +2,12 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useLobbySocket } from '@/hooks/useSocket';
 import { GAME_CONFIG } from '@/lib/gameConfig';
 import { generateCode } from '@/lib/utils';
+import PlayerModal from '@/components/PlayerModal';
+import LobbyCard from '@/components/LobbyCard';
 
 interface Lobby {
     id: string;
@@ -15,6 +18,7 @@ interface Lobby {
     currentPlayers: number;
     status: 'waiting' | 'in-progress';
     host: string;
+    playerNames?: string[];
 }
 
 const gameTypeEmojis: Record<string, string> = {
@@ -34,6 +38,10 @@ export default function LobbiesPage() {
     const [showFull, setShowFull] = useState(false);
     const [showWaiting, setShowWaiting] = useState(true);
     const [sortBy, setSortBy] = useState('newest');
+    const { data: session } = useSession();
+    const [showMyLobbies, setShowMyLobbies] = useState(false);
+    const [lobbyPlayerModal, setLobbyPlayerModal] = useState<{ gameId: string; players: { username: string; score: number; placement: number | null }[] } | null>(null);
+
 
     useEffect(() => {
         if (socket && connected) {
@@ -52,6 +60,7 @@ export default function LobbiesPage() {
     }, [socket, connected]);
 
     const filteredLobbies = lobbies.filter(lobby => {
+        if (!showMyLobbies && lobby.host === (session?.user?.username ?? session?.user?.email)) return false;
         if (selectedGameType !== 'all' && lobby.gameType !== selectedGameType) return false;
         if (!showFull && lobby.currentPlayers >= lobby.maxPlayers) return false;
         if (!showWaiting && lobby.status === 'waiting') return false;
@@ -133,24 +142,21 @@ export default function LobbiesPage() {
                                 <option value="status" className="bg-white dark:bg-gray-700">⚡ Statut</option>
                             </select>
                         </div>
-                        <div className="flex flex-col justify-center space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={showFull}
-                                    onChange={(e) => setShowFull(e.target.checked)}
-                                    className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                />
+                                <input type="checkbox" checked={showFull} onChange={(e) => setShowFull(e.target.checked)}
+                                    className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">🏁 Lobbies complets</span>
                             </label>
                             <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={showWaiting}
-                                    onChange={(e) => setShowWaiting(e.target.checked)}
-                                    className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                />
+                                <input type="checkbox" checked={showWaiting} onChange={(e) => setShowWaiting(e.target.checked)}
+                                    className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">⏳ Lobbies en attente</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input type="checkbox" checked={showMyLobbies} onChange={(e) => setShowMyLobbies(e.target.checked)}
+                                    className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">👤 Mes lobbies</span>
                             </label>
                         </div>
                         <div className="flex items-center justify-center">
@@ -165,59 +171,25 @@ export default function LobbiesPage() {
                 {/* Lobby Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredLobbies.map(lobby => (
-                        <div key={lobby.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-                            <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{lobby.title}</h3>
-                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${lobby.status === 'waiting'
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                    }`}>
-                                    {lobby.status === 'waiting' ? '🟢 En attente' : '🔵 En cours'}
-                                </span>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2">{lobby.description}</p>
-                            <div className="space-y-3 mb-6">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                        🎮 Jeu:
-                                    </span>
-                                    <span className="font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                                        {gameTypeEmojis[lobby.gameType] || '🎮'} {lobby.gameType.charAt(0).toUpperCase() + lobby.gameType.slice(1)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                        👥 Joueurs:
-                                    </span>
-                                    <span className="font-semibold text-gray-900 dark:text-white">
-                                        {lobby.currentPlayers}/{lobby.maxPlayers}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                        👑 Hôte:
-                                    </span>
-                                    <span className="font-semibold text-gray-900 dark:text-white">
-                                        {lobby.host}
-                                    </span>
-                                </div>
-                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div
-                                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                                        style={{ width: `${(lobby.currentPlayers / lobby.maxPlayers) * 100}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => joinLobby(lobby.id)}
-                                disabled={lobby.currentPlayers >= lobby.maxPlayers && lobby.status === 'waiting'}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 transform hover:scale-105 active:scale-95"
-                            >
-                                {lobby.currentPlayers >= lobby.maxPlayers && lobby.status === 'waiting' ? '🏁 Complet' : '🚀 Rejoindre'}
-                            </button>
-                        </div>
+                        <LobbyCard
+                            key={lobby.id}
+                            lobby={lobby}
+                            onJoin={joinLobby}
+                            onPlayersClick={(id, playerNames) => setLobbyPlayerModal({
+                                gameId: id,
+                                players: playerNames.map(username => ({ username, score: 0, placement: null }))
+                            })}
+                        />
                     ))}
                 </div>
+
+                {lobbyPlayerModal && (
+                    <PlayerModal
+                        gameId={lobbyPlayerModal.gameId}
+                        players={lobbyPlayerModal.players}
+                        onClose={() => setLobbyPlayerModal(null)}
+                    />
+                )}
 
                 {filteredLobbies.length === 0 && (
                     <div className="text-center py-16">
@@ -231,6 +203,7 @@ export default function LobbiesPage() {
                                     setShowFull(false);
                                     setShowWaiting(true);
                                     setSortBy('newest');
+                                    setShowMyLobbies(false);
                                 }}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
                             >

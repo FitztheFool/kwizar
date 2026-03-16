@@ -4,7 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
-import { GAME_CONFIG, GAME_EMOJI_MAP } from '@/lib/gameConfig';
+import { GAME_EMOJI_MAP } from '@/lib/gameConfig';
+import PlayerModal from '@/components/PlayerModal'
 
 interface AdminUser {
     id: string;
@@ -985,51 +986,11 @@ export default function AdminPanel() {
 
             {/* Player modal */}
             {playerModal && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-                    onClick={() => setPlayerModal(null)}
-                >
-                    <div
-                        className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-80 max-w-full"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-900 dark:text-white">
-                                👥 Joueurs de la partie
-                            </h3>
-                            <button
-                                onClick={() => setPlayerModal(null)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <p className="text-xs font-mono text-gray-400 mb-3">{playerModal.gameId.slice(0, 8)}…</p>
-                        <div className="space-y-2">
-                            {playerModal.players.map((p, i) => (
-                                <div key={i} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
-                                    <div className="flex items-center gap-2">
-                                        {p.placement != null && (
-                                            <span className="text-base">
-                                                {PLACEMENT_EMOJI[p.placement] ?? `#${p.placement}`}
-                                            </span>
-                                        )}
-                                        <Link
-                                            href={session?.user?.username === p.username ? '/dashboard' : `/profil/${p.username}`}
-                                            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                                            onClick={() => setPlayerModal(null)}
-                                        >
-                                            {p.username}
-                                        </Link>
-                                    </div>
-                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                        {p.score} <span className="text-xs text-gray-400 font-normal">pts</span>
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                <PlayerModal
+                    gameId={playerModal.gameId}
+                    players={playerModal.players}
+                    onClose={() => setPlayerModal(null)}
+                />
             )}
         </div>
     );
