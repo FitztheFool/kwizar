@@ -254,7 +254,7 @@ export default function TabooGamePage() {
                     ))}
                 </div>
                 <div className="flex flex-col gap-3 w-full max-w-xs">
-                    <button onClick={() => router.push(`/lobby/${lobbyId}`)}
+                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
                         className="w-full px-8 py-3 rounded-xl bg-green-500 hover:bg-green-400 font-bold text-lg transition-colors shadow-lg shadow-green-500/20">
                         🔄 Rejouer
                     </button>

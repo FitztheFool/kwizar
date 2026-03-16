@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { randomLobbyId } from '@/lib/utils';
+import { generateCode } from '@/lib/utils';
 import type { TabType } from '@/types/dashboard';
 
 const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, us
 
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <Link href={`/lobby/${randomLobbyId()}`}
+                                <Link href={`/lobby/create/${generateCode(8)}`}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
                 ${isCreatingLobby
                                             ? 'bg-green-50 text-green-700'

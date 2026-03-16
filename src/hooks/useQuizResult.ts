@@ -143,7 +143,7 @@ export function useQuizResult() {
         socket.on('lobby:state', onLobbyState);
 
         socket.on('lobby:redirectTo', ({ newLobbyId }) => {
-            router.push(`/lobby/${newLobbyId}`);
+            router.push(`/lobby/create/${newLobbyId}`);
         });
 
         // ✅ quiz:rejoin (était lobby:rejoin)

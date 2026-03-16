@@ -16,7 +16,7 @@ export default function Header() {
           ) : session ? (
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white font-semibold">
-                Bonjour, {session.user.username ?? session.user.email} 👋
+                Bonjour, {session.user.username ?? session.user.email}
               </Link>
               {session.user.role === 'ADMIN' && (
                 <span className="text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-1 rounded">

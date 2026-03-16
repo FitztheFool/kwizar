@@ -362,7 +362,7 @@ export default function UnoPage() {
                         <p>0–9 = valeur faciale · Skip/Reverse/+2 = 20 pts · Wild/+4 = 50 pts</p>
                     </div>
 
-                    <button onClick={() => router.push(`/lobby/${lobbyId}`)}
+                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
                         className="mt-5 w-full py-3 rounded-xl bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition">
                         🔄 Retour au lobby
                     </button>
@@ -400,7 +400,7 @@ export default function UnoPage() {
                             </div>
                         ))}
                     </div>
-                    <button onClick={() => router.push(`/lobby/${lobbyId}`)}
+                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
                         className="w-full py-3 rounded-xl bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition">
                         🔄 Retour au lobby
                     </button>

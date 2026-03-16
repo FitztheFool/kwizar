@@ -112,7 +112,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {isOwnProfile ? `👋 Bonjour, ${displayName} !` : displayName}
+                                {isOwnProfile ? `Bonjour, ${displayName} !` : displayName}
                             </h1>
                             <p className="text-gray-500 text-sm">{isOwnProfile ? 'Mon dashboard' : 'Profil joueur'}</p>
                             {isOwnProfile && (

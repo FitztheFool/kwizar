@@ -42,7 +42,7 @@ export default function QuizResultPage() {
 
     const handleRejouer = () => {
         if (lobbyCode) socket?.emit('lobby:restart');
-        router.push(`/lobby/${lobbyCode}`);
+        router.push(`/lobby/create/${lobbyCode}`);
     };
 
     if (authStatus === 'loading') return <LoadingSpinner message="Chargement des résultats..." />;

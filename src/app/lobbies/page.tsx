@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLobbySocket } from '@/hooks/useSocket';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import { generateCode } from '@/lib/utils';
 
 interface Lobby {
     id: string;
@@ -119,7 +120,7 @@ export default function LobbiesPage() {
     useEffect(() => {
         if (socket && connected) {
             // Request lobbies from server
-            socket.emit('get-lobbies');
+            socket.emit('get:lobbies');
 
             // Listen for lobbies update (optional, since we have mock data)
             socket.on('lobbies', (data: Lobby[]) => {
@@ -156,8 +157,7 @@ export default function LobbiesPage() {
     });
 
     const joinLobby = (lobbyId: string) => {
-        // TODO: Implement join logic
-        router.push(`/lobby/${lobbyId}`);
+        router.push(`/lobby/create/${lobbyId}`);
     };
 
     if (loading) {
@@ -306,17 +306,25 @@ export default function LobbiesPage() {
                         <div className="text-6xl mb-4">🎮</div>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Aucun lobby trouvé</h3>
                         <p className="text-gray-500 dark:text-gray-400 mb-6">Essayez de modifier vos filtres pour voir plus de lobbies.</p>
-                        <button
-                            onClick={() => {
-                                setSelectedGameType('all');
-                                setShowFull(false);
-                                setShowWaiting(true);
-                                setSortBy('newest');
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
-                        >
-                            Réinitialiser les filtres
-                        </button>
+                        <div className="flex items-center justify-center gap-3">
+                            <button
+                                onClick={() => {
+                                    setSelectedGameType('all');
+                                    setShowFull(false);
+                                    setShowWaiting(true);
+                                    setSortBy('newest');
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                            >
+                                Réinitialiser les filtres
+                            </button>
+                            <button
+                                onClick={() => router.push(`/lobby/create/${generateCode(8)}`)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                            >
+                                ➕ Créer un lobby
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
