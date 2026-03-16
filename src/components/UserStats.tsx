@@ -3,6 +3,14 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import { GAME_EMOJI_MAP } from '@/lib/gameConfig';
+import PlayerModal from '@/components/PlayerModal';
+import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
+
+interface Player {
+    username: string;
+    score: number;
+    placement: number | null;
+}
 
 interface RecentActivity {
     gameId: string;
@@ -11,6 +19,7 @@ interface RecentActivity {
     quiz: { id: string; title: string } | null;
     score: number;
     placement: number | null;
+    players: Player[];
 }
 
 interface Stats {
@@ -32,6 +41,15 @@ const GAME_BADGE: Record<string, string> = {
     PUISSANCE4: 'bg-rose-100   dark:bg-rose-900/40   text-rose-700   dark:text-rose-400',
 };
 
+const GAME_BADGE_ACTIVE: Record<string, string> = {
+    QUIZ: 'bg-blue-600   text-white border-blue-600',
+    UNO: 'bg-orange-500 text-white border-orange-500',
+    TABOO: 'bg-red-600    text-white border-red-600',
+    SKYJOW: 'bg-sky-500    text-white border-sky-500',
+    YAHTZEE: 'bg-purple-600 text-white border-purple-600',
+    PUISSANCE4: 'bg-rose-600   text-white border-rose-600',
+};
+
 interface Props {
     username: string;
     currentUsername?: string;
@@ -39,54 +57,76 @@ interface Props {
 
 export default function UserStats({ username, currentUsername }: Props) {
     const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [refetching, setRefetching] = useState(false);
     const [page, setPage] = useState(1);
+    const [gameFilter, setGameFilter] = useState<GameFilter>('ALL');
+    const [modalGame, setModalGame] = useState<RecentActivity | null>(null);
 
-    const fetchStats = useCallback(async (p = 1) => {
-        setLoading(true);
+    const fetchStats = useCallback(async (p: number, filter: GameFilter, isInitial = false) => {
+        if (isInitial) setInitialLoading(true);
+        else setRefetching(true);
         try {
-            const res = await fetch(`/api/user/${username}/stats?page=${p}`);
+            const params = new URLSearchParams({ page: String(p) });
+            if (filter !== 'ALL') params.set('gameType', filter);
+            const res = await fetch(`/api/user/${username}/stats?${params}`);
             if (res.ok) setStats(await res.json());
         } finally {
-            setLoading(false);
+            if (isInitial) setInitialLoading(false);
+            else setRefetching(false);
         }
     }, [username]);
 
-    useEffect(() => { fetchStats(1); }, [fetchStats]);
+    useEffect(() => { fetchStats(1, 'ALL', true); }, [fetchStats]);
 
-    const handlePageChange = (p: number) => { setPage(p); fetchStats(p); };
+    const handlePageChange = (p: number) => {
+        setPage(p);
+        fetchStats(p, gameFilter);
+    };
 
-    if (loading) return (
-        <div className="flex items-center justify-center py-12" >
+    const handleFilterChange = (f: GameFilter) => {
+        setGameFilter(f);
+        setPage(1);
+        fetchStats(1, f);
+    };
+
+    const activeClassName = gameFilter !== 'ALL' && GAME_BADGE_ACTIVE[gameFilter]
+        ? GAME_BADGE_ACTIVE[gameFilter]
+        : 'bg-gray-800 text-white border-gray-800 dark:bg-white dark:text-gray-900 dark:border-white';
+
+    if (initialLoading) return (
+        <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
         </div>
     );
 
-    if (!stats) return <p className="text-gray-500 text-sm" > Impossible de charger les statistiques.</p>;
+    if (!stats) return <p className="text-gray-500 text-sm">Impossible de charger les statistiques.</p>;
 
     return (
-        <div className="space-y-8" >
+        <div className="space-y-8">
+            {/* Stats */}
             <div>
-                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3" >🎮 Statistiques </h2>
-                < div className="flex flex-wrap gap-3" >
-                    {
-                        Object.entries(stats.gameStats)
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">🎮 Statistiques</h2>
+                {Object.keys(stats.gameStats).length === 0 ? (
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune statistique pour ce jeu.</p>
+                ) : (
+                    <div className="flex flex-wrap gap-3">
+                        {Object.entries(stats.gameStats)
                             .sort((a, b) => b[1].count - a[1].count)
                             .map(([type, { count, points, wins }]) => (
-                                <div key={type} className={`${GAME_BADGE[type] ?? 'bg-gray-100 text-gray-600'} border rounded-xl p-3.5 flex items-center gap-3.5`} style={{ minWidth: 180 }
-                                }>
-                                    <div className="text-2xl" > {GAME_EMOJI_MAP[type] ?? '🎮'} </div>
-                                    < div >
-                                        <div className="text-[11px] font-bold uppercase tracking-widest opacity-70 mb-1" > {type} </div>
-                                        < div className="flex items-center gap-3" >
+                                <div key={type} className={`${GAME_BADGE[type] ?? 'bg-gray-100 text-gray-600'} border rounded-xl p-3.5 flex items-center gap-3.5`} style={{ minWidth: 180 }}>
+                                    <div className="text-2xl">{GAME_EMOJI_MAP[type] ?? '🎮'}</div>
+                                    <div>
+                                        <div className="text-[11px] font-bold uppercase tracking-widest opacity-70 mb-1">{type}</div>
+                                        <div className="flex items-center gap-3">
                                             <div>
-                                                <div className="text-lg font-bold tabular-nums leading-none" > {count} </div>
-                                                < div className="text-[11px] opacity-60" > parties </div>
+                                                <div className="text-lg font-bold tabular-nums leading-none">{count}</div>
+                                                <div className="text-[11px] opacity-60">parties</div>
                                             </div>
-                                            < div className="w-px self-stretch opacity-20 bg-current" />
+                                            <div className="w-px self-stretch opacity-20 bg-current" />
                                             <div>
-                                                <div className="text-lg font-bold tabular-nums leading-none" > {points} </div>
-                                                < div className="text-[11px] opacity-60" > points </div>
+                                                <div className="text-lg font-bold tabular-nums leading-none">{points}</div>
+                                                <div className="text-[11px] opacity-60">points</div>
                                                 {count > 0 && (
                                                     <div className={`text-xs font-bold mt-1 ${wins / count >= 0.6 ? 'text-green-400' : wins / count >= 0.4 ? 'text-yellow-400' : 'text-red-400'}`}>
                                                         {Math.round((wins / count) * 100)}% victoires
@@ -97,74 +137,103 @@ export default function UserStats({ username, currentUsername }: Props) {
                                     </div>
                                 </div>
                             ))}
-                </div>
+                    </div>
+                )}
             </div>
 
-            < div >
-                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3" >🕐 Activité récente </h2>
-                {
-                    stats.recentActivity.length === 0 ? (
-                        <p className="text-gray-500 dark:text-gray-400 text-sm" > Aucune partie jouée pour l'instant.</p>
+            {/* Recent activity */}
+            <div>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">🕐 Activité récente</h2>
+                <div className="mt-3 mb-4">
+                    <GameFilterPills
+                        value={gameFilter}
+                        onChange={handleFilterChange}
+                        activeClassName={activeClassName}
+                    />
+                </div>
+
+                <div className={`relative transition-opacity duration-150 ${refetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                    {refetching && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+                        </div>
+                    )}
+
+                    {stats.recentActivity.length === 0 ? (
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune partie jouée pour l'instant.</p>
                     ) : (
                         <>
-                            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700" >
-                                <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 text-sm" >
-                                    <thead className="bg-gray-50 dark:bg-gray-800" >
+                            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+                                <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                    <thead className="bg-gray-50 dark:bg-gray-800">
                                         <tr>
-                                            {
-                                                ['Jeu', 'Partie', 'Quiz', 'Score', 'Placement', 'Date'].map(h => (
-                                                    <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide" > {h} </th>
-                                                ))
-                                            }
+                                            {['Jeu', 'Quiz', 'Score', 'Placement', 'Joueurs', 'Date'].map(h => (
+                                                <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{h}</th>
+                                            ))}
                                         </tr>
                                     </thead>
-                                    < tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800" >
-                                        {
-                                            stats.recentActivity.map((a) => (
-                                                <tr key={a.gameId} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" >
-                                                    <td className="px-3 py-2 whitespace-nowrap" >
-                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${GAME_BADGE[a.gameType] ?? 'bg-gray-100 text-gray-600'}`} >
-                                                            {GAME_EMOJI_MAP[a.gameType] ?? '🎮'} {a.gameType}
-                                                        </span>
-                                                    </td>
-                                                    < td className="px-3 py-2 whitespace-nowrap font-mono text-xs text-gray-400" > {a.gameId} </td>
-                                                    < td className="px-3 py-2 whitespace-nowrap" >
-                                                        {
-                                                            a.quiz ? (
-                                                                <Link href={`/quiz/${a.quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs" > {a.quiz.title} </Link>
-                                                            ) : (
-                                                                <span className="text-gray-400" >—</span>
-                                                            )
-                                                        }
-                                                    </td>
-                                                    < td className="px-3 py-2 whitespace-nowrap" >
-                                                        <span className="font-bold text-gray-900 dark:text-white" > {a.score} </span>
-                                                        < span className="text-xs text-gray-400 ml-1" > pts </span>
-                                                    </td>
-                                                    < td className="px-3 py-2 whitespace-nowrap text-center" >
-                                                        {
-                                                            a.placement != null
-                                                                ? <span className="text-base"> {PLACEMENT_EMOJI[a.placement] ?? `#${a.placement}`} </span>
-                                                                : < span className="text-gray-400" >—</span>}
-                                                    </td>
-                                                    < td className="px-3 py-2 whitespace-nowrap text-xs text-gray-400" >
-                                                        {new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
-                                                        {' '}
-                                                        {new Date(a.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+                                        {stats.recentActivity.map((a) => (
+                                            <tr key={a.gameId} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                <td className="px-3 py-2 whitespace-nowrap">
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${GAME_BADGE[a.gameType] ?? 'bg-gray-100 text-gray-600'}`}>
+                                                        {GAME_EMOJI_MAP[a.gameType] ?? '🎮'} {a.gameType}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap">
+                                                    {a.quiz ? (
+                                                        <Link href={`/quiz/${a.quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">{a.quiz.title}</Link>
+                                                    ) : (
+                                                        <span className="text-gray-400">—</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap">
+                                                    <span className="font-bold text-gray-900 dark:text-white">{a.score}</span>
+                                                    <span className="text-xs text-gray-400 ml-1">pts</span>
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap text-center">
+                                                    {a.placement != null
+                                                        ? <span className="text-base">{PLACEMENT_EMOJI[a.placement] ?? `#${a.placement}`}</span>
+                                                        : <span className="text-gray-400">—</span>}
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap">
+                                                    {a.players.length > 0 ? (
+                                                        <button
+                                                            onClick={() => setModalGame(a)}
+                                                            className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                        >
+                                                            <span>👥</span>
+                                                            <span>{a.players.length}</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-gray-400">—</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-400">
+                                                    {new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                                                    {' '}
+                                                    {new Date(a.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
-                            {
-                                stats.pagination.totalPages > 1 && (
-                                    <Pagination currentPage={page} totalPages={stats.pagination.totalPages} onPageChange={handlePageChange} />
-                                )
-                            }
+                            {stats.pagination.totalPages > 1 && (
+                                <Pagination currentPage={page} totalPages={stats.pagination.totalPages} onPageChange={handlePageChange} />
+                            )}
                         </>
                     )}
+                </div>
             </div>
+
+            {modalGame && (
+                <PlayerModal
+                    gameId={modalGame.gameId}
+                    players={modalGame.players}
+                    onClose={() => setModalGame(null)}
+                />
+            )}
         </div>
     );
 }

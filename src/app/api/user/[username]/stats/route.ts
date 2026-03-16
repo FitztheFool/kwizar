@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import type { GameType } from '@prisma/client';
 
 export async function GET(
     req: NextRequest,
@@ -11,6 +12,7 @@ export async function GET(
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const pageSize = 20;
     const skip = (page - 1) * pageSize;
+    const gameTypeFilter = searchParams.get('gameType') as GameType | null;
 
     const user = await prisma.user.findUnique({
         where: { username },
@@ -21,10 +23,10 @@ export async function GET(
         return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
+    // gameStats : toujours toutes les parties, sans filtre
     const allAttempts = await prisma.attempt.findMany({
         where: { userId: user.id },
-        include: { quiz: { select: { id: true, title: true } } },
-        orderBy: { createdAt: 'desc' },
+        select: { gameType: true, score: true, placement: true },
     });
 
     const gameStats: Record<string, { count: number; points: number; wins: number }> = {};
@@ -39,14 +41,49 @@ export async function GET(
         if (a.placement === 1) gameStats[a.gameType].wins++;
     }
 
-    const gameIds = [...new Set(allAttempts.map(a => a.gameId))];
-    const totalGames = gameIds.length;
+    // Activité récente : filtre gameType appliqué directement en DB
+    const where = {
+        userId: user.id,
+        ...(gameTypeFilter ? { gameType: gameTypeFilter } : {}),
+    };
+
+    // On récupère les gameIds distincts pour la pagination
+    const distinctGames = await prisma.attempt.findMany({
+        where,
+        distinct: ['gameId'],
+        select: { gameId: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    const totalGames = distinctGames.length;
     const totalPages = Math.ceil(totalGames / pageSize);
-    const paginatedGameIds = gameIds.slice(skip, skip + pageSize);
+    const paginatedGameIds = distinctGames.slice(skip, skip + pageSize).map(g => g.gameId);
 
-    const recentAttempts = allAttempts.filter(a => paginatedGameIds.includes(a.gameId));
+    // Attempts de l'utilisateur sur les parties paginées
+    const recentAttempts = await prisma.attempt.findMany({
+        where: { userId: user.id, gameId: { in: paginatedGameIds } },
+        include: { quiz: { select: { id: true, title: true } } },
+        orderBy: { createdAt: 'desc' },
+    });
 
-    const byGame = new Map<string, typeof allAttempts>();
+    // Tous les joueurs des parties paginées
+    const allPlayersInGames = await prisma.attempt.findMany({
+        where: { gameId: { in: paginatedGameIds } },
+        include: { user: { select: { username: true } } },
+        orderBy: { placement: 'asc' },
+    });
+
+    const playersByGame = new Map<string, { username: string; score: number; placement: number | null }[]>();
+    for (const a of allPlayersInGames) {
+        if (!playersByGame.has(a.gameId)) playersByGame.set(a.gameId, []);
+        playersByGame.get(a.gameId)!.push({
+            username: a.user.username ?? 'Inconnu',
+            score: a.score,
+            placement: a.placement,
+        });
+    }
+
+    const byGame = new Map<string, typeof recentAttempts>();
     for (const a of recentAttempts) {
         if (!byGame.has(a.gameId)) byGame.set(a.gameId, []);
         byGame.get(a.gameId)!.push(a);
@@ -62,6 +99,7 @@ export async function GET(
             quiz: first.quiz ? { id: first.quiz.id, title: first.quiz.title } : null,
             score: first.score,
             placement: first.placement,
+            players: playersByGame.get(gameId) ?? [],
         };
     });
 

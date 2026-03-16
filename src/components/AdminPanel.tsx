@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import { GAME_EMOJI_MAP } from '@/lib/gameConfig';
 import PlayerModal from '@/components/PlayerModal'
+import GameFilterPills, { type GameFilter } from '@/components/GameFilterPills';
+
 
 interface AdminUser {
     id: string;
@@ -120,7 +122,7 @@ export default function AdminPanel() {
     const [hideAnonymous, setHideAnonymous] = useState(true);
     const [userSort, setUserSort] = useState<UserSort>('createdAt_desc');
 
-    const [gameFilter, setGameFilter] = useState<GameType | 'ALL'>('ALL');
+    const [gameFilter, setGameFilter] = useState<GameFilter>('ALL');
 
     const [quizzes, setQuizzes] = useState<AdminQuiz[]>([]);
     const [quizPage, setQuizPage] = useState(1);
@@ -135,7 +137,7 @@ export default function AdminPanel() {
     const [activityPage, setActivityPage] = useState(1);
     const [activityUserQuery, setActivityUserQuery] = useState('');
     const activityUserQueryRef = useRef('');
-    const activityGameFilterRef = useRef<GameType | 'ALL'>('ALL');
+    const activityGameFilterRef = useRef<GameFilter>('ALL');
 
     const [loading, setLoading] = useState(false);
     const [loadingStats, setLoadingStats] = useState(false);
@@ -160,7 +162,7 @@ export default function AdminPanel() {
         period: number,
         page: number,
         q: string,
-        gameType: GameType | 'ALL' = 'ALL',
+        gameType: GameFilter | 'ALL',
     ) => {
         const params = new URLSearchParams({
             period: String(period),
@@ -176,7 +178,7 @@ export default function AdminPanel() {
         period = activityPeriod,
         page = 1,
         q = activityUserQueryRef.current,
-        gameType: GameType | 'ALL' = activityGameFilterRef.current,
+        gameType: GameFilter | 'ALL' = activityGameFilterRef.current,
     ) => {
         setLoadingStats(true);
         try {
@@ -194,7 +196,7 @@ export default function AdminPanel() {
         period: number,
         page: number,
         q: string,
-        gameType: GameType | 'ALL' = activityGameFilterRef.current,
+        gameType: GameFilter | 'ALL' = activityGameFilterRef.current,
     ) => {
         setLoadingActivity(true);
         try {
@@ -603,20 +605,7 @@ export default function AdminPanel() {
                                     </div>
 
                                     {/* Game type filter pills */}
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {(['ALL', 'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE', 'PUISSANCE4'] as const).map((g) => (
-                                            <button
-                                                key={g}
-                                                onClick={() => setGameFilter(g)}
-                                                className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${gameFilter === g
-                                                    ? 'bg-red-600 text-white border-red-600'
-                                                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                                    }`}
-                                            >
-                                                {g === 'ALL' ? '🎮 Tous' : `${GAME_EMOJI_MAP[g]} ${g}`}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <GameFilterPills value={gameFilter} onChange={setGameFilter} />
 
                                     {/* Activity table — filtering done server-side */}
                                     {(() => {
