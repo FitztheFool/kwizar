@@ -7,9 +7,18 @@ import { getLobbySocket } from '@/lib/socket';
 import Chat from '@/components/Chat';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useChat } from '@/context/ChatContext';
+import {
+    GAME_CONFIG,
+    GAME_OPTIONS,
+    MAX_PLAYERS_BY_GAME,
+    MIN_PLAYERS,
+    EXACT_PLAYERS,
+    NO_OPTIONS_GAMES,
+    GAME_ROUTES,
+    type GameType,
+} from '@/lib/gameConfig';
 
 type Player = { userId: string; username: string };
-type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow' | 'yahtzee' | 'puissance4';
 
 type LobbyMeta = {
     title?: string;
@@ -39,31 +48,6 @@ type LobbyState = {
     timePerQuestion?: number;
     quizId?: string | null;
     teams?: Record<string, 0 | 1> | null;
-};
-
-type ChatMessage = {
-    userId: string;
-    username: string;
-    text: string;
-    sentAt: number;
-};
-
-const GAME_OPTIONS: { value: GameType; icon: string; label: string }[] = [
-    { value: 'quiz', icon: '🎯', label: 'Quiz' },
-    { value: 'uno', icon: '🃏', label: 'UNO' },
-    { value: 'taboo', icon: '🗣️', label: 'Taboo' },
-    { value: 'skyjow', icon: '🂠', label: 'Skyjow' },
-    { value: 'yahtzee', icon: '🎲', label: 'Yahtzee' },
-    { value: 'puissance4', icon: '🔘', label: 'Puissance 4' },
-];
-
-const MAX_PLAYERS_BY_GAME: Record<GameType, number[]> = {
-    quiz: Array.from({ length: 19 }, (_, i) => i + 2),
-    uno: [2, 3, 4, 5, 6, 7, 8],
-    taboo: [4, 5, 6, 7, 8, 10, 12],
-    skyjow: [2, 3, 4, 5, 6, 7, 8],
-    yahtzee: [2, 3, 4, 5, 6, 7, 8],
-    puissance4: [2],
 };
 
 function useDebounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: number): T {
@@ -200,20 +184,17 @@ export default function LobbyCodePage() {
     const [teams, setTeams] = useState<Record<string, 0 | 1> | null>(null);
     const { setLobbyId } = useChat();
 
-
     useEffect(() => {
         setLobbyId(lobbyId);
-        return () => setLobbyId(null); // nettoyage quand on quitte
+        return () => setLobbyId(null);
     }, [lobbyId]);
 
-    // ── myTeam dérivé des states existants ──────────────────────────────
     const myTeam: 0 | 1 | undefined = useMemo(() => {
         if (!teams || !session?.user?.id) return undefined;
         const t = teams[session.user.id];
         return t === 0 || t === 1 ? t : undefined;
     }, [teams, session?.user?.id]);
 
-    // ── Join chat room quand myTeam change ───────────────────────────────
     useEffect(() => {
         if (!socket || !lobbyId) return;
         socket.emit('chat:joinTeam', { team: myTeam });
@@ -270,32 +251,32 @@ export default function LobbyCodePage() {
             if (state.timePerQuestion) setQuizTimePerQuestion(state.timePerQuestion);
             if (state.skyjowOptions) setSkyjowEliminateRows(state.skyjowOptions.eliminateRows ?? false);
 
+            // ── canStart via GAME_CONFIG ──────────────────────────────────
             const count = state.players?.length ?? 0;
             const g = state.gameType;
             const hasQuiz = g === 'quiz' ? !!state.quizId : true;
-            const ok = g === 'puissance4' ? count === 2
-                : g === 'taboo' ? count >= 4
-                    : count >= 2 && hasQuiz;
+            const exact = EXACT_PLAYERS[g];
+            const min = MIN_PLAYERS[g] ?? 2;
+            const ok = exact ? count === exact : count >= min && hasQuiz;
             setCanStart(ok && state.hostId === meUserId);
         };
 
-        // ── Listeners lobby socket ───────────────────────────────────────
         socket.on('lobby:state', onState);
         socket.on('lobby:kicked', () => { alert('Vous avez été expulsé.'); router.push('/lobby/all'); });
+
+        // ── game:start via GAME_ROUTES ────────────────────────────────────
         socket.on('game:start', (payload: { gameType: GameType; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
-            if (payload.gameType === 'uno') router.push(`/uno/${lobbyId}`);
-            else if (payload.gameType === 'taboo') router.push(`/taboo/${lobbyId}`);
-            else if (payload.gameType === 'skyjow') router.push(`/skyjow/${lobbyId}`);
-            else if (payload.gameType === 'yahtzee') router.push(`/yahtzee/${lobbyId}`);
-            else if (payload.gameType === 'puissance4') router.push(`/puissance4/${lobbyId}`);
-            else {
+            const routeFn = GAME_ROUTES[payload.gameType];
+            if (routeFn) {
+                router.push(routeFn(lobbyId));
+            } else {
+                // quiz
                 sessionStorage.setItem(`lobby_timeMode_${lobbyId}`, payload.timeMode ?? 'none');
                 sessionStorage.setItem(`lobby_timePerQuestion_${lobbyId}`, String(payload.timePerQuestion ?? 15));
                 router.push(`/quiz/${payload.quizId}?lobby=${lobbyId}`);
             }
         });
 
-        // ── Listeners chat socket ────────────────────────────────────────
         if (!joinedRef.current) {
             joinedRef.current = true;
             const raw = sessionStorage.getItem(`lobby_meta_${lobbyId}`);
@@ -407,12 +388,11 @@ export default function LobbyCodePage() {
                         <div className="relative flex-shrink-0">
                             <button
                                 onClick={() => {
-                                    navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`)
-                                    setCopied(true)
-                                    setTimeout(() => setCopied(false), 2000)
+                                    navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
                                 }}
-                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20"
-                            >
+                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20">
                                 {copied ? '✅ Copié !' : '⧉ Copier le lien'}
                             </button>
                         </div>
@@ -420,7 +400,7 @@ export default function LobbyCodePage() {
 
                     <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
-                    {/* Jeu */}
+                    {/* Jeu — dérivé de GAME_OPTIONS */}
                     <div className="space-y-2">
                         <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Jeu</label>
                         <div className="grid grid-cols-3 gap-2">
@@ -509,15 +489,16 @@ export default function LobbyCodePage() {
                         </div>
                     )}
 
-                    {(gameType === 'yahtzee' || gameType === 'puissance4') && (
+                    {/* Pas d'options — dérivé de NO_OPTIONS_GAMES */}
+                    {NO_OPTIONS_GAMES[gameType] && (
                         <div className="bg-gray-50 dark:bg-slate-800/40 rounded-xl p-3 border border-gray-200 dark:border-slate-700/30 text-center">
-                            <p className="text-xs text-gray-400 dark:text-slate-500 italic">{gameType === 'yahtzee' ? '🎲 Yahtzee — aucune option.' : '🔘 Puissance 4 — exactement 2 joueurs.'}</p>
+                            <p className="text-xs text-gray-400 dark:text-slate-500 italic">{NO_OPTIONS_GAMES[gameType]}</p>
                         </div>
                     )}
 
                     <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
-                    {/* Joueurs max + Visibilité */}
+                    {/* Joueurs max + Visibilité — dérivé de MAX_PLAYERS_BY_GAME */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Joueurs max</label>

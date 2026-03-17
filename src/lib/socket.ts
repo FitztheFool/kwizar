@@ -7,7 +7,7 @@ let tabooSocket: Socket | null = null;
 let skyjowSocket: Socket | null = null;
 let yahtzeeSocket: Socket | null = null;
 let puissance4Socket: Socket | null = null;
-let chatSocket: Socket | null = null;
+let justOneSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -68,4 +68,13 @@ export function getPuissance4Socket(): Socket | null {
     if (!puissance4Socket) puissance4Socket = createSocket(process.env.NEXT_PUBLIC_P4_SERVER_URL ?? "http://localhost:10006", "Puissance 4 Socket");
     if (!puissance4Socket.connected) puissance4Socket.connect();
     return puissance4Socket;
+}
+
+export function getJustOneSocket(): Socket {
+    if (!justOneSocket) {
+        justOneSocket = io(process.env.NEXT_PUBLIC_JUSTONE_SERVER_URL ?? 'http://localhost:10006', {
+            transports: ['websocket'],
+        });
+    }
+    return justOneSocket;
 }

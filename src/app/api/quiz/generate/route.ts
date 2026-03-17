@@ -45,8 +45,6 @@ export async function POST(req: NextRequest) {
             temperature: 0.7,
         });
 
-        console.log(`⏱️ Groq: ${Date.now() - startTime}ms`);
-
         const raw = (completion.choices[0].message.content ?? '').trim()
             .replace(/^```json\s*/i, '')
             .replace(/^```\s*/i, '')

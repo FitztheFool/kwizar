@@ -5,7 +5,7 @@ export const GAME_CONFIG = {
         icon: '🃏',
         higherIsBetter: true,
         scoreLabel: 'Points',
-        description: 'Les points sont calculés selon le placement final : 🥇 1ère place = 20 pts · 🥈 2ème = 13 pts · 🥉 3ème = 6 pts · Autres = 2 pts. Le classement est basé sur le total de points cumulés.',
+        description: 'À UNO, plus tu marques de points mieux c\'est : à chaque manche le gagnant additionne la valeur des cartes restantes des autres joueurs (chiffres = valeur, actions = 20 pts, jokers = 50 pts). Le classement est basé sur le total des points cumulés sur toutes les parties jouées. En mode 2v2, les points sont partagés entre les membres de l\'équipe.',
     },
     skyjow: {
         gameType: 'SKYJOW' as const,
@@ -47,8 +47,59 @@ export const GAME_CONFIG = {
         scoreLabel: 'Points',
         description: 'Classement basé sur le nombre de victoires cumulées. Chaque victoire rapporte 10 points. En cas de match nul, aucun point n\'est attribué.',
     },
+    'just-one': {
+        gameType: 'JUST_ONE' as const,
+        label: 'Just One',
+        icon: '🔤',
+        higherIsBetter: true,
+        scoreLabel: 'Score',
+        description: 'Jeu coopératif : les joueurs écrivent chacun un indice pour faire deviner un mot mystère. Les indices identiques sont annulés. Le score final (sur 13) reflète la performance collective de l\'équipe.',
+    },
 } as const;
 
 export const GAME_EMOJI_MAP = Object.fromEntries(
     Object.values(GAME_CONFIG).map(g => [g.gameType, g.icon])
 ) as Record<string, string>;
+
+export type GameType = keyof typeof GAME_CONFIG;
+
+export const GAME_OPTIONS = Object.entries(GAME_CONFIG).map(([key, g]) => ({
+    value: key as GameType,
+    icon: g.icon,
+    label: g.label,
+}));
+
+export const MAX_PLAYERS_BY_GAME: Record<GameType, number[]> = {
+    quiz: Array.from({ length: 19 }, (_, i) => i + 2),
+    uno: [2, 3, 4, 5, 6, 7, 8],
+    taboo: [4, 5, 6, 7, 8, 10, 12],
+    skyjow: [2, 3, 4, 5, 6, 7, 8],
+    yahtzee: [2, 3, 4, 5, 6, 7, 8],
+    puissance4: [2],
+    'just-one': [3, 4, 5, 6, 7],
+};
+
+export const MIN_PLAYERS: Partial<Record<GameType, number>> = {
+    puissance4: 2,
+    taboo: 4,
+    'just-one': 3,
+};
+
+export const EXACT_PLAYERS: Partial<Record<GameType, number>> = {
+    puissance4: 2,
+};
+
+export const NO_OPTIONS_GAMES: Partial<Record<GameType, string>> = {
+    yahtzee: '🎲 Yahtzee — aucune option.',
+    puissance4: '🔘 Puissance 4 — exactement 2 joueurs.',
+    'just-one': `${GAME_CONFIG['just-one'].icon} Just One — 3 à 7 joueurs.`,
+};
+
+export const GAME_ROUTES: Partial<Record<GameType, (lobbyId: string) => string>> = {
+    uno: (id) => `/uno/${id}`,
+    taboo: (id) => `/taboo/${id}`,
+    skyjow: (id) => `/skyjow/${id}`,
+    yahtzee: (id) => `/yahtzee/${id}`,
+    puissance4: (id) => `/puissance4/${id}`,
+    'just-one': (id) => `/just-one/${id}`,
+};
