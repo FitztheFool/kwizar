@@ -127,8 +127,13 @@ export async function GET(
             quiz: first.quiz ? { id: first.quiz.id, title: first.quiz.title } : null,
             score: myEntry?.score ?? first.score,
             placement: myEntry?.placement ?? first.placement,
-            players: playersByGame.get(gameId) ?? [],
-        };
+            players: (playersByGame.get(gameId) ?? []).sort((a, b) => {
+                if (a.placement != null && b.placement != null) return a.placement - b.placement;
+                if (a.placement != null) return -1;
+                if (b.placement != null) return 1;
+                return b.score - a.score;
+            }),
+        }
     });
 
     return NextResponse.json({

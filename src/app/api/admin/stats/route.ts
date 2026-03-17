@@ -177,7 +177,12 @@ export async function GET(req: NextRequest) {
         gameId: g.gameId,
         quiz: g.quiz,
         playerCount: g.players.length,
-        players: g.players.sort((a, b) => (a.placement ?? 99) - (b.placement ?? 99)),
+        players: g.players.sort((a, b) => {
+            if (a.placement != null && b.placement != null) return a.placement - b.placement;
+            if (a.placement != null) return -1;
+            if (b.placement != null) return 1;
+            return b.score - a.score;
+        }),
     }));
 
     const gameStats: Record<string, { count: number; points: number; rounds: number }> = {};

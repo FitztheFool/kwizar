@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
+import Chat from '@/components/Chat';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 type Player = { userId: string; username: string };
@@ -37,6 +38,13 @@ type LobbyState = {
     timePerQuestion?: number;
     quizId?: string | null;
     teams?: Record<string, 0 | 1> | null;
+};
+
+type ChatMessage = {
+    userId: string;
+    username: string;
+    text: string;
+    sentAt: number;
 };
 
 const GAME_OPTIONS: { value: GameType; icon: string; label: string }[] = [
@@ -189,7 +197,32 @@ export default function LobbyCodePage() {
     const [quizTimePerQuestion, setQuizTimePerQuestion] = useState(15);
     const [skyjowEliminateRows, setSkyjowEliminateRows] = useState(false);
     const [teams, setTeams] = useState<Record<string, 0 | 1> | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [teamMessages, setTeamMessages] = useState<ChatMessage[]>([]);
 
+    // ── myTeam dérivé des states existants ──────────────────────────────
+    const myTeam: 0 | 1 | undefined = useMemo(() => {
+        if (!teams || !session?.user?.id) return undefined;
+        const t = teams[session.user.id];
+        return t === 0 || t === 1 ? t : undefined;
+    }, [teams, session?.user?.id]);
+
+    // ── Join chat room quand myTeam change ───────────────────────────────
+    useEffect(() => {
+        if (!socket || !lobbyId) return;
+        socket.emit('chat:joinTeam', { team: myTeam });
+    }, [socket, lobbyId, myTeam]);
+
+    // ── sendChat ─────────────────────────────────────────────────────────
+    const sendChat = (text: string, tab: 'lobby' | 'team') => {
+        socket?.emit('chat:send', {
+            lobbyId,
+            text,
+            userId: session?.user?.id,
+            username: session?.user?.username,
+            team: tab === 'team' ? myTeam : undefined,
+        });
+    };
 
     const emitTitle = useDebounce((title: string) => socket?.emit('lobby:setMeta', { title }), 500);
     const emitDescription = useDebounce((description: string) => socket?.emit('lobby:setMeta', { description }), 500);
@@ -220,14 +253,11 @@ export default function LobbyCodePage() {
                     ? { timeMode: state.timeMode, timePerQuestion: state.timePerQuestion ?? 15 }
                     : prev?.quizOptions,
             }));
-
             setGameTypeState(state.gameType ?? 'quiz');
             setMaxPlayersState(state.maxPlayers ?? 8);
             setTeams(state.teams ?? null);
             setIsPublicState(state.isPublic ?? false);
-            if (state.quizId) {
-                setSelectedQuizId(state.quizId);
-            }
+            if (state.quizId) setSelectedQuizId(state.quizId);
             if (state.unoOptions) {
                 setUnoTeamMode((state.unoOptions.teamMode as 'none' | '2v2') ?? 'none');
                 setUnoTeamWinMode((state.unoOptions.teamWinMode as 'one' | 'both') ?? 'one');
@@ -254,6 +284,21 @@ export default function LobbyCodePage() {
             setCanStart(ok && state.hostId === meUserId);
         };
 
+        const onChatMessage = (msg: ChatMessage) => {
+            setMessages(prev => {
+                if (prev.some(m => m.sentAt === msg.sentAt && m.userId === msg.userId)) return prev;
+                return [...prev, msg];
+            });
+        };
+
+        const onTeamChatMessage = (msg: ChatMessage) => {
+            setTeamMessages(prev => {
+                if (prev.some(m => m.sentAt === msg.sentAt && m.userId === msg.userId)) return prev;
+                return [...prev, msg];
+            });
+        };
+
+        // ── Listeners lobby socket ───────────────────────────────────────
         socket.on('lobby:state', onState);
         socket.on('lobby:kicked', () => { alert('Vous avez été expulsé.'); router.push('/lobby/all'); });
         socket.on('game:start', (payload: { gameType: GameType; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
@@ -268,6 +313,10 @@ export default function LobbyCodePage() {
                 router.push(`/quiz/${payload.quizId}?lobby=${lobbyId}`);
             }
         });
+
+        // ── Listeners chat socket ────────────────────────────────────────
+        socket?.on('chat:message', onChatMessage);
+        socket?.on('chat:message:team', onTeamChatMessage);
 
         if (!joinedRef.current) {
             joinedRef.current = true;
@@ -296,6 +345,8 @@ export default function LobbyCodePage() {
             socket.off('lobby:state', onState);
             socket.off('lobby:kicked');
             socket.off('game:start');
+            socket?.off('chat:message', onChatMessage);
+            socket?.off('chat:message:team', onTeamChatMessage);
             socket.emit('lobby:leave');
             joinedRef.current = false;
         };
@@ -309,6 +360,9 @@ export default function LobbyCodePage() {
     const selectedGame = GAME_OPTIONS.find(g => g.value === gameType);
     const isMaxLocked = gameType === 'puissance4' || (gameType === 'uno' && unoTeamMode === '2v2');
     const formatTime = (t: number) => t < 60 ? `${t}s` : `${Math.floor(t / 60)} min${t % 60 ? ` ${t % 60}s` : ''}`;
+
+    // ── hasTeamChat défini avant le return ───────────────────────────────
+    const hasTeamChat = gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2');
 
     const handleGameTypeChange = (g: GameType) => {
         setGameTypeState(g);
@@ -539,7 +593,7 @@ export default function LobbyCodePage() {
                             <div className="grid grid-cols-2 gap-3">
                                 {[0, 1].map(team => {
                                     const teamPlayers = players.filter(p => teams?.[p.userId] === team);
-                                    const myTeam = session?.user?.id ? teams?.[session.user.id] : undefined;
+                                    const myTeamLocal = session?.user?.id ? teams?.[session.user.id] : undefined;
                                     return (
                                         <div key={team} className={`rounded-xl border p-3 space-y-2 ${team === 0 ? 'border-blue-500/30 bg-blue-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
                                             <div className="flex items-center justify-between">
@@ -548,10 +602,10 @@ export default function LobbyCodePage() {
                                                 </span>
                                                 <button
                                                     onClick={() => socket?.emit('lobby:setTeam', { team })}
-                                                    className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-all ${myTeam === team
+                                                    className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-all ${myTeamLocal === team
                                                         ? (team === 0 ? 'bg-blue-500 text-white' : 'bg-red-500 text-white')
                                                         : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-300 dark:hover:bg-slate-600'}`}>
-                                                    {myTeam === team ? '✓ Rejoint' : 'Rejoindre'}
+                                                    {myTeamLocal === team ? '✓ Rejoint' : 'Rejoindre'}
                                                 </button>
                                             </div>
                                             <div className="space-y-1">
@@ -624,6 +678,14 @@ export default function LobbyCodePage() {
                     </div>
                 </div>
             </div>
+
+            <Chat
+                messages={messages}
+                teamMessages={hasTeamChat ? teamMessages : undefined}
+                onSend={sendChat}
+                currentUserId={session?.user.id}
+                teamColor={hasTeamChat ? myTeam : undefined}
+            />
         </main>
     );
 }
