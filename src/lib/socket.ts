@@ -72,7 +72,7 @@ export function getPuissance4Socket(): Socket | null {
 
 export function getJustOneSocket(): Socket {
     if (!justOneSocket) {
-        justOneSocket = io(process.env.NEXT_PUBLIC_JUSTONE_SERVER_URL ?? 'http://localhost:10006', {
+        justOneSocket = io(process.env.NEXT_PUBLIC_JUSTONE_SERVER_URL ?? 'http://localhost:10007', {
             transports: ['websocket'],
         });
     }

@@ -7,6 +7,7 @@ import QuizCard from '@/components/QuizCard';
 import QuizFilters from '@/components/QuizFilters';
 import Pagination from '@/components/Pagination';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import { generateCode } from '@/lib/utils';
 
 const PAGE_SIZE = 6;
 
@@ -44,7 +45,6 @@ const GAMES = Object.entries(GAME_CONFIG).map(([key, g]) => ({
 }));
 
 export default function HomePage() {
-    const { data: session } = useSession();
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -54,6 +54,7 @@ export default function HomePage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [categoryId, setCategoryId] = useState('');
     const [page, setPage] = useState(1);
+    const [code, setCode] = useState<string | null>(null)
 
     const fetchQuizzes = useCallback(async (p = 1, s = '', cat = '') => {
         const params = new URLSearchParams({ page: String(p), pageSize: String(PAGE_SIZE) });
@@ -69,6 +70,10 @@ export default function HomePage() {
             setQuizPoints(prev => ({ ...prev, ...computePoints(list) }));
         }
     }, []);
+
+    useEffect(() => {
+        setCode(generateCode(8))
+    }, [])
 
     useEffect(() => {
         let cancelled = false;
@@ -88,7 +93,6 @@ export default function HomePage() {
 
     const handlePageChange = (p: number) => { setPage(p); fetchQuizzes(p, search, categoryId); };
     const handleSearchChange = (v: string) => { setSearch(v); setPage(1); fetchQuizzes(1, v, categoryId); };
-    const handleCategoryChange = (v: string) => { setCategoryId(v); setPage(1); fetchQuizzes(1, search, v); };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -118,7 +122,7 @@ export default function HomePage() {
                                     className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:-translate-y-px active:translate-y-0">
                                     🎮 Rejoindre une partie
                                 </Link>
-                                <Link href="/lobby/create"
+                                <Link href={`/lobby/create/${code}`}
                                     className="px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm rounded-xl border border-gray-200 dark:border-gray-700 transition-all hover:-translate-y-px active:translate-y-0">
                                     ✨ Créer un lobby
                                 </Link>
@@ -138,10 +142,10 @@ export default function HomePage() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* ── Games strip ──────────────────────────────────────── */}
-            <section className="max-w-5xl mx-auto px-6 py-10">
+            < section className="max-w-5xl mx-auto px-6 py-10" >
                 <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-5">Nos jeux</h2>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                     {GAMES.map(g => (
@@ -152,7 +156,7 @@ export default function HomePage() {
                         </Link>
                     ))}
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 }
