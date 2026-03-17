@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
+import { useChat } from '@/context/ChatContext';
 
 type CardColor = 'red' | 'green' | 'blue' | 'yellow' | 'wild';
 type Card = { id: string; color: CardColor; value: string };
@@ -135,6 +136,14 @@ export default function UnoPage() {
     const inactivityIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const [unoReady, setUnoReady] = useState(false);
+
+    const { setLobbyId } = useChat();
+
+    useEffect(() => {
+        setLobbyId(lobbyId);
+        return () => setLobbyId(null);
+    }, [lobbyId]);
+
 
     const me = useMemo(() => ({
         userId: session?.user?.id ?? '',

@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
 import { io as socketIO, Socket } from 'socket.io-client';
+import { useChat } from '@/context/ChatContext';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -172,6 +173,13 @@ export default function skyjowGamePage() {
     const username = session?.user?.username ?? session?.user?.email ?? 'User';
 
     const isCurrent = players[currentPlayerIndex]?.userId === userId;
+
+    const { setLobbyId } = useChat();
+
+    useEffect(() => {
+        setLobbyId(lobbyId);
+        return () => setLobbyId(null);
+    }, [lobbyId]);
 
     const notify = useCallback((msg: string, duration = 3000) => {
         setNotification(msg);

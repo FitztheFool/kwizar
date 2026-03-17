@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getPuissance4Socket } from '@/lib/socket';
+import { useChat } from '@/context/ChatContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -122,6 +123,14 @@ export default function Puissance4Page() {
         if (!gameState?.winCells) return new Set<string>();
         return new Set(gameState.winCells.map(([r, c]) => `${r}-${c}`));
     }, [gameState?.winCells]);
+
+
+    const { setLobbyId } = useChat();
+
+    useEffect(() => {
+        setLobbyId(lobbyId);
+        return () => setLobbyId(null);
+    }, [lobbyId]);
 
     // Connexion socket
     useEffect(() => {

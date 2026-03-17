@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { getTabooSocket } from '@/lib/socket';
 import { TrapPhase } from '@/components/TrapPhase';
 import type { TrapSlotData } from '@/components/TrapPhase';
+import { useChat } from '@/context/ChatContext';
 
 type Attempt = { word: string; userId: string; username: string };
 
@@ -113,6 +114,14 @@ export default function TabooGamePage() {
     const [attemptInput, setAttemptInput] = useState('');
 
     const myId = session?.user?.id ?? '';
+
+    const { setLobbyId } = useChat();
+
+    useEffect(() => {
+        setLobbyId(lobbyId);
+        return () => setLobbyId(null);
+    }, [lobbyId]);
+
 
     useEffect(() => {
         isHostRef.current = !!game && game.hostId === myId;

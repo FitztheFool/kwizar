@@ -20,7 +20,7 @@ interface ChatProps {
 }
 
 export default function Chat({ messages, teamMessages, onSend, currentUserId, teamColor }: ChatProps) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const [chatText, setChatText] = useState('');
     const [activeTab, setActiveTab] = useState<ChatTab>('lobby');
     const [unread, setUnread] = useState(0);

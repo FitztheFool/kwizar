@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getYahtzeeSocket } from '@/lib/socket';
+import { useChat } from '@/context/ChatContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type ScoreCard = {
@@ -147,6 +148,13 @@ export default function YahtzeePage() {
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(120);
   const me = session?.user;
+  const { setLobbyId } = useChat();
+
+  useEffect(() => {
+    setLobbyId(lobbyId);
+    return () => setLobbyId(null);
+  }, [lobbyId]);
+
 
   useEffect(() => {
     if (!socket || !lobbyId || status !== 'authenticated' || !me?.id) return;

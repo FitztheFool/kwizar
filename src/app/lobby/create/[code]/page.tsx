@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
 import Chat from '@/components/Chat';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useChat } from '@/context/ChatContext';
 
 type Player = { userId: string; username: string };
 type GameType = 'quiz' | 'uno' | 'taboo' | 'skyjow' | 'yahtzee' | 'puissance4';
@@ -197,8 +198,13 @@ export default function LobbyCodePage() {
     const [quizTimePerQuestion, setQuizTimePerQuestion] = useState(15);
     const [skyjowEliminateRows, setSkyjowEliminateRows] = useState(false);
     const [teams, setTeams] = useState<Record<string, 0 | 1> | null>(null);
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [teamMessages, setTeamMessages] = useState<ChatMessage[]>([]);
+    const { setLobbyId } = useChat();
+
+
+    useEffect(() => {
+        setLobbyId(lobbyId);
+        return () => setLobbyId(null); // nettoyage quand on quitte
+    }, [lobbyId]);
 
     // ── myTeam dérivé des states existants ──────────────────────────────
     const myTeam: 0 | 1 | undefined = useMemo(() => {
@@ -212,17 +218,6 @@ export default function LobbyCodePage() {
         if (!socket || !lobbyId) return;
         socket.emit('chat:joinTeam', { team: myTeam });
     }, [socket, lobbyId, myTeam]);
-
-    // ── sendChat ─────────────────────────────────────────────────────────
-    const sendChat = (text: string, tab: 'lobby' | 'team') => {
-        socket?.emit('chat:send', {
-            lobbyId,
-            text,
-            userId: session?.user?.id,
-            username: session?.user?.username,
-            team: tab === 'team' ? myTeam : undefined,
-        });
-    };
 
     const emitTitle = useDebounce((title: string) => socket?.emit('lobby:setMeta', { title }), 500);
     const emitDescription = useDebounce((description: string) => socket?.emit('lobby:setMeta', { description }), 500);
@@ -284,26 +279,12 @@ export default function LobbyCodePage() {
             setCanStart(ok && state.hostId === meUserId);
         };
 
-        const onChatMessage = (msg: ChatMessage) => {
-            setMessages(prev => {
-                if (prev.some(m => m.sentAt === msg.sentAt && m.userId === msg.userId)) return prev;
-                return [...prev, msg];
-            });
-        };
-
-        const onTeamChatMessage = (msg: ChatMessage) => {
-            setTeamMessages(prev => {
-                if (prev.some(m => m.sentAt === msg.sentAt && m.userId === msg.userId)) return prev;
-                return [...prev, msg];
-            });
-        };
-
         // ── Listeners lobby socket ───────────────────────────────────────
         socket.on('lobby:state', onState);
         socket.on('lobby:kicked', () => { alert('Vous avez été expulsé.'); router.push('/lobby/all'); });
         socket.on('game:start', (payload: { gameType: GameType; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
             if (payload.gameType === 'uno') router.push(`/uno/${lobbyId}`);
-            else if (payload.gameType === 'taboo') router.push(`/taboo/${lobbyId}/game`);
+            else if (payload.gameType === 'taboo') router.push(`/taboo/${lobbyId}`);
             else if (payload.gameType === 'skyjow') router.push(`/skyjow/${lobbyId}`);
             else if (payload.gameType === 'yahtzee') router.push(`/yahtzee/${lobbyId}`);
             else if (payload.gameType === 'puissance4') router.push(`/puissance4/${lobbyId}`);
@@ -315,9 +296,6 @@ export default function LobbyCodePage() {
         });
 
         // ── Listeners chat socket ────────────────────────────────────────
-        socket?.on('chat:message', onChatMessage);
-        socket?.on('chat:message:team', onTeamChatMessage);
-
         if (!joinedRef.current) {
             joinedRef.current = true;
             const raw = sessionStorage.getItem(`lobby_meta_${lobbyId}`);
@@ -345,8 +323,6 @@ export default function LobbyCodePage() {
             socket.off('lobby:state', onState);
             socket.off('lobby:kicked');
             socket.off('game:start');
-            socket?.off('chat:message', onChatMessage);
-            socket?.off('chat:message:team', onTeamChatMessage);
             socket.emit('lobby:leave');
             joinedRef.current = false;
         };
@@ -360,9 +336,6 @@ export default function LobbyCodePage() {
     const selectedGame = GAME_OPTIONS.find(g => g.value === gameType);
     const isMaxLocked = gameType === 'puissance4' || (gameType === 'uno' && unoTeamMode === '2v2');
     const formatTime = (t: number) => t < 60 ? `${t}s` : `${Math.floor(t / 60)} min${t % 60 ? ` ${t % 60}s` : ''}`;
-
-    // ── hasTeamChat défini avant le return ───────────────────────────────
-    const hasTeamChat = gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2');
 
     const handleGameTypeChange = (g: GameType) => {
         setGameTypeState(g);
@@ -678,14 +651,6 @@ export default function LobbyCodePage() {
                     </div>
                 </div>
             </div>
-
-            <Chat
-                messages={messages}
-                teamMessages={hasTeamChat ? teamMessages : undefined}
-                onSend={sendChat}
-                currentUserId={session?.user.id}
-                teamColor={hasTeamChat ? myTeam : undefined}
-            />
         </main>
     );
 }
