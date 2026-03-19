@@ -5,7 +5,7 @@ export const GAME_CONFIG = {
         icon: '🃏',
         higherIsBetter: true,
         scoreLabel: 'Points',
-        description: "À UNO, plus tu marques de points, mieux c’est ! À chaque manche, le gagnant récupère la valeur des cartes restantes des autres joueurs (chiffres = valeur, actions = 20 pts, jokers = 50 pts). Le classement est basé sur le total des points cumulés sur toutes les parties. En 2v2, les points sont partagés entre les coéquipiers.",
+        description: "À UNO, plus tu marques de points, mieux c'est ! À chaque manche, le gagnant récupère la valeur des cartes restantes des autres joueurs (chiffres = valeur, actions = 20 pts, jokers = 50 pts). Le classement est basé sur le total des points cumulés sur toutes les parties. En 2v2, les points sont partagés entre les coéquipiers.",
     },
     skyjow: {
         gameType: 'SKYJOW' as const,
@@ -13,7 +13,7 @@ export const GAME_CONFIG = {
         icon: '🂠',
         higherIsBetter: false,
         scoreLabel: 'Score moyen',
-        description: "À Skyjow, moins de points c’est mieux ! Le classement repose sur le score moyen par partie (somme des cartes restantes). Les colonnes de 3 cartes identiques sont supprimées. Attention : si tu déclenches la fin de manche sans avoir le plus petit score, le tien est doublé.",
+        description: "À Skyjow, moins de points c'est mieux ! Le classement repose sur le score moyen par partie (somme des cartes restantes). Les colonnes de 3 cartes identiques sont supprimées. Attention : si tu déclenches la fin de manche sans avoir le plus petit score, le tien est doublé.",
     },
     taboo: {
         gameType: 'TABOO' as const,
@@ -21,7 +21,7 @@ export const GAME_CONFIG = {
         icon: '🗣️',
         higherIsBetter: true,
         scoreLabel: 'Mots devinés',
-        description: "Fais deviner un maximum de mots à ton équipe sans utiliser les mots interdits ! Chaque mot trouvé rapporte 1 point. Le classement correspond au total de mots devinés sur l’ensemble des parties.",
+        description: "Fais deviner un maximum de mots à ton équipe sans utiliser les mots interdits ! Chaque mot trouvé rapporte 1 point. Le classement correspond au total de mots devinés sur l'ensemble des parties.",
     },
     quiz: {
         gameType: 'QUIZ' as const,
@@ -55,7 +55,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Score moyen',
         description: "Jeu coopératif : fais deviner un mot mystère avec des indices uniques. Les indices identiques sont annulés ! Le score (sur 13) reflète la performance moyenne de ton équipe.",
     },
-    'battleship': {
+    battleship: {
         gameType: 'BATTLESHIP' as const,
         label: 'Bataille Navale',
         icon: '🚢',
@@ -63,4 +63,72 @@ export const GAME_CONFIG = {
         scoreLabel: 'Victoires',
         description: "Coule la flotte ennemie avant que la tienne ne disparaisse ! Chaque partie gagnée rapporte 1 point. Le classement est basé sur le nombre total de victoires.",
     },
+    diamant: {
+        gameType: 'DIAMANT' as const,
+        label: 'Diamant',
+        icon: '💎',
+        higherIsBetter: true,
+        scoreLabel: 'Rubis',
+        description: "Explorez la grotte de Tacora et ramassez un maximum de rubis ! Chaque tour, décidez de continuer ou de sortir prudemment. Si le même danger apparaît deux fois, tous ceux encore dans la grotte repartent les mains vides. Le joueur avec le plus de rubis dans son coffre à la fin des 5 manches gagne.",
+    },
 } as const;
+
+export type GameType = keyof typeof GAME_CONFIG;
+
+export const GAME_EMOJI_MAP = Object.fromEntries(
+    Object.values(GAME_CONFIG).map(g => [g.gameType, g.icon])
+) as Record<string, string>;
+
+export const GAME_LABEL_MAP = Object.fromEntries(
+    Object.values(GAME_CONFIG).map(g => [g.gameType, g.label])
+) as Record<string, string>;
+
+export const GAME_OPTIONS = Object.entries(GAME_CONFIG).map(([key, g]) => ({
+    value: key as GameType,
+    icon: g.icon,
+    label: g.label,
+}));
+
+export const MAX_PLAYERS_BY_GAME: Record<GameType, number[]> = {
+    quiz: Array.from({ length: 19 }, (_, i) => i + 2),
+    uno: [2, 3, 4, 5, 6, 7, 8],
+    taboo: [4, 5, 6, 7, 8, 10, 12],
+    skyjow: [2, 3, 4, 5, 6, 7, 8],
+    yahtzee: [2, 3, 4, 5, 6, 7, 8],
+    puissance4: [2],
+    'just-one': [3, 4, 5, 6, 7],
+    battleship: [2],
+    diamant: [3, 4, 5, 6, 7, 8],
+};
+
+export const MIN_PLAYERS: Partial<Record<GameType, number>> = {
+    puissance4: 2,
+    taboo: 4,
+    'just-one': 3,
+    battleship: 2,
+    diamant: 3,
+};
+
+export const EXACT_PLAYERS: Partial<Record<GameType, number>> = {
+    puissance4: 2,
+    battleship: 2,
+};
+
+export const NO_OPTIONS_GAMES: Partial<Record<GameType, string>> = {
+    yahtzee: '🎲 Yahtzee — aucune option.',
+    puissance4: '🔘 Puissance 4 — exactement 2 joueurs.',
+    'just-one': `${GAME_CONFIG['just-one'].icon} Just One — 3 à 7 joueurs.`,
+    battleship: `${GAME_CONFIG.battleship.icon} Bataille Navale — exactement 2 joueurs.`,
+    diamant: `${GAME_CONFIG.diamant.icon} Diamant — 3 à 8 joueurs.`,
+};
+
+export const GAME_ROUTES: Partial<Record<GameType, (lobbyId: string) => string>> = {
+    uno: (id) => `/uno/${id}`,
+    taboo: (id) => `/taboo/${id}`,
+    skyjow: (id) => `/skyjow/${id}`,
+    yahtzee: (id) => `/yahtzee/${id}`,
+    puissance4: (id) => `/puissance4/${id}`,
+    'just-one': (id) => `/just-one/${id}`,
+    battleship: (id) => `/battleship/${id}`,
+    diamant: (id) => `/diamant/${id}`,
+};

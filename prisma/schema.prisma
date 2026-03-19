@@ -30,6 +30,7 @@ enum GameType {
   PUISSANCE4
   JUST_ONE
   BATTLESHIP
+  DIAMANT
 }
 
 model Account {

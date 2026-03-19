@@ -5,8 +5,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import QuizCard from '@/components/QuizCard';
-import QuizFilters from '@/components/QuizFilters';
+import QuizCard from '@/components/Quiz/QuizCard';
+import QuizFilters from '@/components/Quiz/QuizFilters';
 import Pagination from '@/components/Pagination';
 import { plural } from '@/lib/utils';
 

@@ -1,6 +1,7 @@
 // src/app/uno/[code]/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GameOverModal from '@/components/GameOverModal';
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -279,109 +280,66 @@ export default function UnoPage() {
             ? gameState.teams[gameState.winner.userId]
             : null;
 
-        // Grouper par équipe en 2v2
-        const renderScores = () => {
-            if (!is2v2 || winnerTeam === null || winnerTeam === undefined) {
-                return scores.map(s => renderScoreRow(s));
-            }
+        const title = is2v2 && winnerTeam !== null && winnerTeam !== undefined
+            ? `${TEAM_NAMES[winnerTeam]} a gagné !`
+            : `${gameState.winner?.username ?? '?'} a gagné !`;
+        const subtitle = is2v2 && winnerTeam !== null && winnerTeam !== undefined
+            ? 'Mode 2v2 · Classement final'
+            : gameState.spectator ? 'Vous avez observé cette partie' : 'Classement final';
 
-            const team0 = scores.filter(s => s.team === 0);
-            const team1 = scores.filter(s => s.team === 1);
-
-            return (
-                <>
-                    {[0, 1].map(teamIdx => {
-                        const teamScores = teamIdx === 0 ? team0 : team1;
-                        const isWinner = winnerTeam === teamIdx;
-                        const tc = TEAM_COLORS[teamIdx];
-                        return (
-                            <div key={teamIdx} className={`rounded-xl border p-3 mb-3 ${isWinner ? `${tc.bg} border-${teamIdx === 0 ? 'blue' : 'red'}-500/50` : 'bg-gray-700/50 border-gray-600'}`}>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${tc.badge}`}>
-                                        {TEAM_NAMES[teamIdx]}
-                                    </span>
-                                    {isWinner && <span className="text-yellow-400 text-sm font-bold">🏆 Vainqueurs</span>}
-                                </div>
-                                <div className="space-y-2">
-                                    {teamScores.map(s => renderScoreRow(s, true))}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </>
-            );
-        };
-
-        const renderScoreRow = (s: FinalScore, inTeam = false) => (
-            <div key={s.userId} className={`flex items-center justify-between rounded-lg px-4 py-3
-                ${!inTeam && s.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : inTeam ? '' : 'bg-gray-700'}
+        const ScoreRow = ({ s, inTeam = false }: { s: FinalScore; inTeam?: boolean }) => (
+            <div className={`flex items-center justify-between rounded-lg px-4 py-3
+                ${!inTeam && s.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : inTeam ? '' : 'bg-slate-700'}
                 ${s.kicked ? 'opacity-60' : ''}`}>
                 <div className="flex items-center gap-3">
-                    <span className="text-xl w-7 text-center">
-                        {RANK_MEDAL[s.rank] ?? `#${s.rank}`}
-                    </span>
+                    <span className="text-xl w-7 text-center">{RANK_MEDAL[s.rank] ?? `#${s.rank}`}</span>
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <span className="font-semibold">{s.username}</span>
-                            {s.userId === me.userId && !gameState.spectator && (
-                                <span className="text-gray-400 text-xs">(moi)</span>
-                            )}
-                            {s.kicked && (
-                                <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>
-                            )}
+                            <span className="font-semibold text-white">{s.username}</span>
+                            {s.userId === me.userId && !gameState.spectator && <span className="text-slate-400 text-xs">(moi)</span>}
+                            {s.kicked && <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>}
                         </div>
-                        <span className="text-xs text-gray-400">
-                            {s.cardsLeft === 0
-                                ? '0 carte restante'
-                                : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
+                        <span className="text-xs text-slate-400">
+                            {s.cardsLeft === 0 ? '0 carte restante' : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
                         </span>
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-400' : 'text-gray-500'}`}>
-                        {s.score > 0 ? `+${s.score}` : '0'}
-                    </span>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">pts</div>
+                    <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-400' : 'text-slate-500'}`}>{s.score > 0 ? `+${s.score}` : '0'}</span>
+                    <div className="text-xs text-slate-500">pts</div>
                 </div>
             </div>
         );
 
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-                <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md text-white text-center">
-                    <div className="text-6xl mb-2">🏆</div>
-                    {is2v2 && winnerTeam !== null && winnerTeam !== undefined ? (
-                        <>
-                            <h1 className="text-2xl font-bold mb-1">
-                                <span className={TEAM_COLORS[winnerTeam].text}>{TEAM_NAMES[winnerTeam]}</span> a gagné !
-                            </h1>
-                            <p className="text-gray-400 text-sm mb-6">Mode 2v2 · Classement final</p>
-                        </>
-                    ) : (
-                        <>
-                            <h1 className="text-2xl font-bold mb-1">{gameState.winner?.username} a gagné !</h1>
-                            <p className="text-gray-400 text-sm mb-6">
-                                {gameState.spectator ? 'Vous avez observé cette partie' : 'Classement final'}
-                            </p>
-                        </>
-                    )}
-
-                    <div className="text-left">{renderScores()}</div>
-
-                    <div className="mt-4 text-xs text-gray-500 text-left space-y-0.5">
-                        <p>0–9 = valeur faciale · Skip/Reverse/+2 = 20 pts · Wild/+4 = 50 pts</p>
+            <GameOverModal
+                title={title}
+                subtitle={subtitle}
+                onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                onLeave={() => router.push('/')}
+            >
+                {is2v2 && winnerTeam !== null && winnerTeam !== undefined ? (
+                    <div className="space-y-3">
+                        {[0, 1].map(teamIdx => {
+                            const teamScores = scores.filter(s => s.team === teamIdx);
+                            const isWinner = winnerTeam === teamIdx;
+                            const tc = TEAM_COLORS[teamIdx];
+                            return (
+                                <div key={teamIdx} className={`rounded-xl border p-3 ${isWinner ? `${tc.bg} border-${teamIdx === 0 ? 'blue' : 'red'}-500/50` : 'bg-slate-700/50 border-slate-600'}`}>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${tc.badge}`}>{TEAM_NAMES[teamIdx]}</span>
+                                        {isWinner && <span className="text-yellow-400 text-sm font-bold">🏆 Vainqueurs</span>}
+                                    </div>
+                                    <div className="space-y-2">{teamScores.map(s => <ScoreRow key={s.userId} s={s} inTeam />)}</div>
+                                </div>
+                            );
+                        })}
                     </div>
-
-                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="mt-5 w-full py-3 rounded-xl bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition">
-                        Retour au lobby
-                    </button>
-                    <button onClick={() => router.push('/')}
-                        className="mt-3 w-full py-3 rounded-xl bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition">
-                        Quitter
-                    </button>
-                </div>
-            </div>
+                ) : (
+                    <div className="space-y-2">{scores.map(s => <ScoreRow key={s.userId} s={s} />)}</div>
+                )}
+                <p className="text-xs text-slate-500 mt-3">0–9 = valeur faciale · Skip/Reverse/+2 = 20 pts · Wild/+4 = 50 pts</p>
+            </GameOverModal>
         );
     }
 

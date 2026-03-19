@@ -1,6 +1,7 @@
-// src/app/yahtzee/[code]/page.tsx
+// src/app/yahtzee/[lobbyId]/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GameOverModal from '@/components/GameOverModal';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -137,8 +138,8 @@ function TimerBadge({ timeLeft }: { timeLeft: number }) {
 export default function YahtzeePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const params = useParams<{ code: string }>();
-  const lobbyId = params?.code ?? '';
+  const params = useParams<{ lobbyId: string }>();
+  const lobbyId = params?.lobbyId ?? '';
 
   const socket = useMemo(() => getYahtzeeSocket(), []);
   const joinedRef = useRef(false);
@@ -198,31 +199,26 @@ export default function YahtzeePage() {
   const forceScore = () => { if (!isMyTurn || !canScore) return; socket?.emit('yahtzee:forceScore', { lobbyId, userId: myId }); };
 
   if (results) {
+    const sorted = [...results].sort((a, b) => b.total - a.total);
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-        <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
-          <div className="text-6xl mb-4">🏆</div>
-          <h1 className="text-3xl font-black text-white mb-2">Partie terminée !</h1>
-          <p className="text-slate-400 mb-6">Classement final</p>
-          <div className="space-y-3">
-            {[...results].sort((a, b) => b.total - a.total).map((p, i) => (
-              <div key={p.userId} className={`flex items-center justify-between px-4 py-3 rounded-xl ${i === 0 ? 'bg-amber-400/20 border border-amber-400/50' : 'bg-slate-700/50'}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
-                  <span className={`font-bold ${p.userId === myId ? 'text-amber-300' : 'text-white'}`}>{p.username}{p.userId === myId && ' (moi)'}</span>
-                </div>
-                <span className={`font-black text-xl ${i === 0 ? 'text-amber-400' : 'text-slate-300'}`}>{p.total} pts</span>
+      <GameOverModal
+        title="Partie terminée !"
+        subtitle="Classement final"
+        onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+        onLeave={() => router.push('/')}
+      >
+        <div className="space-y-2">
+          {sorted.map((p, i) => (
+            <div key={p.userId} className={`flex items-center justify-between px-4 py-3 rounded-xl ${i === 0 ? 'bg-amber-400/20 border border-amber-400/50' : 'bg-slate-700/50'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                <span className={`font-bold ${p.userId === myId ? 'text-amber-300' : 'text-white'}`}>{p.username}{p.userId === myId && ' (moi)'}</span>
               </div>
-            ))}
-          </div>
-          <button onClick={() => router.push(`/lobby/create/${lobbyId}`)} className="mt-3 w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors">
-            Retour au lobby
-          </button>
-          <button onClick={() => router.push('/')} className="mt-3 w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors">
-            Quitter
-          </button>
+              <span className={`font-black text-xl ${i === 0 ? 'text-amber-400' : 'text-slate-300'}`}>{p.total} pts</span>
+            </div>
+          ))}
         </div>
-      </div>
+      </GameOverModal>
     );
   }
 

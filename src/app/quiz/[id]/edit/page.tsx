@@ -5,7 +5,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import QuizForm from '@/components/QuizForm';
+import QuizForm from '@/components/Quiz/QuizForm';
 
 export default function EditQuizPage() {
   const params = useParams();

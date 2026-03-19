@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useLobbySocket } from '@/hooks/useSocket';
 import { GAME_CONFIG } from '@/lib/gameConfig';
-import { generateCode } from '@/lib/utils';
 import PlayerModal from '@/components/PlayerModal';
 import LobbyCard from '@/components/LobbyCard';
 
@@ -211,7 +210,7 @@ export default function LobbiesPage() {
                                 Réinitialiser les filtres
                             </button>
                             <button
-                                onClick={() => router.push(`/lobby/create/${generateCode(8)}`)}
+                                onClick={() => router.push(`/lobby/create/${crypto.randomUUID()}`)}
                                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
                             >
                                 ➕ Créer un lobby

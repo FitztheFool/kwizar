@@ -3,11 +3,11 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import AppLayout from '@/components/AppLayout';
+import Header from '@/components/Layout/Header';
+import Footer from '@/components/Layout/Footer';
+import AppLayout from '@/components/Layout/AppLayout';
 import { ChatProvider } from '@/context/ChatContext';
-import FloatingChat from '@/components/FloatingChat';
+import FloatingChat from '@/components/Chat/FloatingChat';
 
 const inter = Inter({ subsets: ['latin'] });
 

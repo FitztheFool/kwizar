@@ -4,7 +4,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { generateCode } from '@/lib/utils';
 import type { TabType } from '@/types/dashboard';
 
 const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
@@ -30,6 +29,9 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, us
     const [collapsed, setCollapsed] = useState(true);
     const [quizMenuOpen, setQuizMenuOpen] = useState(false);
     const [lobbyMenuOpen, setLobbyMenuOpen] = useState(false);
+    const [lobbyCode, setLobbyCode] = useState('');
+
+    useEffect(() => { setLobbyCode(crypto.randomUUID()); }, []);
 
     const quizSectionActive = QUIZ_NAV_ITEMS.some(n => n.href && pathname.startsWith(n.href));
     const isCreatingLobby = pathname.startsWith('/lobby/create/');
@@ -96,7 +98,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, us
 
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <Link href={`/lobby/create/${generateCode(8)}`}
+                                <Link href={`/lobby/create/${lobbyCode}`}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
                 ${isCreatingLobby
                                             ? 'bg-green-50 text-green-700'

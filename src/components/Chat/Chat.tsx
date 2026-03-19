@@ -30,6 +30,24 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const [bottomOffset, setBottomOffset] = useState(16);
+
+    useEffect(() => {
+        const footer = document.querySelector('footer');
+        if (!footer) return;
+        const update = () => {
+            const rect = footer.getBoundingClientRect();
+            const visible = Math.max(0, window.innerHeight - rect.top);
+            setBottomOffset(visible + 16);
+        };
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('scroll', update);
+            window.removeEventListener('resize', update);
+        };
+    }, []);
 
     const prevTeamMessagesLength = useRef(0);
     const prevMessagesLength = useRef(0);
@@ -86,7 +104,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
         new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     return (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed right-4 z-50" style={{ bottom: bottomOffset }}>
 
             {/* BOUTON FERMÉ */}
             {!open && (

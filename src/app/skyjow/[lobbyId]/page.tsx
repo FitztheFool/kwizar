@@ -1,6 +1,7 @@
 // src/app/skyjow/[lobbyId]/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GameOverModal from '@/components/GameOverModal';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -385,35 +386,25 @@ export default function skyjowGamePage() {
     if (phase === 'game_end' && gameEndData) {
         const sortedScores = [...gameEndData.scores].sort((a, b) => a.totalScore - b.totalScore);
         return (
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-                <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full text-center border border-slate-700">
-                    <div className="text-6xl mb-4">🏆</div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Fin de partie !</h1>
-                    <p className="text-emerald-400 text-xl mb-6 font-semibold">
-                        {gameEndData.winnerUsername} remporte la victoire !
-                    </p>
-                    <div className="space-y-2 mb-8">
-                        {sortedScores.map((s, i) => (
-                            <div key={s.userId}
-                                className={`flex justify-between items-center px-4 py-3 rounded-lg ${i === 0 ? 'bg-yellow-500/20 border border-yellow-500/40' : 'bg-slate-700'}`}>
-                                <span className="text-slate-200 font-medium">
-                                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`} {s.username}
-                                    {s.userId === userId && <span className="text-xs text-slate-400 ml-1">(moi)</span>}
-                                </span>
-                                <span className={`font-bold text-lg ${i === 0 ? 'text-yellow-400' : 'text-slate-300'}`}>{s.totalScore} pts</span>
-                            </div>
-                        ))}
-                    </div>
-                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold transition-colors">
-                        Retour au lobby
-                    </button>
-                    <button onClick={() => router.push('/')}
-                        className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold transition-colors">
-                        Quitter
-                    </button>
+            <GameOverModal
+                title="Fin de partie !"
+                subtitle={`${gameEndData.winnerUsername} remporte la victoire !`}
+                onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                onLeave={() => router.push('/')}
+            >
+                <div className="space-y-2">
+                    {sortedScores.map((s, i) => (
+                        <div key={s.userId}
+                            className={`flex justify-between items-center px-4 py-3 rounded-lg ${i === 0 ? 'bg-yellow-500/20 border border-yellow-500/40' : 'bg-slate-700'}`}>
+                            <span className="text-slate-200 font-medium">
+                                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`} {s.username}
+                                {s.userId === userId && <span className="text-xs text-slate-400 ml-1">(moi)</span>}
+                            </span>
+                            <span className={`font-bold text-lg ${i === 0 ? 'text-yellow-400' : 'text-slate-300'}`}>{s.totalScore} pts</span>
+                        </div>
+                    ))}
                 </div>
-            </div>
+            </GameOverModal>
         );
     }
 

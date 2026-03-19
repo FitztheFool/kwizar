@@ -5,7 +5,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import QuizForm from '@/components/QuizForm';
+import QuizForm from '@/components/Quiz/QuizForm';
 
 interface Category {
     id: string;

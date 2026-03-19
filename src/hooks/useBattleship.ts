@@ -219,6 +219,20 @@ export function useBattleship({
 
         // ── Game over ─────────────────────────────────────────────────────────
         socket.on('battleship:gameOver', (payload: GameOverPayload) => {
+            // Save result for the current player
+            const won = payload.winnerUserId === userId;
+            fetch('/api/attempt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    gameType: 'battleship',
+                    gameId: lobbyId,
+                    score: won ? 1 : 0,
+                    placement: won ? 1 : 2,
+                }),
+            }).catch((err) => console.error('[battleship] saveResult error:', err));
+
             setState((prev) => {
                 // Reveal full grids
                 const myGrid = payload.grids.find((g) => g.userId === userId);

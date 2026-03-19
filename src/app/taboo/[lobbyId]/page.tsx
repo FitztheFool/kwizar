@@ -1,6 +1,7 @@
 // src/app/taboo/[lobbyId]/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GameOverModal from '@/components/GameOverModal';
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -246,34 +247,22 @@ export default function TabooGamePage() {
         const scores = Object.entries(game.scores).sort((a, b) => b[1] - a[1]);
         const winner = scores[0];
         return (
-            <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center px-4 gap-8 pt-8"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                <style>{FONTS}</style>
-                <div className="text-center">
-                    <div className="text-7xl mb-4">🏆</div>
-                    <h1 style={{ fontFamily: "'Bebas Neue'" }} className="text-5xl tracking-widest">FIN DE PARTIE</h1>
-                    <p className="text-white/40 mt-2">Victoire de l'équipe {winner[0] === '0' ? '🔵 Bleue' : '🔴 Rouge'} !</p>
-                </div>
-                <div className="flex gap-6">
+            <GameOverModal
+                title="Fin de partie !"
+                subtitle={`Victoire de l'équipe ${winner[0] === '0' ? '🔵 Bleue' : '🔴 Rouge'} !`}
+                onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                onLeave={() => router.push('/')}
+            >
+                <div className="flex gap-4 justify-center">
                     {scores.map(([team, pts], i) => (
-                        <div key={team} className={`text-center px-8 py-6 rounded-2xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/40' : 'bg-white/5 border-white/10'}`}>
+                        <div key={team} className={`flex-1 text-center px-6 py-5 rounded-2xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/40' : 'bg-white/5 border-white/10'}`}>
                             <div className="text-3xl mb-1">{team === '0' ? '🔵' : '🔴'}</div>
-                            <div style={{ fontFamily: "'Bebas Neue'" }} className={`text-5xl ${i === 0 ? 'text-yellow-400' : 'text-white/50'}`}>{pts}</div>
+                            <div className={`text-4xl font-black ${i === 0 ? 'text-yellow-400' : 'text-white/50'}`}>{pts}</div>
                             <div className="text-xs text-white/30 mt-1">point{pts > 1 ? 's' : ''}</div>
                         </div>
                     ))}
                 </div>
-                <div className="flex flex-col gap-3 w-full max-w-xs">
-                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="w-full px-8 py-3 rounded-xl bg-green-500 hover:bg-green-400 font-bold text-lg transition-colors shadow-lg shadow-green-500/20">
-                        Retour au lobby
-                    </button>
-                    <button onClick={() => router.push('/')}
-                        className="w-full px-8 py-3 rounded-xl bg-white/10 hover:bg-white/20 font-semibold transition-colors">
-                        Quitter
-                    </button>
-                </div>
-            </div>
+            </GameOverModal>
         );
     }
 

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getQuizSocket } from '@/lib/socket';
-import { QuestionResult } from '@/components/QuizResults';
+import { QuestionResult } from '@/components/Quiz/QuizResults';
 
 export interface ResultPayload {
     score: number;
@@ -78,7 +78,7 @@ export function useQuizResult() {
     timeModeRef.current = timeMode;
     timePerQuestionRef.current = timePerQuestion;
 
-    const socket = useMemo(() => getQuizSocket(), []);
+    const socket = useMemo(() => lobbyCode ? getQuizSocket() : null, [lobbyCode]);
 
     const startCountdown = (initialSeconds: number) => {
         if (countdownRef.current) clearInterval(countdownRef.current);

@@ -2,13 +2,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import QuizCard from '@/components/QuizCard';
-import QuizFilters from '@/components/QuizFilters';
-import Pagination from '@/components/Pagination';
 import { GAME_CONFIG } from '@/lib/gameConfig';
-import { generateCode } from '@/lib/utils';
 
 const PAGE_SIZE = 6;
 
@@ -55,7 +50,8 @@ export default function HomePage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [categoryId, setCategoryId] = useState('');
     const [page, setPage] = useState(1);
-    const [code] = useState(() => generateCode(8))
+    const [code, setCode] = useState('');
+    useEffect(() => { setCode(crypto.randomUUID()); }, []);
 
     const fetchQuizzes = useCallback(async (p = 1, s = '', cat = '') => {
         const params = new URLSearchParams({ page: String(p), pageSize: String(PAGE_SIZE) });

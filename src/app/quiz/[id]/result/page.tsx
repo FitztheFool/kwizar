@@ -4,7 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 
 import Link from 'next/link';
 import { useRef, useEffect, useMemo } from 'react';
-import QuizResults from '@/components/QuizResults';
+import QuizResults from '@/components/Quiz/QuizResults';
 import { useRouter } from 'next/navigation';
 import { useQuizResult, LeaderboardEntry } from '@/hooks/useQuizResult';
 import { getQuizSocket } from '@/lib/socket';
@@ -38,7 +38,7 @@ export default function QuizResultPage() {
         allFinished, timeLeft, handleRestart,
     } = useQuizResult();
 
-    const socket = useMemo(() => getQuizSocket(), []);
+    const socket = useMemo(() => lobbyCode ? getQuizSocket() : null, [lobbyCode]);
     const mode = !lobbyCode ? 'solo' : !allFinished ? 'waiting' : 'podium';
 
     const handleRejouer = () => {

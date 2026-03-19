@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import QuizCard from '@/components/QuizCard';
+import QuizCard from '@/components/Quiz/QuizCard';
 import Pagination from '@/components/Pagination';
 import UserStats from '@/components/UserStats';
 

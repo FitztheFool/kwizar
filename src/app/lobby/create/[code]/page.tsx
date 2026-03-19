@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
-import Chat from '@/components/Chat';
+import Chat from '@/components/Chat/Chat';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useChat } from '@/context/ChatContext';
 import {
@@ -384,22 +384,20 @@ export default function LobbyCodePage() {
 
                     <div className="border-t border-gray-200 dark:border-slate-700/50" />
 
-                    {/* Code d'invitation */}
+                    {/* Lien d'invitation */}
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/30 rounded-xl px-4 py-3">
-                        <span className="text-xs text-gray-500 dark:text-slate-400 flex-1 truncate">
-                            Code lobby : <span className="font-bold text-gray-900 dark:text-white tracking-widest">{lobbyId}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400 flex-1 truncate font-mono">
+                            {typeof window !== 'undefined' ? `${window.location.origin}/lobby/create/${lobbyId}` : `/lobby/create/${lobbyId}`}
                         </span>
-                        <div className="relative flex-shrink-0">
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`);
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }}
-                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20">
-                                {copied ? '✅ Copié !' : '⧉ Copier le lien'}
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            }}
+                            className="flex-shrink-0 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20">
+                            {copied ? '✅ Lien d\'invitation copié !' : '⧉ Copier'}
+                        </button>
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-slate-700/50" />
@@ -408,17 +406,26 @@ export default function LobbyCodePage() {
                     <div className="space-y-2">
                         <label className="block text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Jeu</label>
                         <div className="grid grid-cols-3 gap-2">
-                            {GAME_OPTIONS.map(g => (
-                                <button key={g.value} onClick={() => isHost && handleGameTypeChange(g.value)}
-                                    className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all
-                                        ${gameType === g.value
-                                            ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-300'
-                                            : 'border-gray-200 dark:border-slate-700/50 bg-gray-100 dark:bg-slate-800/40 text-gray-500 dark:text-slate-400'}
-                                        ${isHost && gameType !== g.value ? 'hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-300 cursor-pointer' : 'cursor-default'}`}>
-                                    <span className="text-xl">{g.icon}</span>
-                                    <span>{g.label}</span>
-                                </button>
-                            ))}
+                            {GAME_OPTIONS.map(g => {
+                                const exact = EXACT_PLAYERS[g.value];
+                                const incompatible = !!exact && players.length > exact;
+                                const disabled = isHost && gameType !== g.value && incompatible;
+                                return (
+                                    <button key={g.value}
+                                        onClick={() => isHost && !disabled && handleGameTypeChange(g.value)}
+                                        title={disabled ? `Requiert exactement ${exact} joueurs` : undefined}
+                                        className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all
+                                            ${gameType === g.value
+                                                ? 'border-blue-500 bg-blue-500/15 text-blue-600 dark:text-blue-300'
+                                                : disabled
+                                                    ? 'border-gray-200 dark:border-slate-700/50 bg-gray-100 dark:bg-slate-800/40 text-gray-400 dark:text-slate-600 opacity-40 cursor-not-allowed'
+                                                    : 'border-gray-200 dark:border-slate-700/50 bg-gray-100 dark:bg-slate-800/40 text-gray-500 dark:text-slate-400'}
+                                            ${isHost && gameType !== g.value && !disabled ? 'hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-300 cursor-pointer' : ''}`}>
+                                        <span className="text-xl">{g.icon}</span>
+                                        <span>{g.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -450,13 +457,14 @@ export default function LobbyCodePage() {
 
                     {/* Options Bataille Navale */}
                     {gameType === 'battleship' && (
-                        <div className="bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30">
+                        <div className={`bg-gray-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-slate-700/30 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
                             <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Options Bataille Navale</p>
                             <OptionRow label="Taille de la grille">
                                 <OptionSelect
                                     value={gridSize}
                                     onChange={v => { setGridSize(Number(v)); socket?.emit('lobby:setBattleshipOptions', { gridSize: Number(v) }); }}
                                     options={[8, 10, 12].map(n => ({ v: n, label: `${n}×${n}` }))}
+                                    disabled={!isHost}
                                 />
                             </OptionRow>
                             <OptionRow label="Temps par tour">
@@ -464,9 +472,9 @@ export default function LobbyCodePage() {
                                     value={turnTime}
                                     onChange={v => { setTurnTime(Number(v)); socket?.emit('lobby:setBattleshipOptions', { turnTime: Number(v) }); }}
                                     options={[10, 20, 30, 60, 90, 120].map(t => ({ v: t, label: `${t}s` }))}
+                                    disabled={!isHost}
                                 />
                             </OptionRow>
-                            <Toggle checked={autoPlace} onChange={v => { setAutoPlace(v); socket?.emit('lobby:setBattleshipOptions', { autoPlace: v }); }} label="Placement automatique" />
                         </div>
                     )}
 

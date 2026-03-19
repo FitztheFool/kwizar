@@ -7,7 +7,7 @@ import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { getQuizSocket } from '@/lib/socket';
-import { QuestionResult } from '@/components/QuizResults';
+import { QuestionResult } from '@/components/Quiz/QuizResults';
 
 interface Answer {
     id: string;

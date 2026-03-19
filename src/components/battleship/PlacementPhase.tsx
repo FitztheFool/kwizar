@@ -1,7 +1,7 @@
-// src/components/PlacementPhase.tsx
+// src/components/battleship/PlacementPhase.tsx
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PlacedShip } from '@/hooks/useBattleship';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -16,6 +16,22 @@ const SHIPS_CONFIG = [
     { name: 'Destroyer 2', size: 3 },
     { name: 'Sous-marin', size: 2 },
 ];
+
+// ── Ship image helpers ────────────────────────────────────────────────────────
+
+type ShipPart = 'proue' | 'middle' | 'poupe';
+
+function shipImageSrc(part: ShipPart, color: 'grey' | 'orange'): string {
+    return `/battleship/${part}-${color}.png`;
+}
+
+function getShipPart(index: number, size: number): ShipPart {
+    if (index === 0) return 'proue';
+    if (index === size - 1) return 'poupe';
+    return 'middle';
+}
+
+// ── Auto-place ────────────────────────────────────────────────────────────────
 
 function autoPlace(): PlacedShip[] {
     const occupied = new Set<string>();
@@ -55,7 +71,7 @@ function autoPlace(): PlacedShip[] {
                 placed = true;
             }
         }
-        if (!placed) return autoPlace(); // retry
+        if (!placed) return autoPlace();
     }
     return result;
 }
@@ -67,12 +83,15 @@ function getShipCells(ship: PlacedShip): [number, number][] {
     ] as [number, number]);
 }
 
-function getPreviewCells(name: string, size: number, row: number, col: number, horizontal: boolean): { cells: [number, number][]; valid: boolean } {
+function getPreviewCells(
+    size: number,
+    row: number,
+    col: number,
+    horizontal: boolean
+): { cells: [number, number][]; valid: boolean } {
     const cells: [number, number][] = [];
     for (let i = 0; i < size; i++) {
-        const r = horizontal ? row : row + i;
-        const c = horizontal ? col + i : col;
-        cells.push([r, c]);
+        cells.push([horizontal ? row : row + i, horizontal ? col + i : col]);
     }
     const valid = cells.every(([r, c]) => r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE);
     return { cells, valid };
@@ -106,7 +125,6 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
         return () => clearInterval(id);
     }, [placementEndsAt]);
 
-    // Build occupied map (excluding the selected ship)
     const occupiedByOthers = useMemo(() => {
         const map = new Set<string>();
         ships.forEach((ship) => {
@@ -116,51 +134,109 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
         return map;
     }, [ships, selected]);
 
-    // Cell style helper
-    const getCellStyle = useCallback((row: number, col: number) => {
+    const shipCellMap = useMemo(() => {
+        const map = new Map<string, { ship: PlacedShip; indexInShip: number }>();
+        ships.forEach((ship) => {
+            getShipCells(ship).forEach(([r, c], idx) => {
+                map.set(`${r},${c}`, { ship, indexInShip: idx });
+            });
+        });
+        return map;
+    }, [ships]);
+
+    const previewSet = useMemo(() => {
+        if (!preview) return new Set<string>();
+        return new Set(preview.cells.map(([r, c]) => `${r},${c}`));
+    }, [preview]);
+
+    // ── Render a single cell ─────────────────────────────────────────────────
+
+    const renderCell = useCallback((row: number, col: number) => {
         const key = `${row},${col}`;
-        const shipOnCell = ships.find((s) =>
-            getShipCells(s).some(([r, c]) => r === row && c === col)
+        const entry = shipCellMap.get(key);
+        const isSelected = entry?.ship.name === selected;
+        const isInPreview = previewSet.has(key);
+
+        // Preview overlay
+        if (isInPreview && selected) {
+            const selectedShip = ships.find((s) => s.name === selected)!;
+            const idxInPreview = preview!.cells.findIndex(([r, c]) => r === row && c === col);
+            const part = getShipPart(idxInPreview, selectedShip.size);
+            const valid = preview!.valid;
+            return (
+                <div
+                    key={key}
+                    className={`w-8 h-8 border rounded-sm relative overflow-hidden cursor-pointer
+                        ${valid ? 'border-blue-400 opacity-80' : 'border-red-400 opacity-60'}`}
+                    onClick={() => handleCellClick(row, col)}
+                    onMouseEnter={() => handleCellHover(row, col)}
+                >
+                    <img
+                        src={shipImageSrc(part, valid ? 'grey' : 'orange')}
+                        alt=""
+                        draggable={false}
+                        className={`absolute inset-0 w-full h-full object-cover pointer-events-none
+                            ${!selectedShip.horizontal ? 'rotate-90' : ''}`}
+                    />
+                </div>
+            );
+        }
+
+        // Ship cell
+        if (entry) {
+            const { ship, indexInShip } = entry;
+            const part = getShipPart(indexInShip, ship.size);
+            return (
+                <div
+                    key={key}
+                    className={`w-8 h-8 border rounded-sm relative overflow-hidden transition-all
+                        ${isSelected
+                            ? 'border-blue-400 ring-1 ring-blue-400/60 cursor-grab'
+                            : 'border-slate-500 hover:border-slate-400 cursor-pointer'}
+                        ${confirmed ? 'cursor-default' : ''}`}
+                    onClick={() => handleCellClick(row, col)}
+                    onMouseEnter={() => handleCellHover(row, col)}
+                >
+                    <img
+                        src={shipImageSrc(part, isSelected ? 'orange' : 'grey')}
+                        alt=""
+                        draggable={false}
+                        className={`absolute inset-0 w-full h-full object-cover pointer-events-none
+                            ${!ship.horizontal ? 'rotate-90' : ''}`}
+                    />
+                </div>
+            );
+        }
+
+        // Empty cell
+        return (
+            <div
+                key={key}
+                className="w-8 h-8 border rounded-sm bg-slate-900 border-slate-700 hover:bg-slate-800 cursor-pointer transition-colors"
+                onClick={() => handleCellClick(row, col)}
+                onMouseEnter={() => handleCellHover(row, col)}
+            />
         );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shipCellMap, selected, previewSet, preview, ships, confirmed]);
 
-        // Preview
-        if (preview) {
-            const inPreview = preview.cells.some(([r, c]) => r === row && c === col);
-            if (inPreview) {
-                return preview.valid ? 'bg-blue-500/60 border-blue-400' : 'bg-red-500/60 border-red-400';
-            }
-        }
-
-        if (shipOnCell) {
-            return shipOnCell.name === selected
-                ? 'bg-blue-600 border-blue-400 cursor-grab'
-                : 'bg-slate-500 border-slate-400 cursor-pointer';
-        }
-
-        return 'bg-slate-900 border-slate-700 hover:bg-slate-800';
-    }, [ships, selected, preview]);
+    // ── Handlers ─────────────────────────────────────────────────────────────
 
     const handleCellClick = useCallback((row: number, col: number) => {
         if (confirmed) return;
-
-        const clickedShip = ships.find((s) =>
-            getShipCells(s).some(([r, c]) => r === row && c === col)
-        );
+        const key = `${row},${col}`;
+        const entry = shipCellMap.get(key);
 
         if (selected) {
-            // Place the selected ship here
             const ship = ships.find((s) => s.name === selected)!;
-            const { cells, valid } = getPreviewCells(ship.name, ship.size, row, col, ship.horizontal);
+            const { cells, valid } = getPreviewCells(ship.size, row, col, ship.horizontal);
 
-            // Check no overlap with others
             const noOverlap = cells.every(([r, c]) => {
-                // Also check adjacency
                 for (let dr = -1; dr <= 1; dr++) {
                     for (let dc = -1; dc <= 1; dc++) {
                         const nr = r + dr, nc = c + dc;
                         if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
-                            const k = `${nr},${nc}`;
-                            if (occupiedByOthers.has(k)) return false;
+                            if (occupiedByOthers.has(`${nr},${nc}`)) return false;
                         }
                     }
                 }
@@ -175,33 +251,31 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
             return;
         }
 
-        if (clickedShip) {
-            setSelected(clickedShip.name);
+        if (entry) {
+            setSelected(entry.ship.name);
         }
-    }, [confirmed, ships, selected, occupiedByOthers]);
+    }, [confirmed, ships, selected, occupiedByOthers, shipCellMap]);
 
     const handleCellHover = useCallback((row: number, col: number) => {
         if (!selected) return;
         const ship = ships.find((s) => s.name === selected);
         if (!ship) return;
-        setPreview(getPreviewCells(ship.name, ship.size, row, col, ship.horizontal));
+        setPreview(getPreviewCells(ship.size, row, col, ship.horizontal));
     }, [selected, ships]);
 
     const rotateSelected = useCallback(() => {
         if (!selected || confirmed) return;
         setShips((prev) => prev.map((s) => {
             if (s.name !== selected) return s;
-            const newHorizontal = !s.horizontal;
-            // Clamp position
-            const maxRow = newHorizontal ? GRID_SIZE - 1 : GRID_SIZE - s.size;
-            const maxCol = newHorizontal ? GRID_SIZE - s.size : GRID_SIZE - 1;
+            const newH = !s.horizontal;
             return {
                 ...s,
-                horizontal: newHorizontal,
-                row: Math.min(s.row, maxRow),
-                col: Math.min(s.col, maxCol),
+                horizontal: newH,
+                row: Math.min(s.row, newH ? GRID_SIZE - 1 : GRID_SIZE - s.size),
+                col: Math.min(s.col, newH ? GRID_SIZE - s.size : GRID_SIZE - 1),
             };
         }));
+        setPreview(null);
     }, [selected, confirmed]);
 
     const handleAutoPlace = useCallback(() => {
@@ -217,7 +291,7 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
         onConfirm(ships);
     }, [confirmed, ships, onConfirm]);
 
-    const timerColor = timeLeft !== null && timeLeft <= 10 ? 'text-red-400' : 'text-slate-400';
+    const timerColor = timeLeft !== null && timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-slate-400';
 
     return (
         <div className="flex flex-col items-center gap-6 p-4 select-none">
@@ -228,16 +302,16 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                 <p className="text-slate-400 text-sm mt-1">
                     {confirmed
                         ? opponentReady ? '✅ Les deux joueurs sont prêts !' : '✅ Prêt — en attente de l\'adversaire…'
-                        : 'Cliquez sur un navire pour le sélectionner, puis sur la grille pour le placer.'}
+                        : selected
+                            ? `Cliquez sur la grille pour placer ${selected}`
+                            : 'Cliquez sur un navire pour le sélectionner, puis sur la grille pour le placer.'}
                 </p>
             </div>
 
             {/* Timer + status */}
             <div className="flex items-center gap-6 text-sm">
                 {timeLeft !== null && (
-                    <span className={`font-mono font-bold ${timerColor}`}>
-                        ⏱ {timeLeft}s
-                    </span>
+                    <span className={`font-mono font-bold ${timerColor}`}>⏱ {timeLeft}s</span>
                 )}
                 {opponentReady && !confirmed && (
                     <span className="text-green-400 text-xs">⚡ L'adversaire est prêt</span>
@@ -250,23 +324,14 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                 style={{ gridTemplateColumns: `20px repeat(${GRID_SIZE}, 32px)` }}
                 onMouseLeave={() => setPreview(null)}
             >
-                {/* Column labels */}
                 <div />
                 {COL_LABELS.map((l) => (
                     <div key={l} className="text-center text-xs text-slate-500 font-mono" style={{ lineHeight: '32px' }}>{l}</div>
                 ))}
-
                 {Array.from({ length: GRID_SIZE }, (_, ri) => (
                     <React.Fragment key={ri}>
                         <div className="text-right text-xs text-slate-500 font-mono pr-1" style={{ lineHeight: '32px' }}>{ri + 1}</div>
-                        {Array.from({ length: GRID_SIZE }, (_, ci) => (
-                            <div
-                                key={`${ri}-${ci}`}
-                                className={`w-8 h-8 border rounded-sm transition-colors cursor-pointer ${getCellStyle(ri, ci)}`}
-                                onClick={() => handleCellClick(ri, ci)}
-                                onMouseEnter={() => handleCellHover(ri, ci)}
-                            />
-                        ))}
+                        {Array.from({ length: GRID_SIZE }, (_, ci) => renderCell(ri, ci))}
                     </React.Fragment>
                 ))}
             </div>
@@ -274,7 +339,7 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
             {/* Ship list */}
             <div className="flex flex-wrap gap-2 justify-center">
                 {SHIPS_CONFIG.map((config) => {
-                    const ship = ships.find((s) => s.name === config.name);
+                    const ship = ships.find((s) => s.name === config.name)!;
                     const isSelected = selected === config.name;
                     return (
                         <button
@@ -286,15 +351,24 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                                     : 'border-slate-600 bg-slate-800/60 text-slate-300 hover:border-slate-500'}
                                 ${confirmed ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
                         >
-                            <span
-                                className={`inline-flex gap-0.5`}
-                                style={{ direction: ship?.horizontal ? 'ltr' : 'ltr' }}
-                            >
+                            {/* Mini ship strip (toujours horizontal dans la liste) */}
+                            <div className="flex gap-0">
                                 {Array.from({ length: config.size }, (_, i) => (
-                                    <span key={i} className={`w-3 h-3 rounded-sm ${isSelected ? 'bg-blue-400' : 'bg-slate-500'}`} />
+                                    <img
+                                        key={i}
+                                        src={shipImageSrc(getShipPart(i, config.size), isSelected ? 'orange' : 'grey')}
+                                        alt=""
+                                        draggable={false}
+                                        className="w-4 h-4 object-cover"
+                                    />
                                 ))}
-                            </span>
+                            </div>
                             <span>{config.name}</span>
+                            {ship && (
+                                <span className="text-slate-500 text-[10px]">
+                                    {ship.horizontal ? '↔' : '↕'}
+                                </span>
+                            )}
                         </button>
                     );
                 })}

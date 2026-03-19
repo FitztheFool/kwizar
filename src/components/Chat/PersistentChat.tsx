@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
-import Chat from '@/components/Chat';
+import Chat from '@/components/Chat/Chat';
 
 type ChatMessage = {
     userId: string;

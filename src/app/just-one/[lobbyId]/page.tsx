@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { getJustOneSocket } from '@/lib/socket';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useChat } from '@/context/ChatContext';
+import GameOverModal from '@/components/GameOverModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -220,23 +221,14 @@ export default function JustOnePage() {
         // END GAME
         if (roundState === 'END_GAME' && finalScore) {
             return (
-                <div className="text-center space-y-6">
-                    <div className="text-6xl">{finalScore.score >= 10 ? '🏆' : finalScore.score >= 7 ? '🎉' : '😅'}</div>
-                    <div>
-                        <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                            {finalScore.score}<span className="text-xl text-gray-400 dark:text-slate-500">/13</span>
-                        </p>
-                        <p className="text-lg text-gray-500 dark:text-slate-400 mt-1">{finalScore.level}</p>
-                    </div>
-                    <button onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all">
-                        Retour au lobby
-                    </button>
-                    <button onClick={() => router.push('/')}
-                        className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold text-sm transition-all">
-                        Quitter
-                    </button>
-                </div>
+                <GameOverModal
+                    emoji={finalScore.score >= 10 ? '🏆' : finalScore.score >= 7 ? '🎉' : '😅'}
+                    title={`${finalScore.score}/13`}
+                    subtitle={finalScore.level}
+                    onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                    onLeave={() => router.push('/')}
+                    asModal
+                />
             );
         }
 

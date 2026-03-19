@@ -13,6 +13,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getPuissance4Socket } from '@/lib/socket';
 import { useChat } from '@/context/ChatContext';
+import GameOverModal from '@/components/GameOverModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -307,41 +308,24 @@ export default function Puissance4Page() {
 
                 {/* ── Overlay fin de partie ── */}
                 {gameState?.status === 'finished' && (
-                    <div className="flex flex-col items-center gap-4 animate-fade-in">
-                        <div className="text-center">
-                            {gameState.winner === 'draw' ? (
-                                <>
-                                    <p className="text-5xl mb-2">🤝</p>
-                                    <p className="text-2xl font-black text-white">Match nul !</p>
-                                </>
-                            ) : winnerPlayer ? (
-                                <>
-                                    <p className="text-5xl mb-2">🏆</p>
-                                    <p className="text-2xl font-black text-white">
-                                        {winnerPlayer.userId === me?.userId ? 'Vous avez gagné !' : `${winnerPlayer.username} gagne !`}
-                                    </p>
-                                    <p className={`text-lg font-semibold mt-1 ${PLAYER_COLORS[winnerPlayer.colorIndex].text}`}>
-                                        {PLAYER_COLORS[winnerPlayer.colorIndex].emoji} 4 en ligne !
-                                    </p>
-                                </>
-                            ) : null}
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                                className="px-6 py-3 rounded-xl font-bold text-white transition-all"
-                                style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
-                            >
-                                Retour au lobby
-                            </button>
-                            <button
-                                onClick={() => router.push('/')}
-                                className="px-6 py-3 rounded-xl font-bold bg-white/10 text-white hover:bg-white/20 transition-all"
-                            >
-                                Quitter
-                            </button>
-                        </div>
-                    </div>
+                    <GameOverModal
+                        emoji={gameState.winner === 'draw' ? '🤝' : winnerPlayer?.userId === me?.userId ? '🏆' : '😔'}
+                        title={
+                            gameState.winner === 'draw'
+                                ? 'Match nul !'
+                                : winnerPlayer?.userId === me?.userId
+                                    ? 'Vous avez gagné !'
+                                    : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`
+                        }
+                        subtitle={
+                            winnerPlayer && gameState.winner !== 'draw'
+                                ? `${PLAYER_COLORS[winnerPlayer.colorIndex].emoji} 4 en ligne !`
+                                : undefined
+                        }
+                        onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                        onLeave={() => router.push('/')}
+                        asModal
+                    />
                 )}
 
                 {/* ── En attente d'un joueur ── */}
