@@ -91,7 +91,15 @@ export const authOptions: NextAuthOptions = {
                 token.role = user.role;
                 token.username = user.username || user.name || '';
                 token.image = user.image ?? null;
-                token.email = user.email ?? null;  // ← ajou
+                token.email = user.email ?? null;
+            }
+            // Always refresh role from DB so changes take effect without re-login
+            if (token.id) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: token.id as string },
+                    select: { role: true },
+                });
+                if (dbUser) token.role = dbUser.role;
             }
             return token;
         },
