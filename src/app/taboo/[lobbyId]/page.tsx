@@ -171,8 +171,6 @@ export default function TabooGamePage() {
         socketRef.current = socket;
 
         const join = () => {
-            if (joinedRef.current) return;
-            joinedRef.current = true;
             socket.emit('taboo:join', { lobbyId, userId: myId, username });
         };
 
@@ -197,9 +195,10 @@ export default function TabooGamePage() {
             });
         });
 
+        // join on initial connect and on reconnect (server restart resets state)
+        socket.on('connect', join);
         if (!socket.connected) socket.connect();
-        if (socket.connected) join();
-        else socket.once('connect', join);
+        else join();
 
         return () => {
             socket.off('connect', join);
@@ -219,7 +218,6 @@ export default function TabooGamePage() {
     if (status === 'loading' || !game) return <LoadingSpinner />;
     if (status !== 'authenticated') return null;
 
-    const isHost = game.hostId === myId;
     const myTeam = game.teams?.[myId] ?? null;
     const currentOratorId = game.currentTeam !== null
         ? (game.orators?.[String(game.currentTeam) as '0' | '1'] ?? null)
