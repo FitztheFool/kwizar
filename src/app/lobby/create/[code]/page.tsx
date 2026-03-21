@@ -363,8 +363,13 @@ export default function LobbyCodePage() {
             const hasQuiz = g === 'quiz' ? !!state.quizId : true;
             const exact = EXACT_PLAYERS[g];
             const min = MIN_PLAYERS[g] ?? 2;
-            const ok = exact ? count === exact : count >= min && hasQuiz;
-            setCanStart(ok && state.hostId === meUserId);
+            const maxList = MAX_PLAYERS_BY_GAME[g];
+            const maxOk = maxList ? count <= Math.max(...maxList) : true;
+            const countOk = exact ? count === exact : count >= min && maxOk;
+            // Taboo: both teams must have >= 2 players
+            const teams = state.teams ? Object.values(state.teams) : [];
+            const tabooOk = g !== 'taboo' || (teams.filter((t: number) => t === 0).length >= 2 && teams.filter((t: number) => t === 1).length >= 2);
+            setCanStart(countOk && hasQuiz && tabooOk && state.hostId === meUserId);
         };
 
         socket.on('lobby:state', onState);
@@ -514,7 +519,10 @@ export default function LobbyCodePage() {
                         <div className="grid grid-cols-3 gap-2">
                             {GAME_OPTIONS.map(g => {
                                 const exact = EXACT_PLAYERS[g.value];
-                                const incompatible = !!exact && players.length > exact;
+                                const gMin = MIN_PLAYERS[g.value] ?? 2;
+                                const gMaxList = MAX_PLAYERS_BY_GAME[g.value];
+                                const gMax = gMaxList ? Math.max(...gMaxList) : Infinity;
+                                const incompatible = exact ? players.length !== exact : players.length < gMin || players.length > gMax;
                                 const disabled = isHost && gameType !== g.value && incompatible;
                                 return (
                                     <button key={g.value}
