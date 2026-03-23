@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getPuissance4Socket } from '@/lib/socket';
@@ -112,6 +113,7 @@ export default function Puissance4Page() {
     const [playerLeft, setPlayerLeft] = useState(false);
     const [dropping, setDropping] = useState(false);
     const [modalDismissed, setModalDismissed] = useState(false);
+    const [isNotFound, setIsNotFound] = useState(false);
 
     // Trouver mon index de couleur
     const me = session?.user
@@ -144,6 +146,7 @@ export default function Puissance4Page() {
         const onState = (state: GameState) => { setGameState(state); setDropping(false); };
         const onPlayerLeft = () => setPlayerLeft(true);
 
+        socket.on('notFound', () => setIsNotFound(true));
         socket.on('p4:players', onPlayers);
         socket.on('p4:state', onState);
         socket.on('p4:playerLeft', onPlayerLeft);
@@ -154,6 +157,7 @@ export default function Puissance4Page() {
         }
 
         return () => {
+            socket.off('notFound');
             socket.off('p4:players', onPlayers);
             socket.off('p4:state', onState);
             socket.off('p4:playerLeft', onPlayerLeft);
@@ -172,6 +176,7 @@ export default function Puissance4Page() {
     const handleRematch = () => socket?.emit('p4:rematch', { lobbyId });
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (isNotFound) notFound();
 
     const winnerPlayer = gameState?.winner !== null && gameState?.winner !== 'draw'
         ? players.find(p => p.colorIndex === gameState?.winner)

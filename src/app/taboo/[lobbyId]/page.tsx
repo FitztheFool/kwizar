@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameOverModal from '@/components/GameOverModal';
 
 import { useEffect, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getTabooSocket } from '@/lib/socket';
@@ -145,6 +146,7 @@ export default function TabooGamePage() {
     const isHostRef = useRef(false);
 
     const [game, setGame] = useState<TabooState | null>(null);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [attemptInput, setAttemptInput] = useState('');
     const [modalDismissed, setModalDismissed] = useState(false);
 
@@ -213,6 +215,7 @@ export default function TabooGamePage() {
             socket.emit('taboo:join', { lobbyId, userId: myId, username });
         };
 
+        socket.on('notFound', () => setIsNotFound(true));
         socket.on('taboo:state', (state: TabooState) => setGame(state));
 
         socket.on('taboo:requestWords', async ({ count }: { count: number }) => {
@@ -240,6 +243,7 @@ export default function TabooGamePage() {
         else join();
 
         return () => {
+            socket.off('notFound');
             socket.off('connect', join);
             socket.off('taboo:state');
             socket.off('taboo:requestWords');
@@ -254,6 +258,7 @@ export default function TabooGamePage() {
         }
     }, [game?.attempts]);
 
+    if (isNotFound) notFound();
     if (status === 'loading' || !game) return <LoadingSpinner />;
     if (status !== 'authenticated') return null;
 

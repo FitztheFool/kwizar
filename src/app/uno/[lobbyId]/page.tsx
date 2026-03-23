@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameOverModal from '@/components/GameOverModal';
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
@@ -130,6 +131,7 @@ export default function UnoPage() {
     const [lobbyState, setLobbyState] = useState<LobbyState | null>(null);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [modalDismissed, setModalDismissed] = useState(false);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [showColorPicker, setShowColorPicker] = useState(false);
 
@@ -197,6 +199,7 @@ export default function UnoPage() {
             }
         };
 
+        socket.on('notFound', () => setIsNotFound(true));
         socket.on('uno:lobbyState', onLobbyState);
         socket.on('uno:state', onGameState);
         socket.on('uno:inactivityWarning', onInactivityWarning);
@@ -208,6 +211,7 @@ export default function UnoPage() {
         }
 
         return () => {
+            socket.off('notFound');
             socket.off('uno:lobbyState', onLobbyState);
             socket.off('uno:state', onGameState);
             socket.off('uno:inactivityWarning', onInactivityWarning);
@@ -253,6 +257,7 @@ export default function UnoPage() {
     if (status === 'loading') {
         return <LoadingSpinner />;
     }
+    if (isNotFound) notFound();
 
     const is2v2 = gameState?.options?.teamMode === '2v2';
 

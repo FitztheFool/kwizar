@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameOverModal from '@/components/GameOverModal';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getSkyjowSocket } from '@/lib/socket';
@@ -154,6 +155,7 @@ export default function skyjowGamePage() {
     const [players, setPlayers] = useState<PlayerPublic[]>([]);
     const [scores, setScores] = useState<ScoreEntry[]>([]);
     const [notification, setNotification] = useState<string | null>(null);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [roundEndData, setRoundEndData] = useState<{ scores: ScoreEntry[]; players: { userId: string; username: string; cards: CardState[] }[] } | null>(null);
     const [gameEndData, setGameEndData] = useState<{ scores: ScoreEntry[]; winnerId: string; winnerUsername: string } | null>(null);
     const [drawnAction, setDrawnAction] = useState<'swap' | 'discard_flip' | null>(null);
@@ -193,6 +195,8 @@ export default function skyjowGamePage() {
             joinedRef.current = true;
             sock.emit('skyjow:join', { lobbyId, userId, username });
         }
+
+        sock.on('notFound', () => setIsNotFound(true));
 
         sock.on('skyjow:game_started', (data: {
             players: PlayerPublic[];
@@ -315,6 +319,7 @@ export default function skyjowGamePage() {
         });
 
         return () => {
+            sock.off('notFound');
             sock.off('skyjow:game_started');
             sock.off('skyjow:my_cards');
             sock.off('skyjow:state');
@@ -413,6 +418,7 @@ export default function skyjowGamePage() {
     // ── Render guards ──────────────────────────────────────────────────────────
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (isNotFound) notFound();
 
 
     // ── Écran fin de manche ────────────────────────────────────────────────────

@@ -99,6 +99,7 @@ export function useDiamant({
     const socketRef = useRef<Socket | null>(null);
     const joinedRef = useRef(false);
 
+    const [gameNotFound, setGameNotFound] = useState(false);
     const [state, setState] = useState<DiamantState>({
         phase: 'waiting',
         round: 1,
@@ -152,6 +153,7 @@ export function useDiamant({
         };
 
         socket.on('connect', joinRoom);
+        socket.on('notFound', () => setGameNotFound(true));
 
         // ── Joined ────────────────────────────────────────────────────────────
         socket.on('diamant:joined', (payload: any) => {
@@ -271,6 +273,7 @@ export function useDiamant({
         });
 
         return () => {
+            socket.off('notFound');
             socket.disconnect();
             socketRef.current = null;
             joinedRef.current = false;
@@ -289,5 +292,5 @@ export function useDiamant({
         setState((prev) => ({ ...prev, error: null }));
     }, []);
 
-    return { state, decide, clearError };
+    return { state, decide, clearError, gameNotFound };
 }

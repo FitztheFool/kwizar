@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getImpostorSocket } from '@/lib/socket';
@@ -98,6 +99,7 @@ export default function ImpostorPage() {
     const [timer, setTimer] = useState(0);
     const [maxTimer, setMaxTimer] = useState(60);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isNotFound, setIsNotFound] = useState(false);
 
     const userId = session?.user?.id ?? '';
     const socket = getImpostorSocket();
@@ -127,6 +129,7 @@ export default function ImpostorPage() {
 
         socket.emit('impostor:join', { lobbyId, userId, playerName: session?.user?.name ?? 'Joueur' });
 
+        socket.on('notFound', () => setIsNotFound(true));
         socket.on('impostor:players', ({ players }: { players: Player[] }) => setPlayers(players));
 
         socket.on('impostor:gameStart', ({ role, word, players, totalRounds, speakingOrder }: {
@@ -226,6 +229,7 @@ export default function ImpostorPage() {
         });
 
         return () => {
+            socket.off('notFound');
             socket.off('impostor:players');
             socket.off('impostor:gameStart');
             socket.off('impostor:writingPhase');
@@ -241,6 +245,7 @@ export default function ImpostorPage() {
     }, [socket, userId, lobbyId]);
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (isNotFound) notFound();
 
     // ─── Fin de partie ────────────────────────────────────────────────────────
 
@@ -372,16 +377,28 @@ export default function ImpostorPage() {
         return (
             <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
                 {header}
-                <main className="flex-1 overflow-auto p-4 flex flex-col items-center justify-center">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 flex flex-col items-center gap-4 w-full max-w-sm">
-                        <LoadingSpinner />
-                        <p className="text-gray-500 dark:text-gray-400">En attente des joueurs…</p>
-                        <div className="flex flex-wrap gap-2 justify-center">
+                <main className="flex-1 overflow-auto p-6 flex flex-col items-center justify-center gap-6">
+                    <div className="text-6xl">🎭</div>
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">En attente du lancement…</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">L'hôte va bientôt démarrer la partie</p>
+                    </div>
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 w-full max-w-md">
+                        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+                            Joueurs connectés ({players.length})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
                             {players.map(p => (
-                                <span key={p.id} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm">{p.name}</span>
+                                <span key={p.id} className={`px-3 py-1.5 rounded-full text-sm font-medium
+                                    ${p.id === userId
+                                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>
+                                    {p.name}{p.id === userId ? ' (vous)' : ''}
+                                </span>
                             ))}
                         </div>
                     </div>
+                    <LoadingSpinner />
                 </main>
             </div>
         );

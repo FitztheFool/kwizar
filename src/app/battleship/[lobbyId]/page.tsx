@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useBattleship } from '@/hooks/useBattleship';
@@ -72,7 +73,7 @@ export default function BattleshipPage() {
         }
     }, [lobbyId]);
 
-    const { state, placeShips, shoot, surrender, rematch, clearError } = useBattleship({
+    const { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound } = useBattleship({
         lobbyId,
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
@@ -89,10 +90,50 @@ export default function BattleshipPage() {
     }, [state.enemyReceivedShots, state.myReceivedShots]);
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (gameNotFound) notFound();
     if (status !== 'authenticated') { router.push('/login'); return null; }
 
     const myUserId = session.user.id;
     const isMyTurn = state.currentTurnUserId === myUserId;
+
+    // Spectator view
+    if (state.yourSeat === null && state.players.some(p => p !== null)) {
+        const p0 = state.players[0];
+        const p1 = state.players[1];
+        const currentTurnPlayer = state.players.find(p => p?.userId === state.currentTurnUserId);
+        const winnerPlayer = state.players.find(p => p?.userId === state.winnerUserId);
+        return (
+            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
+                <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-2">
+                    <span className="text-xl">⚓</span>
+                    <h1 className="text-sm font-bold tracking-tight">Bataille Navale</h1>
+                    <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">Spectateur</span>
+                </header>
+                <main className="flex-1 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 flex flex-col items-center gap-4 text-center max-w-sm w-full">
+                        <div className="text-3xl">👁️</div>
+                        <p className="font-semibold text-gray-700 dark:text-gray-200">
+                            {p0?.username ?? '?'} <span className="text-gray-400">vs</span> {p1?.username ?? '?'}
+                        </p>
+                        {state.phase === 'placement' && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Phase de placement…</p>
+                        )}
+                        {state.phase === 'playing' && currentTurnPlayer && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Tour de <span className="font-semibold text-gray-700 dark:text-gray-200">{currentTurnPlayer.username}</span></p>
+                        )}
+                        {state.phase === 'finished' && (
+                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                {winnerPlayer ? `${winnerPlayer.username} a gagné !` : 'Partie terminée'}
+                            </p>
+                        )}
+                        <button onClick={() => router.push(`/lobby/create/${lobbyId}`)} className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                            Retour au lobby
+                        </button>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     const opponent = state.players.find((p) => p?.userId !== myUserId) ?? null;
     const me = state.players.find((p) => p?.userId === myUserId) ?? null;

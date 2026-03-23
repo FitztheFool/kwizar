@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useDiamant, Card, PlayerInfo } from '@/hooks/useDiamant';
@@ -198,13 +199,14 @@ export default function DiamantPage() {
         return () => setLobbyId(null);
     }, [lobbyId, setLobbyId]);
 
-    const { state, decide, clearError } = useDiamant({
+    const { state, decide, clearError, gameNotFound } = useDiamant({
         lobbyId,
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
     });
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (gameNotFound) notFound();
     if (status !== 'authenticated') { router.push('/login'); return null; }
 
     const myUserId = session.user.id;

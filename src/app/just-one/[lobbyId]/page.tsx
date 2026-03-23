@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getJustOneSocket } from '@/lib/socket';
@@ -83,6 +84,7 @@ export default function JustOnePage() {
     const joinedRef = useRef(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+    const [isNotFound, setIsNotFound] = useState(false);
     const [players, setPlayers] = useState<Player[]>([]);
     const [guesserId, setGuesserId] = useState<string | null>(null);
     const [guesserName, setGuesserName] = useState('');
@@ -142,6 +144,7 @@ export default function JustOnePage() {
 
         socket.emit('just_one:join', { lobbyId, playerName: myName, userId: me });
 
+        socket.on('notFound', () => setIsNotFound(true));
         socket.on('just_one:players', ({ players }: { players: Player[] }) => {
             setPlayers(players);
         });
@@ -201,6 +204,7 @@ export default function JustOnePage() {
         });
 
         return () => {
+            socket.off('notFound');
             socket.off('just_one:players');
             socket.off('just_one:roundStart');
             socket.off('just_one:writeClues');
@@ -214,6 +218,7 @@ export default function JustOnePage() {
     }, [socket, lobbyId, status, me]);
 
     if (status === 'loading') return <LoadingSpinner />;
+    if (isNotFound) notFound();
     if (status !== 'authenticated') return null;
 
     const renderPhase = () => {

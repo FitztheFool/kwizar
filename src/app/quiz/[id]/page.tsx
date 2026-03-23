@@ -3,6 +3,7 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { notFound } from 'next/navigation';
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -149,6 +150,8 @@ export default function QuizPage() {
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [quizNotAllowed, setQuizNotAllowed] = useState(false);
+    const [quizNotFound, setQuizNotFound] = useState(false);
 
     const socket = useMemo(() => getQuizSocket(), []);
 
@@ -188,6 +191,16 @@ export default function QuizPage() {
             username: session.user.username ?? session.user.email ?? 'User',
         });
     }, [effectiveLobbyId, quizId, session?.user?.id, socket]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on('notFound', () => setQuizNotFound(true));
+        socket.on('quiz:notAllowed', () => setQuizNotAllowed(true));
+        return () => {
+            socket.off('notFound');
+            socket.off('quiz:notAllowed');
+        };
+    }, [socket]);
 
     // Recevoir les options de session depuis le quiz-server
     useEffect(() => {
@@ -393,6 +406,24 @@ export default function QuizPage() {
 
     if (status === 'loading' || loading) {
         return <LoadingSpinner message={status === 'loading' ? "Vérification de l'authentification..." : 'Chargement du quiz...'} />;
+    }
+
+    if (quizNotFound) notFound();
+
+    if (quizNotAllowed) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-10 flex flex-col items-center gap-4 text-center max-w-sm w-full">
+                    <div className="text-4xl">📝</div>
+                    <h1 className="text-lg font-bold">Quiz en cours</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Une partie de quiz est en cours. Vous n&apos;en faites pas partie.</p>
+                    {lobbyCode
+                        ? <button onClick={() => router.push(`/lobby/create/${lobbyCode}`)} className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">Retour au lobby</button>
+                        : <button onClick={() => router.push('/')} className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">Retour à l&apos;accueil</button>
+                    }
+                </div>
+            </div>
+        );
     }
 
     // ─── Error ────────────────────────────────────────────────────────────────

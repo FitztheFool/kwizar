@@ -90,6 +90,7 @@ export function useBattleship({
     const socketRef = useRef<Socket | null>(null);
     const joinedRef = useRef(false);
 
+    const [gameNotFound, setGameNotFound] = useState(false);
     const [state, setState] = useState<BattleshipState>({
         phase: 'waiting',
         yourSeat: null,
@@ -116,6 +117,8 @@ export function useBattleship({
         const socket = getBattleshipSocket();
         if (!socket) return;
         socketRef.current = socket;
+
+        socket.on('notFound', () => setGameNotFound(true));
 
         socket.on('connect', () => {
             socket.emit('battleship:join', {
@@ -260,6 +263,7 @@ export function useBattleship({
         });
 
         return () => {
+            socket.off('notFound');
             socket.disconnect();
             socketRef.current = null;
             joinedRef.current = false;
@@ -289,5 +293,5 @@ export function useBattleship({
         setState((prev) => ({ ...prev, error: null }));
     }, []);
 
-    return { state, placeShips, shoot, surrender, rematch, clearError };
+    return { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound };
 }

@@ -358,6 +358,19 @@ export default function LobbyCodePage() {
             }
             if (state.impostorOptions) { setImpostorRounds(state.impostorOptions.rounds ?? 1); setImpostorTime(state.impostorOptions.timePerRound ?? 60); }
 
+            // ── Redirect si partie en cours ───────────────────────────────
+            if (state.status === 'PLAYING') {
+                const routeFn = GAME_ROUTES[state.gameType];
+                if (routeFn) {
+                    router.push(routeFn(lobbyId));
+                } else if (state.gameType === 'quiz' && state.quizId) {
+                    sessionStorage.setItem(`lobby_timeMode_${lobbyId}`, state.timeMode ?? 'none');
+                    sessionStorage.setItem(`lobby_timePerQuestion_${lobbyId}`, String(state.timePerQuestion ?? 15));
+                    router.push(`/quiz/${state.quizId}?lobby=${lobbyId}`);
+                }
+                return;
+            }
+
             // ── canStart via GAME_CONFIG ──────────────────────────────────
             const count = state.players?.length ?? 0;
             const g = state.gameType;

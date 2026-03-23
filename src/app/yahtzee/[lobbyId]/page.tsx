@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameOverModal from '@/components/GameOverModal';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getYahtzeeSocket } from '@/lib/socket';
@@ -149,6 +150,7 @@ export default function YahtzeePage() {
   const [rolling, setRolling] = useState(false);
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(120);
+  const [isNotFound, setIsNotFound] = useState(false);
   const me = session?.user;
   const { setLobbyId } = useChat();
 
@@ -167,11 +169,13 @@ export default function YahtzeePage() {
 
     if (socket.connected) { doJoin(); } else { socket.once('connect', doJoin); }
 
+    socket.on('notFound', () => setIsNotFound(true));
     socket.on('yahtzee:state', (state: GameState) => { setGame(state); setRolling(false); setTimeLeft(120); });
     socket.on('yahtzee:timer', ({ remaining }: { remaining: number }) => { setTimeLeft(remaining); });
     socket.on('yahtzee:ended', ({ results }: { results: { userId: string; username: string; total: number }[] }) => { setResults(results); });
 
     return () => {
+      socket.off('notFound');
       socket.off('yahtzee:state');
       socket.off('yahtzee:timer');
       socket.off('yahtzee:ended');
@@ -179,6 +183,7 @@ export default function YahtzeePage() {
   }, [socket, lobbyId, status, me?.id]);
 
   if (status === 'loading' || !me) return <LoadingSpinner />;
+  if (isNotFound) notFound();
 
   const myId = me.id;
   const isMyTurn = game?.currentUserId === myId;
