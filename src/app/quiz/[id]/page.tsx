@@ -12,8 +12,7 @@ import { QuestionResult } from '@/components/Quiz/QuizResults';
 
 interface Answer {
     id: string;
-    text: string;
-    isCorrect?: boolean;
+    text?: string; // plus jamais garanti côté client
 }
 
 interface Question {
@@ -22,8 +21,7 @@ interface Question {
     type: 'TRUE_FALSE' | 'MCQ' | 'TEXT' | 'MULTI_TEXT';
     points: number;
     strictOrder?: boolean;
-    answers?: Answer[];
-    correctAnswerText?: string;
+    answers?: Answer[]; // texte présent pour TRUE_FALSE/MCQ, absent pour TEXT/MULTI_TEXT
 }
 
 interface Quiz {
@@ -43,77 +41,12 @@ interface UserAnswer {
     freeText?: string;
 }
 
-// Calcul local du score (utilisé pour les anonymes uniquement)
-function computeScoreLocally(quiz: Quiz, answers: UserAnswer[]): { score: number; totalPoints: number; questionResults: QuestionResult[] } {
-    let score = 0;
-    let totalPoints = 0;
-    const questionResults: QuestionResult[] = [];
-
-    for (const q of quiz.questions) {
-        totalPoints += q.points;
-        const userAnswer = answers.find(a => a.questionId === q.id);
-        let isCorrect = false;
-        let earnedPoints = 0;
-        let userAnswerText = '';
-        let correctAnswerText = '';
-
-        if (q.type === 'TRUE_FALSE') {
-            const selected = q.answers?.find(a => a.id === userAnswer?.answerId);
-            userAnswerText = selected?.text || '';
-            correctAnswerText = q.answers?.find(a => a.isCorrect)?.text || '';
-            isCorrect = selected?.isCorrect === true;
-            earnedPoints = isCorrect ? q.points : 0;
-            if (isCorrect) score += q.points;
-        } else if (q.type === 'MCQ') {
-            const selectedIds = userAnswer?.answerIds || [];
-            const correctIds = q.answers?.filter(a => a.isCorrect).map(a => a.id) || [];
-            userAnswerText = selectedIds.map(id => q.answers?.find(a => a.id === id)?.text || '').filter(Boolean).join(', ');
-            correctAnswerText = q.answers?.filter(a => a.isCorrect).map(a => a.text).join(', ') || '';
-            isCorrect = selectedIds.length === correctIds.length && selectedIds.every(id => correctIds.includes(id));
-            earnedPoints = isCorrect ? q.points : 0;
-            if (isCorrect) score += q.points;
-        } else if (q.type === 'TEXT') {
-            const userText = (userAnswer?.freeText || '').trim().toLowerCase();
-            const correctText = (q.answers?.[0]?.text || q.correctAnswerText || '').trim().toLowerCase();
-            isCorrect = userText.length > 0 && userText === correctText;
-            userAnswerText = userAnswer?.freeText || '';
-            correctAnswerText = q.answers?.[0]?.text || q.correctAnswerText || '';
-            earnedPoints = isCorrect ? q.points : 0;
-            if (isCorrect) score += q.points;
-        } else if (q.type === 'MULTI_TEXT') {
-            const userTexts = userAnswer?.freeText?.split('||').map(t => t.trim()) ?? [];
-            const correctTexts = q.answers?.map(a => a.text) || [];
-            const userTextsLower = userTexts.map(t => t.toLowerCase());
-            const correctTextsLower = correctTexts.map(t => t.trim().toLowerCase());
-            const strictOrder = q.strictOrder ?? false;
-            userAnswerText = userTexts.join(', ');
-            correctAnswerText = correctTexts.join(', ');
-            let correctCount = 0;
-            if (strictOrder) {
-                correctCount = userTextsLower.filter((t, i) => t === correctTextsLower[i]).length;
-            } else {
-                correctCount = userTextsLower.filter(t => correctTextsLower.includes(t)).length;
-            }
-            const pointsPerAnswer = correctTextsLower.length > 0 ? q.points / correctTextsLower.length : 0;
-            earnedPoints = Math.round(correctCount * pointsPerAnswer);
-            isCorrect = correctCount === correctTextsLower.length;
-            score += earnedPoints;
-        }
-
-        questionResults.push({
-            questionId: q.id,
-            questionText: q.text,
-            type: q.type,
-            points: q.points,
-            earnedPoints,
-            strictOrder: q.strictOrder,
-            isCorrect,
-            userAnswerText,
-            correctAnswerText,
-        });
-    }
-
-    return { score, totalPoints, questionResults };
+interface FeedbackState {
+    isCorrect: boolean;
+    earnedPoints: number;
+    correctAnswerText: string;
+    // Pour MULTI_TEXT : les bonnes réponses à afficher dans le feedback
+    correctAnswers?: string[];
 }
 
 export default function QuizPage() {
@@ -124,7 +57,6 @@ export default function QuizPage() {
     const { data: session, status } = useSession();
     const quizId = params?.id as string;
 
-    // ID stable pour les sessions solo (pas de lobby)
     const [soloLobbyId] = useState(() => crypto.randomUUID());
     const effectiveLobbyId = lobbyCode ?? soloLobbyId;
 
@@ -148,7 +80,8 @@ export default function QuizPage() {
     const currentQuestionIndexRef = useRef(0);
 
     const [showFeedback, setShowFeedback] = useState(false);
-    const [isCorrect, setIsCorrect] = useState(false);
+    const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+    const [isValidating, setIsValidating] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [quizNotAllowed, setQuizNotAllowed] = useState(false);
     const [quizNotFound, setQuizNotFound] = useState(false);
@@ -181,7 +114,6 @@ export default function QuizPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quizId, status]);
 
-    // Rejoindre le quiz-server dès qu'on a userId (solo ou lobby)
     useEffect(() => {
         if (!quizId || !session?.user?.id) return;
         socket?.emit('quiz:join', {
@@ -202,7 +134,6 @@ export default function QuizPage() {
         };
     }, [socket]);
 
-    // Recevoir les options de session depuis le quiz-server
     useEffect(() => {
         if (!socket) return;
         const handler = ({ timeMode: tm, timePerQuestion: tpq }: { timeMode: string; timePerQuestion: number }) => {
@@ -214,14 +145,6 @@ export default function QuizPage() {
         socket.on('quiz:sessionInfo', handler);
         return () => { socket.off('quiz:sessionInfo', handler); };
     }, [socket]);
-
-
-    const checkMultiText = (userTexts: string[], correctTexts: string[], strictOrder: boolean) => {
-        const u = userTexts.map(t => t.trim().toLowerCase());
-        const c = correctTexts.map(t => t.trim().toLowerCase());
-        if (u.length !== c.length) return false;
-        return strictOrder ? u.every((t, i) => t === c[i]) : u.every(t => c.includes(t));
-    };
 
     const buildCurrentAnswer = useCallback((q: Question): UserAnswer => {
         const answer: UserAnswer = { questionId: q.id };
@@ -236,22 +159,36 @@ export default function QuizPage() {
         const currentQuiz = quizRef.current;
         if (!currentQuiz) return;
         setIsSubmitting(true);
-        setError(null);
 
-        // Calcul local immédiat pour l'affichage
-        const { score, totalPoints, questionResults } = computeScoreLocally(currentQuiz, answers);
-        const payload = {
-            score,
+        const totalPoints = currentQuiz.questions.reduce((sum, q) => sum + q.points, 0);
+        const resultKey = `quiz_result_${quizId}`;
+
+        // Payload provisoire
+        sessionStorage.setItem(resultKey, JSON.stringify({
+            score: 0,
             totalPoints,
             quizTitle: currentQuiz.title,
             isOwnQuiz: currentQuiz.creatorId === session?.user?.id,
-            questionResults,
+            questionResults: [],
             lobbyCode: lobbyCode ?? null,
-        };
-        sessionStorage.setItem(`quiz_result_${quizId}`, JSON.stringify(payload));
+        }));
 
-        // Si authentifié : envoyer aussi au quiz-server pour validation anti-triche et sauvegarde
         if (session?.user?.id) {
+            // Enregistrer le listener AVANT d'émettre et AVANT de naviguer
+            // Le singleton socket survit à la navigation
+            socket?.once('quiz:result', ({ score, totalPoints: tp, questionResults }) => {
+                sessionStorage.setItem(resultKey, JSON.stringify({
+                    score,
+                    totalPoints: tp,
+                    quizTitle: currentQuiz.title,
+                    isOwnQuiz: currentQuiz.creatorId === session?.user?.id,
+                    questionResults,
+                    lobbyCode: lobbyCode ?? null,
+                }));
+                // Forcer un re-read du sessionStorage dans useQuizResult
+                window.dispatchEvent(new CustomEvent('quiz:result:ready', { detail: { quizId } }));
+            });
+
             socket?.emit('quiz:playerFinished', {
                 answers,
                 lobbyId: effectiveLobbyId,
@@ -262,7 +199,7 @@ export default function QuizPage() {
         }
 
         router.push(`/quiz/${quizId}/result${lobbyCode ? `?lobby=${lobbyCode}` : ''}`);
-    }, [session?.user?.id, lobbyCode, socket, quizId, router]);
+    }, [session?.user?.id, lobbyCode, socket, quizId, router, effectiveLobbyId]);
 
     const handleNextQuestionFromTimer = useCallback(() => {
         const currentQuiz = quizRef.current;
@@ -284,7 +221,7 @@ export default function QuizPage() {
             setFreeTextAnswer('');
             setMultiTextAnswers([]);
             setShowFeedback(false);
-            setIsCorrect(false);
+            setFeedback(null);
 
             if (session?.user?.id) {
                 socket?.emit('quiz:playerProgress', {
@@ -351,22 +288,44 @@ export default function QuizPage() {
         setSelectedAnswers(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     };
 
-    const handleValidateAnswer = () => {
-        if (!quiz) return;
+    // Validation côté serveur — plus de lecture de isCorrect en local
+    const handleValidateAnswer = async () => {
+        if (!quiz || isValidating) return;
         const q = quiz.questions[currentQuestionIndex];
-        let correct = false;
-        if (q.type === 'TRUE_FALSE') {
-            correct = q.answers?.find(a => a.id === selectedAnswer)?.isCorrect === true;
-        } else if (q.type === 'MCQ') {
-            const correctIds = q.answers?.filter(a => a.isCorrect).map(a => a.id) || [];
-            correct = selectedAnswers.length === correctIds.length && selectedAnswers.every(id => correctIds.includes(id));
-        } else if (q.type === 'TEXT') {
-            correct = freeTextAnswer.trim().toLowerCase() === (q.answers?.[0]?.text || q.correctAnswerText || '').trim().toLowerCase();
-        } else if (q.type === 'MULTI_TEXT') {
-            correct = checkMultiText(multiTextAnswers, q.answers?.map(a => a.text) || [], q.strictOrder ?? false);
+
+        setIsValidating(true);
+        try {
+            const body: Record<string, unknown> = { questionId: q.id };
+            if (q.type === 'TEXT') body.freeText = freeTextAnswer.trim();
+            else if (q.type === 'MULTI_TEXT') body.freeText = multiTextAnswers.join('||');
+            else if (q.type === 'MCQ') body.answerIds = selectedAnswers;
+            else body.answerId = selectedAnswer;
+
+            const res = await fetch(`/api/quiz/${quizId}/check`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (!res.ok) throw new Error('Erreur lors de la vérification');
+            const { isCorrect, earnedPoints, correctAnswerText } = await res.json();
+
+            setFeedback({
+                isCorrect,
+                earnedPoints,
+                correctAnswerText,
+                correctAnswers: q.type === 'MULTI_TEXT'
+                    ? correctAnswerText.split(', ')
+                    : undefined,
+            });
+            setShowFeedback(true);
+        } catch {
+            // En cas d'erreur réseau, on affiche le feedback sans correction
+            setFeedback({ isCorrect: false, earnedPoints: 0, correctAnswerText: '' });
+            setShowFeedback(true);
+        } finally {
+            setIsValidating(false);
         }
-        setIsCorrect(correct);
-        setShowFeedback(true);
     };
 
     const handleNextQuestion = () => {
@@ -391,7 +350,7 @@ export default function QuizPage() {
             setFreeTextAnswer('');
             setMultiTextAnswers([]);
             setShowFeedback(false);
-            setIsCorrect(false);
+            setFeedback(null);
 
             if (session?.user?.id) {
                 socket?.emit('quiz:playerProgress', {
@@ -426,12 +385,9 @@ export default function QuizPage() {
         );
     }
 
-    // ─── Error ────────────────────────────────────────────────────────────────
-
     if (error) {
         return (
             <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
-                {/* Top bar */}
                 <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
                     <div className="w-48 shrink-0 flex items-center gap-2">
                         <span>📝</span>
@@ -440,7 +396,6 @@ export default function QuizPage() {
                     <div className="flex-1" />
                     <div className="w-48 shrink-0" />
                 </header>
-                {/* Error content */}
                 <main className="flex-1 overflow-auto p-4 flex items-center justify-center">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center max-w-md w-full">
                         <div className="text-red-500 text-5xl mb-4">⚠️</div>
@@ -457,8 +412,6 @@ export default function QuizPage() {
 
     if (!quiz) return null;
 
-    // ─── Question ─────────────────────────────────────────────────────────────
-
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
     const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
@@ -472,42 +425,29 @@ export default function QuizPage() {
     return (
         <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
 
-            {/* Top bar */}
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
-
-                {/* Left: title */}
                 <div className="w-48 shrink-0 flex items-center gap-2 min-w-0">
                     <span className="shrink-0">📝</span>
                     <span className="font-semibold truncate text-gray-900 dark:text-white text-sm">{quiz.title}</span>
                 </div>
-
-                {/* Center: progress bar + question count */}
                 <div className="flex-1 flex justify-center items-center gap-2.5">
                     <div className="w-40 sm:w-64 bg-gray-200 dark:bg-gray-700 rounded-full h-2 shrink-0">
-                        <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                        />
+                        <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
                     </div>
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap shrink-0">
                         {currentQuestionIndex + 1} / {quiz.questions.length}
                     </span>
                 </div>
-
-                {/* Right: points badge */}
                 <div className="w-48 shrink-0 flex justify-end items-center">
                     <span className="text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full whitespace-nowrap">
                         {currentQuestion.points} pt{currentQuestion.points > 1 ? 's' : ''}
                     </span>
                 </div>
-
             </header>
 
-            {/* Main scrollable area */}
             <main className="flex-1 overflow-auto flex flex-col items-center justify-center p-4 py-8">
                 <div className="max-w-2xl w-full flex flex-col gap-4">
 
-                    {/* Unauthenticated warning */}
                     {status === 'unauthenticated' && (
                         <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 rounded-xl px-4 py-3">
                             <span className="text-lg shrink-0">🔒</span>
@@ -520,7 +460,6 @@ export default function QuizPage() {
                         </div>
                     )}
 
-                    {/* Timer bar */}
                     {timeMode && timeMode !== 'none' && timeLeft !== null && timePerQuestion > 0 && (
                         <div className="flex items-center gap-3">
                             <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
@@ -535,7 +474,6 @@ export default function QuizPage() {
                         </div>
                     )}
 
-                    {/* Question card */}
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6">{currentQuestion.text}</h2>
 
@@ -544,8 +482,9 @@ export default function QuizPage() {
                             <div className="space-y-3">
                                 {currentQuestion.answers.map((answer) => {
                                     const isSelected = selectedAnswer === answer.id;
-                                    const showCorrect = showFeedback && answer.isCorrect;
-                                    const showWrong = showFeedback && isSelected && !answer.isCorrect;
+                                    // feedback.correctAnswerText contient le texte de la bonne réponse
+                                    const showCorrect = showFeedback && feedback?.correctAnswerText === answer.text;
+                                    const showWrong = showFeedback && isSelected && feedback?.correctAnswerText !== answer.text;
                                     return (
                                         <button key={answer.id} onClick={() => handleAnswerSelect(answer.id)} disabled={showFeedback}
                                             className={`w-full p-4 rounded-lg border-2 transition-all text-left
@@ -576,8 +515,9 @@ export default function QuizPage() {
                                 <div className="space-y-3">
                                     {currentQuestion.answers.map((answer) => {
                                         const isSelected = selectedAnswers.includes(answer.id);
-                                        const showCorrect = showFeedback && answer.isCorrect;
-                                        const showWrong = showFeedback && isSelected && !answer.isCorrect;
+                                        const correctTexts = feedback?.correctAnswerText?.split(', ') ?? [];
+                                        const showCorrect = showFeedback && correctTexts.includes(answer.text ?? '');
+                                        const showWrong = showFeedback && isSelected && !correctTexts.includes(answer.text ?? '');
                                         return (
                                             <label key={answer.id} className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-3
                                                 ${showCorrect
@@ -611,22 +551,22 @@ export default function QuizPage() {
                                     disabled={showFeedback}
                                 />
                                 <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Cette question vaut {currentQuestion.points} points</p>
-                                {showFeedback && (
+                                {showFeedback && feedback && (
                                     <div>
-                                        <div className={`mt-4 p-4 rounded-lg border-2 ${isCorrect
+                                        <div className={`mt-4 p-4 rounded-lg border-2 ${feedback.isCorrect
                                             ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600'
                                             : 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'}`}>
-                                            <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
-                                                {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
+                                            <p className={`font-semibold mb-2 ${feedback.isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
+                                                {feedback.isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
                                             </p>
-                                            <p className={`text-sm ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'}`}>
+                                            <p className={`text-sm ${feedback.isCorrect ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'}`}>
                                                 Votre réponse : <span className="font-medium">{freeTextAnswer.trim()}</span>
                                             </p>
                                         </div>
-                                        {!isCorrect && (
+                                        {!feedback.isCorrect && feedback.correctAnswerText && (
                                             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg">
                                                 <p className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Réponse attendue :</p>
-                                                <p className="text-blue-800 dark:text-blue-400 font-medium">{currentQuestion.answers?.[0]?.text || currentQuestion.correctAnswerText || 'Non disponible'}</p>
+                                                <p className="text-blue-800 dark:text-blue-400 font-medium">{feedback.correctAnswerText}</p>
                                             </div>
                                         )}
                                     </div>
@@ -649,18 +589,18 @@ export default function QuizPage() {
                                         className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:border-blue-600 dark:focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
                                     />
                                 ))}
-                                {showFeedback && (
+                                {showFeedback && feedback && (
                                     <div className="border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2">
                                         <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Réponses attendues :</p>
                                         <div className="space-y-1">
-                                            {currentQuestion.answers?.map((answer, i) => {
-                                                const isGood = multiTextAnswers.some(u => u.trim().toLowerCase() === answer.text.trim().toLowerCase());
+                                            {(feedback.correctAnswers ?? []).map((correctText, i) => {
+                                                const isGood = multiTextAnswers.some(u => u.trim().toLowerCase() === correctText.trim().toLowerCase());
                                                 return (
                                                     <div key={i} className={`text-sm px-3 py-1.5 rounded-lg border font-medium
                                                         ${isGood
                                                             ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
                                                             : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'}`}>
-                                                        {isGood ? '✓' : '•'} {answer.text}
+                                                        {isGood ? '✓' : '•'} {correctText}
                                                     </div>
                                                 );
                                             })}
@@ -672,26 +612,25 @@ export default function QuizPage() {
                     </div>
 
                     {/* Feedback banner (TRUE_FALSE / MCQ) */}
-                    {showFeedback && currentQuestion.type !== 'TEXT' && currentQuestion.type !== 'MULTI_TEXT' && (
-                        <div className={`p-4 rounded-xl border ${isCorrect
+                    {showFeedback && feedback && currentQuestion.type !== 'TEXT' && currentQuestion.type !== 'MULTI_TEXT' && (
+                        <div className={`p-4 rounded-xl border ${feedback.isCorrect
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700'
                             : 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700'}`}>
-                            <p className={`font-semibold ${isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
-                                {isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
+                            <p className={`font-semibold ${feedback.isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'}`}>
+                                {feedback.isCorrect ? '✓ Bonne réponse !' : '✗ Réponse incorrecte'}
                             </p>
                         </div>
                     )}
 
-                    {/* Action buttons */}
                     <div className="flex justify-center gap-4">
                         {!showFeedback ? (
                             <button
                                 onClick={handleValidateAnswer}
-                                disabled={!canProceed}
-                                className={`px-8 py-3 rounded-lg font-medium transition-all ${canProceed
+                                disabled={!canProceed || isValidating}
+                                className={`px-8 py-3 rounded-lg font-medium transition-all ${canProceed && !isValidating
                                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                                     : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'}`}>
-                                Valider ma réponse
+                                {isValidating ? 'Vérification...' : 'Valider ma réponse'}
                             </button>
                         ) : (
                             <button
@@ -707,7 +646,6 @@ export default function QuizPage() {
 
                 </div>
             </main>
-
         </div>
     );
 }

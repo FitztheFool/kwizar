@@ -40,13 +40,27 @@ export function useQuizResult() {
     const [isHost, setIsHost] = useState(false);
     const lobbyCodeFromUrl = searchParams.get('lobby');
 
-    const [payload] = useState<ResultPayload | null>(() => {
+    const [payload, setPayload] = useState<ResultPayload | null>(() => {
         if (typeof window === 'undefined') return null;
         try {
             const raw = sessionStorage.getItem(`quiz_result_${quizId}`);
             return raw ? JSON.parse(raw) : null;
         } catch { return null; }
     });
+
+    // Ajouter ce useEffect (indépendant du lobbyCode)
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail?.quizId !== quizId) return;
+            try {
+                const raw = sessionStorage.getItem(`quiz_result_${quizId}`);
+                if (raw) setPayload(JSON.parse(raw));
+            } catch { }
+        };
+        window.addEventListener('quiz:result:ready', handler);
+        return () => window.removeEventListener('quiz:result:ready', handler);
+    }, [quizId]);
 
     const [timeMode] = useState<string | null>(() => {
         if (typeof window === 'undefined') return null;
@@ -78,7 +92,7 @@ export function useQuizResult() {
     timeModeRef.current = timeMode;
     timePerQuestionRef.current = timePerQuestion;
 
-    const socket = useMemo(() => lobbyCode ? getQuizSocket() : null, [lobbyCode]);
+    const socket = useMemo(() => getQuizSocket(), []);
 
     const startCountdown = (initialSeconds: number) => {
         if (countdownRef.current) clearInterval(countdownRef.current);

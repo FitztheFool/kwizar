@@ -26,6 +26,8 @@ interface LeaderboardConfig {
     higherIsBetter: boolean;
     scoreLabel: string;
     description: string;
+    rules?: string;
+    score?: string;
 }
 
 interface PaginationData {
@@ -131,14 +133,26 @@ export default function LeaderboardView({ game }: Props) {
                     </div>
                 </div>
 
-                {/* Description */}
-                <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-                        📊 Calcul des points
-                    </p>
-                    <p className="text-sm text-gray-700 dark:text-gray-200">
-                        {config?.description ?? GAME_CONFIG[game].description}
-                    </p>
+                {/* Description / Rules / Score */}
+                <div className="mb-6 space-y-2">
+                    {(config?.description ?? GAME_CONFIG[game].description) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">🎮 Description</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.description ?? GAME_CONFIG[game].description }} />
+                        </div>
+                    )}
+                    {(config?.rules ?? GAME_CONFIG[game].rules) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">📖 Règles</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.rules ?? GAME_CONFIG[game].rules }} />
+                        </div>
+                    )}
+                    {(config?.score ?? GAME_CONFIG[game].score) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">📊 Calcul des points</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.score ?? GAME_CONFIG[game].score }} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Ma position */}

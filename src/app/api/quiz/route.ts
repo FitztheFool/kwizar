@@ -81,6 +81,12 @@ export async function POST(request: NextRequest) {
     }
     const { title, description, isPublic, randomizeQuestions, categoryId, questions, creatorRole } = body;
 
+    // Vérifier que l'utilisateur existe en base
+    const userExists = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
+    if (!userExists) {
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
+    }
+
     // Si creatorRole === 'RANDOM', on utilise l'utilisateur système RANDOM
     let creatorId = session.user.id;
     if (creatorRole === 'RANDOM') {

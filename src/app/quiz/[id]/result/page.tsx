@@ -3,6 +3,7 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 import Link from 'next/link';
+import { notFound as nextNotFound } from 'next/navigation';
 import { useRef, useEffect, useMemo } from 'react';
 import QuizResults from '@/components/Quiz/QuizResults';
 import { useRouter } from 'next/navigation';
@@ -48,22 +49,7 @@ export default function QuizResultPage() {
 
     if (authStatus === 'loading') return <LoadingSpinner message="Chargement des résultats..." />;
 
-    if (notFound || !payload) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 text-center max-w-md mx-4">
-                    <div className="text-6xl mb-4">🔍</div>
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Résultats introuvables</h2>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                        Les résultats ont expiré ou n&apos;existent pas. Faites le quiz pour voir vos résultats.
-                    </p>
-                    <Link href={`/quiz/${quizId}`} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block">
-                        Faire le quiz
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    if (notFound || !payload) nextNotFound();
 
     if (mode === 'waiting') {
         return (

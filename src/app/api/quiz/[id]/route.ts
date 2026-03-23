@@ -1,5 +1,4 @@
 // src/app/api/quiz/[id]/route.ts
-// app/api/quiz/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -13,8 +12,12 @@ export async function GET(
   try {
     const { id: quizId } = await params;
 
-    // Session optionnelle — nécessaire uniquement pour les quiz privés
     const session = await getServerSession(authOptions);
+
+    // Bypass pour les appels serveur-à-serveur (quiz-server)
+    const authHeader = request.headers.get('authorization');
+    const internalKey = process.env.INTERNAL_API_KEY;
+    const isInternalRequest = !!(internalKey && authHeader === `Bearer ${internalKey}`);
 
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
@@ -33,7 +36,7 @@ export async function GET(
               select: {
                 id: true,
                 content: true,
-                isCorrect: true,
+                isCorrect: true, // toujours récupéré en BDD, mais filtré selon le contexte
               },
             },
           },
@@ -42,28 +45,16 @@ export async function GET(
           },
         },
         attempts: {
-          select: {
-            score: true,
-          },
-          orderBy: {
-            score: 'desc',
-          },
+          select: { score: true },
+          orderBy: { score: 'desc' },
           take: 1,
         },
       },
     });
 
     if (!quiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
-
-    // Bypass pour les appels serveur-à-serveur (quiz-server)
-    const authHeader = request.headers.get('authorization');
-    const internalKey = process.env.INTERNAL_API_KEY;
-    const isInternalRequest = internalKey && authHeader === `Bearer ${internalKey}`;
 
     // Quiz privé : seul le créateur peut y accéder (ou appel interne)
     if (!quiz.isPublic && quiz.creatorId !== session?.user?.id && !isInternalRequest) {
@@ -72,6 +63,12 @@ export async function GET(
         { status: 403 }
       );
     }
+
+    // isCorrect n'est exposé qu'aux appels internes (quiz-server)
+    // Les clients ne reçoivent jamais les bonnes réponses
+    const isOwner = session?.user?.id === quiz.creatorId;
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const revealAnswers = isInternalRequest || isOwner || isAdmin;
 
     const formattedQuiz = {
       id: quiz.id,
@@ -87,14 +84,17 @@ export async function GET(
       },
       questions: quiz.questions.map((q) => {
         if (q.type === 'TEXT') {
-          const correctAnswer = q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content;
           return {
             id: q.id,
             text: q.content,
             type: q.type,
             points: q.points,
             strictOrder: false,
-            answers: [{ id: q.answers[0]?.id, text: correctAnswer, isCorrect: true }],
+            // Le client reçoit juste un champ vide pour pouvoir afficher N champs
+            // La correction se fait côté serveur (quiz-server)
+            answers: revealAnswers
+              ? [{ id: q.answers[0]?.id, text: q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content, isCorrect: true }]
+              : [{ id: q.answers[0]?.id }],
           };
         }
 
@@ -106,14 +106,14 @@ export async function GET(
             type: q.type,
             points: q.points,
             strictOrder: (q as any).strictOrder ?? false,
-            answers: correctAnswers.map((a) => ({
-              id: a.id,
-              text: a.content,
-              isCorrect: true,
-            })),
+            // Le client reçoit uniquement le nombre de champs attendus (pour afficher N inputs)
+            answers: revealAnswers
+              ? correctAnswers.map((a) => ({ id: a.id, text: a.content, isCorrect: true }))
+              : correctAnswers.map((a) => ({ id: a.id })),
           };
         }
 
+        // TRUE_FALSE / MCQ : le client reçoit les options mais pas isCorrect
         return {
           id: q.id,
           text: q.content,
@@ -123,7 +123,7 @@ export async function GET(
           answers: q.answers.map((a) => ({
             id: a.id,
             text: a.content,
-            isCorrect: a.isCorrect,
+            ...(revealAnswers ? { isCorrect: a.isCorrect } : {}),
           })),
         };
       }),
@@ -133,10 +133,7 @@ export async function GET(
     return NextResponse.json(formattedQuiz, { status: 200 });
   } catch (error) {
     console.error('Erreur lors de la récupération du quiz:', error);
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 

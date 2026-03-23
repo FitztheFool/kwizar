@@ -81,11 +81,11 @@ export function getJustOneSocket(): Socket | null {
     return justOneSocket;
 }
 
-export function getImpostorSocket(): Socket | null {
+export function getBattleshipSocket(): Socket | null {
     if (typeof window === "undefined") return null;
-    if (!impostorSocket) impostorSocket = createSocket(process.env.NEXT_PUBLIC_IMPOSTOR_SERVER_URL ?? "http://localhost:10010", "Impostor Socket");
-    if (!impostorSocket.connected) impostorSocket.connect();
-    return impostorSocket;
+    if (!battleshipSocket) battleshipSocket = createSocket(process.env.NEXT_PUBLIC_BATTLESHIP_SERVER_URL ?? "http://localhost:10008", "Battleship Socket");
+    if (!battleshipSocket.connected) battleshipSocket.connect();
+    return battleshipSocket;
 }
 
 export function getDiamantSocket(): Socket | null {
@@ -95,9 +95,9 @@ export function getDiamantSocket(): Socket | null {
     return diamantSocket;
 }
 
-export function getBattleshipSocket(): Socket | null {
+export function getImpostorSocket(): Socket | null {
     if (typeof window === "undefined") return null;
-    if (!battleshipSocket) battleshipSocket = createSocket(process.env.NEXT_PUBLIC_BATTLESHIP_SERVER_URL ?? "http://localhost:10008", "Battleship Socket");
-    if (!battleshipSocket.connected) battleshipSocket.connect();
-    return battleshipSocket;
+    if (!impostorSocket) impostorSocket = createSocket(process.env.NEXT_PUBLIC_IMPOSTOR_SERVER_URL ?? "http://localhost:10010", "Impostor Socket");
+    if (!impostorSocket.connected) impostorSocket.connect();
+    return impostorSocket;
 }

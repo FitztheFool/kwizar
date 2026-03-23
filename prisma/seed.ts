@@ -56,7 +56,7 @@ async function main() {
     const randomUser = await prisma.user.upsert({
         where: { email: 'random@quiz.app' },
         update: {},
-        create: { email: 'random@quiz.app', username: 'Aléatoire', role: 'RANDOM', passwordHash: defaultPasswordHash },
+        create: { email: 'random@quiz.app', username: 'Bot🤖', role: 'RANDOM', passwordHash: defaultPasswordHash },
     });
 
     const user = await prisma.user.upsert({
