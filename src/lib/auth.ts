@@ -94,6 +94,7 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
+            if (account?.provider === 'oauth-completion') return true;
             if (account?.provider !== 'credentials') {
                 const dbUser = await prisma.user.findUnique({
                     where: { id: user.id },
@@ -111,11 +112,12 @@ export const authOptions: NextAuthOptions = {
                     });
                     if (usernameConflict) {
                         const base = user.name;
+                        const stem = base.replace(/[_]+$/, '');
                         const suggestions: string[] = [];
                         const candidates = [
-                            `${base}_${Math.floor(Math.random() * 900 + 100)}`,
-                            `${base}${Math.floor(Math.random() * 900 + 100)}`,
-                            `${base}_${Math.floor(Math.random() * 900 + 100)}`,
+                            `${stem}_${Math.floor(Math.random() * 900 + 100)}`,
+                            `${stem}${Math.floor(Math.random() * 900 + 100)}`,
+                            `${stem}_${Math.floor(Math.random() * 900 + 100)}`,
                         ];
                         for (const c of candidates) {
                             const taken = await prisma.user.findFirst({ where: { username: c }, select: { id: true } });
