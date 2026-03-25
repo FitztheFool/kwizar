@@ -70,12 +70,25 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
-            // OAuth : réactiver si compte désactivé
             if (account?.provider !== 'credentials') {
                 const dbUser = await prisma.user.findUnique({
                     where: { id: user.id },
-                    select: { deactivatedAt: true },
+                    select: { deactivatedAt: true, passwordHash: true },
                 });
+                // Bloquer si le compte résolu (via email) est un compte credentials
+                if (dbUser?.passwordHash) {
+                    return '/login?error=OAuthAccountConflict';
+                }
+                // Bloquer si le pseudo Discord correspond à un username credentials existant
+                if (user.name) {
+                    const usernameConflict = await prisma.user.findFirst({
+                        where: { username: user.name, passwordHash: { not: null }, NOT: { id: user.id } },
+                        select: { id: true },
+                    });
+                    if (usernameConflict) {
+                        return '/login?error=OAuthAccountConflict';
+                    }
+                }
                 if (dbUser?.deactivatedAt) {
                     await prisma.user.update({
                         where: { id: user.id },
@@ -116,11 +129,11 @@ export const authOptions: NextAuthOptions = {
     },
     events: {
         createUser: async ({ user }) => {
-            const username = user.name || `user_${user.id.slice(-8)}`;
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { username },
-            });
+            const base = user.name || `user_${user.id.slice(-8)}`;
+            let username = base;
+            const taken = await prisma.user.findFirst({ where: { username: base, NOT: { id: user.id } } });
+            if (taken) username = `user_${user.id.slice(-8)}`;
+            await prisma.user.update({ where: { id: user.id }, data: { username } });
         },
         signIn: async ({ user, account }) => {
             await prisma.user.update({

@@ -18,7 +18,11 @@ function LoginForm() {
 
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [error, setError] = useState(() => {
+        const e = searchParams.get('error');
+        if (e === 'OAuthAccountConflict') return 'Un compte existe déjà avec cet email ou ce pseudo. Connectez-vous avec votre mot de passe.';
+        return '';
+    });
     const [loading, setLoading] = useState(false);
 
     // ✅ si déjà connecté -> va sur callbackUrl, pas /dashboard
