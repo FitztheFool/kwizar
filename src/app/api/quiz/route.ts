@@ -81,6 +81,10 @@ export async function POST(request: NextRequest) {
     }
     const { title, description, isPublic, randomizeQuestions, categoryId, questions, creatorRole } = body;
 
+    if (!categoryId) {
+      return NextResponse.json({ error: 'La catégorie est obligatoire.' }, { status: 400 });
+    }
+
     // Vérifier que l'utilisateur existe en base
     const userExists = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
     if (!userExists) {
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
         description: description || '',
         isPublic: isPublic ?? true,
         randomizeQuestions: randomizeQuestions ?? false,
-        categoryId: categoryId || null,
+        categoryId,
         creatorId,
         questions: {
           create: questions.map((q: any) => ({

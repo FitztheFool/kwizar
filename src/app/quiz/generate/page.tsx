@@ -29,6 +29,8 @@ export default function GenerateQuizPage() {
     const [loadingMode, setLoadingMode] = useState<'play' | 'edit' | null>(null);
     const loading = loadingMode !== null;
     const [error, setError] = useState<string | null>(null);
+    const [subjectError, setSubjectError] = useState('');
+    const [categoryError, setCategoryError] = useState('');
     const [generatedData, setGeneratedData] = useState<any | null>(null);
 
     const isLoadingRef = useRef(false);
@@ -58,7 +60,13 @@ export default function GenerateQuizPage() {
     };
 
     async function handleGenerate(mode: 'play' | 'edit') {
-        if (isLoadingRef.current || !subject.trim()) return;
+        if (isLoadingRef.current) return;
+
+        const noSubject = !subject.trim();
+        const noCategory = !categoryId && mode === 'play';
+        setSubjectError(noSubject ? 'Il faut choisir un thème.' : '');
+        setCategoryError(noCategory ? 'Il faut choisir une catégorie.' : '');
+        if (noSubject || noCategory) return;
 
         setLoadingState(mode);
         setError(null);
@@ -97,7 +105,7 @@ export default function GenerateQuizPage() {
                     description: data.description || '',
                     isPublic: true,
                     randomizeQuestions: true,
-                    categoryId: categoryId || null,
+                    categoryId,
                     creatorRole: 'RANDOM',
                     questions: data.questions.map((q: any) => ({
                         text: q.text,
@@ -134,8 +142,6 @@ export default function GenerateQuizPage() {
         );
     }
 
-    const isDisabled = loading || !subject.trim();
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-md">
@@ -151,15 +157,18 @@ export default function GenerateQuizPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sujet du quiz</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Sujet du quiz <span className="text-red-500">*</span>
+                        </label>
                         <input
                             value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
+                            onChange={(e) => { setSubject(e.target.value); if (e.target.value.trim()) setSubjectError(''); }}
                             onKeyDown={(e) => e.key === 'Enter' && handleGenerate('play')}
                             placeholder="Ex: La Révolution française, JavaScript, Anatomie..."
-                            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full border rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${subjectError ? 'border-red-400 dark:border-red-500 focus:border-red-400' : 'border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-blue-400'}`}
                             disabled={loading}
                         />
+                        {subjectError && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{subjectError}</p>}
                     </div>
 
                     <div>
@@ -203,25 +212,26 @@ export default function GenerateQuizPage() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Catégorie <span className="text-gray-400 dark:text-gray-500 font-normal">(facultatif)</span>
+                            Catégorie <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={categoryId}
-                            onChange={(e) => setCategoryId(e.target.value)}
+                            onChange={(e) => { setCategoryId(e.target.value); if (e.target.value) setCategoryError(''); }}
                             disabled={loading}
-                            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-600 dark:focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <option value="">Aucune catégorie</option>
+                            className={`w-full border rounded-lg p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${categoryError ? 'border-red-400 dark:border-red-500 focus:border-red-400' : 'border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-blue-400'}`}>
+                            <option value="">Sélectionner une catégorie</option>
                             {categories.map((c) => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
                             ))}
                         </select>
+                        {categoryError && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{categoryError}</p>}
                     </div>
 
                     <div className="flex flex-col gap-3 pt-1">
                         <button
                             onClick={() => handleGenerate('play')}
-                            disabled={isDisabled}
-                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${isDisabled
+                            disabled={loading}
+                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${loading
                                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                 : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
                                 }`}
@@ -238,8 +248,8 @@ export default function GenerateQuizPage() {
                         </p>
                         <button
                             onClick={() => handleGenerate('edit')}
-                            disabled={isDisabled}
-                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${isDisabled
+                            disabled={loading}
+                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${loading
                                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                                 : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
                                 }`}

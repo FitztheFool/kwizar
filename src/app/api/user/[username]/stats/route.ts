@@ -8,6 +8,7 @@ export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
+  try {
     const { username } = await params;
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
@@ -24,10 +25,10 @@ export async function GET(
         return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const gameStats: Record<string, { count: number; points: number; wins: number; rounds: number }> = {};
+    const gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number }> = {};
     for (const key of Object.keys(GAME_CONFIG)) {
         const type = GAME_CONFIG[key as keyof typeof GAME_CONFIG].gameType;
-        gameStats[type] = { count: 0, points: 0, wins: 0, rounds: 0 };
+        gameStats[type] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
     }
 
     // Points + rounds par gameType
@@ -36,7 +37,7 @@ export async function GET(
         prisma.attempt.groupBy({
             by: ['gameType'],
             where: { userId: user.id },
-            _sum: { score: true },
+            _sum: { score: true, correctAnswers: true, totalAnswers: true },
         }),
         prisma.$queryRaw<{ total_rounds: number }[]>`
             SELECT SUM(rounds)::int as total_rounds
@@ -57,13 +58,15 @@ export async function GET(
     const tabooRounds = tabooRoundsResult[0]?.total_rounds ?? 0;
 
     for (const row of attemptSumsByType) {
-        if (!gameStats[row.gameType]) gameStats[row.gameType] = { count: 0, points: 0, wins: 0, rounds: 0 };
+        if (!gameStats[row.gameType]) gameStats[row.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
         gameStats[row.gameType].points = row._sum.score ?? 0;
         gameStats[row.gameType].rounds = row.gameType === 'TABOO' ? tabooRounds : 0;
+        gameStats[row.gameType].correctAnswers = row._sum.correctAnswers ?? 0;
+        gameStats[row.gameType].totalAnswers = row._sum.totalAnswers ?? 0;
     }
 
     for (const g of distinctGamesByType) {
-        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, wins: 0, rounds: 0 };
+        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
         gameStats[g.gameType].count++;
         if (g.placement === 1) gameStats[g.gameType].wins++;
     }
@@ -144,4 +147,8 @@ export async function GET(
         recentActivity,
         pagination: { page, pageSize, totalGames, totalPages },
     });
+  } catch (err) {
+    console.error('[stats] error:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }

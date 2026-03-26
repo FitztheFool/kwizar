@@ -11,6 +11,8 @@ interface ScoreEntry {
     placement?: number | null;
     trapScore?: number;
     rounds?: number;
+    correctAnswers?: number;
+    totalAnswers?: number;
 }
 
 interface AttemptPayload {
@@ -57,6 +59,8 @@ export async function POST(req: NextRequest) {
                         placement: s.placement ?? null,
                         trapScore: s.trapScore ?? 0,
                         rounds: s.rounds ?? 0,
+                        correctAnswers: s.correctAnswers ?? 0,
+                        totalAnswers: s.totalAnswers ?? 0,
                     },
                     create: {
                         userId: s.userId,
@@ -67,6 +71,8 @@ export async function POST(req: NextRequest) {
                         placement: s.placement ?? null,
                         trapScore: s.trapScore ?? 0,
                         rounds: s.rounds ?? 0,
+                        correctAnswers: s.correctAnswers ?? 0,
+                        totalAnswers: s.totalAnswers ?? 0,
                     },
                 })
             )

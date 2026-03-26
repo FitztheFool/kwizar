@@ -406,7 +406,7 @@ export default function QuizForm({
         description: form.description,
         isPublic: form.isPublic,
         randomizeQuestions: form.randomizeQuestions,
-        categoryId: form.categoryId || null,
+        categoryId: form.categoryId,
         questions: form.questions.map((q) => ({
           id: q.id,
           text: q.text,
