@@ -13,6 +13,8 @@ interface ScoreEntry {
     rounds?: number;
     correctAnswers?: number;
     totalAnswers?: number;
+    abandon?: boolean;
+    afk?: boolean;
 }
 
 interface AttemptPayload {
@@ -61,6 +63,8 @@ export async function POST(req: NextRequest) {
                         rounds: s.rounds ?? 0,
                         correctAnswers: s.correctAnswers ?? 0,
                         totalAnswers: s.totalAnswers ?? 0,
+                        abandon: s.abandon ?? false,
+                        afk: s.afk ?? false,
                     },
                     create: {
                         userId: s.userId,
@@ -73,6 +77,8 @@ export async function POST(req: NextRequest) {
                         rounds: s.rounds ?? 0,
                         correctAnswers: s.correctAnswers ?? 0,
                         totalAnswers: s.totalAnswers ?? 0,
+                        abandon: s.abandon ?? false,
+                        afk: s.afk ?? false,
                     },
                 })
             )

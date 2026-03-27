@@ -293,7 +293,17 @@ export default function TabooGamePage() {
                 <style>{FONTS}</style>
                 <TopBar
                     centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={<span className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Phase pièges</span>}
+                    rightSlot={
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Phase pièges</span>
+                            <button
+                                onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
+                                className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                            >
+                                🏳️ Abandonner
+                            </button>
+                        </div>
+                    }
                 />
                 <div className="flex-1 overflow-auto flex items-center justify-center p-4">
                     <TrapPhase
@@ -338,7 +348,17 @@ export default function TabooGamePage() {
                 <style>{FONTS}</style>
                 <TopBar
                     centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={<span>Round {game.round}/{game.totalRounds}</span>}
+                    rightSlot={
+                        <div className="flex items-center gap-2">
+                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <button
+                                onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
+                                className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                            >
+                                🏳️ Abandonner
+                            </button>
+                        </div>
+                    }
                 />
                 <div className="flex-1 overflow-auto flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
@@ -405,7 +425,17 @@ export default function TabooGamePage() {
                 <style>{FONTS}</style>
                 <TopBar
                     centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={<span>Round {game.round}/{game.totalRounds}</span>}
+                    rightSlot={
+                        <div className="flex items-center gap-2">
+                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <button
+                                onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
+                                className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                            >
+                                🏳️ Abandonner
+                            </button>
+                        </div>
+                    }
                 />
                 <div className="flex-1 overflow-auto flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
@@ -529,10 +559,18 @@ export default function TabooGamePage() {
             <TopBar
                 centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                 rightSlot={
-                    <span className="text-right leading-tight">
-                        <span>Round {game.round}/{game.totalRounds}</span>
-                        <span className="text-gray-400 dark:text-gray-500"> · 🎤 {currentOratorUsername}</span>
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-right leading-tight">
+                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <span className="text-gray-400 dark:text-gray-500"> · 🎤 {currentOratorUsername}</span>
+                        </span>
+                        <button
+                            onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
+                            className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                            🏳️ Abandonner
+                        </button>
+                    </div>
                 }
             />
 

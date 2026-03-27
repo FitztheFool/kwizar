@@ -183,6 +183,8 @@ model Attempt {
   gameType   GameType @default(QUIZ)
   gameId     String
   placement  Int?
+  abandon    Boolean  @default(false)  // joueur a abandonné volontairement
+  afk        Boolean  @default(false)  // joueur exclu pour inactivité
   createdAt  DateTime @default(now())
 
   userId String

@@ -36,6 +36,8 @@ type FinalScore = {
     score: number;
     rank: number;
     kicked: boolean;
+    abandon?: boolean;
+    afk?: boolean;
     team: 0 | 1 | null;
 };
 
@@ -432,10 +434,18 @@ export default function UnoPage() {
                     )}
                 </div>
 
-                {/* Right slot — color dot + direction */}
+                {/* Right slot — color dot + direction + abandon */}
                 <div className="w-48 shrink-0 flex justify-end items-center gap-2">
                     <span className={`w-5 h-5 rounded-full ${COLOR_MAP[gameState.currentColor]} border-2 border-white dark:border-gray-800 shadow`} />
                     <span className="text-gray-500 dark:text-gray-400 text-lg">{gameState.direction === 1 ? '↻' : '↺'}</span>
+                    {!gameState.spectator && (
+                        <button
+                            onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('uno:surrender'); }}
+                            className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                            🏳️ Abandonner
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -556,7 +566,8 @@ export default function UnoPage() {
                                 <div className="flex items-center gap-1.5">
                                     <span className="font-semibold text-gray-900 dark:text-white">{s.username}</span>
                                     {s.userId === me.userId && !gameState.spectator && <span className="text-gray-400 dark:text-gray-500 text-xs">(moi)</span>}
-                                    {s.kicked && <span className="text-xs bg-red-500/30 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded">AFK</span>}
+                                    {s.abandon && <span className="text-xs bg-orange-500/30 text-orange-500 dark:text-orange-400 px-1.5 py-0.5 rounded">Abandon</span>}
+                                    {!s.abandon && s.afk && <span className="text-xs bg-red-500/30 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded">AFK</span>}
                                 </div>
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
                                     {s.cardsLeft === 0 ? '0 carte restante' : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}

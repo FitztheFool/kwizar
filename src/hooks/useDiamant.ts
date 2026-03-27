@@ -292,5 +292,9 @@ export function useDiamant({
         setState((prev) => ({ ...prev, error: null }));
     }, []);
 
-    return { state, decide, clearError, gameNotFound };
+    const surrender = useCallback(() => {
+        socketRef.current?.emit('diamant:surrender');
+    }, []);
+
+    return { state, decide, clearError, gameNotFound, surrender };
 }

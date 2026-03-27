@@ -100,7 +100,7 @@ export async function GET(
         orderBy: { createdAt: 'desc' },
     });
 
-    const playersByGame = new Map<string, { username: string; score: number; placement: number | null }[]>();
+    const playersByGame = new Map<string, { username: string; score: number; placement: number | null; abandon: boolean; afk: boolean }[]>();
     for (const a of allPlayersInGames) {
         if (!playersByGame.has(a.gameId)) playersByGame.set(a.gameId, []);
         const existing = playersByGame.get(a.gameId)!;
@@ -110,6 +110,8 @@ export async function GET(
                 username: a.user.username ?? 'Inconnu',
                 score: a.score,
                 placement: a.placement,
+                abandon: a.abandon,
+                afk: a.afk,
             });
         }
     }
@@ -131,6 +133,8 @@ export async function GET(
             quiz: first.quiz ? { id: first.quiz.id, title: first.quiz.title } : null,
             score: myEntry?.score ?? first.score,
             placement: myEntry?.placement ?? first.placement,
+            abandon: myEntry?.abandon ?? first.abandon,
+            afk: myEntry?.afk ?? first.afk,
             players: (playersByGame.get(gameId) ?? []).sort((a, b) => {
                 if (a.placement != null && b.placement != null) return a.placement - b.placement;
                 if (a.placement != null) return -1;

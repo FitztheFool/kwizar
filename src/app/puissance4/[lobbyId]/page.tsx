@@ -51,37 +51,7 @@ const PLAYER_COLORS: Record<0 | 1, { ring: string; bg: string; text: string; glo
 
 // ─── Composant timer ─────────────────────────────────────────────────────────
 
-function TurnTimer({ turnStartedAt, turnDuration, active }: { turnStartedAt: number | null; turnDuration: number; active: boolean }) {
-    const [remaining, setRemaining] = useState(turnDuration);
-
-    useEffect(() => {
-        if (!active || !turnStartedAt) { setRemaining(turnDuration); return; }
-        const tick = () => {
-            const elapsed = (Date.now() - turnStartedAt) / 1000;
-            setRemaining(Math.max(0, turnDuration - elapsed));
-        };
-        tick();
-        const id = setInterval(tick, 200);
-        return () => clearInterval(id);
-    }, [active, turnStartedAt, turnDuration]);
-
-    const pct = (remaining / turnDuration) * 100;
-    const urgent = remaining <= 10;
-
-    return (
-        <div className="flex items-center gap-3 w-full max-w-xs mx-auto">
-            <span className={`text-2xl font-black tabular-nums w-12 text-right transition-colors ${urgent ? 'text-red-400 animate-pulse' : 'text-gray-700 dark:text-gray-300'}`}>
-                {Math.ceil(remaining)}s
-            </span>
-            <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                    className={`h-full rounded-full transition-all duration-200 ${urgent ? 'bg-red-400' : 'bg-white/60'}`}
-                    style={{ width: `${pct}%` }}
-                />
-            </div>
-        </div>
-    );
-}
+import TurnTimer from '@/components/TurnTimer';
 
 // ─── Composant cellule ────────────────────────────────────────────────────────
 
@@ -227,13 +197,21 @@ export default function Puissance4Page() {
                         )}
                     </div>
 
-                    {/* Right: scores */}
+                    {/* Right: scores + abandon */}
                     <div className="w-48 shrink-0 flex justify-end items-center gap-2 text-sm font-medium">
                         {players.length === 2 && gameState ? (
                             <span>
                                 {PLAYER_COLORS[0].emoji} {gameState.scores[0]} — {PLAYER_COLORS[1].emoji} {gameState.scores[1]}
                             </span>
                         ) : null}
+                        {gameState?.status === 'playing' && (
+                            <button
+                                onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('p4:surrender'); }}
+                                className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                            >
+                                🏳️ Abandonner
+                            </button>
+                        )}
                     </div>
                 </header>
 
@@ -247,11 +225,12 @@ export default function Puissance4Page() {
                                 ? <span className="font-bold text-gray-900 dark:text-white animate-pulse">🎯 C'est votre tour !</span>
                                 : <span>⏳ Tour de <strong className="text-gray-900 dark:text-white">{players.find(p => p.colorIndex === gameState.currentTurn)?.username}</strong>…</span>
                             }
-                            <TurnTimer
-                                turnStartedAt={gameState.turnStartedAt}
-                                turnDuration={gameState.turnDuration}
-                                active={gameState.status === 'playing'}
-                            />
+                            {gameState.status === 'playing' && gameState.turnStartedAt && (
+                                <TurnTimer
+                                    endsAt={gameState.turnStartedAt + gameState.turnDuration * 1000}
+                                    duration={gameState.turnDuration}
+                                />
+                            )}
                         </div>
                     )}
 

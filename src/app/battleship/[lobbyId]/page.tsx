@@ -14,38 +14,8 @@ import GameOverModal from '@/components/GameOverModal';
 
 // ── Turn timer bar ────────────────────────────────────────────────────────────
 
-function TurnTimerBar({ endsAt, duration }: { endsAt: number; duration: number }) {
-    const [pct, setPct] = useState(100);
-    const [timeLeft, setTimeLeft] = useState(duration);
-
-    useEffect(() => {
-        const tick = () => {
-            const remaining = Math.max(0, endsAt - Date.now());
-            setPct((remaining / (duration * 1000)) * 100);
-            setTimeLeft(Math.ceil(remaining / 1000));
-        };
-        tick();
-        const id = setInterval(tick, 200);
-        return () => clearInterval(id);
-    }, [endsAt, duration]);
-
-    const color = pct > 50 ? 'bg-green-500' : pct > 25 ? 'bg-yellow-500' : 'bg-red-500';
-
-    return (
-        <div className="w-full space-y-1">
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>Temps restant</span>
-                <span className={`font-mono font-bold ${timeLeft <= 5 ? 'text-red-500 dark:text-red-400 animate-pulse' : 'text-gray-500 dark:text-gray-400'}`}>{timeLeft}s</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                    className={`h-full rounded-full transition-all duration-200 ${color}`}
-                    style={{ width: `${pct}%` }}
-                />
-            </div>
-        </div>
-    );
-}
+import TurnTimer from '@/components/TurnTimer';
+const TurnTimerBar = ({ endsAt, duration }: { endsAt: number; duration: number }) => <TurnTimer endsAt={endsAt} duration={duration} label="Temps restant" />;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 

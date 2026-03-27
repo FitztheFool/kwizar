@@ -1,6 +1,7 @@
 // src/app/skyjow/[lobbyId]/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import TurnTimer from '@/components/TurnTimer';
 import GameOverModal from '@/components/GameOverModal';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -162,9 +163,8 @@ export default function skyjowGamePage() {
     const [readyCount, setReadyCount] = useState(0);
     const [flip2Count, setFlip2Count] = useState(0);
 
-    const [inactivitySeconds, setInactivitySeconds] = useState<number | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
     const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
-    const inactivityIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const userId = session?.user?.id ?? '';
     const username = session?.user?.username ?? session?.user?.email ?? 'User';
@@ -231,12 +231,8 @@ export default function skyjowGamePage() {
         });
 
         sock.on('skyjow:turn', ({ currentUserId }: { currentPlayerIndex: number; currentUserId: string }) => {
-            setInactivitySeconds(null);
+            setInactivityEndsAt(null);
             setInactivityUserId(null);
-            if (inactivityIntervalRef.current) {
-                clearInterval(inactivityIntervalRef.current);
-                inactivityIntervalRef.current = null;
-            }
             if (currentUserId === userId) notify('🎯 C\'est ton tour !');
         });
 
@@ -267,27 +263,13 @@ export default function skyjowGamePage() {
         });
 
         sock.on('skyjow:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; secondsLeft: number }) => {
-            if (inactivityIntervalRef.current) clearInterval(inactivityIntervalRef.current);
             setInactivityUserId(uid);
-            setInactivitySeconds(secondsLeft);
-            let remaining = secondsLeft;
-            inactivityIntervalRef.current = setInterval(() => {
-                remaining -= 1;
-                setInactivitySeconds(remaining <= 0 ? 0 : remaining);
-                if (remaining <= 0) {
-                    clearInterval(inactivityIntervalRef.current!);
-                    inactivityIntervalRef.current = null;
-                }
-            }, 1000);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
         });
 
         sock.on('skyjow:playerKicked', () => {
-            setInactivitySeconds(null);
+            setInactivityEndsAt(null);
             setInactivityUserId(null);
-            if (inactivityIntervalRef.current) {
-                clearInterval(inactivityIntervalRef.current);
-                inactivityIntervalRef.current = null;
-            }
         });
 
         sock.on('skyjow:waiting_next_round', ({ scores: s }: { scores: ScoreEntry[] }) => {
@@ -334,7 +316,6 @@ export default function skyjowGamePage() {
             sock.off('skyjow:waiting_next_round');
             sock.off('skyjow:ready_count');
             sock.off('skyjow:new_round');
-            if (inactivityIntervalRef.current) clearInterval(inactivityIntervalRef.current);
         };
     }, [lobbyId, status, userId, username, notify]);
 
@@ -499,7 +480,7 @@ export default function skyjowGamePage() {
                 <div className="flex-1" />
 
                 {/* Right */}
-                <div className="w-48 shrink-0 flex justify-end">
+                <div className="w-48 shrink-0 flex justify-end items-center gap-2">
                     <div className="hidden sm:flex gap-2">
                         {[...scores].sort((a, b) => a.totalScore - b.totalScore).map(s => (
                             <div key={s.userId}
@@ -508,6 +489,14 @@ export default function skyjowGamePage() {
                             </div>
                         ))}
                     </div>
+                    {phase !== 'ended' && phase !== 'game_end' && (
+                        <button
+                            onClick={() => { if (confirm('Abandonner la partie ?')) skyjowRef.current?.emit('skyjow:surrender'); }}
+                            className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                            🏳️ Abandonner
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -552,13 +541,11 @@ export default function skyjowGamePage() {
                     <div className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                         phase === 'flip2'
                             ? 'bg-amber-100 dark:bg-amber-900/50 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300'
-                            : inactivitySeconds !== null && inactivitySeconds <= 10
-                                ? 'bg-red-500 border-red-600 text-white animate-pulse'
-                                : inactivitySeconds !== null
-                                    ? 'bg-orange-400 border-orange-500 text-white'
-                                    : phase === 'last_round'
-                                        ? 'bg-red-100 dark:bg-red-900/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300'
-                                        : 'bg-green-100 dark:bg-emerald-900/50 border-green-400 dark:border-emerald-600 text-green-700 dark:text-emerald-300'
+                            : inactivityEndsAt !== null
+                                ? 'bg-orange-400 border-orange-500 text-white'
+                                : phase === 'last_round'
+                                    ? 'bg-red-100 dark:bg-red-900/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300'
+                                    : 'bg-green-100 dark:bg-emerald-900/50 border-green-400 dark:border-emerald-600 text-green-700 dark:text-emerald-300'
                     }`}>
                         {phase === 'flip2'
                             ? `↩ Retourne 2 cartes (${flip2Count}/2)`
@@ -566,12 +553,19 @@ export default function skyjowGamePage() {
                                 ? '⚡ Dernier tour !'
                                 : isCurrent
                                     ? isMeInactive
-                                        ? `⚠️ Joue vite ! exclusion dans ${inactivitySeconds}s`
+                                        ? '⚠️ Joue vite ! exclusion imminente'
                                         : '⭐ Ton tour'
-                                    : inactivityUserId === currentPlayerId && inactivitySeconds !== null
-                                        ? `⏰ ${players[currentPlayerIndex]?.username ?? '…'} — ${inactivitySeconds}s`
+                                    : inactivityUserId === currentPlayerId && inactivityEndsAt !== null
+                                        ? `⏰ ${players[currentPlayerIndex]?.username ?? '…'} — inactivité`
                                         : `Tour: ${players[currentPlayerIndex]?.username ?? '…'}`}
                     </div>
+
+                    {/* ── Timer inactivité ── */}
+                    {inactivityEndsAt !== null && (
+                        <div className="w-full max-w-xs mx-auto">
+                            <TurnTimer endsAt={inactivityEndsAt} duration={30} />
+                        </div>
+                    )}
 
                     {/* ── Zone de jeu centrale ── */}
                     {isPlayingPhase(phase) && (

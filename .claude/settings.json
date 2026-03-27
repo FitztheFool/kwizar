@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(done)",
+      "Read(//home/faros/**)",
+      "Bash(npm run:*)",
+      "Bash(ls -la /home/faros/dev-launcher/*/src)",
+      "Bash(grep -n \"timeLeft\\\\|timer\\\\|Timer\\\\|countdown\" /home/faros/quiz/src/app/taboo/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"timeLeft\\\\|timer\\\\|Timer\\\\|countdown\" /home/faros/quiz/src/app/skyjow/[lobbyId]/page.tsx)",
+      "Bash(grep \"^import.*TurnTimer\\\\|^import.*useState\" /home/faros/quiz/src/app/battleship/[lobbyId]/page.tsx)",
+      "Bash(grep \"^import.*TurnTimer\\\\|^import.*useState\" /home/faros/quiz/src/app/diamant/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"timerSeconds\\\\|timerMax\\\\|timerRef\\\\|startTimer\\\\|stopTimer\\\\|<Timer \" /home/faros/quiz/src/app/just-one/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"setTimer\\\\b\\\\|maxTimer\\\\|timerRef\\\\|startTimer\\\\|<Timer \" /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"inactivitySeconds\\\\|inactivityIntervalRef\\\\|TimerBadge\\\\|timeLeft\\\\|yahtzee:timer\" /home/faros/quiz/src/app/skyjow/[lobbyId]/page.tsx /home/faros/quiz/src/app/yahtzee/[lobbyId]/page.tsx)"
+    ],
+    "additionalDirectories": [
+      "/home/faros/dev-launcher/impostor-server/src",
+      "/home/faros/dev-launcher/diamant-server/src",
+      "/home/faros/dev-launcher/yahtzee-server/src",
+      "/home/faros/dev-launcher/just-one-server/src",
+      "/home/faros/dev-launcher/taboo-server/src"
+    ]
+  }
+}

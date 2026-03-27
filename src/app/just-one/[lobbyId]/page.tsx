@@ -44,23 +44,7 @@ function PlayerBadge({ name, submitted, isGuesser, isMe }: {
     );
 }
 
-function Timer({ seconds, max }: { seconds: number; max: number }) {
-    const pct = Math.min((seconds / max) * 100, 100);
-    const color = seconds > max * 0.4 ? 'from-green-500 to-emerald-500'
-        : seconds > max * 0.2 ? 'from-yellow-500 to-orange-500'
-            : 'from-red-500 to-rose-500';
-    return (
-        <div className="flex items-center gap-3">
-            <span className={`text-lg font-bold tabular-nums w-10 ${seconds <= max * 0.2 ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                {seconds}s
-            </span>
-            <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className={`h-full bg-gradient-to-r ${color} rounded-full transition-all duration-1000`}
-                    style={{ width: `${pct}%` }} />
-            </div>
-        </div>
-    );
-}
+import TurnTimer from '@/components/TurnTimer';
 
 function ScoreBadge({ score }: { score: number }) {
     return (
@@ -82,7 +66,6 @@ export default function JustOnePage() {
 
     const socket = useMemo(() => getJustOneSocket(), []);
     const joinedRef = useRef(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const [players, setPlayers] = useState<Player[]>([]);
@@ -92,8 +75,8 @@ export default function JustOnePage() {
     const [card, setCard] = useState<{ words: string[] } | null>(null);
     const [score, setScore] = useState(0);
     const [round, setRound] = useState(0);
-    const [timerSeconds, setTimerSeconds] = useState(60);
-    const [timerMax, setTimerMax] = useState(60);
+    const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
+    const [timerDuration, setTimerDuration] = useState(60);
 
     const [submittedPlayers, setSubmittedPlayers] = useState<string[]>([]);
     const [myClue, setMyClue] = useState('');
@@ -122,19 +105,12 @@ export default function JustOnePage() {
     const isGuesser = guesserId === me;
 
     function startTimer(seconds: number) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        setTimerMax(seconds);
-        setTimerSeconds(seconds);
-        timerRef.current = setInterval(() => {
-            setTimerSeconds(prev => {
-                if (prev <= 1) { clearInterval(timerRef.current!); return 0; }
-                return prev - 1;
-            });
-        }, 1000);
+        setTimerDuration(seconds);
+        setTimerEndsAt(Date.now() + seconds * 1000);
     }
 
     function stopTimer() {
-        if (timerRef.current) clearInterval(timerRef.current);
+        setTimerEndsAt(null);
     }
 
     useEffect(() => {
@@ -267,7 +243,7 @@ export default function JustOnePage() {
                         <div className="text-4xl">👁️</div>
                         <p className="text-lg font-bold text-gray-900 dark:text-white">C'est ton tour de deviner !</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Choisis un numéro de 1 à 5.</p>
-                        <Timer seconds={timerSeconds} max={timerMax} />
+                        {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                         <div className="flex justify-center gap-3 flex-wrap">
                             {[1, 2, 3, 4, 5].map(i => (
                                 <button key={i}
@@ -315,7 +291,7 @@ export default function JustOnePage() {
                     <div className="text-center space-y-4">
                         <div className="text-4xl">🤫</div>
                         <p className="text-lg font-bold text-gray-900 dark:text-white">Les autres écrivent leurs indices…</p>
-                        <Timer seconds={timerSeconds} max={timerMax} />
+                        {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                         <div className="flex flex-wrap gap-2 justify-center">
                             {players.filter(p => p.id !== guesserId).map(p => (
                                 <PlayerBadge key={p.id} name={p.name}
@@ -336,7 +312,7 @@ export default function JustOnePage() {
                                 : '???'}
                         </p>
                     </div>
-                    <Timer seconds={timerSeconds} max={timerMax} />
+                    {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                     {!clueSubmitted ? (
                         <div className="space-y-3">
                             <input
@@ -419,7 +395,7 @@ export default function JustOnePage() {
                                 </div>
                             ))}
                         </div>
-                        <Timer seconds={timerSeconds} max={timerMax} />
+                        {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                         <input
                             type="text"
                             value={myGuess}
@@ -466,7 +442,7 @@ export default function JustOnePage() {
                             </div>
                         ))}
                     </div>
-                    <Timer seconds={timerSeconds} max={timerMax} />
+                    {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                 </div>
             );
         }
@@ -502,6 +478,14 @@ export default function JustOnePage() {
                         className="text-xs px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-all">
                         📜 Historique
                     </button>
+                    {roundState !== 'WAITING' && roundState !== 'END_GAME' && (
+                        <button
+                            onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('just_one:surrender'); }}
+                            className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                            🏳️ Abandonner
+                        </button>
+                    )}
                 </div>
             </header>
 

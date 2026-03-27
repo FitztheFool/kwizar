@@ -3,6 +3,7 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameOverModal from '@/components/GameOverModal';
 
+import TurnTimer from '@/components/TurnTimer';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
@@ -124,17 +125,6 @@ function Die({ value, held, onClick, rolling, disabled }: {
   );
 }
 
-function TimerBadge({ timeLeft }: { timeLeft: number }) {
-  return (
-    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold tabular-nums
-      ${timeLeft <= 10 ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
-        : timeLeft <= 30 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
-      ⏱ {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-    </div>
-  );
-}
-
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function YahtzeePage() {
   const { data: session, status } = useSession();
@@ -146,11 +136,13 @@ export default function YahtzeePage() {
   const joinedRef = useRef(false);
 
   const [game, setGame] = useState<GameState | null>(null);
-  const [results, setResults] = useState<{ userId: string; username: string; total: number }[] | null>(null);
+  const [results, setResults] = useState<{ userId: string; username: string; total: number; afk?: boolean; abandon?: boolean }[] | null>(null);
   const [rolling, setRolling] = useState(false);
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(120);
+  const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
   const [isNotFound, setIsNotFound] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: 'warning' | 'kick' }[]>([]);
+  const toastIdRef = useRef(0);
   const me = session?.user;
   const { setLobbyId } = useChat();
 
@@ -169,16 +161,34 @@ export default function YahtzeePage() {
 
     if (socket.connected) { doJoin(); } else { socket.once('connect', doJoin); }
 
+    const addToast = (message: string, type: 'warning' | 'kick') => {
+      const id = ++toastIdRef.current;
+      setToasts(prev => [...prev, { id, message, type }]);
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+    };
+
     socket.on('notFound', () => setIsNotFound(true));
-    socket.on('yahtzee:state', (state: GameState) => { setGame(state); setRolling(false); setTimeLeft(120); });
-    socket.on('yahtzee:timer', ({ remaining }: { remaining: number }) => { setTimeLeft(remaining); });
+    socket.on('yahtzee:state', (state: GameState) => { setGame(state); setRolling(false); setTimerEndsAt(Date.now() + 120 * 1000); });
     socket.on('yahtzee:ended', ({ results }: { results: { userId: string; username: string; total: number }[] }) => { setResults(results); });
+    socket.on('yahtzee:finished', ({ results }: { results: { userId: string; username: string; total: number }[] }) => { setResults(results); });
+    socket.on('yahtzee:afkWarning', ({ username, secondsLeft }: { username: string; secondsLeft: number | null }) => {
+      if (secondsLeft !== null) {
+        addToast(`⏰ ${username} va être exclu pour inactivité dans ${secondsLeft}s !`, 'warning');
+      } else {
+        addToast(`⚠️ ${username} n'a pas joué — sera exclu au prochain timeout`, 'warning');
+      }
+    });
+    socket.on('yahtzee:playerKicked', ({ username }: { username: string }) => {
+      addToast(`🚫 ${username} a été exclu pour inactivité`, 'kick');
+    });
 
     return () => {
       socket.off('notFound');
       socket.off('yahtzee:state');
-      socket.off('yahtzee:timer');
       socket.off('yahtzee:ended');
+      socket.off('yahtzee:finished');
+      socket.off('yahtzee:afkWarning');
+      socket.off('yahtzee:playerKicked');
     };
   }, [socket, lobbyId, status, me?.id]);
 
@@ -218,6 +228,8 @@ export default function YahtzeePage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
                 <span className={`font-bold ${p.userId === myId ? 'text-amber-300' : 'text-white'}`}>{p.username}{p.userId === myId && ' (moi)'}</span>
+                {p.afk && <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>}
+                {p.abandon && <span className="text-xs bg-orange-500/30 text-orange-400 px-1.5 py-0.5 rounded">Abandon</span>}
               </div>
               <span className={`font-black text-xl ${i === 0 ? 'text-amber-400' : 'text-gray-300'}`}>{p.total} pts</span>
             </div>
@@ -259,6 +271,19 @@ export default function YahtzeePage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+      {/* AFK Toasts */}
+      {toasts.length > 0 && (
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+          {toasts.map(t => (
+            <div key={t.id} className={`px-4 py-3 rounded-xl shadow-lg text-sm font-semibold border animate-fade-in
+              ${t.type === 'kick'
+                ? 'bg-red-900/90 border-red-700 text-red-100'
+                : 'bg-orange-900/90 border-orange-700 text-orange-100'}`}>
+              {t.message}
+            </div>
+          ))}
+        </div>
+      )}
       {/* Header */}
       <div className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
         {/* Left */}
@@ -276,11 +301,23 @@ export default function YahtzeePage() {
           </span>
         </div>
         {/* Right */}
-        <div className="w-48 shrink-0 flex justify-end">
-          <TimerBadge timeLeft={timeLeft} />
+        <div className="w-48 shrink-0 flex justify-end items-center gap-2">
+          {game?.phase !== 'ended' && (
+            <button
+              onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('yahtzee:surrender', { lobbyId }); }}
+              className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+            >
+              🏳️ Abandonner
+            </button>
+          )}
         </div>
       </div>
 
+      {timerEndsAt && game?.phase !== 'ended' && (
+        <div className="shrink-0 px-4 py-1 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <TurnTimer endsAt={timerEndsAt} duration={120} label="Temps restant" />
+        </div>
+      )}
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
 

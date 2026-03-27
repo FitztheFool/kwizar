@@ -30,40 +30,8 @@ const DANGER_EMOJI: Record<string, string> = {
 
 // ── Timer bar ─────────────────────────────────────────────────────────────────
 
-function TimerBar({ endsAt, duration }: { endsAt: number; duration: number }) {
-    const [pct, setPct] = useState(100);
-    const [timeLeft, setTimeLeft] = useState(duration);
-
-    useEffect(() => {
-        const tick = () => {
-            const remaining = Math.max(0, endsAt - Date.now());
-            setPct((remaining / (duration * 1000)) * 100);
-            setTimeLeft(Math.ceil(remaining / 1000));
-        };
-        tick();
-        const id = setInterval(tick, 200);
-        return () => clearInterval(id);
-    }, [endsAt, duration]);
-
-    const color = pct > 50 ? 'bg-amber-500' : pct > 25 ? 'bg-orange-500' : 'bg-red-500';
-
-    return (
-        <div className="w-full space-y-1">
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>Temps pour décider</span>
-                <span className={`font-mono font-bold ${timeLeft <= 5 ? 'text-red-500 dark:text-red-400 animate-pulse' : ''}`}>
-                    {timeLeft}s
-                </span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                    className={`h-full rounded-full transition-all duration-200 ${color}`}
-                    style={{ width: `${pct}%` }}
-                />
-            </div>
-        </div>
-    );
-}
+import TurnTimer from '@/components/TurnTimer';
+const TimerBar = ({ endsAt, duration }: { endsAt: number; duration: number }) => <TurnTimer endsAt={endsAt} duration={duration} label="Temps pour décider" />;
 
 // ── Card component ────────────────────────────────────────────────────────────
 
@@ -199,7 +167,7 @@ export default function DiamantPage() {
         return () => setLobbyId(null);
     }, [lobbyId, setLobbyId]);
 
-    const { state, decide, clearError, gameNotFound } = useDiamant({
+    const { state, decide, clearError, gameNotFound, surrender } = useDiamant({
         lobbyId,
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
@@ -244,8 +212,8 @@ export default function DiamantPage() {
                     </span>
                 </div>
 
-                {/* Right slot — my safe score */}
-                <div className="w-48 shrink-0 flex justify-end">
+                {/* Right slot — my safe score + abandon */}
+                <div className="w-48 shrink-0 flex justify-end items-center gap-2">
                     {me && (
                         <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5">
                             <span className="text-xs text-gray-500 dark:text-gray-400">Coffre</span>
@@ -254,6 +222,14 @@ export default function DiamantPage() {
                             </span>
                             <span className="text-gray-400 dark:text-gray-600 text-xs">pts</span>
                         </div>
+                    )}
+                    {state.phase === 'playing' && (
+                        <button
+                            onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
+                            className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                            🏳️ Abandonner
+                        </button>
                     )}
                 </div>
             </header>

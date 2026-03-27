@@ -1,7 +1,7 @@
 // src/app/impostor/[lobbyId]/page.tsx
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -32,23 +32,7 @@ type GameEndPayload = {
 
 // ─── Timer ────────────────────────────────────────────────────────────────────
 
-function Timer({ seconds, max }: { seconds: number; max: number }) {
-    const pct = Math.min((seconds / max) * 100, 100);
-    const color = seconds > max * 0.4 ? 'from-green-500 to-emerald-500'
-        : seconds > max * 0.2 ? 'from-yellow-500 to-orange-500'
-            : 'from-red-500 to-rose-500';
-    return (
-        <div className="flex items-center gap-3">
-            <span className={`text-lg font-bold tabular-nums w-10 ${seconds <= max * 0.2 ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                {seconds}s
-            </span>
-            <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className={`h-full bg-gradient-to-r ${color} rounded-full transition-all duration-1000`}
-                    style={{ width: `${pct}%` }} />
-            </div>
-        </div>
-    );
-}
+import TurnTimer from '@/components/TurnTimer';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -96,24 +80,16 @@ export default function ImpostorPage() {
     // End
     const [gameEnd, setGameEnd] = useState<GameEndPayload | null>(null);
 
-    const [timer, setTimer] = useState(0);
-    const [maxTimer, setMaxTimer] = useState(60);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
+    const [timerDuration, setTimerDuration] = useState(60);
     const [isNotFound, setIsNotFound] = useState(false);
 
     const userId = session?.user?.id ?? '';
     const socket = getImpostorSocket();
 
     function startTimer(seconds: number) {
-        setMaxTimer(seconds);
-        setTimer(seconds);
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-            setTimer(prev => {
-                if (prev <= 1) { clearInterval(timerRef.current!); return 0; }
-                return prev - 1;
-            });
-        }, 1000);
+        setTimerDuration(seconds);
+        setTimerEndsAt(Date.now() + seconds * 1000);
     }
 
     useEffect(() => {
@@ -191,7 +167,7 @@ export default function ImpostorPage() {
                 return next;
             });
             setRoundState('REVEAL');
-            if (timerRef.current) clearInterval(timerRef.current);
+            setTimerEndsAt(null);
         });
 
         socket.on('impostor:unmaskVoteUpdate', ({ count, threshold }: {
@@ -223,7 +199,7 @@ export default function ImpostorPage() {
         });
 
         socket.on('impostor:gameEnd', (payload: GameEndPayload) => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            setTimerEndsAt(null);
             setGameEnd(payload);
             setRoundState('END');
         });
@@ -342,7 +318,7 @@ export default function ImpostorPage() {
                 )}
                 <span>{phaseLabel[roundState]}</span>
             </div>
-            <div className="w-48 shrink-0 flex justify-end">
+            <div className="w-48 shrink-0 flex justify-end items-center gap-2">
                 {role && (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
                         ${role === 'impostor'
@@ -350,6 +326,14 @@ export default function ImpostorPage() {
                             : 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'}`}>
                         {role === 'impostor' ? '🎭 Imposteur' : '🧑 Joueur'}
                     </span>
+                )}
+                {roundState !== 'WAITING' && roundState !== 'END' && (
+                    <button
+                        onClick={() => { if (confirm('Abandonner la partie ?')) socket.emit('impostor:surrender'); }}
+                        className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+                    >
+                        🏳️ Abandonner
+                    </button>
                 )}
             </div>
         </header>
@@ -423,7 +407,7 @@ export default function ImpostorPage() {
                                 <h2 className="font-bold text-gray-900 dark:text-white">Round {currentRound}/{totalRounds}</h2>
                                 <span className="text-xs text-gray-400">{submittedCount}/{speakingOrder.length} joué</span>
                             </div>
-                            <Timer seconds={timer} max={maxTimer} />
+                            {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                             <div className="mt-4 text-center">
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">C'est au tour de</p>
                                 <p className={`text-xl font-bold ${isMyTurn ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
@@ -574,7 +558,7 @@ export default function ImpostorPage() {
                                 <h2 className="font-bold text-gray-900 dark:text-white">Vote final</h2>
                                 <span className="text-xs text-gray-400">{votedCount}/{players.length}</span>
                             </div>
-                            <Timer seconds={timer} max={maxTimer} />
+                            {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 mb-4">Qui est l'imposteur ?</p>
                             <div className="flex flex-col gap-2">
                                 {players.filter(p => p.id !== userId).map(p => (
@@ -613,7 +597,7 @@ export default function ImpostorPage() {
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {isImpostor ? 'Connaissez-vous le mot secret ? Tentez votre chance !' : "L'imposteur tente de deviner le mot secret…"}
                             </p>
-                            <Timer seconds={timer} max={30} />
+                            {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                             {isImpostor && !guessSubmitted && (
                                 <div className="flex gap-2">
                                     <input

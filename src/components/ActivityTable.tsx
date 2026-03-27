@@ -15,6 +15,8 @@ export interface ActivityPlayer {
     username: string;
     score: number;
     placement: number | null;
+    abandon?: boolean;
+    afk?: boolean;
 }
 
 export interface ActivityRow {
@@ -28,6 +30,10 @@ export interface ActivityRow {
     score?: number;
     /** Only present in UserStats context */
     placement?: number | null;
+    /** Only present in UserStats context */
+    abandon?: boolean;
+    /** Only present in UserStats context */
+    afk?: boolean;
 }
 
 interface ActivityTableProps {
@@ -127,7 +133,11 @@ export default function ActivityTable({
                                 {/* Place — user only */}
                                 {isUser && (
                                     <td className="px-3 py-2 whitespace-nowrap text-center text-sm">
-                                        {row.placement != null ? (
+                                        {row.abandon ? (
+                                            <span title="Abandon">🚫</span>
+                                        ) : row.afk ? (
+                                            <span title="AFK">⏳</span>
+                                        ) : row.placement != null ? (
                                             <span>
                                                 {PLACEMENT_EMOJI[row.placement] ?? `#${row.placement}`}
                                             </span>

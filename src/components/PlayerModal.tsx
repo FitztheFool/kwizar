@@ -10,6 +10,8 @@ interface Player {
     username: string;
     score: number;
     placement: number | null;
+    abandon?: boolean;
+    afk?: boolean;
 }
 
 interface PlayerModalProps {
@@ -45,11 +47,9 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
                     {players.map((p, i) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
                             <div className="flex items-center gap-2">
-                                {p.placement != null && (
-                                    <span className="text-base">
-                                        {PLACEMENT_EMOJI[p.placement] ?? `#${p.placement}`}
-                                    </span>
-                                )}
+                                <span className="text-base">
+                                    {p.abandon ? '🚫' : p.afk ? '⏳' : p.placement != null ? (PLACEMENT_EMOJI[p.placement] ?? `#${p.placement}`) : ''}
+                                </span>
                                 <Link
                                     href={session?.user?.username === p.username ? '/dashboard' : `/profil/${p.username}`}
                                     className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
