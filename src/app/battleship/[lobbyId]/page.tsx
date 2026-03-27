@@ -1,7 +1,7 @@
 // src/app/Battleship/[lobbyId]/page.tsx
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -43,7 +43,7 @@ export default function BattleshipPage() {
         }
     }, [lobbyId]);
 
-    const { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound } = useBattleship({
+    const { state, placeShips, shoot, surrender, clearError, gameNotFound } = useBattleship({
         lobbyId,
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
@@ -53,11 +53,6 @@ export default function BattleshipPage() {
 
     const [lastShot, setLastShot] = useState<string | null>(null);
     const [modalDismissed, setModalDismissed] = useState(false);
-
-    // Track last shot for highlight
-    useEffect(() => {
-        // Detect new shots by watching enemy received shots size
-    }, [state.enemyReceivedShots, state.myReceivedShots]);
 
     if (status === 'loading') return <LoadingSpinner />;
     if (gameNotFound) notFound();

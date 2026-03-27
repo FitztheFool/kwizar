@@ -23,7 +23,6 @@ interface Stats {
 
 interface Props {
     username: string;
-    currentUsername?: string;
 }
 
 export default function UserStats({ username }: Props) {

@@ -360,18 +360,6 @@ export default function skyjowGamePage() {
         }
     }, [phase, isCurrent, drawnCard, drawnAction, myCards, flipInitial]);
 
-    const swapWithDrawn = useCallback((cardIndex: number) => {
-        if (!isCurrent || drawnCard === null) return;
-        skyjowRef.current?.emit('skyjow:swap_card', { cardIndex });
-        setDrawnCard(null);
-    }, [isCurrent, drawnCard]);
-
-    const discardAndFlip = useCallback((cardIndex: number) => {
-        if (!isCurrent || drawnCard === null || drawnCard.from !== 'deck') return;
-        skyjowRef.current?.emit('skyjow:discard_and_flip', { cardIndex });
-        setDrawnCard(null);
-    }, [isCurrent, drawnCard]);
-
     const readyNextRound = useCallback(() => {
         skyjowRef.current?.emit('skyjow:ready_next_round');
     }, []);

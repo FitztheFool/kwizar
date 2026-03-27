@@ -147,8 +147,6 @@ export default function Puissance4Page() {
         socket?.emit('p4:drop', { lobbyId, col });
     }, [isMyTurn, dropping, gameState, socket, lobbyId]);
 
-    const handleRematch = () => socket?.emit('p4:rematch', { lobbyId });
-
     if (status === 'loading') return <LoadingSpinner />;
     if (isNotFound) notFound();
 

@@ -1,7 +1,7 @@
 // src/app/diamant/[lobbyId]/page.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
