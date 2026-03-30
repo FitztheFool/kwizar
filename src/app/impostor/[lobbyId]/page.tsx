@@ -1,36 +1,12 @@
 // src/app/impostor/[lobbyId]/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
-import { getImpostorSocket } from '@/lib/socket';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useImpostor } from '@/hooks/useImpostor';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type RoundState = 'WAITING' | 'WRITING' | 'REVEAL' | 'VOTING' | 'IMPOSTOR_GUESS' | 'END';
-type Role = 'player' | 'impostor';
-type Player = { id: string; name: string };
-type Clue = { playerId: string; playerName: string; text: string };
-
-type GameEndPayload = {
-    winner: 'players' | 'impostor';
-    impostorId: string;
-    impostorName: string;
-    word: string;
-    scores: Record<string, number>;
-    votes?: Record<string, string>;
-    impostorCaught?: boolean;
-    impostorGuess?: string | null;
-    impostorGuessCorrect?: boolean;
-    allClues?: { round: number; clues: Clue[] }[];
-};
-
-// ─── Timer ────────────────────────────────────────────────────────────────────
-
 import TurnTimer from '@/components/TurnTimer';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -38,177 +14,47 @@ import TurnTimer from '@/components/TurnTimer';
 export default function ImpostorPage() {
     const { session, status, me, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
 
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [role, setRole] = useState<Role | null>(null);
-    const [word, setWord] = useState<string | null>(null);
-    const [roundState, setRoundState] = useState<RoundState>('WAITING');
-    const [currentRound, setCurrentRound] = useState(1);
-    const [totalRounds, setTotalRounds] = useState(1);
-
-    // Writing phase
-    const [speakingOrder, setSpeakingOrder] = useState<string[]>([]);
-    const [currentSpeakerId, setCurrentSpeakerId] = useState<string>('');
-    const [clueInput, setClueInput] = useState('');
-    const [clueSubmitted, setClueSubmitted] = useState(false);
-    const [submittedCount, setSubmittedCount] = useState(0);
-    const [cluesThisRound, setCluesThisRound] = useState<Clue[]>([]);
-    const [pastCluesByPlayer, setPastCluesByPlayer] = useState<Record<string, string[]>>({});
-
-    // Unmask vote
-    const [unmaskCount, setUnmaskCount] = useState(0);
-    const [unmaskThreshold, setUnmaskThreshold] = useState(0);
-    const [hasVotedUnmask, setHasVotedUnmask] = useState(false);
-
-    // Reveal phase
-    const [revealedClues, setRevealedClues] = useState<Clue[]>([]);
-    const [isLastRound, setIsLastRound] = useState(false);
-
-    // Voting phase
-    const [votedFor, setVotedFor] = useState<string | null>(null);
-    const [votedCount, setVotedCount] = useState(0);
-
-    // Impostor guess phase
-    const [guessInput, setGuessInput] = useState('');
-    const [guessSubmitted, setGuessSubmitted] = useState(false);
-    const [impostorGuessName, setImpostorGuessName] = useState('');
-
-    // End
-    const [gameEnd, setGameEnd] = useState<GameEndPayload | null>(null);
-
-    const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
-    const [timerDuration, setTimerDuration] = useState(60);
-
-    const userId = me.userId;
-    const socket = getImpostorSocket();
-
-    function startTimer(seconds: number) {
-        setTimerDuration(seconds);
-        setTimerEndsAt(Date.now() + seconds * 1000);
-    }
-
-    useEffect(() => {
-        if (status === 'unauthenticated') router.push('/');
-    }, [status, router]);
-
-    useEffect(() => {
-        if (!socket || !userId || !lobbyId) return;
-
-        socket.emit('impostor:join', { lobbyId, userId, playerName: session?.user?.name ?? 'Joueur' });
-
-        socket.on('notFound', () => setIsNotFound(true));
-        socket.on('impostor:players', ({ players }: { players: Player[] }) => setPlayers(players));
-
-        socket.on('impostor:gameStart', ({ role, word, players, totalRounds, speakingOrder }: {
-            role: Role; word: string | null; players: Player[]; totalRounds: number; speakingOrder: string[];
-        }) => {
-            setRole(role);
-            setWord(word);
-            setPlayers(players);
-            setTotalRounds(totalRounds);
-            setSpeakingOrder(speakingOrder);
-            setPastCluesByPlayer({});
-        });
-
-        socket.on('impostor:writingPhase', ({ round, totalRounds, speakingOrder, players }: {
-            round: number; totalRounds: number; speakingOrder: string[]; players: Player[];
-        }) => {
-            setCurrentRound(round);
-            setTotalRounds(totalRounds);
-            setSpeakingOrder(speakingOrder);
-            setPlayers(players);
-            setClueInput('');
-            setClueSubmitted(false);
-            setSubmittedCount(0);
-            setCluesThisRound([]);
-            setUnmaskCount(0);
-            setUnmaskThreshold(0);
-            setHasVotedUnmask(false);
-            setRoundState('WRITING');
-        });
-
-        socket.on('impostor:speakerTurn', ({ speakerId, index, total, timePerRound }: {
-            speakerId: string; speakerName: string; index: number; total: number; timePerRound: number;
-        }) => {
-            setCurrentSpeakerId(speakerId);
-            setSubmittedCount(index);
-            setClueInput('');
-            setClueSubmitted(false);
-            startTimer(timePerRound ?? 60);
-            void total;
-        });
-
-        socket.on('impostor:clueSubmitted', ({ playerId, playerName, text, submittedCount }: {
-            playerId: string; playerName: string; text: string; submittedCount: number;
-        }) => {
-            setSubmittedCount(submittedCount);
-            setCluesThisRound(prev => [...prev, { playerId, playerName, text }]);
-        });
-
-        socket.on('impostor:cluesRevealed', ({ clues, isLastRound }: {
-            round: number; totalRounds: number; clues: Clue[]; isLastRound: boolean;
-        }) => {
-            setRevealedClues(clues);
-            setIsLastRound(isLastRound);
-            setPastCluesByPlayer(prev => {
-                const next = { ...prev };
-                for (const c of clues) {
-                    if (c.text) next[c.playerId] = [...(next[c.playerId] ?? []), c.text];
-                }
-                return next;
-            });
-            setRoundState('REVEAL');
-            setTimerEndsAt(null);
-        });
-
-        socket.on('impostor:unmaskVoteUpdate', ({ count, threshold }: {
-            count: number; threshold: number; voters: string[];
-        }) => {
-            setUnmaskCount(count);
-            setUnmaskThreshold(threshold);
-        });
-
-        socket.on('impostor:votingPhase', ({ players, round, timePerRound }: {
-            players: Player[]; round: number; timePerRound: number;
-        }) => {
-            setPlayers(players);
-            setCurrentRound(round);
-            setVotedFor(null);
-            setVotedCount(0);
-            setRoundState('VOTING');
-            startTimer(timePerRound ?? 60);
-        });
-
-        socket.on('impostor:voteUpdate', ({ votedCount }: { votedCount: number }) => setVotedCount(votedCount));
-
-        socket.on('impostor:guessPhase', ({ impostorName }: { impostorId: string; impostorName: string }) => {
-            setImpostorGuessName(impostorName);
-            setGuessInput('');
-            setGuessSubmitted(false);
-            setRoundState('IMPOSTOR_GUESS');
-            startTimer(30);
-        });
-
-        socket.on('impostor:gameEnd', (payload: GameEndPayload) => {
-            setTimerEndsAt(null);
-            setGameEnd(payload);
-            setRoundState('END');
-        });
-
-        return () => {
-            socket.off('notFound');
-            socket.off('impostor:players');
-            socket.off('impostor:gameStart');
-            socket.off('impostor:writingPhase');
-            socket.off('impostor:speakerTurn');
-            socket.off('impostor:clueSubmitted');
-            socket.off('impostor:cluesRevealed');
-            socket.off('impostor:unmaskVoteUpdate');
-            socket.off('impostor:votingPhase');
-            socket.off('impostor:voteUpdate');
-            socket.off('impostor:guessPhase');
-            socket.off('impostor:gameEnd');
-        };
-    }, [socket, userId, lobbyId]);
+    const {
+        players,
+        role,
+        word,
+        roundState,
+        currentRound,
+        totalRounds,
+        speakingOrder,
+        currentSpeakerId,
+        clueInput,
+        setClueInput,
+        clueSubmitted,
+        submittedCount,
+        cluesThisRound,
+        pastCluesByPlayer,
+        unmaskCount,
+        unmaskThreshold,
+        hasVotedUnmask,
+        revealedClues,
+        isLastRound,
+        votedFor,
+        votedCount,
+        guessInput,
+        setGuessInput,
+        guessSubmitted,
+        impostorGuessName,
+        wordGuessResult,
+        gameEnd,
+        timerEndsAt,
+        timerDuration,
+        submitClue,
+        requestUnmask,
+        vote,
+        guessWord,
+        surrender,
+    } = useImpostor({
+        lobbyId,
+        userId: me.userId,
+        playerName: session?.user?.name ?? 'Joueur',
+        onNotFound: () => setIsNotFound(true),
+    });
 
     if (status === 'loading') return <LoadingSpinner />;
     if (isNotFound) notFound();
@@ -258,7 +104,6 @@ export default function ImpostorPage() {
                     })}
                 </div>
                 {gameEnd.allClues && gameEnd.allClues.length > 0 && (() => {
-                    // Regrouper par joueur : playerId → [indice round1, indice round2, ...]
                     const byPlayer: Record<string, { name: string; clues: string[] }> = {};
                     for (const { clues } of gameEnd.allClues) {
                         for (const c of clues) {
@@ -288,7 +133,7 @@ export default function ImpostorPage() {
 
     // ─── Shared header ────────────────────────────────────────────────────────
 
-    const phaseLabel: Record<RoundState, string> = {
+    const phaseLabel: Record<typeof roundState, string> = {
         WAITING: 'En attente',
         WRITING: 'Indices',
         REVEAL: 'Révélation',
@@ -319,7 +164,7 @@ export default function ImpostorPage() {
                 )}
                 {roundState !== 'WAITING' && roundState !== 'END' && (
                     <button
-                        onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('impostor:surrender'); }}
+                        onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
                         className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                     >
                         🏳️ Abandonner
@@ -350,23 +195,22 @@ export default function ImpostorPage() {
     if (roundState === 'WAITING') return (
         <GameWaitingScreen icon="🎭" gameName="Imposteur" lobbyId={lobbyId}
             players={players.map(p => ({ userId: p.id, username: p.name }))}
-            myUserId={userId} />
+            myUserId={me.userId} />
     );
 
     // ─── Phase d'écriture (tour par tour) ────────────────────────────────────
 
     if (roundState === 'WRITING') {
-        const isMyTurn = currentSpeakerId === userId;
+        const isMyTurn = currentSpeakerId === me.userId;
         const currentSpeakerName = players.find(p => p.id === currentSpeakerId)?.name ?? '…';
 
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
-                <main className="flex-1 overflow-auto p-4 flex flex-col items-center">
+                <main className="p-4 flex flex-col items-center">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
 
-                        {/* Tour actuel */}
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="font-bold text-gray-900 dark:text-white">Round {currentRound}/{totalRounds}</h2>
@@ -390,21 +234,13 @@ export default function ImpostorPage() {
                                         autoFocus
                                         value={clueInput}
                                         onChange={e => setClueInput(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter' && clueInput.trim()) {
-                                                setClueSubmitted(true);
-                                                socket?.emit('impostor:submitClue', { lobbyId, text: clueInput.trim() });
-                                            }
-                                        }}
+                                        onKeyDown={e => { if (e.key === 'Enter' && clueInput.trim()) submitClue(); }}
                                         placeholder="Votre indice…"
                                         className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                                     />
                                     <button
                                         disabled={!clueInput.trim()}
-                                        onClick={() => {
-                                            setClueSubmitted(true);
-                                            socket?.emit('impostor:submitClue', { lobbyId, text: clueInput.trim() });
-                                        }}
+                                        onClick={submitClue}
                                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl font-semibold text-sm transition-colors">
                                         Envoyer
                                     </button>
@@ -415,7 +251,6 @@ export default function ImpostorPage() {
                             )}
                         </div>
 
-                        {/* Ordre de passage */}
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Ordre de passage</h3>
                             <div className="flex flex-col gap-2">
@@ -423,9 +258,7 @@ export default function ImpostorPage() {
                                     const p = players.find(pl => pl.id === id);
                                     const clue = cluesThisRound.find(c => c.playerId === id);
                                     const past = pastCluesByPlayer[id] ?? [];
-                                    const allForPlayer = clue?.text
-                                        ? [...past, clue.text]
-                                        : past;
+                                    const allForPlayer = clue?.text ? [...past, clue.text] : past;
                                     const done = !!clue;
                                     const current = id === currentSpeakerId;
                                     return (
@@ -435,7 +268,7 @@ export default function ImpostorPage() {
                                                     : 'text-gray-600 dark:text-gray-400'}`}>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                 <span className="w-5 text-center text-xs flex-shrink-0">{done ? '✓' : current ? '▶' : i + 1}</span>
-                                                <span className={done ? 'line-through' : ''}>{p?.name ?? id}{id === userId ? ' (moi)' : ''}</span>
+                                                <span className={done ? 'line-through' : ''}>{p?.name ?? id}{id === me.userId ? ' (moi)' : ''}</span>
                                             </div>
                                             {allForPlayer.length > 0 && (
                                                 <span className="text-gray-700 dark:text-gray-300 font-semibold text-sm text-right">
@@ -448,7 +281,6 @@ export default function ImpostorPage() {
                             </div>
                         </div>
 
-                        {/* Bouton Démasquer */}
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1">
@@ -461,10 +293,7 @@ export default function ImpostorPage() {
                                 </div>
                                 <button
                                     disabled={hasVotedUnmask}
-                                    onClick={() => {
-                                        setHasVotedUnmask(true);
-                                        socket?.emit('impostor:requestUnmask', { lobbyId });
-                                    }}
+                                    onClick={requestUnmask}
                                     className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors flex-shrink-0
                                         ${hasVotedUnmask
                                             ? 'bg-orange-500/20 text-orange-400 cursor-not-allowed'
@@ -484,9 +313,9 @@ export default function ImpostorPage() {
 
     if (roundState === 'REVEAL') {
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
-                <main className="flex-1 overflow-auto p-4 flex flex-col items-center">
+                <main className="p-4 flex flex-col items-center">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
@@ -513,9 +342,9 @@ export default function ImpostorPage() {
 
     if (roundState === 'VOTING') {
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
-                <main className="flex-1 overflow-auto p-4 flex flex-col items-center">
+                <main className="p-4 flex flex-col items-center">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
@@ -526,9 +355,9 @@ export default function ImpostorPage() {
                             {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 mb-4">Qui est l'imposteur ?</p>
                             <div className="flex flex-col gap-2">
-                                {players.filter(p => p.id !== userId).map(p => (
+                                {players.filter(p => p.id !== me.userId).map(p => (
                                     <button key={p.id} disabled={!!votedFor}
-                                        onClick={() => { setVotedFor(p.id); socket?.emit('impostor:vote', { lobbyId, targetId: p.id }); }}
+                                        onClick={() => vote(p.id)}
                                         className={`w-full py-3 px-4 rounded-xl font-medium transition-all text-left
                                             ${votedFor === p.id ? 'bg-red-500 text-white'
                                                 : votedFor ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
@@ -550,9 +379,9 @@ export default function ImpostorPage() {
     if (roundState === 'IMPOSTOR_GUESS') {
         const isImpostor = role === 'impostor';
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
-                <main className="flex-1 overflow-auto p-4 flex flex-col items-center">
+                <main className="p-4 flex flex-col items-center">
                     <div className="w-full max-w-lg">
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 text-center space-y-4">
                             <div className="text-4xl">🕵️</div>
@@ -568,24 +397,26 @@ export default function ImpostorPage() {
                                     <input
                                         value={guessInput}
                                         onChange={e => setGuessInput(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter' && guessInput.trim()) {
-                                                setGuessSubmitted(true);
-                                                socket?.emit('impostor:guessWord', { lobbyId, guess: guessInput.trim() });
-                                            }
-                                        }}
+                                        onKeyDown={e => { if (e.key === 'Enter' && guessInput.trim()) guessWord(); }}
                                         placeholder="Le mot secret est…"
                                         className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                                     />
                                     <button disabled={!guessInput.trim()}
-                                        onClick={() => { setGuessSubmitted(true); socket?.emit('impostor:guessWord', { lobbyId, guess: guessInput.trim() }); }}
+                                        onClick={guessWord}
                                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl font-semibold text-sm transition-colors">
                                         Deviner
                                     </button>
                                 </div>
                             )}
-                            {isImpostor && guessSubmitted && (
+                            {isImpostor && guessSubmitted && !wordGuessResult && (
                                 <p className="text-green-500 font-medium text-sm">Réponse envoyée…</p>
+                            )}
+                            {wordGuessResult && (
+                                <div className={`rounded-xl px-4 py-3 font-semibold text-sm ${wordGuessResult.correct ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
+                                    {wordGuessResult.correct
+                                        ? `✅ Bonne réponse ! Le mot était « ${wordGuessResult.word} »`
+                                        : `❌ Mauvaise réponse. Le mot était « ${wordGuessResult.word} »`}
+                                </div>
                             )}
                         </div>
                     </div>

@@ -99,7 +99,7 @@ export default function BattleshipPage() {
     const me = state.players.find((p) => p?.userId === myUserId) ?? null;
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             {/* Top bar */}
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">

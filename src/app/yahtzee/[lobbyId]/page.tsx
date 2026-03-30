@@ -6,33 +6,10 @@ import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
 import TurnTimer from '@/components/TurnTimer';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { notFound } from 'next/navigation';
-import { getYahtzeeSocket } from '@/lib/socket';
 import { useGamePage } from '@/hooks/useGamePage';
-
-// ── Types ──────────────────────────────────────────────────────────────────
-type ScoreCard = {
-  ones: number | null; twos: number | null; threes: number | null;
-  fours: number | null; fives: number | null; sixes: number | null;
-  threeOfAKind: number | null; fourOfAKind: number | null;
-  fullHouse: number | null; smallStraight: number | null;
-  largeStraight: number | null; yahtzee: number | null; chance: number | null;
-  yahtzeeBonus: number;
-};
-
-type PlayerState = {
-  userId: string; username: string;
-  dice: number[]; held: boolean[]; rollsLeft: number;
-  scoreCard: ScoreCard; upperBonus: number; total: number;
-};
-
-type GameState = {
-  players: PlayerState[];
-  currentIndex: number; turn: number;
-  phase: 'rolling' | 'scoring' | 'ended';
-  currentUserId: string;
-};
+import { useYahtzee, ScoreCard, PlayerState, GameState } from '@/hooks/useYahtzee';
 
 // ── Score calculation (client-side preview) ───────────────────────────────
 function counts(dice: number[]) {
@@ -129,69 +106,20 @@ function Die({ value, held, onClick, rolling, disabled }: {
 export default function YahtzeePage() {
   const { session, status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound } = useGamePage();
 
-  const socket = useMemo(() => getYahtzeeSocket(), []);
-  const joinedRef = useRef(false);
+  const myId = session?.user?.id ?? meInfo.userId;
+  const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
 
-  const [game, setGame] = useState<GameState | null>(null);
-  const [results, setResults] = useState<{ userId: string; username: string; total: number; afk?: boolean; abandon?: boolean; scoreCard?: ScoreCard }[] | null>(null);
-  const [eliminatedPlayers, setEliminatedPlayers] = useState<{ userId: string; username: string; total: number; scoreCard: ScoreCard; abandon?: boolean; afk?: boolean }[]>([]);
-  const [rolling, setRolling] = useState(false);
+  const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, roll, toggleHold, scoreCategory, forceScore, surrender } = useYahtzee({
+    lobbyId,
+    userId: myId,
+    username: myUsername,
+    onNotFound: () => setIsNotFound(true),
+  });
+
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
-  const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
-  const [toasts, setToasts] = useState<{ id: number; message: string; type: 'warning' | 'kick' }[]>([]);
-  const toastIdRef = useRef(0);
-  const me = session?.user;
 
-
-  useEffect(() => {
-    if (!socket || !lobbyId || status !== 'authenticated' || !me?.id) return;
-
-    const doJoin = () => {
-      socket.emit('yahtzee:join', { lobbyId, userId: me?.id, username: me?.name ?? me?.email ?? 'Joueur' });
-    };
-
-    if (socket.connected) { doJoin(); } else { socket.once('connect', doJoin); }
-
-    const addToast = (message: string, type: 'warning' | 'kick') => {
-      const id = ++toastIdRef.current;
-      setToasts(prev => [...prev, { id, message, type }]);
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
-    };
-
-    socket.on('notFound', () => setIsNotFound(true));
-    socket.on('yahtzee:state', (state: GameState) => { setGame(state); setRolling(false); setTimerEndsAt(Date.now() + 120 * 1000); });
-    socket.on('yahtzee:ended', ({ results }: { results: { userId: string; username: string; total: number }[] }) => { setResults(results); });
-    socket.on('yahtzee:finished', ({ results }: { results: { userId: string; username: string; total: number }[] }) => { setResults(results); });
-    socket.on('yahtzee:afkWarning', ({ username, secondsLeft }: { username: string; secondsLeft: number | null }) => {
-      if (secondsLeft !== null) {
-        addToast(`⏰ ${username} va être exclu pour inactivité dans ${secondsLeft}s !`, 'warning');
-      } else {
-        addToast(`⚠️ ${username} n'a pas joué — sera exclu au prochain timeout`, 'warning');
-      }
-    });
-    socket.on('yahtzee:playerSurrendered', ({ userId, username, scoreCard, total }: { userId: string; username: string; scoreCard: ScoreCard; total: number }) => {
-      setEliminatedPlayers(prev => [...prev, { userId, username, total, scoreCard, abandon: true }]);
-    });
-    socket.on('yahtzee:playerKicked', ({ userId, username, scoreCard, total }: { userId: string; username: string; scoreCard?: ScoreCard; total?: number }) => {
-      if (userId && scoreCard) setEliminatedPlayers(prev => [...prev, { userId, username, total: total ?? 0, scoreCard, afk: true }]);
-      addToast(`🚫 ${username} a été exclu pour inactivité`, 'kick');
-    });
-
-    return () => {
-      socket.off('notFound');
-      socket.off('yahtzee:state');
-      socket.off('yahtzee:ended');
-      socket.off('yahtzee:finished');
-      socket.off('yahtzee:afkWarning');
-      socket.off('yahtzee:playerKicked');
-      socket.off('yahtzee:playerSurrendered');
-    };
-  }, [socket, lobbyId, status, me?.id]);
-
-  if (status === 'loading' || !me) return <LoadingSpinner />;
+  if (status === 'loading') return <LoadingSpinner />;
   if (isNotFound) notFound();
-
-  const myId = me.id;
 
   if (!game) return (
     <GameWaitingScreen icon="🎲" gameName="Yahtzee" lobbyId={lobbyId} players={[]} myUserId={myId} />
@@ -201,17 +129,6 @@ export default function YahtzeePage() {
   const currentPlayer = game ? game.players[game.currentIndex] : null;
   const canRoll = isMyTurn && game?.phase === 'rolling' && (myPlayer?.rollsLeft ?? 0) > 0 && !rolling;
   const canScore = isMyTurn && (myPlayer?.rollsLeft ?? 3) < 3;
-
-  const roll = () => { if (!canRoll) return; setRolling(true); socket?.emit('yahtzee:roll', { lobbyId, userId: myId }); };
-  const toggleHold = (i: number) => {
-    if (!isMyTurn || !myPlayer || myPlayer.rollsLeft === 3 || myPlayer.rollsLeft === 0) return;
-    socket?.emit('yahtzee:toggleHold', { lobbyId, userId: myId, index: i });
-  };
-  const scoreCategory = (cat: string) => {
-    if (!canScore || myPlayer?.scoreCard[cat as keyof ScoreCard] !== null) return;
-    socket?.emit('yahtzee:score', { lobbyId, userId: myId, category: cat });
-  };
-  const forceScore = () => { if (!isMyTurn || !canScore) return; socket?.emit('yahtzee:forceScore', { lobbyId, userId: myId }); };
 
   if (results) {
     const sorted = [...results].sort((a, b) => {
@@ -297,7 +214,7 @@ export default function YahtzeePage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+    <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
       {/* AFK Toasts */}
       {toasts.length > 0 && (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
@@ -331,7 +248,7 @@ export default function YahtzeePage() {
         <div className="w-48 shrink-0 flex justify-end items-center gap-2">
           {game?.phase !== 'ended' && (
             <button
-              onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('yahtzee:surrender', { lobbyId }); }}
+              onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
               className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
             >
               🏳️ Abandonner
@@ -345,7 +262,7 @@ export default function YahtzeePage() {
           <TurnTimer endsAt={timerEndsAt} duration={120} label="Temps restant" />
         </div>
       )}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="p-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
 
           {/* ── Left ─────────────────────────────────────────────────────── */}

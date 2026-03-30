@@ -6,35 +6,11 @@ import TurnTimer from '@/components/TurnTimer';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
-import { getSkyjowSocket } from '@/lib/socket';
-import type { Socket } from 'socket.io-client';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useSkyjow } from '@/hooks/useSkyjow';
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type CardState = { value: number | null; revealed: boolean; removed: boolean };
-type PlayerPublic = {
-    userId: string;
-    username: string;
-    cards: CardState[];
-    score: number;
-    liveScore?: number;
-};
-type ScoreEntry = { userId: string; username: string; roundScore: number; totalScore: number; abandon?: boolean };
-
-type Phase = 'waiting' | 'flip2' | 'playing' | 'last_round' | 'ended' | 'round_end' | 'game_end';
-
-type GameState = {
-    phase: Phase;
-    round: number;
-    currentPlayerIndex: number;
-    discardTop: number | null;
-    players: PlayerPublic[];
-    scores: ScoreEntry[];
-    lastRoundStarterIndex: number | null;
-};
+import type { CardState, PlayerPublic, Phase } from '@/hooks/useSkyjow';
 
 // ── Helpers visuels ───────────────────────────────────────────────────────────
 
@@ -137,228 +113,42 @@ const isPlayingPhase = (p: Phase) => p === 'playing' || p === 'last_round';
 // ── Page principale ───────────────────────────────────────────────────────────
 
 export default function skyjowGamePage() {
-    const { session, status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
-
-    const skyjowRef = useRef<Socket | null>(null);
-    const joinedRef = useRef(false);
-
-    const [gameState, setGameState] = useState<GameState | null>(null);
-    const [myCards, setMyCards] = useState<CardState[]>([]);
-    const [phase, setPhase] = useState<Phase>('waiting');
-    const [round, setRound] = useState(1);
-    const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-    const [discardTop, setDiscardTop] = useState<number | null>(null);
-    const [drawnCard, setDrawnCard] = useState<{ value: number; from: 'deck' | 'discard'; mustSwap?: boolean } | null>(null);
-    const [players, setPlayers] = useState<PlayerPublic[]>([]);
-    const [scores, setScores] = useState<ScoreEntry[]>([]);
-    const [notification, setNotification] = useState<string | null>(null);
-    const [roundEndData, setRoundEndData] = useState<{ scores: ScoreEntry[]; players: { userId: string; username: string; cards: CardState[] }[] } | null>(null);
-    const [gameEndData, setGameEndData] = useState<{ scores: ScoreEntry[]; winnerId: string; winnerUsername: string } | null>(null);
-    const [surrenderedPlayers, setSurrenderedPlayers] = useState<{ userId: string; username: string; cards: CardState[] }[]>([]);
-    const [drawnAction, setDrawnAction] = useState<'swap' | 'discard_flip' | null>(null);
-    const [readyCount, setReadyCount] = useState(0);
-    const [flip2Count, setFlip2Count] = useState(0);
-
-    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
-    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const { status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
 
     const userId = meInfo.userId;
-    const username = meInfo.username;
+    const username = meInfo.username ?? '';
 
-    const isCurrent = players[currentPlayerIndex]?.userId === userId;
-
-    const notify = useCallback((msg: string, duration = 3000) => {
-        setNotification(msg);
-        setTimeout(() => setNotification(null), duration);
-    }, []);
-
-    // ── Connexion socket ───────────────────────────────────────────────────────
-
-    useEffect(() => {
-        if (!lobbyId || status !== 'authenticated' || !userId) return;
-        const sock = getSkyjowSocket();
-        if (!sock) return;
-        skyjowRef.current = sock;
-
-        if (!joinedRef.current) {
-            joinedRef.current = true;
-            sock.emit('skyjow:join', { lobbyId, userId, username });
-        }
-
-        sock.on('notFound', () => setIsNotFound(true));
-
-        sock.on('skyjow:game_started', (data: {
-            players: PlayerPublic[];
-            discardTop: number;
-            phase: Phase;
-            round: number;
-        }) => {
-            setPlayers(data.players);
-            setDiscardTop(data.discardTop);
-            setPhase(data.phase);
-            setRound(data.round);
-            setMyCards(Array(12).fill({ value: null, revealed: false, removed: false }));
-            setDrawnCard(null);
-            setRoundEndData(null);
-            setGameEndData(null);
-            setFlip2Count(0);
-            setSurrenderedPlayers([]);
-        });
-
-        sock.on('skyjow:my_cards', ({ cards }: { cards: CardState[] }) => {
-            setMyCards(cards);
-            setFlip2Count(cards.filter(c => c.revealed).length);
-        });
-
-        sock.on('skyjow:state', (state: GameState) => {
-            setGameState(state);
-            setPlayers(state.players);
-            setDiscardTop(state.discardTop);
-            setPhase(state.phase);
-            setRound(state.round);
-            setCurrentPlayerIndex(state.currentPlayerIndex);
-            setScores(state.scores);
-        });
-
-        sock.on('skyjow:turn', ({ currentUserId }: { currentPlayerIndex: number; currentUserId: string }) => {
-            setInactivityEndsAt(null);
-            setInactivityUserId(null);
-            if (currentUserId === userId) notify('🎯 C\'est ton tour !');
-        });
-
-        sock.on('skyjow:drawn_card', (data: { value: number; from: 'deck' | 'discard'; mustSwap?: boolean }) => {
-            setDrawnCard(data);
-            setDrawnAction(data.from === 'discard' ? 'swap' : null);
-        });
-
-        sock.on('skyjow:last_round', ({ triggerUsername }: { triggerUserId: string; triggerUsername: string }) => {
-            notify(`⚡ ${triggerUsername} a retourné toutes ses cartes ! Dernier tour pour tous !`, 5000);
-            setPhase('last_round');
-        });
-
-        sock.on('skyjow:columns_removed', ({ username: uname, columns }: { userId: string; username: string; columns: { col: number; value: number }[] }) => {
-            notify(`🗑️ ${uname} a éliminé une colonne de ${columns[0]?.value} !`);
-        });
-
-        sock.on('skyjow:round_end', (data: { scores: ScoreEntry[]; players: { userId: string; username: string; cards: CardState[] }[] }) => {
-            setRoundEndData(data);
-            setScores(data.scores);
-            setPhase('round_end');
-        });
-
-        sock.on('skyjow:finished', (data: { scores: ScoreEntry[]; winnerId: string; winnerUsername: string }) => {
-            setGameEndData(data);
-            setScores(data.scores);
-            setPhase('game_end');
-        });
-
-        sock.on('skyjow:playerSurrendered', ({ userId: uid, username: uname, cards }: { userId: string; username: string; cards: CardState[] }) => {
-            setSurrenderedPlayers(prev => [...prev, { userId: uid, username: uname, cards }]);
-        });
-
-        sock.on('skyjow:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; secondsLeft: number }) => {
-            setInactivityUserId(uid);
-            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
-        });
-
-        sock.on('skyjow:playerKicked', () => {
-            setInactivityEndsAt(null);
-            setInactivityUserId(null);
-        });
-
-        sock.on('skyjow:waiting_next_round', ({ scores: s }: { scores: ScoreEntry[] }) => {
-            setScores(s);
-            setReadyCount(0);
-        });
-
-        sock.on('skyjow:ready_count', ({ ready, total }: { ready: number; total: number }) => {
-            setReadyCount(ready);
-            notify(`${ready}/${total} joueurs prêts…`);
-        });
-
-        sock.on('skyjow:new_round', (data: {
-            round: number;
-            phase: Phase;
-            discardTop: number;
-            players: PlayerPublic[];
-            scores: ScoreEntry[];
-        }) => {
-            setRound(data.round);
-            setPhase(data.phase);
-            setDiscardTop(data.discardTop);
-            setPlayers(data.players);
-            setScores(data.scores);
-            setDrawnCard(null);
-            setRoundEndData(null);
-            setFlip2Count(0);
-            setSurrenderedPlayers([]);
-            notify(`🔄 Manche ${data.round} !`);
-        });
-
-        return () => {
-            sock.off('notFound');
-            sock.off('skyjow:game_started');
-            sock.off('skyjow:my_cards');
-            sock.off('skyjow:state');
-            sock.off('skyjow:turn');
-            sock.off('skyjow:drawn_card');
-            sock.off('skyjow:last_round');
-            sock.off('skyjow:columns_removed');
-            sock.off('skyjow:round_end');
-            sock.off('skyjow:finished');
-            sock.off('skyjow:playerSurrendered');
-            sock.off('skyjow:inactivityWarning');
-            sock.off('skyjow:playerKicked');
-            sock.off('skyjow:waiting_next_round');
-            sock.off('skyjow:ready_count');
-            sock.off('skyjow:new_round');
-        };
-    }, [lobbyId, status, userId, username, notify]);
-
-    // ── Actions ────────────────────────────────────────────────────────────────
-
-    const flipInitial = useCallback((cardIndex: number) => {
-        if (phase !== 'flip2') return;
-        if (flip2Count >= 2) return;
-        skyjowRef.current?.emit('skyjow:flip_initial', { cardIndex });
-    }, [phase, flip2Count]);
-
-    const drawDeck = useCallback(() => {
-        if (!isCurrent || !isPlayingPhase(phase) || drawnCard !== null) return;
-        skyjowRef.current?.emit('skyjow:draw_deck');
-    }, [isCurrent, phase, drawnCard]);
-
-    const takeDiscard = useCallback(() => {
-        if (!isCurrent || !isPlayingPhase(phase) || drawnCard !== null) return;
-        skyjowRef.current?.emit('skyjow:take_discard');
-    }, [isCurrent, phase, drawnCard]);
-
-    const handleCardClick = useCallback((cardIndex: number) => {
-        if (phase === 'flip2') {
-            flipInitial(cardIndex);
-            return;
-        }
-        if (!isCurrent || drawnCard === null || drawnAction === null) return;
-        if (!isPlayingPhase(phase)) return;
-
-        const card = myCards[cardIndex];
-        if (!card || card.removed) return;
-
-        if (drawnAction === 'swap') {
-            skyjowRef.current?.emit('skyjow:swap_card', { cardIndex });
-            setDrawnCard(null);
-            setDrawnAction(null);
-        } else if (drawnAction === 'discard_flip') {
-            if (card.revealed) return; // discard_flip only on hidden cards
-            skyjowRef.current?.emit('skyjow:discard_and_flip', { cardIndex });
-            setDrawnCard(null);
-            setDrawnAction(null);
-        }
-    }, [phase, isCurrent, drawnCard, drawnAction, myCards, flipInitial]);
-
-    const readyNextRound = useCallback(() => {
-        skyjowRef.current?.emit('skyjow:ready_next_round');
-    }, []);
+    const {
+        myCards,
+        phase,
+        round,
+        currentPlayerIndex,
+        discardTop,
+        drawnCard,
+        players,
+        scores,
+        notification,
+        roundEndData,
+        gameEndData,
+        surrenderedPlayers,
+        drawnAction,
+        setDrawnAction,
+        readyCount,
+        flip2Count,
+        inactivityEndsAt,
+        inactivityUserId,
+        isCurrent,
+        drawDeck,
+        takeDiscard,
+        handleCardClick,
+        readyNextRound,
+        surrender,
+    } = useSkyjow({
+        lobbyId,
+        userId,
+        username,
+        onNotFound: () => setIsNotFound(true),
+    });
 
     // ── Computed ───────────────────────────────────────────────────────────────
 
@@ -371,9 +161,7 @@ export default function skyjowGamePage() {
             myCards.forEach((c, i) => { if (!c.revealed && !c.removed) selectableIndices.push(i); });
         }
     } else if (isCurrent && drawnCard !== null) {
-        myCards.forEach((c, i) => {
-            if (!c.removed) selectableIndices.push(i);
-        });
+        myCards.forEach((c, i) => { if (!c.removed) selectableIndices.push(i); });
     }
 
     const otherPlayers = players.filter(p => p.userId !== userId);
@@ -437,7 +225,7 @@ export default function skyjowGamePage() {
     // ── Interface principale ───────────────────────────────────────────────────
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="flex flex-col lg:h-screen lg:overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* ── Notification ── */}
             {notification && (
@@ -468,7 +256,7 @@ export default function skyjowGamePage() {
                     </div>
                     {phase !== 'ended' && phase !== 'game_end' && (
                         <button
-                            onClick={() => { if (confirm('Abandonner la partie ?')) skyjowRef.current?.emit('skyjow:surrender'); }}
+                            onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
                             className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                         >
                             🏳️ Abandonner
@@ -478,10 +266,10 @@ export default function skyjowGamePage() {
             </header>
 
             {/* ── Corps principal ── */}
-            <main className="flex-1 flex flex-col lg:flex-row gap-0 overflow-hidden">
+            <main className="flex-1 flex flex-col lg:flex-row gap-0 lg:min-h-0 lg:overflow-hidden">
 
                 {/* ── Zone adversaires ── */}
-                <div className="lg:w-72 bg-white dark:bg-gray-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 p-3 overflow-y-auto">
+                <div className="lg:w-72 bg-white dark:bg-gray-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 p-3 lg:overflow-y-auto lg:shrink-0">
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold mb-3 tracking-wider">Adversaires</p>
                     <div className="space-y-4">
                         {otherPlayers.map((p) => {
@@ -528,18 +316,17 @@ export default function skyjowGamePage() {
                 </div>
 
                 {/* ── Zone centrale ── */}
-                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-6">
+                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-6 lg:overflow-y-auto">
 
                     {/* ── Badge tour ── */}
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-                        phase === 'flip2'
-                            ? 'bg-amber-100 dark:bg-amber-900/50 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300'
-                            : inactivityEndsAt !== null
-                                ? 'bg-orange-400 border-orange-500 text-white'
-                                : phase === 'last_round'
-                                    ? 'bg-red-100 dark:bg-red-900/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300'
-                                    : 'bg-green-100 dark:bg-emerald-900/50 border-green-400 dark:border-emerald-600 text-green-700 dark:text-emerald-300'
-                    }`}>
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${phase === 'flip2'
+                        ? 'bg-amber-100 dark:bg-amber-900/50 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300'
+                        : inactivityEndsAt !== null
+                            ? 'bg-orange-400 border-orange-500 text-white'
+                            : phase === 'last_round'
+                                ? 'bg-red-100 dark:bg-red-900/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300'
+                                : 'bg-green-100 dark:bg-emerald-900/50 border-green-400 dark:border-emerald-600 text-green-700 dark:text-emerald-300'
+                        }`}>
                         {phase === 'flip2'
                             ? `↩ Retourne 2 cartes (${flip2Count}/2)`
                             : phase === 'last_round'

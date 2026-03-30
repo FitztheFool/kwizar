@@ -4,70 +4,9 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
 
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { notFound } from 'next/navigation';
-import { getUnoSocket } from '@/lib/socket';
 import { useGamePage } from '@/hooks/useGamePage';
-
-type CardColor = 'red' | 'green' | 'blue' | 'yellow' | 'wild';
-type Card = { id: string; color: CardColor; value: string };
-
-type PlayerInfo = {
-    userId: string;
-    username: string;
-    cardCount: number;
-    saidUno: boolean;
-    team: 0 | 1 | null;
-};
-
-type UnoOptions = {
-    stackable: boolean;
-    jumpIn: boolean;
-    teamMode: 'none' | '2v2';
-    teamWinMode: 'one' | 'both';
-};
-
-type FinalScore = {
-    userId: string;
-    username: string;
-    cardsLeft: number;
-    pointsInHand: number;
-    score: number;
-    rank: number;
-    kicked: boolean;
-    abandon?: boolean;
-    afk?: boolean;
-    team: 0 | 1 | null;
-};
-
-type GameState = {
-    hand: Card[];
-    currentColor: CardColor;
-    topCard: Card | null;
-    currentPlayerIndex: number;
-    players: PlayerInfo[];
-    direction: number;
-    drawStack: number;
-    status: 'WAITING' | 'PLAYING' | 'FINISHED';
-    winner: { userId: string; username: string } | null;
-    finalScores: FinalScore[] | null;
-    options: UnoOptions;
-    isMyTurn: boolean;
-    spectator: boolean;
-    gameId?: string;
-    teams: Record<string, 0 | 1> | null;
-    teammateHand: Card[] | null;
-    teammateId: string | null;
-    myTeam: 0 | 1 | null;
-};
-
-type LobbyState = {
-    hostId: string;
-    status: string;
-    players: { userId: string; username: string }[];
-    options: UnoOptions;
-    teams: Record<string, 0 | 1> | null;
-};
+import { useUno, Card, FinalScore, PlayerInfo } from '@/hooks/useUno';
 
 const COLOR_MAP: Record<string, string> = {
     red: 'bg-red-500',
@@ -121,121 +60,29 @@ function UnoCard({ card, playable, selected, onClick, small }: {
 }
 
 export default function UnoPage() {
-    const { session, status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
 
-    const joinedRef = useRef(false);
-    const socket = useMemo(() => getUnoSocket(), []);
-
-    const [lobbyState, setLobbyState] = useState<LobbyState | null>(null);
-    const [gameState, setGameState] = useState<GameState | null>(null);
-    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-    const [showColorPicker, setShowColorPicker] = useState(false);
-
-    const [inactivitySeconds, setInactivitySeconds] = useState<number | null>(null);
-    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
-    const inactivityIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-    const [unoReady, setUnoReady] = useState(false);
-
-
-    useEffect(() => {
-        if (!socket) return;
-        if (status !== 'authenticated' || !me.userId || !lobbyId) return;
-
-        const onLobbyState = (s: LobbyState) => setLobbyState(s);
-        const onGameState = (s: GameState) => {
-            setGameState(s);
-            setUnoReady(prev => {
-                // Reset seulement si on n'est plus en situation UNO (main > 1 carte)
-                if (s.hand.length !== 1) return false;
-                return prev;
-            });
-            setInactivitySeconds(null);
-            setInactivityUserId(null);
-            if (inactivityIntervalRef.current) {
-                clearInterval(inactivityIntervalRef.current);
-                inactivityIntervalRef.current = null;
-            }
-        };
-
-        const onInactivityWarning = ({ userId, secondsLeft }: { userId: string; secondsLeft: number }) => {
-            if (inactivityIntervalRef.current) clearInterval(inactivityIntervalRef.current);
-            setInactivityUserId(userId);
-            setInactivitySeconds(secondsLeft);
-            let remaining = secondsLeft;
-            inactivityIntervalRef.current = setInterval(() => {
-                remaining -= 1;
-                setInactivitySeconds(remaining <= 0 ? 0 : remaining);
-                if (remaining <= 0) {
-                    clearInterval(inactivityIntervalRef.current!);
-                    inactivityIntervalRef.current = null;
-                }
-            }, 1000);
-        };
-
-        const onPlayerKicked = () => {
-            setInactivitySeconds(null);
-            setInactivityUserId(null);
-            if (inactivityIntervalRef.current) {
-                clearInterval(inactivityIntervalRef.current);
-                inactivityIntervalRef.current = null;
-            }
-        };
-
-        socket.on('notFound', () => setIsNotFound(true));
-        socket.on('uno:lobbyState', onLobbyState);
-        socket.on('uno:state', onGameState);
-        socket.on('uno:inactivityWarning', onInactivityWarning);
-        socket.on('uno:playerKicked', onPlayerKicked);
-
-        if (!joinedRef.current) {
-            joinedRef.current = true;
-            socket.emit('uno:join', { lobbyId, userId: me.userId, username: me.username });
-        }
-
-        return () => {
-            socket.off('notFound');
-            socket.off('uno:lobbyState', onLobbyState);
-            socket.off('uno:state', onGameState);
-            socket.off('uno:inactivityWarning', onInactivityWarning);
-            socket.off('uno:playerKicked', onPlayerKicked);
-            if (inactivityIntervalRef.current) clearInterval(inactivityIntervalRef.current);
-        };
-    }, [socket, status, me.userId, lobbyId]);
-
-    const isPlayable = useCallback((card: Card): boolean => {
-        if (!gameState || !gameState.isMyTurn || gameState.spectator) return false;
-        const top = gameState.topCard;
-        if (!top) return true;
-        if (card.value === 'wild' || card.value === 'wild4') return true;
-        if (gameState.drawStack > 0 && gameState.options.stackable) return card.value === 'draw2' || card.value === 'wild4';
-        if (gameState.drawStack > 0 && !gameState.options.stackable) return false;
-        return card.color === gameState.currentColor || card.value === top.value;
-    }, [gameState]);
-
-    const handleCardClick = (card: Card) => {
-        if (!gameState || gameState.spectator) return;
-        const top = gameState.topCard;
-        const isJumpIn = gameState.options.jumpIn && !gameState.isMyTurn &&
-            top && card.color === top.color && card.value === top.value && card.color !== 'wild';
-        if (!isPlayable(card) && !isJumpIn) return;
-        setSelectedCard(card);
-        if (card.value === 'wild' || card.value === 'wild4') {
-            setShowColorPicker(true);
-        } else {
-            socket?.emit('uno:playCard', { cardId: card.id, sayUno: gameState.hand.length - 1 === 1 ? unoReady : false });
-            setSelectedCard(null);
-            setUnoReady(false);
-        }
-    };
-
-    const handleColorChoice = (color: string) => {
-        if (!selectedCard) return;
-        socket?.emit('uno:playCard', { cardId: selectedCard.id, chosenColor: color, sayUno: (gameState?.hand.length ?? 1) - 1 === 1 ? unoReady : false });
-        setSelectedCard(null);
-        setShowColorPicker(false);
-        setUnoReady(false);
-    };
+    const {
+        lobbyState,
+        gameState,
+        selectedCard,
+        showColorPicker,
+        unoReady,
+        setUnoReady,
+        inactivitySeconds,
+        inactivityUserId,
+        isPlayable,
+        playCard,
+        chooseColor,
+        drawCard,
+        callUno,
+        surrender,
+    } = useUno({
+        lobbyId,
+        userId: me.userId,
+        username: me.username ?? '',
+        onNotFound: () => setIsNotFound(true),
+    });
 
     if (status === 'loading') {
         return <LoadingSpinner />;
@@ -298,7 +145,7 @@ export default function UnoPage() {
                 <div className="flex items-center gap-1">
                     <span className="text-xs text-gray-500 dark:text-gray-400">{p.cardCount} carte{p.cardCount > 1 ? 's' : ''}</span>
                     {p.cardCount === 1 && !p.saidUno && !gameState.spectator && (
-                        <button onClick={() => socket?.emit('uno:callUno', { targetId: p.userId })}
+                        <button onClick={() => callUno(p.userId)}
                             className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded font-bold hover:bg-red-400 transition">
                             UNO !
                         </button>
@@ -310,7 +157,7 @@ export default function UnoPage() {
     };
 
     return (
-        <div className="h-[calc(100vh-56px)] flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden select-none">
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white select-none">
 
             {showColorPicker && !gameState.spectator && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
@@ -318,7 +165,7 @@ export default function UnoPage() {
                         <h2 className="font-bold text-lg mb-4">Choisir une couleur</h2>
                         <div className="grid grid-cols-2 gap-3">
                             {['red', 'green', 'blue', 'yellow'].map(c => (
-                                <button key={c} onClick={() => handleColorChoice(c)}
+                                <button key={c} onClick={() => chooseColor(c)}
                                     className={`w-20 h-20 rounded-xl ${COLOR_MAP[c]} text-3xl hover:scale-110 transition-transform`}>
                                     {COLOR_TEXT[c]}
                                 </button>
@@ -377,7 +224,7 @@ export default function UnoPage() {
                     <span className="text-gray-500 dark:text-gray-400 text-lg">{gameState.direction === 1 ? '↻' : '↺'}</span>
                     {!gameState.spectator && (
                         <button
-                            onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('uno:surrender'); }}
+                            onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
                             className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                         >
                             🏳️ Abandonner
@@ -412,7 +259,7 @@ export default function UnoPage() {
             <div className="flex-1 flex items-center justify-center gap-8">
                 <div className="flex flex-col items-center gap-2">
                     <div
-                        onClick={!gameState.spectator && gameState.isMyTurn ? () => socket?.emit('uno:drawCard') : undefined}
+                        onClick={!gameState.spectator && gameState.isMyTurn ? drawCard : undefined}
                         className={`w-16 h-24 bg-red-700 rounded-xl border-4 border-white shadow-lg flex items-center justify-center text-white font-bold text-2xl
                             ${!gameState.spectator && gameState.isMyTurn ? 'cursor-pointer hover:bg-red-600 hover:scale-105 transition-all' : 'opacity-60 cursor-default'}`}>
                         🃏
@@ -475,7 +322,7 @@ export default function UnoPage() {
                             <UnoCard key={card.id} card={card}
                                 playable={isPlayable(card)}
                                 selected={selectedCard?.id === card.id}
-                                onClick={() => handleCardClick(card)} />
+                                onClick={() => playCard(card)} />
                         ))}
                         {gameState.hand.length === 0 && <p className="text-gray-500 dark:text-gray-400 text-sm py-4">Aucune carte 🎉</p>}
                     </div>

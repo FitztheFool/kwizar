@@ -62,7 +62,7 @@ export default function GameOverModal({
     if (asModal) {
         return (
             <div
-                className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+                className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto p-4"
                 onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
             >
                 {card}

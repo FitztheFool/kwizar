@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Pagination from '@/components/Pagination';
 import { GAME_EMOJI_MAP, GAME_LABEL_MAP } from '@/lib/gameConfig';
@@ -27,6 +26,7 @@ interface Props {
 
 export default function UserStats({ username }: Props) {
     const [stats, setStats] = useState<Stats | null>(null);
+    const [ranks, setRanks] = useState<Record<string, number>>({});
     const [initialLoading, setInitialLoading] = useState(true);
     const [refetching, setRefetching] = useState(false);
     const [page, setPage] = useState(1);
@@ -52,6 +52,12 @@ export default function UserStats({ username }: Props) {
 
     useEffect(() => { fetchStats(1, 'ALL', true); }, [fetchStats]);
 
+    useEffect(() => {
+        fetch(`/api/user/${username}/ranks`)
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data?.ranks) setRanks(data.ranks); });
+    }, [username]);
+
     const handlePageChange = (p: number) => { setPage(p); fetchStats(p, gameFilter); };
     const handleFilterChange = (f: GameFilter) => { setGameFilter(f); setPage(1); fetchStats(1, f); };
 
@@ -61,7 +67,7 @@ export default function UserStats({ username }: Props) {
         </div>
     );
 
-    if (!stats) return <p className="text-gray-400 dark:text-gray-500 text-sm">Impossible de charger les statistiques.</p>;
+    if (!stats) return <p className="text-gray-600 dark:text-white text-sm">Impossible de charger les statistiques.</p>;
 
     const gamesWithRate = Object.entries(stats.gameStats)
         .filter(([, v]) => v.count > 0)
@@ -102,11 +108,19 @@ export default function UserStats({ username }: Props) {
                 {lastActivity ? (
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
                         <div className="text-sm font-bold text-gray-900 dark:text-white">
-                            Dernière partie : {new Date(lastActivity.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                            {GAME_EMOJI_MAP[lastActivity.gameType] ?? '🎮'} {GAME_LABEL_MAP[lastActivity.gameType] ?? lastActivity.gameType}
                         </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500">
-                            {new Date(lastActivity.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        <div className="text-xs text-gray-600 dark:text-white">
+                            {new Date(lastActivity.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {new Date(lastActivity.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
+                        {Object.entries(ranks)
+                            .filter(([, r]) => r <= 3)
+                            .sort((a, b) => a[1] - b[1])
+                            .map(([type, r]) => (
+                                <div key={type} className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
+                                    {r === 1 ? '🥇' : r === 2 ? '🥈' : '🥉'} {GAME_LABEL_MAP[type] ?? type}
+                                </div>
+                            ))}
                     </div>
                 ) : worstGame && worstGame[0] !== bestGame?.[0] ? (
                     <StatChip
@@ -120,17 +134,17 @@ export default function UserStats({ username }: Props) {
             {/* ── Statistiques par jeu ── */}
             {Object.keys(activeGameStats).length > 0 && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white mb-3">
                         Statistiques par jeu
                     </h2>
-                    <GameStatCards gameStats={activeGameStats} />
+                    <GameStatCards gameStats={activeGameStats} ranks={ranks} />
                 </div>
             )}
 
             {/* ── Activité récente ── */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white">
                         Activité récente
                     </h2>
                     <GameFilterPills
@@ -144,7 +158,7 @@ export default function UserStats({ username }: Props) {
                 {/* ↓ Replaced inline <table> + loading logic with shared components */}
                 <LoadingOverlay loading={refetching}>
                     {stats.recentActivity.length === 0 ? (
-                        <p className="text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
+                        <p className="text-gray-600 dark:text-white text-sm py-4 text-center">
                             Aucune partie jouée pour l'instant.
                         </p>
                     ) : (
@@ -154,6 +168,7 @@ export default function UserStats({ username }: Props) {
                                 variant="user"
                                 onPlayerClick={(row) => setModalGame(row)}
                                 emptyLabel="Aucune partie jouée pour l'instant."
+                                showQuiz={gameFilter === 'ALL' || gameFilter === 'QUIZ'}
                             />
                             {(stats.pagination?.totalPages ?? 0) > 1 && (
                                 <Pagination

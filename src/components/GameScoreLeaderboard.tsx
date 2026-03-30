@@ -6,6 +6,7 @@ export interface GameScoreEntry {
     userId: string;
     username: string;
     score: string;
+    subScore?: string;
     badges?: string[];
     disqualified?: boolean;
 }
@@ -49,9 +50,16 @@ export default function GameScoreLeaderboard({
                                 }`}>{badge}</span>
                             ))}
                         </div>
-                        <span className={`font-black text-xl ${isFirst ? 'text-amber-500 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}`}>
-                            {p.score}
-                        </span>
+                        <div className="text-right">
+                            <span className={`font-black text-xl ${isFirst ? 'text-amber-500 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}`}>
+                                {p.score}
+                            </span>
+                            {p.subScore && (
+                                <div className="text-xs text-gray-400 dark:text-gray-500 font-normal mt-0.5">
+                                    {p.subScore}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             })}

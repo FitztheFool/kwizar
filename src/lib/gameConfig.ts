@@ -42,10 +42,10 @@ export const GAME_CONFIG = {
         label: 'Taboo',
         icon: '🗣️',
         higherIsBetter: true,
-        scoreLabel: 'Mots devinés',
+        scoreLabel: 'Points',
         description: "Fais deviner un maximum de mots sans prononcer les mots interdits !",
         rules: "Par équipes, un orateur décrit un mot mystère à son équipe en évitant les mots tabous listés sur la carte. L'équipe adverse surveille les infractions. Chaque mot deviné dans le temps imparti rapporte un point.",
-        score: "1 point par mot deviné. Le classement correspond au total de mots devinés sur l'ensemble des parties.",
+        score: "1 point par mot deviné. 1 point par mot piégé activé. Le classement correspond au total de mots devinés sur l'ensemble des parties.",
     },
     quiz: {
         gameType: 'QUIZ' as const,

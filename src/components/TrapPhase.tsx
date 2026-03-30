@@ -61,8 +61,8 @@ export type TabooState = {
 
 const TEAMMATE_COLORS = [
     { border: 'border-purple-500/40', bg: 'bg-purple-500/10', badge: 'bg-purple-500/20 text-purple-300' },
-    { border: 'border-cyan-500/40',   bg: 'bg-cyan-500/10',   badge: 'bg-cyan-500/20 text-cyan-300'   },
-    { border: 'border-pink-500/40',   bg: 'bg-pink-500/10',   badge: 'bg-pink-500/20 text-pink-300'   },
+    { border: 'border-cyan-500/40', bg: 'bg-cyan-500/10', badge: 'bg-cyan-500/20 text-cyan-300' },
+    { border: 'border-pink-500/40', bg: 'bg-pink-500/10', badge: 'bg-pink-500/20 text-pink-300' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
     const serverHasSlots = useMemo(() =>
         [...(game.team0Slots ?? []), ...(game.team1Slots ?? [])]
             .some(s => s.ownerId !== null || s.value !== ''),
-    [game.team0Slots, game.team1Slots]);
+        [game.team0Slots, game.team1Slots]);
 
     const rich = useMemo(() => isRichFormat(game.trapsByPlayer ?? {}), [game.trapsByPlayer]);
 
@@ -196,7 +196,7 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             }
             return changed ? next : prev;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game.team0Slots, game.team1Slots]);
 
     // Vider draft — mode B
@@ -212,12 +212,12 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             }
             return changed ? next : prev;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game.team0Traps, game.team1Traps]);
 
     const getDisplayValue = useCallback((i: number) =>
         i in localDraft ? localDraft[i] : (mySlots[i]?.value ?? ''),
-    [localDraft, mySlots]);
+        [localDraft, mySlots]);
 
     const getOwnerInfo = useCallback((i: number) => {
         if (i in localDraft && localDraft[i])
@@ -256,7 +256,7 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
 
     const teamBorder = myTeam === 0 ? 'bg-blue-500/10 border-blue-500/20'
         : myTeam === 1 ? 'bg-red-500/10 border-red-500/20'
-        : 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10';
+            : 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10';
 
     return (
         <div className={`border rounded-2xl p-6 max-w-md w-full ${teamBorder}`}>
@@ -297,7 +297,6 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
                     <div className="flex items-center justify-between mb-3">
                         <p className="text-xs text-gray-400 dark:text-white/30">
                             ✏️ Pièges de l'équipe
-                            {!rich && <span className="ml-1 text-gray-400 dark:text-white/20">(badges disponibles après mise à jour serveur)</span>}
                         </p>
                         {rich && teammates.length > 0 && (
                             <div className="flex gap-1.5">
@@ -347,8 +346,8 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
     const borderClass = ownerUsername && colors
         ? `${colors.border} ${colors.bg}`
         : isMe && value
-        ? 'border-orange-500/40 bg-orange-500/5'
-        : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5';
+            ? 'border-orange-500/40 bg-orange-500/5'
+            : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5';
 
     return (
         <div className="relative">

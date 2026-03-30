@@ -54,7 +54,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`/api/profil/${username}`);
+                const res = await fetch(`/api/user/${username}`);
                 if (!res.ok) { setNotFound(true); setLoading(false); return; }
                 const data = await res.json();
                 setProfile(data);

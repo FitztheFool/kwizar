@@ -241,6 +241,8 @@ export default function LobbyCodePage() {
     const [hostId, setHostId] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [canStart, setCanStart] = useState(false);
+    const [tabooOk, setTabooOk] = useState(false);
+    const [isLaunching, setIsLaunching] = useState(false);
 
     const [gameType, setGameTypeState] = useState<GameType>('uno');
     const [maxPlayers, setMaxPlayersState] = useState(8);
@@ -383,10 +385,21 @@ export default function LobbyCodePage() {
             const maxList = MAX_PLAYERS_BY_GAME[g];
             const maxOk = maxList ? count <= Math.max(...maxList) : true;
             const countOk = exact ? count === exact : count >= min && maxOk;
-            // Taboo: both teams must have >= 2 players
+            // Taboo / UNO 2v2: both teams must have >= 2 players
             const teams = state.teams ? Object.values(state.teams) : [];
-            const tabooOk = g !== 'taboo' || (teams.filter((t: number) => t === 0).length >= 2 && teams.filter((t: number) => t === 1).length >= 2);
-            setCanStart(countOk && hasQuiz && tabooOk && state.hostId === meUserId);
+            const unoIs2v2 = g === 'uno' && (state.unoOptions?.teamMode ?? 'none') === '2v2';
+            const teamExact = unoIs2v2 ? 2 : 2; // taboo >= 2, uno 2v2 === 2
+            const t0 = teams.filter((t: number) => t === 0).length;
+            const t1 = teams.filter((t: number) => t === 1).length;
+            const teamsOk = unoIs2v2
+                ? t0 === 2 && t1 === 2
+                : t0 >= teamExact && t1 >= teamExact;
+            const tabooTeamsOk = teamsOk;
+            setTabooOk(tabooTeamsOk);
+            const tabooOk = g !== 'taboo' || teamsOk;
+            const unoTeamModeVal = state.unoOptions?.teamMode ?? 'none';
+            const unoOk = g !== 'uno' || unoTeamModeVal !== '2v2' || teamsOk;
+            setCanStart(countOk && hasQuiz && tabooOk && unoOk && state.hostId === meUserId);
         };
 
         socket.on('lobby:state', onState);
@@ -394,6 +407,7 @@ export default function LobbyCodePage() {
 
         // ── game:start via GAME_ROUTES ────────────────────────────────────
         socket.on('game:start', (payload: { gameType: GameType; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
+            setIsLaunching(true);
             const routeFn = GAME_ROUTES[payload.gameType];
             if (routeFn) {
                 router.push(routeFn(lobbyId));
@@ -473,19 +487,19 @@ export default function LobbyCodePage() {
     };
 
     return (
-        <main className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-6 lg:p-8">
-            <div className="max-w-6xl mx-auto">
+        <main className="bg-gray-50 dark:bg-slate-950 pb-8">
 
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 text-2xl flex-shrink-0">
+            {/* Sticky header */}
+            <div className="sticky top-0 z-20 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800 px-4 md:px-6 lg:px-8 py-3">
+                <div className="max-w-6xl mx-auto flex items-center gap-4">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 text-xl flex-shrink-0">
                         {selectedGame?.icon ?? '🎮'}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
+                        <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate leading-tight">
                             {meta?.title || 'Lobby'}
                         </h1>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2">
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isHost ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-gray-200 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400'}`}>
                                 {isHost ? '👑 Hôte' : '👤 Participant'}
                             </span>
@@ -495,6 +509,9 @@ export default function LobbyCodePage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-6 pb-28">
 
                 {/* Two-column layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:gap-6 items-start">
@@ -852,26 +869,33 @@ export default function LobbyCodePage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                             <button onClick={() => { socket?.emit('lobby:leave'); router.push('/'); }}
-                                className="px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700/50 text-gray-500 dark:text-slate-400 text-sm font-semibold hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-300 transition-all bg-white dark:bg-slate-900/80">
+                                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700/50 text-gray-500 dark:text-slate-400 text-sm font-semibold hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-300 transition-all bg-white dark:bg-slate-900/80">
                                 Quitter
                             </button>
                             {isHost ? (
-                                <button onClick={() => socket?.emit('lobby:start')} disabled={!canStart}
-                                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-200 dark:disabled:from-slate-800 disabled:to-gray-200 dark:disabled:to-slate-800 disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-lg shadow-green-500/20 disabled:shadow-none">
-                                    {canStart
-                                        ? `🚀 Lancer ${selectedGame?.label ?? 'la partie'} !`
-                                        : gameType === 'quiz' && !selectedQuizId && players.length >= 2
-                                            ? '🎯 Choix du quiz…'
-                                            : '⏳ En attente de joueurs…'}
+                                <button onClick={() => { setIsLaunching(true); socket?.emit('lobby:start'); }} disabled={!canStart || isLaunching}
+                                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-200 dark:disabled:from-slate-800 disabled:to-gray-200 dark:disabled:to-slate-800 disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-lg shadow-green-500/20 disabled:shadow-none">
+                                    {isLaunching
+                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Lancement…</span>
+                                        : canStart
+                                            ? `🚀 Lancer ${selectedGame?.label ?? 'la partie'} !`
+                                            : gameType === 'quiz' && !selectedQuizId && players.length >= 2
+                                                ? '🎯 Choix du quiz…'
+                                                : (gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2')) && !tabooOk
+                                                    ? '⏳ En attente des équipes…'
+                                                    : '⏳ En attente de joueurs…'}
                                 </button>
                             ) : (
-                                <div className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
-                                    ⏳ En attente du host…
+                                <div className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
+                                    {isLaunching
+                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Lancement…</span>
+                                        : '⏳ En attente du host…'}
                                 </div>
                             )}
                         </div>
+
                     </div>
                 </div>
             </div>

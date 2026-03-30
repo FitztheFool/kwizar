@@ -51,7 +51,7 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
                                     {p.abandon ? '🚫' : p.afk ? '⏳' : p.placement != null ? (PLACEMENT_EMOJI[p.placement] ?? `#${p.placement}`) : ''}
                                 </span>
                                 <Link
-                                    href={session?.user?.username === p.username ? '/dashboard' : `/profil/${p.username}`}
+                                    href={session?.user?.username === p.username ? '/dashboard' : `/user/${p.username}`}
                                     className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                                     onClick={onClose}
                                 >

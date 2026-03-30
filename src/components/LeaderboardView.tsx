@@ -220,7 +220,7 @@ export default function LeaderboardView({ game }: Props) {
                                                     }
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
-                                                    <Link href={isMe ? '/dashboard' : `/profil/${entry.username}`}
+                                                    <Link href={isMe ? '/dashboard' : `/user/${entry.username}`}
                                                         className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400 truncate block">
                                                         {entry.username}
                                                     </Link>

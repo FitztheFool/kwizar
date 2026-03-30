@@ -3,8 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import type { TabType } from '@/types/dashboard';
+import { usePathname } from 'next/navigation';
 
 const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
     { label: 'Quiz disponibles', icon: '🎯', href: '/quiz/available' },
@@ -14,18 +13,90 @@ const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
     { label: 'Créer un quiz', icon: '➕', href: '/quiz/create' },
 ];
 
+const INACTIVE = 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white';
+const ACTIVE: Record<string, { item: string; dot: string }> = {
+    blue: { item: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+    green: { item: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
+    yellow: { item: 'bg-yellow-50 text-yellow-700', dot: 'bg-yellow-500' },
+    red: { item: 'bg-red-50 text-red-700', dot: 'bg-red-500' },
+    gray: { item: 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white', dot: 'bg-gray-500' },
+};
+
+// ─── NavLink ──────────────────────────────────────────────────────────────────
+
+function NavLink({ href, icon, label, isActive, collapsed, color }: {
+    href: string; icon: string; label: string;
+    isActive: boolean; collapsed: boolean; color: keyof typeof ACTIVE;
+}) {
+    const a = ACTIVE[color];
+    return (
+        <Link href={href} title={label}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : INACTIVE}`}
+        >
+            <span className="text-base flex-shrink-0">{icon}</span>
+            {!collapsed && (
+                <>
+                    <span>{label}</span>
+                    {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${a.dot}`} />}
+                </>
+            )}
+        </Link>
+    );
+}
+
+// ─── SubNavLink ───────────────────────────────────────────────────────────────
+
+function SubNavLink({ href, icon, label, isActive, color }: {
+    href: string; icon: string; label: string;
+    isActive: boolean; color: keyof typeof ACTIVE;
+}) {
+    const a = ACTIVE[color];
+    return (
+        <Link href={href}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}`}
+        >
+            <span className="text-sm">{icon}</span>
+            {label}
+            {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${a.dot}`} />}
+        </Link>
+    );
+}
+
+// ─── SectionToggle ────────────────────────────────────────────────────────────
+
+function SectionToggle({ icon, label, isActive, isOpen, collapsed, color, onClick }: {
+    icon: string; label: string; isActive: boolean; isOpen: boolean;
+    collapsed: boolean; color: keyof typeof ACTIVE; onClick: () => void;
+}) {
+    const a = ACTIVE[color];
+    return (
+        <button onClick={onClick} title={label}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : INACTIVE}`}
+        >
+            <span className="text-base flex-shrink-0">{icon}</span>
+            {!collapsed && (
+                <>
+                    <span>{label}</span>
+                    <span className={`ml-auto text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                </>
+            )}
+        </button>
+    );
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+
 interface SidebarProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose?: () => void;
     isAuthenticated: boolean;
     userRole?: string;
     userName?: string | null;
     userEmail?: string | null;
 }
 
-export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, userName, userEmail }: SidebarProps) {
+export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, userEmail }: SidebarProps) {
     const pathname = usePathname();
-    const router = useRouter();
     const [collapsed, setCollapsed] = useState(true);
     const [quizMenuOpen, setQuizMenuOpen] = useState(false);
     const [lobbyMenuOpen, setLobbyMenuOpen] = useState(false);
@@ -82,48 +153,16 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, us
                 {/* ── Lobby ── */}
                 {isAuthenticated && (
                     <div>
-                        <button
+                        <SectionToggle
+                            icon="🎮" label="Lobby"
+                            isActive={lobbySectionActive} isOpen={lobbyMenuOpen}
+                            collapsed={collapsed} color="green"
                             onClick={() => { if (collapsed) setCollapsed(false); else setLobbyMenuOpen(prev => !prev); }}
-                            title="Lobby"
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-                                ${lobbySectionActive
-                                    ? 'bg-green-50 text-green-700'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                                }`}
-                        >
-                            <span className="text-base flex-shrink-0">🎮</span>
-                            {!collapsed && (
-                                <>
-                                    <span>Lobby</span>
-                                    <span className={`ml-auto text-xs transition-transform duration-200 ${lobbyMenuOpen ? 'rotate-180' : ''}`}>▾</span>
-                                </>
-                            )}
-                        </button>
-
+                        />
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <Link href={`/lobby/create/${lobbyCode}`}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-                ${isCreatingLobby
-                                            ? 'bg-green-50 text-green-700'
-                                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                                        }`}
-                                >
-                                    <span className="text-sm">➕</span>
-                                    Créer un lobby
-                                    {isCreatingLobby && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500" />}
-                                </Link>
-                                <Link href="/lobby/all"
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-                ${pathname === '/lobby/all'
-                                            ? 'bg-green-50 text-green-700'
-                                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                                        }`}
-                                >
-                                    <span className="text-sm">🔍</span>
-                                    Voir les lobbies
-                                    {pathname === '/lobby/all' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500" />}
-                                </Link>
+                                <SubNavLink href={`/lobby/create/${lobbyCode}`} icon="➕" label="Créer un lobby" isActive={isCreatingLobby} color="green" />
+                                <SubNavLink href="/lobby/all" icon="🔍" label="Voir les lobbies" isActive={pathname === '/lobby/all'} color="green" />
                             </div>
                         )}
                     </div>
@@ -131,145 +170,45 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, us
 
                 {/* ── Quiz ── */}
                 <div>
-                    <button
+                    <SectionToggle
+                        icon="🎯" label="Quiz"
+                        isActive={quizSectionActive} isOpen={quizMenuOpen}
+                        collapsed={collapsed} color="blue"
                         onClick={() => { if (collapsed) setCollapsed(false); else setQuizMenuOpen(prev => !prev); }}
-                        title="Quiz"
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-                            ${quizSectionActive
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                    >
-                        <span className="text-base flex-shrink-0">🎯</span>
-                        {!collapsed && (
-                            <>
-                                <span>Quiz</span>
-                                <span className={`ml-auto text-xs transition-transform duration-200 ${quizMenuOpen ? 'rotate-180' : ''}`}>▾</span>
-                            </>
-                        )}
-                    </button>
-
+                    />
                     {!collapsed && quizMenuOpen && (
                         <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
                             {isAuthenticated ? (
                                 QUIZ_NAV_ITEMS.map((item, i) => {
                                     if (!item.label) return <div key={i} className="border-t border-gray-100 dark:border-gray-700 my-1" />;
-                                    const isActive = pathname === item.href;
-                                    return (
-                                        <Link key={item.href} href={item.href!}
-                                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                ${isActive
-                                                    ? 'bg-blue-50 text-blue-700'
-                                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                                                }`}
-                                        >
-                                            <span className="text-sm">{item.icon}</span>
-                                            {item.label}
-                                            {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
-                                        </Link>
-                                    );
+                                    return <SubNavLink key={item.href} href={item.href!} icon={item.icon} label={item.label} isActive={pathname === item.href} color="blue" />;
                                 })
                             ) : (
-                                <Link href="/quiz/available"
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
-        ${pathname === '/quiz/available'
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                                        }`}
-                                >
-                                    <span className="text-sm">🎯</span>
-                                    Quiz disponibles
-                                    {pathname === '/quiz/available' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
-                                </Link>
+                                <SubNavLink href="/quiz/available" icon="🎯" label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
                             )}
                         </div>
                     )}
                 </div>
 
                 {/* ── Leaderboard ── */}
-                <Link href="/leaderboard/uno"
-                    title="Leaderboard"
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-        ${pathname.startsWith('/leaderboard/')
-                            ? 'bg-yellow-50 text-yellow-700'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <span className="text-base flex-shrink-0">🏆</span>
-                    {!collapsed && (
-                        <>
-                            <span>Leaderboard</span>
-                            {pathname.startsWith('/leaderboard/') && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-yellow-500" />}
-                        </>
-                    )}
-                </Link>
+                <NavLink href="/leaderboard/uno" icon="🏆" label="Leaderboard" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
 
                 {/* ── Dashboard ── */}
                 {isAuthenticated && (
-                    <Link href="/dashboard"
-                        title="Dashboard"
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-            ${pathname === '/dashboard'
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                    >
-                        <span className="text-base flex-shrink-0">🎛️</span>
-                        {!collapsed && (
-                            <>
-                                <span>Dashboard</span>
-                                {pathname === '/dashboard' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />}
-                            </>
-                        )}
-                    </Link>
+                    <NavLink href="/dashboard" icon="🎛️" label="Dashboard" isActive={pathname === '/dashboard'} collapsed={collapsed} color="blue" />
                 )}
 
                 {/* ── Paramètres ── */}
-                <Link href="/settings"
-                    title="Paramètres"
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-        ${pathname === '/settings'
-                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <span className="text-base flex-shrink-0">⚙️</span>
-                    {!collapsed && (
-                        <>
-                            <span>Paramètres</span>
-                            {pathname === '/settings' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-gray-500" />}
-                        </>
-                    )}
-                </Link>
+                <NavLink href="/settings" icon="⚙️" label="Paramètres" isActive={pathname === '/settings'} collapsed={collapsed} color="gray" />
 
                 {/* ── Admin ── */}
                 {isAuthenticated && userRole === 'ADMIN' && (
-                    <Link href="/admin"
-                        title="Admin"
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-            ${pathname === '/admin'
-                                ? 'bg-red-50 text-red-700'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                    >
-                        <span className="text-base flex-shrink-0">🛡️</span>
-                        {!collapsed && 'Admin'}
-                        {!collapsed && pathname === '/admin' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500" />}
-                    </Link>
+                    <NavLink href="/admin" icon="🛡️" label="Admin" isActive={pathname === '/admin'} collapsed={collapsed} color="red" />
                 )}
 
                 {/* ── Connexion (non connectés) ── */}
                 {!isAuthenticated && (
-                    <Link href="/login"
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
-                            ${pathname === '/login'
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                    >
-                        <span className="text-base flex-shrink-0">🔐</span>
-                        {!collapsed && 'Se connecter'}
-                    </Link>
+                    <NavLink href="/login" icon="🔐" label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} color="blue" />
                 )}
             </nav>
         </aside>

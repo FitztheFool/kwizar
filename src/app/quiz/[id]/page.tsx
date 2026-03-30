@@ -8,7 +8,6 @@ import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { getQuizSocket } from '@/lib/socket';
-import { QuestionResult } from '@/components/Quiz/QuizResults';
 
 interface Answer {
     id: string;
@@ -371,7 +370,7 @@ export default function QuizPage() {
 
     if (quizNotAllowed) {
         return (
-            <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white py-16">
                 <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-10 flex flex-col items-center gap-4 text-center max-w-sm w-full">
                     <div className="text-4xl">📝</div>
                     <h1 className="text-lg font-bold">Quiz en cours</h1>
@@ -387,7 +386,7 @@ export default function QuizPage() {
 
     if (error) {
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
                     <div className="w-48 shrink-0 flex items-center gap-2">
                         <span>📝</span>
@@ -396,7 +395,7 @@ export default function QuizPage() {
                     <div className="flex-1" />
                     <div className="w-48 shrink-0" />
                 </header>
-                <main className="flex-1 overflow-auto p-4 flex items-center justify-center">
+                <main className="p-4 flex items-center justify-center">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center max-w-md w-full">
                         <div className="text-red-500 text-5xl mb-4">⚠️</div>
                         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Erreur</h2>
@@ -423,7 +422,7 @@ export default function QuizPage() {
                     : selectedAnswer !== '';
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+        <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
                 <div className="w-48 shrink-0 flex items-center gap-2 min-w-0">
@@ -445,7 +444,7 @@ export default function QuizPage() {
                 </div>
             </header>
 
-            <main className="flex-1 overflow-auto flex flex-col items-center justify-center p-4 py-8">
+            <main className="flex flex-col items-center p-4 py-8">
                 <div className="max-w-2xl w-full flex flex-col gap-4">
 
                     {status === 'unauthenticated' && (

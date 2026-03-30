@@ -8,11 +8,18 @@ import { PrismaClient, QuestionType } from '@prisma/client';
 
 import bcrypt from 'bcrypt';
 
+/** Retourne abandon/afk aléatoirement pour un joueur non-gagnant */
+function randomLeaveFlags(isWinner: boolean): { abandon: boolean; afk: boolean } {
+    if (isWinner) return { abandon: false, afk: false };
+    const r = Math.random();
+    if (r < 0.10) return { abandon: true, afk: false };
+    if (r < 0.16) return { abandon: false, afk: true };
+    return { abandon: false, afk: false };
+}
+
 function computeUnoScore(rank: number) {
-    if (rank === 1) return 20;
-    if (rank === 2) return 13;
-    if (rank === 3) return 6;
-    return 2;
+    if (rank === 1) return Math.floor(Math.random() * 60) + 20; // 20–80 pts (sum of opponents' cards)
+    return 0;
 }
 
 const prisma = new PrismaClient();
@@ -604,6 +611,8 @@ async function main() {
         const gameDate = unoGameDates[g];
 
         for (let p = 0; p < rankedParticipants.length; p++) {
+            const isWinner = p === 0;
+            const { abandon, afk } = randomLeaveFlags(isWinner);
             await prisma.attempt.create({
                 data: {
                     userId: rankedParticipants[p].id,
@@ -613,6 +622,8 @@ async function main() {
                     gameId,
                     quizId: null,
                     trapScore: 0,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });
@@ -641,26 +652,31 @@ async function main() {
         const participants = shufflePlayers(skyjowPlayers).slice(0, playerCount);
         const gameDate = skyjowGameDates[g];
 
-        const scores: number[] = participants.map((_, i) => {
-            if (i === 0) return Math.floor(Math.random() * 20) + 5;
-            return Math.floor(Math.random() * 45) + 15;
-        });
+        const scores: number[] = participants.map(() => Math.floor(Math.random() * 45) + 5);
+        // Si le déclencheur de fin de manche n'est pas le meilleur, son score est doublé
         const minScore = Math.min(...scores);
         const triggerIndex = participants.length - 1;
         if (scores[triggerIndex] !== minScore) {
             scores[triggerIndex] = Math.min(scores[triggerIndex] * 2, 120);
         }
+        // Placement par score croissant (le plus bas gagne)
+        const placements = scores.map((_, i) => i).sort((a, b) => scores[a] - scores[b]);
+        const rankOf = new Array(participants.length);
+        placements.forEach((originalIdx, rank) => { rankOf[originalIdx] = rank + 1; });
 
         for (let p = 0; p < participants.length; p++) {
+            const { abandon, afk } = randomLeaveFlags(rankOf[p] === 1);
             await prisma.attempt.create({
                 data: {
                     userId: participants[p].id,
                     score: scores[p],
                     gameType: 'SKYJOW',
-                    placement: p + 1,
+                    placement: rankOf[p],
                     gameId,
                     quizId: null,
                     trapScore: 0,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });
@@ -718,6 +734,7 @@ async function main() {
             const myTeamKey = isTeamA ? 'A' : 'B';
             const placement = winnerTeam === null ? null : myTeamKey === winnerTeam ? 1 : 2;
 
+            const { abandon, afk } = randomLeaveFlags(placement === 1);
             await prisma.attempt.create({
                 data: {
                     userId: player.id,
@@ -728,6 +745,8 @@ async function main() {
                     placement,
                     gameId,
                     quizId: null,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });
@@ -767,6 +786,7 @@ async function main() {
             .sort((a, b) => b.score - a.score);
 
         for (let p = 0; p < ranked.length; p++) {
+            const { abandon, afk } = randomLeaveFlags(p === 0);
             await prisma.attempt.create({
                 data: {
                     userId: ranked[p].player.id,
@@ -776,6 +796,8 @@ async function main() {
                     gameId,
                     quizId: null,
                     trapScore: 0,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });
@@ -924,6 +946,7 @@ async function main() {
             .sort((a, b) => b.score - a.score);
 
         for (let p = 0; p < ranked.length; p++) {
+            const { abandon, afk } = randomLeaveFlags(p === 0);
             await prisma.attempt.create({
                 data: {
                     userId: ranked[p].player.id,
@@ -933,6 +956,8 @@ async function main() {
                     gameId,
                     quizId: null,
                     trapScore: 0,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });
@@ -985,6 +1010,7 @@ async function main() {
             .sort((a, b) => b.score - a.score);
 
         for (let p = 0; p < ranked.length; p++) {
+            const { abandon, afk } = randomLeaveFlags(p === 0);
             await prisma.attempt.create({
                 data: {
                     userId: ranked[p].player.id,
@@ -994,6 +1020,8 @@ async function main() {
                     gameId,
                     quizId: null,
                     trapScore: 0,
+                    abandon,
+                    afk,
                     createdAt: new Date(gameDate.getTime() + p * 1000),
                 },
             });

@@ -6,49 +6,14 @@ import GameOverModal from '@/components/GameOverModal';
 
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
-import { getTabooSocket } from '@/lib/socket';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useTaboo } from '@/hooks/useTaboo';
 import { TrapPhase } from '@/components/TrapPhase';
-import type { TrapSlotData } from '@/components/TrapPhase';
+
 import { useChat } from '@/context/ChatContext';
 import { plural } from '@/lib/utils';
 
-
 type Attempt = { word: string; userId: string; username: string };
-
-type TabooState = {
-    phase: 'trap' | 'playing' | 'between_turns' | 'finished' | 'recap';
-    currentTeam: 0 | 1 | null;
-    currentWord: string | null;
-    currentTraps: string[];
-    attempts: Attempt[];
-    turnTimeLeft: number;
-    turnDuration: number;
-    paused: boolean;
-    scores: Record<string, number>;
-    round: number;
-    totalRounds: number;
-    maxAttempts: number;
-    trapWordCount: number;
-    players: { userId: string; username: string; team: 0 | 1 | null }[];
-    teams: Record<string, 0 | 1> | null;
-    hostId: string;
-    trapTimeLeft: number | null;
-    trapDeadline: number | null;
-    trapStarted: boolean;
-    team0Traps: string[];
-    team1Traps: string[];
-    team0Slots?: TrapSlotData[];
-    team1Slots?: TrapSlotData[];
-    team0Word: string | null;
-    team1Word: string | null;
-    firstTeam: 0 | 1 | null;
-    gameStarted: boolean;
-    trapsByPlayer: Record<string, string[]>;
-    orators?: { '0': string | null; '1': string | null };
-    lastTurnResult: 'validated' | 'fail' | 'timeout' | null;
-    trapDuration: number;
-};
 
 // ── Composants partagés ───────────────────────────────────────────────────────
 
@@ -137,16 +102,20 @@ function TopBar({
 
 export default function TabooGamePage() {
     const { session, status, router, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
-    const socketRef = useRef<ReturnType<typeof getTabooSocket>>(null);
-
-    const joinedRef = useRef(false);
-    const attemptsEndRef = useRef<HTMLDivElement>(null);
-    const isHostRef = useRef(false);
-
-    const [game, setGame] = useState<TabooState | null>(null);
-    const [attemptInput, setAttemptInput] = useState('');
 
     const myId = session?.user?.id ?? '';
+    const username = session?.user?.username ?? session?.user?.email ?? 'User';
+
+    const { socketRef, game } = useTaboo({
+        lobbyId,
+        userId: myId,
+        username,
+        onNotFound: () => setIsNotFound(true),
+    });
+
+    const attemptsEndRef = useRef<HTMLDivElement>(null);
+    const [attemptInput, setAttemptInput] = useState('');
+
     const isHost = !!game && game.hostId === myId;
 
     const { overrideMyTeam } = useChat();
@@ -155,93 +124,6 @@ export default function TabooGamePage() {
         const t = game?.teams?.[myId];
         overrideMyTeam(t === 0 || t === 1 ? t : undefined);
     }, [game?.teams, myId]);
-
-
-    useEffect(() => {
-        isHostRef.current = !!game && game.hostId === myId;
-    }, [game?.hostId, myId]);
-
-    useEffect(() => {
-        if (!socketRef.current || !game) return;
-        if (game.phase === 'trap' && !game.trapStarted && game.team0Word && game.team1Word && isHostRef.current) {
-            socketRef.current.emit('taboo:startTrap', { lobbyId });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [game?.phase, game?.trapStarted, game?.team0Word, game?.team1Word]);
-
-    const startGameSentRef = useRef(false);
-
-    useEffect(() => {
-        if (game?.phase === 'trap') startGameSentRef.current = false;
-    }, [game?.round, game?.phase]);
-
-    useEffect(() => {
-        if (!socketRef.current || !game) return;
-        if (
-            game.phase === 'trap' &&
-            game.trapStarted &&
-            game.team0Word &&
-            game.team1Word &&
-            game.trapTimeLeft !== null &&
-            game.trapTimeLeft <= 0 &&
-            isHostRef.current &&
-            !startGameSentRef.current
-        ) {
-            startGameSentRef.current = true;
-            const event = game.gameStarted ? 'taboo:startRound' : 'taboo:startGame';
-            socketRef.current.emit(event, { lobbyId });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [game?.trapTimeLeft]);
-
-    useEffect(() => {
-        if (!lobbyId || status !== 'authenticated' || !myId) return;
-        const username = session?.user?.username ?? session?.user?.email ?? 'User';
-
-        const socket = getTabooSocket();
-        if (!socket) return;
-        socketRef.current = socket;
-
-        const join = () => {
-            socket.emit('taboo:join', { lobbyId, userId: myId, username });
-        };
-
-        socket.on('notFound', () => setIsNotFound(true));
-        socket.on('taboo:state', (state: TabooState) => setGame(state));
-
-        socket.on('taboo:requestWords', async ({ count }: { count: number }) => {
-            const res = await fetch(`/api/taboo/word?count=${count}`);
-            if (!res.ok) return;
-            const words: string[] = await res.json();
-            socket.emit('taboo:setWords', { lobbyId, team0Word: words[0], team1Word: words[1] });
-        });
-
-        socket.on('taboo:needWords', () => {
-            setGame(currentGame => {
-                if (currentGame?.hostId !== myId) return currentGame;
-                fetch(`/api/taboo/word?count=2`)
-                    .then(r => r.json())
-                    .then((words: string[]) => {
-                        socket.emit('taboo:setWordsForRound', { lobbyId, team0Word: words[0], team1Word: words[1] });
-                    });
-                return currentGame;
-            });
-        });
-
-        // join on initial connect and on reconnect (server restart resets state)
-        socket.on('connect', join);
-        if (!socket.connected) socket.connect();
-        else join();
-
-        return () => {
-            socket.off('notFound');
-            socket.off('connect', join);
-            socket.off('taboo:state');
-            socket.off('taboo:requestWords');
-            socket.off('taboo:needWords');
-            joinedRef.current = false;
-        };
-    }, [lobbyId, status, myId]);
 
     useEffect(() => {
         if (attemptsEndRef.current) {
@@ -282,7 +164,7 @@ export default function TabooGamePage() {
     // ── Phase trap ────────────────────────────────────────────────────────────
     if (game.phase === 'trap') {
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden"
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
                 <TopBar
@@ -299,7 +181,7 @@ export default function TabooGamePage() {
                         </div>
                     }
                 />
-                <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 py-8">
                     <TrapPhase
                         game={{
                             ...game,
@@ -337,7 +219,7 @@ export default function TabooGamePage() {
         const trapsUsed = teamWhoJustPlayed === 0 ? game.team1Traps : game.team0Traps;
 
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden"
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
                 <TopBar
@@ -354,7 +236,7 @@ export default function TabooGamePage() {
                         </div>
                     }
                 />
-                <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 py-8">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Fin du tour</p>
                         <p style={{ fontFamily: "'Bebas Neue'" }} className={`text-3xl tracking-widest text-center ${teamColor}`}>{teamLabel}</p>
@@ -414,7 +296,7 @@ export default function TabooGamePage() {
         const myTeamPlayers = game.players.filter(p => p.team === myTeam);
 
         return (
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden"
+            <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
                 <TopBar
@@ -431,7 +313,7 @@ export default function TabooGamePage() {
                         </div>
                     }
                 />
-                <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 py-8">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Prochain tour</p>
                         <p style={{ fontFamily: "'Bebas Neue'" }} className={`text-3xl tracking-widest text-center ${teamColor}`}>{teamLabel}</p>
@@ -546,7 +428,7 @@ export default function TabooGamePage() {
         : '?';
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden"
+        <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
             style={{ fontFamily: "'DM Sans', sans-serif" }}>
             <style>{FONTS}</style>
 
@@ -568,7 +450,7 @@ export default function TabooGamePage() {
                 }
             />
 
-            <div className="flex-1 overflow-auto flex flex-col items-center justify-center p-4 gap-4">
+            <div className="flex flex-col items-center justify-center p-4 py-8 gap-4">
 
                 <div className="relative w-32 h-32">
                     <svg className="w-32 h-32 -rotate-90" viewBox="0 0 130 130">

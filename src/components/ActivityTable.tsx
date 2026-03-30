@@ -45,6 +45,8 @@ interface ActivityTableProps {
     variant: 'admin' | 'user';
     onPlayerClick: (row: ActivityRow) => void;
     emptyLabel?: string;
+    /** Afficher la colonne Quiz (défaut: true) */
+    showQuiz?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -54,12 +56,13 @@ export default function ActivityTable({
     variant,
     onPlayerClick,
     emptyLabel = 'Aucune activité pour cette période.',
+    showQuiz = true,
 }: ActivityTableProps) {
     const isUser = variant === 'user';
 
     const headers = isUser
-        ? ['Jeu', 'Quiz', 'Score', 'Place', 'Joueurs', 'Date']
-        : ['Jeu', 'Quiz', 'Joueurs', 'Date'];
+        ? ['Jeu', ...(showQuiz ? ['Quiz'] : []), 'Score', 'Place', 'Joueurs', 'Date']
+        : ['Jeu', ...(showQuiz ? ['Quiz'] : []), 'Joueurs', 'Date'];
 
     return (
         <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
@@ -107,18 +110,20 @@ export default function ActivityTable({
                                 </td>
 
                                 {/* Quiz */}
-                                <td className="px-3 py-2 whitespace-nowrap max-w-[140px]">
-                                    {row.quiz ? (
-                                        <Link
-                                            href={`/quiz/${row.quiz.id}`}
-                                            className="text-blue-600 dark:text-blue-400 hover:underline text-xs truncate block"
-                                        >
-                                            {row.quiz.title}
-                                        </Link>
-                                    ) : (
-                                        <span className="text-gray-300 dark:text-gray-600">—</span>
-                                    )}
-                                </td>
+                                {showQuiz && (
+                                    <td className="px-3 py-2 whitespace-nowrap max-w-[140px]">
+                                        {row.quiz ? (
+                                            <Link
+                                                href={`/quiz/${row.quiz.id}`}
+                                                className="text-blue-600 dark:text-blue-400 hover:underline text-xs truncate block"
+                                            >
+                                                {row.quiz.title}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-gray-300 dark:text-gray-600">—</span>
+                                        )}
+                                    </td>
+                                )}
 
                                 {/* Score — user only */}
                                 {isUser && (
@@ -132,7 +137,7 @@ export default function ActivityTable({
 
                                 {/* Place — user only */}
                                 {isUser && (
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm">
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm">
                                         {row.abandon ? (
                                             <span title="Abandon">🚫</span>
                                         ) : row.afk ? (

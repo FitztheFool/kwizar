@@ -660,7 +660,7 @@ export default function AdminPanel() {
                                                             : <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">{user.username[0]?.toUpperCase()}</div>}
                                                     </td>
                                                     <td className="px-3 py-2 font-semibold text-xs">
-                                                        <Link href={session?.user?.username === user.username ? '/dashboard' : `/profil/${user.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{user.username}</Link>
+                                                        <Link href={session?.user?.username === user.username ? '/dashboard' : `/user/${user.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{user.username}</Link>
                                                     </td>
                                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{user.email}</td>
                                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString('fr-FR')}</td>
@@ -735,7 +735,7 @@ export default function AdminPanel() {
                                                         <Link href={`/quiz/${quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs truncate block">{quiz.title}</Link>
                                                     </td>
                                                     <td className="px-3 py-2 text-xs">
-                                                        <Link href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/profil/${quiz.creator.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{quiz.creator.username}</Link>
+                                                        <Link href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/user/${quiz.creator.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{quiz.creator.username}</Link>
                                                     </td>
                                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{quiz.category?.name ?? '—'}</td>
                                                     <td className="px-3 py-2 text-xs text-center text-gray-700 dark:text-gray-300 font-semibold">{quiz._count.questions}</td>

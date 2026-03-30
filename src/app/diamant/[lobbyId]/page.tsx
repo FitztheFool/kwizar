@@ -142,10 +142,19 @@ function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
 
             {/* Safe total (only for me) */}
             {isMe && (
-                <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                     <span>🔒</span>
-                    <span className="font-semibold text-gray-700 dark:text-gray-200">
-                        {player.safeRubies + player.safeDiamonds * 5}
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">
+                        💎{player.safeRubies}
+                    </span>
+                    {player.relicPoints > 0 && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                            +🏺{player.relicPoints}pts
+                        </span>
+                    )}
+                    <span className="text-gray-400 dark:text-gray-600">=</span>
+                    <span className="font-black text-gray-800 dark:text-white text-sm">
+                        {player.safeRubies + player.relicPoints}
                     </span>
                 </div>
             )}
@@ -156,7 +165,7 @@ function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DiamantPage() {
-    const { session, status, router, me: meInfo, lobbyId, modalDismissed, setModalDismissed } = useGamePage();
+    const { status, router, me: meInfo, lobbyId } = useGamePage();
 
     const { state, decide, clearError, gameNotFound, surrender } = useDiamant({
         lobbyId,
@@ -179,8 +188,7 @@ export default function DiamantPage() {
     );
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
-
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             {/* Header */}
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
                 {/* Left slot */}
@@ -210,10 +218,19 @@ export default function DiamantPage() {
                 {/* Right slot — my safe score + abandon */}
                 <div className="w-48 shrink-0 flex justify-end items-center gap-2">
                     {me && (
-                        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Coffre</span>
-                            <span className="text-amber-600 dark:text-amber-400 font-black text-sm">
-                                {me.safeRubies + me.safeDiamonds * 5}
+                        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm">
+                            <span className="text-amber-600 dark:text-amber-400 font-bold">💎{me.safeRubies}</span>
+                            {me.relicPoints > 0 && (
+                                <>
+                                    <span className="text-gray-400 dark:text-gray-600">+</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                        🏺{me.relicPoints}pts
+                                    </span>
+                                </>
+                            )}
+                            <span className="text-gray-400 dark:text-gray-600">=</span>
+                            <span className="text-gray-800 dark:text-white font-black">
+                                {me.safeRubies + me.relicPoints}
                             </span>
                             <span className="text-gray-400 dark:text-gray-600 text-xs">pts</span>
                         </div>
@@ -222,11 +239,10 @@ export default function DiamantPage() {
                         <button
                             onClick={() => { if (!iSurrendered && confirm('Abandonner la partie ?')) surrender(); }}
                             disabled={iSurrendered}
-                            className={`text-xs px-3 py-1.5 rounded-lg transition-all border ${
-                                iSurrendered
-                                    ? 'text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
-                                    : 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600'
-                            }`}
+                            className={`text-xs px-3 py-1.5 rounded-lg transition-all border ${iSurrendered
+                                ? 'text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
+                                : 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600'
+                                }`}
                         >
                             🏳️ Abandonner
                         </button>
@@ -246,7 +262,8 @@ export default function DiamantPage() {
             )}
 
             {/* Body */}
-            <main className="flex-1 overflow-auto p-4 flex flex-col items-center gap-4">
+            <main className="flex-1 overflow-visible p-4 flex flex-col items-center gap-4">
+
                 <div className="w-full max-w-3xl flex flex-col gap-5">
 
                     {/* Playing */}
@@ -306,7 +323,7 @@ export default function DiamantPage() {
                                                     index={i}
                                                     rubisOnCard={state.rubisOnCards[i] ?? 0}
                                                     isLast={i === state.revealedCards.length - 1}
-                                                    isRelic={state.relicsInCave.includes(i)}
+                                                    isRelic={state.relicsInCave.includes(card.id)}
                                                 />
                                             ))}
                                         </div>
@@ -342,15 +359,15 @@ export default function DiamantPage() {
 
 
                             {/* Decision buttons */}
-                            {state.decisionPhase && amInCave && (
+                            {amInCave && (
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         onClick={() => decide('continue')}
-                                        disabled={state.myDecision !== null}
+                                        disabled={state.myDecision !== null || !state.decisionPhase}
                                         className={`py-5 rounded-2xl border-2 font-black text-base transition-all
                                             ${state.myDecision === 'continue'
                                                 ? 'border-amber-500 bg-amber-500/20 text-amber-700 dark:text-amber-300 scale-105'
-                                                : state.myDecision !== null
+                                                : state.myDecision !== null || !state.decisionPhase
                                                     ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 opacity-40'
                                                     : 'border-amber-400 dark:border-amber-700 bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 hover:border-amber-500 hover:bg-amber-200 dark:hover:bg-amber-950/60 hover:scale-105 active:scale-100'
                                             }`}
@@ -363,11 +380,11 @@ export default function DiamantPage() {
                                     </button>
                                     <button
                                         onClick={() => decide('leave')}
-                                        disabled={state.myDecision !== null}
+                                        disabled={state.myDecision !== null || !state.decisionPhase}
                                         className={`py-5 rounded-2xl border-2 font-black text-base transition-all
                                             ${state.myDecision === 'leave'
                                                 ? 'border-gray-500 bg-gray-200/60 dark:bg-gray-700/40 text-gray-700 dark:text-gray-200 scale-105'
-                                                : state.myDecision !== null
+                                                : state.myDecision !== null || !state.decisionPhase
                                                     ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 opacity-40'
                                                     : 'border-gray-300 dark:border-gray-600 bg-gray-100/60 dark:bg-gray-900/60 text-gray-600 dark:text-gray-300 hover:border-gray-400 hover:bg-gray-200/60 dark:hover:bg-gray-800/60 hover:scale-105 active:scale-100'
                                             }`}
@@ -401,24 +418,26 @@ export default function DiamantPage() {
             </main>
 
             {/* Game over */}
-            {state.phase === 'finished' && !modalDismissed && (
+            {state.phase === 'finished' && (
                 <GameOverModal
                     emoji={state.winnerId === myUserId ? '🏆' : '💀'}
                     title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
-                    onClose={() => setModalDismissed(true)}
                     asModal
                 >
                     <GameScoreLeaderboard
                         myUserId={myUserId}
                         entries={state.finalScores.map((p) => {
                             const surrendered = state.players.find(pl => pl.userId === p.userId)?.surrendered ?? false;
+                            const parts = [`💎 ${p.safeRubies} rubis`];
+                            if (p.relicPoints > 0) parts.push(`🏺 ${p.relicPoints} pts reliques`);
                             return {
                                 userId: p.userId,
                                 username: p.username,
                                 score: `${p.score} pts`,
+                                subScore: parts.join('  ·  '),
                                 badges: surrendered ? ['Abandon'] : undefined,
                                 disqualified: surrendered,
                             };

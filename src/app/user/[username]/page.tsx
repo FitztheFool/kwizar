@@ -1,11 +1,11 @@
-// src/app/profil/[username]/page.tsx
+// src/app/user/[username]/page.tsx
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import UserProfilePage from '@/components/UserProfilePage';
 
-export default function ProfilPage() {
+export default function UserPage() {
     const params = useParams();
     const router = useRouter();
     const { data: session, status } = useSession();

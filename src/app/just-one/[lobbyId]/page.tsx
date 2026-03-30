@@ -1,26 +1,14 @@
 // src/app/just-one/[lobbyId]/page.tsx
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { notFound } from 'next/navigation';
-import { getJustOneSocket } from '@/lib/socket';
+import { useGamePage } from '@/hooks/useGamePage';
+import { useJustOne } from '@/hooks/useJustOne';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
-import { useGamePage } from '@/hooks/useGamePage';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type RoundState = 'WAITING' | 'WRITE_CLUES' | 'VALIDATE_CLUES' | 'GUESS_PHASE' | 'RESOLUTION' | 'END_GAME';
-type Player = { id: string; name: string };
-type Clue = { playerId: string; value: string; valid: boolean };
-type RoundResult = {
-    result: 'CORRECT' | 'LOST' | 'PASS';
-    reason?: 'NO_VALID_CLUES' | 'WRONG_GUESS';
-    score: number;
-    targetWord: string;
-};
-type HistoryEntry = RoundResult & { round: number };
+import TurnTimer from '@/components/TurnTimer';
 
 // ─── Composants ───────────────────────────────────────────────────────────────
 
@@ -43,8 +31,6 @@ function PlayerBadge({ name, submitted, isGuesser, isMe }: {
     );
 }
 
-import TurnTimer from '@/components/TurnTimer';
-
 function ScoreBadge({ score }: { score: number }) {
     return (
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-xl">
@@ -58,127 +44,45 @@ function ScoreBadge({ score }: { score: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function JustOnePage() {
-    const { session, status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const { status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound } = useGamePage();
 
-    const socket = useMemo(() => getJustOneSocket(), []);
-    const joinedRef = useRef(false);
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [guesserId, setGuesserId] = useState<string | null>(null);
-    const [guesserName, setGuesserName] = useState('');
-    const [roundState, setRoundState] = useState<RoundState>('WAITING');
-    const [card, setCard] = useState<{ words: string[] } | null>(null);
-    const [score, setScore] = useState(0);
-    const [round, setRound] = useState(0);
-    const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
-    const [timerDuration, setTimerDuration] = useState(60);
+    const {
+        players,
+        guesserId,
+        guesserName,
+        roundState,
+        card,
+        score,
+        round,
+        timerEndsAt,
+        timerDuration,
+        submittedPlayers,
+        myClue,
+        setMyClue,
+        clueSubmitted,
+        validatedClues,
+        validClues,
+        myGuess,
+        setMyGuess,
+        lastResult,
+        history,
+        finalScore,
+        currentWordIndex,
+        isGuesser,
+        pickWord,
+        submitClue,
+        submitGuess,
+        surrender,
+    } = useJustOne({
+        lobbyId,
+        userId: meInfo.userId,
+        username: meInfo.username ?? '',
+        onNotFound: () => setIsNotFound(true),
+    });
 
-    const [submittedPlayers, setSubmittedPlayers] = useState<string[]>([]);
-    const [myClue, setMyClue] = useState('');
-    const [clueSubmitted, setClueSubmitted] = useState(false);
-
-    const [validatedClues, setValidatedClues] = useState<Clue[]>([]);
-    const [validClues, setValidClues] = useState<string[]>([]);
-    const [myGuess, setMyGuess] = useState('');
-
-    const [lastResult, setLastResult] = useState<RoundResult | null>(null);
-    const [history, setHistory] = useState<HistoryEntry[]>([]);
-    const [finalScore, setFinalScore] = useState<{ score: number; level: string } | null>(null);
     const [showHistory, setShowHistory] = useState(false);
 
-    const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(null);
-
     const me = meInfo.userId;
-    const myName = meInfo.username;
-    const isGuesser = guesserId === me;
-
-    function startTimer(seconds: number) {
-        setTimerDuration(seconds);
-        setTimerEndsAt(Date.now() + seconds * 1000);
-    }
-
-    function stopTimer() {
-        setTimerEndsAt(null);
-    }
-
-    useEffect(() => {
-        if (!socket || !lobbyId || status !== 'authenticated' || !me) return;
-        if (joinedRef.current) return;
-        joinedRef.current = true;
-
-        socket.emit('just_one:join', { lobbyId, playerName: myName, userId: me });
-
-        socket.on('notFound', () => setIsNotFound(true));
-        socket.on('just_one:players', ({ players }: { players: Player[] }) => {
-            setPlayers(players);
-        });
-
-        socket.on('just_one:roundStart', (payload) => {
-            setRound(r => r + 1);
-            setRoundState('WAITING');
-            setGuesserId(payload.guesserId);
-            setGuesserName(payload.guesserName);
-            setCard(payload.card ?? null);
-            setMyClue('');
-            setClueSubmitted(false);
-            setSubmittedPlayers([]);
-            setValidatedClues([]);
-            setValidClues([]);
-            setMyGuess('');
-            setLastResult(null);
-            startTimer(30);
-        });
-
-        socket.on('just_one:writeClues', ({ wordIndex }) => {
-            setCurrentWordIndex(wordIndex)
-            setRoundState('WRITE_CLUES')
-            startTimer(60)
-        })
-
-        socket.on('just_one:clueSubmitted', ({ playerId }: { playerId: string }) => {
-            setSubmittedPlayers(prev =>
-                prev.includes(playerId) ? prev : [...prev, playerId]
-            );
-        });
-
-        socket.on('just_one:cluesValidated', ({ allClues }: { allClues: Clue[] }) => {
-            setRoundState('VALIDATE_CLUES');
-            setValidatedClues(allClues);
-            stopTimer();
-        });
-
-        socket.on('just_one:guessStart', ({ validClues }: { validClues: string[] }) => {
-            setRoundState('GUESS_PHASE');
-            setValidClues(validClues);
-            startTimer(30);
-        });
-
-        socket.on('just_one:roundResult', (result: RoundResult) => {
-            setRoundState('RESOLUTION');
-            setLastResult(result);
-            setScore(result.score);
-            setHistory(prev => [...prev, { ...result, round: prev.length + 1 }]);
-            stopTimer();
-        });
-
-        socket.on('just_one:finished', (payload: { score: number; level: string }) => {
-            setRoundState('END_GAME');
-            setFinalScore(payload);
-            stopTimer();
-        });
-
-        return () => {
-            socket.off('notFound');
-            socket.off('just_one:players');
-            socket.off('just_one:roundStart');
-            socket.off('just_one:writeClues');
-            socket.off('just_one:clueSubmitted');
-            socket.off('just_one:cluesValidated');
-            socket.off('just_one:guessStart');
-            socket.off('just_one:roundResult');
-            socket.off('just_one:finished');
-            joinedRef.current = false;
-        };
-    }, [socket, lobbyId, status, me]);
 
     if (status === 'loading') return <LoadingSpinner />;
     if (isNotFound) notFound();
@@ -240,7 +144,7 @@ export default function JustOnePage() {
                         <div className="flex justify-center gap-3 flex-wrap">
                             {[1, 2, 3, 4, 5].map(i => (
                                 <button key={i}
-                                    onClick={() => socket?.emit('just_one:pickWord', { lobbyId, wordIndex: i - 1 })}
+                                    onClick={() => pickWord(i - 1)}
                                     className="w-14 h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xl font-bold transition-all shadow-lg shadow-blue-500/20 hover:scale-105">
                                     {i}
                                 </button>
@@ -277,9 +181,6 @@ export default function JustOnePage() {
 
         // WRITE CLUES
         if (roundState === 'WRITE_CLUES') {
-            // Le mot mystère = card.words[currentWordIndex]
-            // Le serveur ne l'envoie pas aux non-devineurs via writeClues
-            // On utilise le mot sélectionné par index — le serveur doit l'envoyer
             if (isGuesser) {
                 return (
                     <div className="text-center space-y-4">
@@ -301,9 +202,7 @@ export default function JustOnePage() {
                     <div className="text-center">
                         <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Mot mystère</p>
                         <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-widest">
-                            {card && currentWordIndex !== null
-                                ? card.words[currentWordIndex]
-                                : '???'}
+                            {card && currentWordIndex !== null ? card.words[currentWordIndex] : '???'}
                         </p>
                     </div>
                     {timerEndsAt && <TurnTimer endsAt={timerEndsAt} duration={timerDuration} />}
@@ -313,23 +212,14 @@ export default function JustOnePage() {
                                 type="text"
                                 value={myClue}
                                 onChange={e => setMyClue(e.target.value.toUpperCase())}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter' && myClue.trim()) {
-                                        socket?.emit('just_one:submitClue', { lobbyId, clue: myClue.trim() });
-                                        setClueSubmitted(true);
-                                    }
-                                }}
+                                onKeyDown={e => { if (e.key === 'Enter' && myClue.trim()) submitClue(); }}
                                 placeholder="Ton indice…"
                                 maxLength={30}
                                 autoFocus
                                 className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-lg font-semibold text-center uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all"
                             />
                             <button
-                                onClick={() => {
-                                    if (!myClue.trim()) return;
-                                    socket?.emit('just_one:submitClue', { lobbyId, clue: myClue.trim() });
-                                    setClueSubmitted(true);
-                                }}
+                                onClick={submitClue}
                                 disabled={!myClue.trim()}
                                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-all">
                                 Envoyer mon indice
@@ -394,11 +284,7 @@ export default function JustOnePage() {
                             type="text"
                             value={myGuess}
                             onChange={e => setMyGuess(e.target.value.toUpperCase())}
-                            onKeyDown={e => {
-                                if (e.key === 'Enter' && myGuess.trim()) {
-                                    socket?.emit('just_one:submitGuess', { lobbyId, guess: myGuess.trim() });
-                                }
-                            }}
+                            onKeyDown={e => { if (e.key === 'Enter' && myGuess.trim()) submitGuess(myGuess.trim()); }}
                             placeholder="Ta réponse…"
                             maxLength={30}
                             autoFocus
@@ -406,15 +292,12 @@ export default function JustOnePage() {
                         />
                         <div className="flex gap-3">
                             <button
-                                onClick={() => socket?.emit('just_one:submitGuess', { lobbyId, guess: null })}
+                                onClick={() => submitGuess(null)}
                                 className="flex-1 py-3 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-sm font-semibold hover:border-gray-400 transition-all">
                                 ⏭️ Passer
                             </button>
                             <button
-                                onClick={() => {
-                                    if (!myGuess.trim()) return;
-                                    socket?.emit('just_one:submitGuess', { lobbyId, guess: myGuess.trim() });
-                                }}
+                                onClick={() => { if (!myGuess.trim()) return; submitGuess(myGuess.trim()); }}
                                 disabled={!myGuess.trim()}
                                 className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-all">
                                 ✅ Valider
@@ -445,9 +328,8 @@ export default function JustOnePage() {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+        <div className="flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
-            {/* Header */}
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
                 <div className="w-48 shrink-0">
                     <span className="font-bold text-gray-900 dark:text-white">🔤 Just One</span>
@@ -455,9 +337,7 @@ export default function JustOnePage() {
                 <div className="flex-1 flex justify-center">
                     <div className="text-center">
                         {round > 0 && (
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Manche {round}/13
-                            </p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Manche {round}/13</p>
                         )}
                         {guesserName && (
                             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -474,7 +354,7 @@ export default function JustOnePage() {
                     </button>
                     {roundState !== 'WAITING' && roundState !== 'END_GAME' && (
                         <button
-                            onClick={() => { if (confirm('Abandonner la partie ?')) socket?.emit('just_one:surrender'); }}
+                            onClick={() => { if (confirm('Abandonner la partie ?')) surrender(); }}
                             className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                         >
                             🏳️ Abandonner
@@ -483,7 +363,6 @@ export default function JustOnePage() {
                 </div>
             </header>
 
-            {/* Players bar */}
             <div className="shrink-0 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 flex flex-wrap gap-2">
                 {players.map(p => (
                     <PlayerBadge
@@ -496,16 +375,12 @@ export default function JustOnePage() {
                 ))}
             </div>
 
-            {/* Main */}
-            <main className="flex-1 overflow-auto p-4 flex flex-col items-center">
+            <main className="p-4 flex flex-col items-center">
                 <div className="w-full max-w-lg space-y-4">
-
-                    {/* Phase card */}
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
                         {renderPhase()}
                     </div>
 
-                    {/* History */}
                     {showHistory && history.length > 0 && (
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-2">
                             <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Historique</p>
@@ -518,10 +393,8 @@ export default function JustOnePage() {
                             ))}
                         </div>
                     )}
-
                 </div>
             </main>
-
         </div>
     );
 }

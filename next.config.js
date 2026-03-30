@@ -11,13 +11,8 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/user/profil/:username',
-        destination: '/profil/:username',
-        permanent: true,
-      },
-      {
-        source: '/user/:username',
-        destination: '/profil/:username',
+        source: '/profil/:username',
+        destination: '/user/:username',
         permanent: true,
       },
     ];

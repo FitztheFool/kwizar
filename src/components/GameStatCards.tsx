@@ -1,5 +1,6 @@
 // src/components/GameStatCards.tsx
 'use client';
+import { useState } from 'react';
 import { GAME_EMOJI_MAP, GAME_LABEL_MAP, GAME_COLOR } from '@/lib/gameConfig';
 
 interface GameStat {
@@ -11,8 +12,11 @@ interface GameStat {
     totalAnswers?: number;
 }
 
+const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
 interface Props {
     gameStats: Record<string, GameStat>;
+    ranks?: Record<string, number>;
     columns?: 4 | 6;
 }
 
@@ -26,6 +30,7 @@ function getSecondaryStat(type: string, stat: GameStat): { value: string | numbe
 
     switch (type) {
         case 'SKYJOW':
+            return { value: fmt(avg), label: 'moy/partie ↓' };
         case 'YAHTZEE':
         case 'DIAMANT':
             return { value: fmt(avg), label: 'moy/partie' };
@@ -56,7 +61,7 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
         return { pct, label: `${pct}% exact.`, wins: null, color };
     }
 
-    const NO_WINRATE = new Set(['YAHTZEE', 'DIAMANT', 'JUST_ONE']);
+    const NO_WINRATE = new Set(['JUST_ONE']);
     if (NO_WINRATE.has(type)) return null;
 
     const pct = Math.round((wins / count) * 100);
@@ -65,16 +70,22 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
     return { pct, label: `${pct}% vict.`, wins: NO_WINS_COUNTER.has(type) ? null : wins, color };
 }
 
-export default function GameStatCards({ gameStats }: Props) {
+const PAGE = 4;
+
+export default function GameStatCards({ gameStats, ranks = {} }: Props) {
+    const [visibleCount, setVisibleCount] = useState(PAGE);
+
     if (Object.keys(gameStats).length === 0) {
         return <p className="text-gray-400 dark:text-gray-500 text-sm">Aucune statistique disponible.</p>;
     }
 
+    const sorted = Object.entries(gameStats).sort((a, b) => b[1].count - a[1].count);
+    const visible = sorted.slice(0, visibleCount);
+
     return (
+        <div className="space-y-3">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {Object.entries(gameStats)
-                .sort((a, b) => b[1].count - a[1].count)
-                .map(([type, stat]) => {
+            {visible.map(([type, stat]) => {
                     const c = GAME_COLOR[type]?.card ?? {
                         border: 'border-gray-200 dark:border-gray-700',
                         bg: 'bg-gray-50 dark:bg-gray-800/50',
@@ -83,6 +94,7 @@ export default function GameStatCards({ gameStats }: Props) {
                     const secondary = getSecondaryStat(type, stat);
                     const bar = getBar(type, stat);
 
+                    const medal = MEDAL[ranks[type]];
                     return (
                         <div key={type} className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
                             {/* Header */}
@@ -92,6 +104,7 @@ export default function GameStatCards({ gameStats }: Props) {
                                     <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${c.label}`}>
                                         {GAME_LABEL_MAP[type] ?? type}
                                     </span>
+                                    {medal && <span className="text-sm leading-none shrink-0">{medal}</span>}
                                 </div>
                                 {bar && (
                                     <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>
@@ -132,6 +145,25 @@ export default function GameStatCards({ gameStats }: Props) {
                         </div>
                     );
                 })}
+        </div>
+        <div className="flex gap-4">
+            {visibleCount < sorted.length && (
+                <button
+                    onClick={() => setVisibleCount(v => v + PAGE)}
+                    className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                    Afficher plus ({visibleCount}/{sorted.length}) ↓
+                </button>
+            )}
+            {visibleCount > PAGE && (
+                <button
+                    onClick={() => setVisibleCount(v => v - PAGE)}
+                    className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                    Afficher moins ↑
+                </button>
+            )}
+        </div>
         </div>
     );
 }

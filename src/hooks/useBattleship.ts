@@ -140,6 +140,8 @@ export function useBattleship({
                 placementEndsAt: payload.placementEndsAt ?? null,
                 currentTurnUserId: payload.currentTurnUserId ?? null,
                 turnEndsAt: payload.turnEndsAt ?? null,
+                winnerUserId: payload.winnerUserId ?? prev.winnerUserId,
+                gameOverReason: payload.gameOverReason ?? prev.gameOverReason,
             }));
         });
 

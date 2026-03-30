@@ -19,13 +19,13 @@ export interface Card {
 export interface PlayerInfo {
     userId: string;
     username: string;
-    handRubies: number;       // rubis en main (dans la grotte)
-    safeRubies: number;       // rubis dans le coffre
-    safeDiamonds: number;     // diamants dans le coffre (valeur 5)
-    relicsOwned: number;      // reliques récupérées
-    inCave: boolean;          // encore dans la grotte ?
-    surrendered: boolean;     // a abandonné la partie
-    hasDecided: boolean;      // a voté ce tour ?
+    handRubies: number;
+    safeRubies: number;
+    relicPoints: number;
+    relicsOwned: number;
+    inCave: boolean;
+    surrendered: boolean;
+    hasDecided: boolean;
 }
 
 export interface DecisionResult {
@@ -45,7 +45,7 @@ export interface FinalScore {
     username: string;
     score: number;
     safeRubies: number;
-    safeDiamonds: number;
+    relicPoints: number;
     relicsOwned: number;
 }
 
@@ -60,7 +60,7 @@ export interface DiamantState {
     // Rubis restants sur chaque carte trésor (index → rubis)
     rubisOnCards: Record<number, number>;
     // Index des cartes relique encore dans la grotte
-    relicsInCave: number[];
+    relicsInCave: string[];
     // Combien de reliques ont déjà quitté la grotte (pour calcul valeur)
     relicsExited: number;
     // Joueurs

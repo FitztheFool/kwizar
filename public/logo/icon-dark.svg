@@ -5,11 +5,39 @@
       <stop offset="100%" stop-color="#042C53"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
-  <rect x="76" y="76" width="360" height="360" rx="64" fill="white" opacity="0.08"/>
-  <circle cx="160" cy="160" r="44" fill="#85B7EB"/>
-  <circle cx="352" cy="160" r="44" fill="#85B7EB"/>
-  <circle cx="256" cy="256" r="44" fill="#85B7EB"/>
-  <circle cx="160" cy="352" r="44" fill="#85B7EB"/>
-  <circle cx="352" cy="352" r="44" fill="#85B7EB"/>
+  <g opacity="0.2" stroke="#378ADD" stroke-width="6" stroke-linecap="round">
+    <line x1="256" y1="18"  x2="256" y2="58"/>
+    <line x1="256" y1="454" x2="256" y2="494"/>
+    <line x1="18"  y1="256" x2="58"  y2="256"/>
+    <line x1="454" y1="256" x2="494" y2="256"/>
+    <line x1="66"  y1="66"  x2="96"  y2="96"/>
+    <line x1="416" y1="416" x2="446" y2="446"/>
+    <line x1="446" y1="66"  x2="416" y2="96"/>
+    <line x1="66"  y1="446" x2="96"  y2="416"/>
+  </g>
+  <g fill="#378ADD" opacity="0.7">
+    <path d="M40 256 L50 246 L60 256 L50 266 Z"/>
+    <path d="M452 256 L462 246 L472 256 L462 266 Z"/>
+    <path d="M256 40 L266 30 L276 40 L266 50 Z"/>
+    <path d="M406 86 L413 78 L420 86 L413 94 Z"/>
+    <path d="M86 406 L93 398 L100 406 L93 414 Z"/>
+    <path d="M420 406 L427 398 L434 406 L427 414 Z"/>
+    <path d="M86 92 L93 84 L100 92 L93 100 Z"/>
+  </g>
+  <circle cx="66" cy="66" r="7" fill="#378ADD" opacity="0.4"/>
+  <circle cx="446" cy="66" r="7" fill="#378ADD" opacity="0.4"/>
+  <circle cx="66" cy="446" r="7" fill="#378ADD" opacity="0.4"/>
+  <circle cx="446" cy="446" r="7" fill="#378ADD" opacity="0.4"/>
+  <rect x="68" y="68" width="376" height="376" rx="84" fill="url(#bg)"/>
+  <rect x="68" y="68" width="376" height="376" rx="84" fill="none" stroke="#185FA5" stroke-width="5" opacity="0.6"/>
+  <rect x="104" y="76" width="180" height="18" rx="9" fill="white" opacity="0.08"/>
+  <circle cx="172" cy="172" r="38" fill="#85B7EB"/>
+  <circle cx="340" cy="172" r="38" fill="#85B7EB"/>
+  <circle cx="256" cy="256" r="38" fill="#85B7EB"/>
+  <circle cx="172" cy="340" r="38" fill="#85B7EB"/>
+  <circle cx="340" cy="340" r="38" fill="#85B7EB"/>
+  <circle cx="68"  cy="68"  r="10" fill="#378ADD" opacity="0.8"/>
+  <circle cx="444" cy="68"  r="10" fill="#378ADD" opacity="0.8"/>
+  <circle cx="68"  cy="444" r="10" fill="#378ADD" opacity="0.8"/>
+  <circle cx="444" cy="444" r="10" fill="#378ADD" opacity="0.8"/>
 </svg>
