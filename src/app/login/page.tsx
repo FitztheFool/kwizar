@@ -7,6 +7,7 @@ import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import DiscordButton from '@/components/DiscordButton';
+import GoogleButton from '@/components/GoogleButton';
 
 function LoginForm() {
     const { status } = useSession();
@@ -126,6 +127,11 @@ function LoginForm() {
                     <div className="mt-6">
                         <div className="mt-4">
                             <DiscordButton callbackUrl={callbackUrl} />
+                        </div>
+                    </div>
+                    <div className="mt-6">
+                        <div className="mt-4">
+                            <GoogleButton callbackUrl={callbackUrl} />
                         </div>
                         <div className="relative mt-4">
                             <div className="absolute inset-0 flex items-center">
