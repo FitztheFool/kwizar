@@ -9,7 +9,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "dotenv -e .env -- tsx prisma/seed.ts",
-    "db:seed-prod": "dotenv -e .env -- tsx prisma/seeed-prod.ts",
+    "db:seed-prod": "dotenv -e .env -- tsx prisma/seed-prod.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "kill:port": "fuser -k 3000/tcp",

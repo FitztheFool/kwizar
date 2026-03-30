@@ -113,6 +113,14 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
         if (lobbySectionActive) setLobbyMenuOpen(true);
     }, [quizSectionActive, lobbySectionActive]);
 
+    useEffect(() => {
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+        if (isDesktop && pathname.startsWith('/dashboard')) {
+            setCollapsed(false);
+        }
+    }, [pathname]);
+
     return (
         <aside className={`
             fixed top-0 left-0 h-full bg-white dark:bg-gray-900 shadow-xl z-30 flex flex-col

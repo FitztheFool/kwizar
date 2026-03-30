@@ -1,80 +1,153 @@
-// prisma/seed.ts
-import dotenv from 'dotenv';
-dotenv.config();
-
-import crypto from 'node:crypto';
-
+// prisma/seed-quiz.ts
 import { PrismaClient, QuestionType } from '@prisma/client';
 
-import bcrypt from 'bcrypt';
+interface QuizQuestion {
+    content: string;
+    type: string;
+    points: number;
+    answers: { content: string; isCorrect: boolean }[];
+}
 
-const prisma = new PrismaClient();
+interface QuizData {
+    title: string;
+    description: string;
+    categoryId: string;
+    isPublic: boolean;
+    randomizeQuestions: boolean;
+    questions: QuizQuestion[];
+}
 
-async function main() {
-    console.log('1 - entrée dans main');
-    console.log('🌱 Début du seed...');
-
-    // ─── 1. Nettoyage ─────────────────────────────────────────────────────────
-    await prisma.account.deleteMany();
-    await prisma.session.deleteMany();
-    await prisma.verificationToken.deleteMany();
-    await prisma.answer.deleteMany();
-    await prisma.question.deleteMany();
-    await prisma.attempt.deleteMany();
-    await prisma.quiz.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.word.deleteMany();
-
-    // ─── 2. Catégories ────────────────────────────────────────────────────────
-    const cultureGenerale = await prisma.category.create({ data: { name: 'Culture Générale', slug: 'culture-generale' } });
-    const sciences = await prisma.category.create({ data: { name: 'Sciences', slug: 'sciences' } });
-    const sports = await prisma.category.create({ data: { name: 'Sports', slug: 'sports' } });
-    const artsCulture = await prisma.category.create({ data: { name: 'Arts & Culture', slug: 'arts-culture' } });
-    const technologie = await prisma.category.create({ data: { name: 'Technologie', slug: 'technologie' } });
-    const popCulture = await prisma.category.create({ data: { name: 'Pop culture', slug: 'pop-culture' } });
-    const musique = await prisma.category.create({ data: { name: 'Musique', slug: 'musique' } });
-    const videogames = await prisma.category.create({ data: { name: 'Jeu Vidéo', slug: 'jeu-video' } });
-    const other = await prisma.category.create({ data: { name: 'Autre', slug: 'autre' } });
-
-    console.log('✅ Catégories créées');
-    const randomPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
-
-    const randomUser = await prisma.user.upsert({
-        where: { email: 'random@quiz.app' },
-        update: {},
-        create: { email: 'random@quiz.app', username: 'Bot🤖', role: 'RANDOM', passwordHash: randomPasswordHash },
-    });
-
-
-
-    // ─── 3. MOTS ────────────────────────────────────────────────────────
-    const words = [
-        'ÉLÉPHANT', 'GIRAFE', 'CROCODILE', 'PINGOUIN', 'DAUPHIN', 'PANTHÈRE', 'FLAMANT', 'KANGOUROU',
-        'CAMÉLÉON', 'HIPPOPOTAME', 'AUTRUCHE', 'PERROQUET', 'SCORPION', 'PIEUVRE', 'BALEINE',
-        'PARAPLUIE', 'TÉLESCOPE', 'MICROSCOPE', 'ACCORDÉON', 'TRAMPOLINE', 'ESCALATOR', 'BOUILLOIRE',
-        'LAMPADAIRE', 'FRIGO', 'ASPIRATEUR', 'CALCULATRICE', 'CHRONOMÈTRE', 'THERMOMÈTRE',
-        'BIBLIOTHÈQUE', 'AQUARIUM', 'VOLCAN', 'DÉSERT', 'GLACIER', 'PHARE', 'CATHÉDRALE', 'CASINO',
-        'STADE', 'CIRQUE', 'CIMETIÈRE', 'LABORATOIRE', 'OBSERVATOIRE', 'MANÈGE',
-        'GRAVITÉ', 'DÉMOCRATIE', 'RENAISSANCE', 'RÉVOLUTION', 'PHOTOSYNTHÈSE', 'HIBERNATION',
-        'MIGRATION', 'ÉVOLUTION', 'INFLATION', 'PANDÉMIE', 'PROPHÉTIE', 'PARADOXE',
-        'ARCHÉOLOGUE', 'ASTRONAUTE', 'POMPIER', 'VÉTÉRINAIRE', 'SOMMELIER', 'CARTOGRAPHE',
-        'CHORÉGRAPHE', 'MARIONNETTISTE', 'APICULTEUR', 'PLONGEUR', 'GLACIOLOGUE',
-        'SKATEBOARD', 'PARACHUTE', 'PLANCHE À VOILE', 'BOOMERANG', 'CALLIGRAPHIE',
-        'ORIGAMI', 'ESCALADE', 'ESCRIME', 'BOXE', 'NATATION', 'MARATHON',
-        'GUACAMOLE', 'CROISSANT', 'FONDUE', 'SUSHI', 'RAVIOLI', 'MACARON', 'SOUFFLÉ', 'CRÊPE',
-        'COUSCOUS', 'PAELLA', 'TIRAMISU', 'ÉCLAIR', 'MADELEINE',
-    ];
-    for (const word of words) {
-        await prisma.word.upsert({
-            where: { word },
-            update: {},
-            create: { word },
-        });
+export async function seedQuizzes(
+    prisma: PrismaClient,
+    creatorId: string,
+    categories: {
+        cultureGenerale: { id: string };
+        sciences: { id: string };
+        sports: { id: string };
+        artsCulture: { id: string };
+        technologie: { id: string };
+        popCulture: { id: string };
+        musique: { id: string };
+        videogames: { id: string };
+        other: { id: string };
     }
-    console.log(`✅ ${words.length} mots ajoutés.`);
+) {
+    const { cultureGenerale, sciences, sports, artsCulture, technologie, popCulture, musique, videogames, other } = categories;
 
-    const quizData = [
+    const quizData: QuizData[] = [
+        // ── Jeu Vidéo ──────────────────────────────────────────────────────────
+        {
+            title: "RPG & Aventure", description: "Épées, magie et quêtes épiques", categoryId: videogames.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Dans quelle série incarne-t-on un détective de monstres appelé Geralt ?", type: "MCQ", points: 2, answers: [{ content: "Dragon Age", isCorrect: false }, { content: "The Witcher", isCorrect: true }, { content: "Dark Souls", isCorrect: false }, { content: "Baldur's Gate", isCorrect: false }] },
+                { content: "Dark Souls est réputé pour sa difficulté élevée", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel est le nom du héros principal de la saga Final Fantasy VII ?", type: "MCQ", points: 2, answers: [{ content: "Tidus", isCorrect: false }, { content: "Lightning", isCorrect: false }, { content: "Cloud Strife", isCorrect: true }, { content: "Noctis", isCorrect: false }] },
+                { content: "Skyrim se déroule dans l'univers d'Elder Scrolls", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel studio a développé la saga Dark Souls ?", type: "TEXT", points: 2, answers: [{ content: "FromSoftware", isCorrect: true }] },
+                { content: "Dans Zelda : Breath of the Wild, sur quelle console est sorti le jeu en premier ?", type: "MCQ", points: 2, answers: [{ content: "Wii U", isCorrect: false }, { content: "Nintendo Switch", isCorrect: true }, { content: "3DS", isCorrect: false }, { content: "Wii U et Switch simultanément", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "FPS & Action", description: "Tirs, explosions et réflexes", categoryId: videogames.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Quelle franchise de FPS met en scène le Master Chief ?", type: "MCQ", points: 1, answers: [{ content: "Call of Duty", isCorrect: false }, { content: "Halo", isCorrect: true }, { content: "Doom", isCorrect: false }, { content: "Titanfall", isCorrect: false }] },
+                { content: "Counter-Strike est un jeu de tir compétitif en équipe", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel jeu popularisé en 2016 met des héros aux capacités uniques dans des matchs 6v6 ?", type: "MCQ", points: 2, answers: [{ content: "Valorant", isCorrect: false }, { content: "Apex Legends", isCorrect: false }, { content: "Overwatch", isCorrect: true }, { content: "Paladins", isCorrect: false }] },
+                { content: "Doom (1993) est considéré comme l'un des fondateurs du genre FPS", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Dans quel FPS incarne-t-on un astronaute sur une station spatiale envahie par des démons ?", type: "TEXT", points: 2, answers: [{ content: "Doom", isCorrect: true }] },
+                { content: "Quel est le battle royale développé par Respawn Entertainment ?", type: "MCQ", points: 2, answers: [{ content: "Fortnite", isCorrect: false }, { content: "PUBG", isCorrect: false }, { content: "Apex Legends", isCorrect: true }, { content: "Warzone", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Consoles & Histoire du Jeu Vidéo", description: "Des bornes d'arcade aux générations modernes", categoryId: videogames.id, isPublic: true, randomizeQuestions: false,
+            questions: [
+                { content: "Quelle est la console la plus vendue de tous les temps ?", type: "MCQ", points: 2, answers: [{ content: "PlayStation 2", isCorrect: true }, { content: "Nintendo DS", isCorrect: false }, { content: "Game Boy", isCorrect: false }, { content: "Wii", isCorrect: false }] },
+                { content: "La Dreamcast de Sega était une console de 6e génération", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "En quelle année la première PlayStation a-t-elle été lancée au Japon ?", type: "MCQ", points: 2, answers: [{ content: "1992", isCorrect: false }, { content: "1994", isCorrect: true }, { content: "1996", isCorrect: false }, { content: "1998", isCorrect: false }] },
+                { content: "Atari a créé le jeu Pong en 1972", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel constructeur a fabriqué la console Xbox ?", type: "TEXT", points: 1, answers: [{ content: "Microsoft", isCorrect: true }] },
+                { content: "La Nintendo Switch est une console hybride portable et salon", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Jeux de Sport & Course", description: "Stades et circuits virtuels", categoryId: videogames.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Quelle série de simulation de football est éditée par EA Sports ?", type: "MCQ", points: 1, answers: [{ content: "Pro Evolution Soccer", isCorrect: false }, { content: "EA Sports FC (ex-FIFA)", isCorrect: true }, { content: "Football Manager", isCorrect: false }, { content: "Top Eleven", isCorrect: false }] },
+                { content: "Mario Kart est une série de jeux de course développée par Nintendo", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel jeu de course simule le championnat de Formule 1 avec licence officielle ?", type: "MCQ", points: 2, answers: [{ content: "Gran Turismo", isCorrect: false }, { content: "Forza Motorsport", isCorrect: false }, { content: "F1 de Codemasters", isCorrect: true }, { content: "Need for Speed", isCorrect: false }] },
+                { content: "La série NBA 2K est développée par 2K Games", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Dans quel jeu de sport peut-on jouer au Quidditch de manière virtuelle ?", type: "MCQ", points: 3, answers: [{ content: "Pottermore Arena", isCorrect: false }, { content: "Harry Potter: Quidditch World Cup", isCorrect: true }, { content: "Hogwarts Legacy", isCorrect: false }, { content: "Wizarding Sports VR", isCorrect: false }] },
+                { content: "Gran Turismo est une exclusivité PlayStation", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Jeux Indépendants & Pixel Art", description: "Les pépites du jeu indé", categoryId: videogames.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Quel jeu indépendant met en scène une petite fille nommée Madeline qui escalade une montagne ?", type: "MCQ", points: 2, answers: [{ content: "Hollow Knight", isCorrect: false }, { content: "Celeste", isCorrect: true }, { content: "Ori and the Blind Forest", isCorrect: false }, { content: "Cuphead", isCorrect: false }] },
+                { content: "Stardew Valley a été développé par une seule personne", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Dans quel jeu incarne-t-on un chevalier insecte dans un royaume souterrain ?", type: "MCQ", points: 2, answers: [{ content: "Shovel Knight", isCorrect: false }, { content: "Hollow Knight", isCorrect: true }, { content: "Blasphemous", isCorrect: false }, { content: "Dead Cells", isCorrect: false }] },
+                { content: "Undertale est un jeu de rôle indépendant sorti en 2015", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel jeu indépendant propose de gérer un hospice en fin de vie de manière narrative ?", type: "MCQ", points: 3, answers: [{ content: "Papers Please", isCorrect: false }, { content: "A Mortician's Tale", isCorrect: false }, { content: "Spiritfarer", isCorrect: true }, { content: "Night in the Woods", isCorrect: false }] },
+                { content: "Cuphead est inspiré des dessins animés des années 1930", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+
+        // ── Autre ──────────────────────────────────────────────────────────────
+        {
+            title: "Gastronomie & Cuisine du Monde", description: "Saveurs et traditions culinaires", categoryId: other.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Quel pays est à l'origine de la pizza ?", type: "MCQ", points: 1, answers: [{ content: "Espagne", isCorrect: false }, { content: "Italie", isCorrect: true }, { content: "Grèce", isCorrect: false }, { content: "France", isCorrect: false }] },
+                { content: "Le wasabi est une pâte piquante d'origine japonaise", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel est l'ingrédient principal du houmous ?", type: "MCQ", points: 1, answers: [{ content: "Lentilles", isCorrect: false }, { content: "Pois chiches", isCorrect: true }, { content: "Haricots blancs", isCorrect: false }, { content: "Fèves", isCorrect: false }] },
+                { content: "La sauce béchamel est une sauce mère de la cuisine française", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "De quel pays est originaire le kimchi ?", type: "TEXT", points: 2, answers: [{ content: "Corée", isCorrect: true }] },
+                { content: "Quel fromage français est surnommé 'le roi des fromages' ?", type: "MCQ", points: 2, answers: [{ content: "Camembert", isCorrect: false }, { content: "Roquefort", isCorrect: false }, { content: "Brie de Meaux", isCorrect: true }, { content: "Comté", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Langues & Linguistique", description: "Les mystères du langage humain", categoryId: other.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Combien de langues officielles compte l'ONU ?", type: "MCQ", points: 2, answers: [{ content: "4", isCorrect: false }, { content: "5", isCorrect: false }, { content: "6", isCorrect: true }, { content: "7", isCorrect: false }] },
+                { content: "Le portugais est la langue officielle du Brésil", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quelle est la langue la plus difficile au monde selon les linguistes ?", type: "MCQ", points: 3, answers: [{ content: "Mandarin", isCorrect: false }, { content: "Arabe", isCorrect: false }, { content: "Il n'existe pas de consensus", isCorrect: true }, { content: "Japonais", isCorrect: false }] },
+                { content: "L'esperanto est une langue naturelle parlée en Europe de l'Est", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: false }, { content: "Faux", isCorrect: true }] },
+                { content: "Dans combien de pays l'espagnol est-il langue officielle ?", type: "MCQ", points: 2, answers: [{ content: "15", isCorrect: false }, { content: "20", isCorrect: true }, { content: "25", isCorrect: false }, { content: "30", isCorrect: false }] },
+                { content: "Le français descend du latin", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Astronomie & Espace", description: "Au-delà de notre système solaire", categoryId: other.id, isPublic: true, randomizeQuestions: false,
+            questions: [
+                { content: "Qu'est-ce qu'une année-lumière ?", type: "MCQ", points: 2, answers: [{ content: "Une durée de 365 jours dans l'espace", isCorrect: false }, { content: "La distance parcourue par la lumière en un an", isCorrect: true }, { content: "La vitesse maximale d'un vaisseau spatial", isCorrect: false }, { content: "La période de rotation d'une étoile", isCorrect: false }] },
+                { content: "Un trou noir absorbe la lumière", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Combien d'étoiles compte approximativement la Voie Lactée ?", type: "MCQ", points: 3, answers: [{ content: "1 milliard", isCorrect: false }, { content: "100 à 400 milliards", isCorrect: true }, { content: "10 milliards", isCorrect: false }, { content: "1 000 milliards", isCorrect: false }] },
+                { content: "La NASA est une agence spatiale américaine", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel est le nom de la première femme à être allée dans l'espace ?", type: "MCQ", points: 2, answers: [{ content: "Sally Ride", isCorrect: false }, { content: "Valentina Terechkova", isCorrect: true }, { content: "Svetlana Savitskaïa", isCorrect: false }, { content: "Claudie Haigneré", isCorrect: false }] },
+                { content: "Mars possède deux lunes", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Psychologie & Comportement", description: "Comprendre l'esprit humain", categoryId: other.id, isPublic: true, randomizeQuestions: true,
+            questions: [
+                { content: "Qui est le fondateur de la psychanalyse ?", type: "MCQ", points: 1, answers: [{ content: "Carl Jung", isCorrect: false }, { content: "Sigmund Freud", isCorrect: true }, { content: "Alfred Adler", isCorrect: false }, { content: "Wilhelm Wundt", isCorrect: false }] },
+                { content: "L'effet placebo est un phénomène psychologique réel et mesurable", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel biais cognitif nous pousse à chercher des informations qui confirment nos croyances ?", type: "MCQ", points: 2, answers: [{ content: "Biais de disponibilité", isCorrect: false }, { content: "Biais de confirmation", isCorrect: true }, { content: "Effet Dunning-Kruger", isCorrect: false }, { content: "Biais d'ancrage", isCorrect: false }] },
+                { content: "La pyramide de Maslow décrit une hiérarchie des besoins humains", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel est le nom du phénomène où une personne se comporte différemment quand elle sait qu'elle est observée ?", type: "TEXT", points: 3, answers: [{ content: "Effet Hawthorne", isCorrect: true }] },
+                { content: "Le sommeil paradoxal est la phase durant laquelle on rêve le plus", type: "TRUE_FALSE", points: 2, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Économie & Finance", description: "Comprendre les grands mécanismes économiques", categoryId: other.id, isPublic: true, randomizeQuestions: false,
+            questions: [
+                { content: "Qu'est-ce que le PIB ?", type: "MCQ", points: 1, answers: [{ content: "Le prix d'un baril de pétrole", isCorrect: false }, { content: "La valeur totale des biens et services produits par un pays", isCorrect: true }, { content: "Le budget annuel d'un gouvernement", isCorrect: false }, { content: "Le taux d'inflation d'un pays", isCorrect: false }] },
+                { content: "L'inflation désigne une hausse générale des prix", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quelle institution fixe les taux directeurs en zone euro ?", type: "MCQ", points: 2, answers: [{ content: "La Commission Européenne", isCorrect: false }, { content: "La Banque Centrale Européenne", isCorrect: true }, { content: "Le FMI", isCorrect: false }, { content: "La Banque Mondiale", isCorrect: false }] },
+                { content: "Le bitcoin est une monnaie émise par une banque centrale", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: false }, { content: "Faux", isCorrect: true }] },
+                { content: "Quel économiste est associé à la théorie de la 'main invisible' du marché ?", type: "MCQ", points: 2, answers: [{ content: "Karl Marx", isCorrect: false }, { content: "John Maynard Keynes", isCorrect: false }, { content: "Adam Smith", isCorrect: true }, { content: "Milton Friedman", isCorrect: false }] },
+                { content: "Une action en bourse représente une part de propriété d'une entreprise", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
         {
             title: "Culture Générale - Niveau Débutant",
             description: "Testez vos connaissances de base !",
@@ -458,6 +531,7 @@ async function main() {
 
     console.log(`\n🎯 Création de ${quizData.length} quiz...`);
     let createdCount = 0;
+
     for (const quiz of quizData) {
         try {
             await prisma.quiz.create({
@@ -467,7 +541,7 @@ async function main() {
                     categoryId: quiz.categoryId,
                     isPublic: quiz.isPublic,
                     randomizeQuestions: quiz.randomizeQuestions,
-                    creatorId: randomUser.id,
+                    creatorId,
                     questions: {
                         create: quiz.questions.map((q) => ({
                             content: q.content,
@@ -485,13 +559,5 @@ async function main() {
         }
     }
 
+    console.log(`\n✅ ${createdCount}/${quizData.length} quiz créés.`);
 }
-
-main()
-    .catch((e) => {
-        console.error('❌ Erreur lors du seed:', e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
