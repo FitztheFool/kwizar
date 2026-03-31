@@ -166,16 +166,39 @@ export default function YahtzeePage() {
                   </div>
                   <span className={`font-black text-xl ${isFirst ? 'text-amber-500 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}`}>{p.total} pts</span>
                 </div>
-                {disq && p.scoreCard && (
-                  <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    {([...UPPER_CATS, ...LOWER_CATS] as (keyof ScoreCard)[]).map(cat => (
-                      <div key={cat} className="flex justify-between">
-                        <span>{CAT_LABELS[cat]}</span>
-                        <span className="font-mono">{p.scoreCard![cat] ?? 0}</span>
+                {p.scoreCard && (() => {
+                  const { total: _, upperBonus } = (() => {
+                    const upper = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
+                    const upperSum = upper.reduce((a, k) => a + (p.scoreCard![k as keyof ScoreCard] as number ?? 0), 0);
+                    return { total: 0, upperBonus: upperSum >= 63 ? 35 : 0 };
+                  })();
+                  const leftCats = UPPER_CATS;
+                  const rightCats = LOWER_CATS;
+                  return (
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="space-y-0.5">
+                        {leftCats.map(cat => (
+                          <div key={cat} className="flex justify-between">
+                            <span>{CAT_LABELS[cat]}</span>
+                            <span className="font-mono">{p.scoreCard![cat as keyof ScoreCard] ?? 0}</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-0.5 font-semibold text-gray-600 dark:text-gray-300">
+                          <span>Bonus</span>
+                          <span className="font-mono">{upperBonus}</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="space-y-0.5">
+                        {rightCats.map(cat => (
+                          <div key={cat} className="flex justify-between">
+                            <span>{CAT_LABELS[cat]}</span>
+                            <span className="font-mono">{p.scoreCard![cat as keyof ScoreCard] ?? 0}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
