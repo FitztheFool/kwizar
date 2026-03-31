@@ -51,6 +51,8 @@ export async function GET(req: NextRequest) {
         gameType: true,
         placement: true,
         gameId: true,
+        abandon: true,
+        afk: true,
         quiz: { select: { id: true, title: true } },
         user: { select: { username: true } },
     } as const;
@@ -166,7 +168,7 @@ export async function GET(req: NextRequest) {
         gameType: string;
         gameId: string;
         quiz: { id: string; title: string } | null;
-        players: { username: string; score: number; placement: number | null }[];
+        players: { username: string; score: number; placement: number | null; abandon?: boolean; afk?: boolean }[];
     }>();
 
     for (const gameId of pageGameIds) {
@@ -184,6 +186,8 @@ export async function GET(req: NextRequest) {
                 username: a.user.username ?? 'Anonyme',
                 score: a.score,
                 placement: a.placement,
+                abandon: a.abandon ?? false,
+                afk: a.afk ?? false,
             });
         }
     }

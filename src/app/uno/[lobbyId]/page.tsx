@@ -140,6 +140,16 @@ export default function UnoPage() {
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                             {s.cardsLeft === 0 ? '0 carte restante' : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
                         </span>
+                        {s.hand && s.hand.length > 0 && (
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                                {[...s.hand].sort((a, b) => {
+                                    const order = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2', 'wild', 'wild4'];
+                                    return order.indexOf(a.value) - order.indexOf(b.value);
+                                }).map((card, i) => (
+                                    <UnoCard key={`${card.id}-${i}`} card={card} small />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="text-right">

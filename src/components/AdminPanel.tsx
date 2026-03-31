@@ -167,7 +167,7 @@ export default function AdminPanel() {
 
     const [playerModal, setPlayerModal] = useState<{
         gameId: string;
-        players: { username: string; score: number; placement: number | null }[];
+        players: { username: string; score: number; placement: number | null; abandon?: boolean; afk?: boolean }[];
     } | null>(null);
 
     const { data: session } = useSession();
@@ -442,8 +442,8 @@ export default function AdminPanel() {
                         key={t.key}
                         onClick={() => { setActiveTab(t.key); scrollToSection(t.key); }}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${activeTab === t.key
-                                ? 'bg-red-600 text-white border-red-600'
-                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            ? 'bg-red-600 text-white border-red-600'
+                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}
                     >
                         {t.emoji} {t.label}

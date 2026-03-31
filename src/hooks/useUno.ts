@@ -35,6 +35,7 @@ export type FinalScore = {
     abandon?: boolean;
     afk?: boolean;
     team: 0 | 1 | null;
+    hand?: Card[];
 };
 
 export type GameState = {
