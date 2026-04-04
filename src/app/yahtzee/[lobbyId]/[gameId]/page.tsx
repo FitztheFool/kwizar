@@ -153,7 +153,7 @@ export default function YahtzeePage() {
         return (
             <GameOverModal
                 title="Partie terminée !"
-                subtitle={hasForfeits ? sorted.filter(p => !p.abandon && !p.afk).map(p => p.username).join(', ') + ' remporte la victoire !' : 'Classement final'}
+                subtitle={hasForfeits ? `${sorted.find(p => !p.abandon && !p.afk)?.username ?? '?'} remporte la victoire !` : 'Classement final'}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                 onLeave={() => router.push('/')}
             >
@@ -169,7 +169,7 @@ export default function YahtzeePage() {
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">{disq ? '🚫' : (MEDAL[rank!] ?? `${rank! + 1}.`)}</span>
                                         <span className={`font-bold ${p.userId === myId ? 'text-amber-600 dark:text-amber-300' : 'text-gray-800 dark:text-white'}`}>
-                                            {bot ? '🤖 ' : ''}{p.username}{p.userId === myId && ' (moi)'}
+                                            {p.username}{p.userId === myId && ' (moi)'}
                                         </span>
                                         {bot && <BotBadge />}
                                         {p.abandon && <span className="text-xs bg-orange-500/30 text-orange-400 px-1.5 py-0.5 rounded">Abandon</span>}
@@ -204,6 +204,12 @@ export default function YahtzeePage() {
                                                         <span className="font-mono">{p.scoreCard![cat as keyof ScoreCard] ?? 0}</span>
                                                     </div>
                                                 ))}
+                                                {(p.scoreCard!.yahtzeeBonus ?? 0) > 0 && (
+                                                    <div className="flex justify-between border-t border-amber-400/30 pt-0.5 font-semibold text-amber-500 dark:text-amber-400">
+                                                        <span>Bonus Yahtzee ×{p.scoreCard!.yahtzeeBonus}</span>
+                                                        <span className="font-mono">+{(p.scoreCard!.yahtzeeBonus ?? 0) * 100}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -276,7 +282,7 @@ export default function YahtzeePage() {
             />
 
             {game?.phase !== 'ended' && (
-                <TimerBar endsAt={timerEndsAt} duration={120} label="Temps restant" />
+                <TimerBar endsAt={timerEndsAt} duration={60} label="Temps restant" />
             )}
 
             <div className="p-4">
@@ -355,8 +361,8 @@ export default function YahtzeePage() {
                                 <div className="space-y-1">{LOWER_CATS.map(cat => <ScoreRow key={cat} cat={cat} />)}</div>
                                 {(myPlayer?.scoreCard.yahtzeeBonus ?? 0) > 0 && (
                                     <div className="flex justify-between px-3 py-2 mt-1 bg-amber-400/10 border border-amber-400/30 rounded-lg text-sm">
-                                        <span className="text-amber-500 dark:text-amber-400 font-semibold">🎲 Bonus Yahtzee</span>
-                                        <span className="font-black text-amber-500 dark:text-amber-400">+{myPlayer?.scoreCard.yahtzeeBonus}</span>
+                                        <span className="text-amber-500 dark:text-amber-400 font-semibold">🎲 Bonus Yahtzee ×{myPlayer?.scoreCard.yahtzeeBonus}</span>
+                                        <span className="font-black text-amber-500 dark:text-amber-400">+{(myPlayer?.scoreCard.yahtzeeBonus ?? 0) * 100}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between px-3 py-2.5 mt-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-500/30 rounded-lg">
@@ -383,7 +389,7 @@ export default function YahtzeePage() {
                                                 <div className="flex items-center gap-2">
                                                     {isCurrent && <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />}
                                                     <span className={`font-bold ${isMe ? 'text-blue-600 dark:text-blue-300' : 'text-gray-900 dark:text-white'}`}>
-                                                        {bot ? '🤖 ' : ''}{p.username}{isMe && ' (moi)'}
+                                                        {p.username}{isMe && ' (moi)'}
                                                     </span>
                                                     {bot && <BotBadge />}
                                                 </div>
@@ -407,7 +413,7 @@ export default function YahtzeePage() {
                                 <details key={p.userId} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
                                     <summary className="px-5 py-4 cursor-pointer font-semibold text-gray-600 dark:text-gray-300 flex items-center justify-between">
                                         <span className="flex items-center gap-2">
-                                            {bot ? '🤖 Fiche du bot' : `Fiche de ${p.username}`}
+                                            {`Fiche de ${p.username}`}
                                             {bot && <BotBadge />}
                                         </span>
                                         <span className="text-gray-400 dark:text-gray-500 text-sm">{p.total} pts</span>
@@ -421,6 +427,12 @@ export default function YahtzeePage() {
                                                 </span>
                                             </div>
                                         ))}
+                                        {(p.scoreCard?.yahtzeeBonus ?? 0) > 0 && (
+                                            <div className="flex justify-between text-sm py-1 border-b border-amber-400/30 text-amber-500 dark:text-amber-400 font-semibold">
+                                                <span>🎲 Bonus Yahtzee ×{p.scoreCard!.yahtzeeBonus}</span>
+                                                <span>+{(p.scoreCard!.yahtzeeBonus ?? 0) * 100}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between text-sm pt-2">
                                             <span className="font-bold text-blue-600 dark:text-blue-300">Total</span>
                                             <span className="font-black text-blue-600 dark:text-blue-300">{p.total}</span>
@@ -443,6 +455,12 @@ export default function YahtzeePage() {
                                             <span className="text-gray-400 dark:text-gray-500">{p.scoreCard[cat as keyof ScoreCard] as number}</span>
                                         </div>
                                     ))}
+                                    {(p.scoreCard.yahtzeeBonus ?? 0) > 0 && (
+                                        <div className="flex justify-between text-sm py-1 border-b border-amber-400/30 text-amber-500 dark:text-amber-400 font-semibold">
+                                            <span>🎲 Bonus Yahtzee ×{p.scoreCard.yahtzeeBonus}</span>
+                                            <span>+{(p.scoreCard.yahtzeeBonus ?? 0) * 100}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-sm pt-2">
                                         <span className="font-bold text-gray-500 dark:text-gray-400">Total</span>
                                         <span className="font-black text-gray-500 dark:text-gray-400">{p.total}</span>

@@ -44,7 +44,7 @@ function PlayerLabel({ player, active, vsBot: _vsBot }: { player: PlayerInfo; ac
     return (
         <span className={`flex items-center gap-1.5 transition-all ${active ? 'font-bold' : 'font-normal opacity-60'}`}>
             {PLAYER_COLORS[player.colorIndex].emoji}
-            {bot ? '🤖' : ''} {player.username}
+            {player.username}
             {bot && <BotBadge />}
         </span>
     );
@@ -225,7 +225,7 @@ export default function Puissance4Page() {
                                 const bot = isBot(p);
                                 return {
                                     userId: p!.userId,
-                                    username: bot ? `🤖 ${p!.username}` : p!.username,
+                                    username: p!.username,
                                     score: `${gameState.scores[p!.colorIndex] ?? 0} victoire${(gameState.scores[p!.colorIndex] ?? 0) !== 1 ? 's' : ''}`,
                                     badges: [
                                         ...(bot ? ['Bot'] : []),

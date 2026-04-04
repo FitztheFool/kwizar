@@ -839,7 +839,7 @@ export default function LobbyCodePage() {
                                     {isHost && BOT_SUPPORTED_GAMES.has(gameType) && players.length + botCount < maxPlayers && (
                                         <button
                                             onClick={() => socket?.emit('lobby:addBot')}
-                                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors px-2 py-0.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 whitespace-nowrap">
+                                            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors px-2 py-0.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 whitespace-nowrap">
                                             🤖 Ajouter un bot
                                         </button>
                                     )}

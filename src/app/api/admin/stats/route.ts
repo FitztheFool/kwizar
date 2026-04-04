@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
         abandon: true,
         afk: true,
         vsBot: true,
+        botScores: true,
         quiz: { select: { id: true, title: true } },
         user: { select: { username: true } },
     } as const;
@@ -198,16 +199,32 @@ export async function GET(req: NextRequest) {
         }
     }
 
-    // Ajouter les entrées bots synthétiques
+    // Ajouter les entrées bots depuis botScores stocké sur les tentatives
+    const botScoresByGame = new Map<string, { username: string; score: number; placement: number }[]>();
+    for (const a of allPlayersForPage) {
+        if (!a.vsBot || !a.botScores || !a.gameId) continue;
+        const bots = a.botScores as { username: string; score: number; placement: number }[];
+        if (Array.isArray(bots) && bots.length > 0 && !botScoresByGame.has(a.gameId)) {
+            botScoresByGame.set(a.gameId, bots);
+        }
+    }
+
     for (const [gameId, isVsBot] of vsBotByGame) {
         if (!isVsBot) continue;
         const game = gameMap.get(gameId);
         if (!game) continue;
-        const usedPlacements = new Set(game.players.map(p => p.placement).filter(p => p != null));
-        let botPlacement = 1;
-        while (usedPlacements.has(botPlacement)) botPlacement++;
-        const botScore = botPlacement === 1 ? 1 : 0;
-        game.players.push({ username: '🤖 Ordinateur', score: botScore, placement: botPlacement, abandon: false, afk: false, isBot: true });
+        const storedBots = botScoresByGame.get(gameId);
+        if (storedBots && storedBots.length > 0) {
+            for (const bot of storedBots) {
+                game.players.push({ username: bot.username, score: bot.score, placement: bot.placement, abandon: false, afk: false, isBot: true });
+            }
+        } else {
+            // Fallback pour les anciennes parties sans botScores
+            const usedPlacements = new Set(game.players.map(p => p.placement).filter(p => p != null));
+            let botPlacement = 1;
+            while (usedPlacements.has(botPlacement)) botPlacement++;
+            game.players.push({ username: '🤖 Ordinateur', score: 0, placement: botPlacement, abandon: false, afk: false, isBot: true });
+        }
     }
 
     const groupedActivity = [...gameMap.values()].map(g => ({

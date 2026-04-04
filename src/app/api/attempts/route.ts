@@ -17,11 +17,18 @@ interface ScoreEntry {
     afk?: boolean;
 }
 
+interface BotScore {
+    username: string;
+    score: number;
+    placement: number;
+}
+
 interface AttemptPayload {
     gameType: string;
     gameId: string;
     quizId?: string;
     vsBot?: boolean;
+    bots?: BotScore[];
     scores: ScoreEntry[];
 }
 
@@ -35,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body: AttemptPayload = await req.json();
-        const { gameType, gameId, quizId, vsBot, scores } = body;
+        const { gameType, gameId, quizId, vsBot, bots, scores } = body;
 
         if (!gameType || !gameId || !Array.isArray(scores) || scores.length === 0) {
             return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 });
@@ -53,9 +60,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: true, saved: 0 });
         }
 
+        // Bot scores stored (as JSON) on the first (highest-placed) human attempt
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const botScoresJson: any = bots && bots.length > 0 ? bots : null;
+
         await Promise.all(
-            validScores.map((s) =>
-                prisma.attempt.upsert({
+            validScores.map((s, i) => {
+                const botScores = i === 0 ? botScoresJson : null;
+                return prisma.attempt.upsert({
                     where: { userId_gameId: { userId: s.userId, gameId } },
                     update: {
                         score: s.score,
@@ -67,6 +79,7 @@ export async function POST(req: NextRequest) {
                         abandon: s.abandon ?? false,
                         afk: s.afk ?? false,
                         vsBot: vsBot ?? false,
+                        ...(botScores !== null ? { botScores } : {}),
                     },
                     create: {
                         userId: s.userId,
@@ -82,9 +95,10 @@ export async function POST(req: NextRequest) {
                         abandon: s.abandon ?? false,
                         afk: s.afk ?? false,
                         vsBot: vsBot ?? false,
+                        botScores,
                     },
-                })
-            )
+                });
+            })
         );
 
         return NextResponse.json({ ok: true, saved: validScores.length });

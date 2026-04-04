@@ -186,6 +186,7 @@ model Attempt {
   abandon    Boolean  @default(false)  // joueur a abandonné volontairement
   afk        Boolean  @default(false)  // joueur exclu pour inactivité
   vsBot      Boolean  @default(false)  // partie jouée contre au moins un bot
+  botScores  Json?                     // [{username, score, placement}] pour les bots participants
   createdAt  DateTime @default(now())
 
   userId String

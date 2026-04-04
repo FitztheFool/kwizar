@@ -88,7 +88,7 @@ export function useYahtzee({
         const onState = (state: GameState) => {
             setGame(state);
             setRolling(false);
-            setTimerEndsAt(Date.now() + 120 * 1000);
+            setTimerEndsAt(Date.now() + 60 * 1000);
         };
         const onResults = ({ results }: { results: ResultEntry[] }) => setResults(results);
         const onAfkWarning = ({ username: uname, secondsLeft }: { username: string; secondsLeft: number | null }) => {
