@@ -40,9 +40,9 @@ export async function PATCH(req: NextRequest) {
 
     if (conflict) {
         if (conflict.email === email) {
-            return NextResponse.json({ error: 'Cet email est déjà utilisé' }, { status: 400 });
+            return NextResponse.json({ error: 'Cet email est déjà utilisé.' }, { status: 400 });
         }
-        return NextResponse.json({ error: "Ce nom d'utilisateur est déjà pris" }, { status: 400 });
+        return NextResponse.json({ error: "Ce nom d'utilisateur est déjà pris." }, { status: 400 });
     }
 
     const passwordHash = await hash(password, 10);
