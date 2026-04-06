@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
 
     } catch (err) {
         console.error('❌ Cron failed:', err);
-        // Vercel détecte le 500 et le marque en erreur dans le dashboard
         return NextResponse.json({ error: String(err) }, { status: 500 });
     }
 }

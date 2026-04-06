@@ -207,4 +207,6 @@ model Word {
   word        String   @unique
   description String?
   createdAt   DateTime @default(now())
+
+  @@map("words")
 }

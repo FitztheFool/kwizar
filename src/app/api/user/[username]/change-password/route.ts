@@ -1,18 +1,15 @@
-// src/app/api/user/[username]/change-password/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { requireRegistered } from '@/lib/authGuard';
 
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id)
-            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+        const { session, error } = await requireRegistered();
+        if (error) return error;
 
         const { username } = await params;
         if (session.user.username !== username)

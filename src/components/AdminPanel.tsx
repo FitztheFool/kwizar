@@ -560,7 +560,7 @@ export default function AdminPanel() {
                                         <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
                                             Statistiques par jeu
                                         </h2>
-                                        <GameStatCards gameStats={stats.totals.gameStats} />
+                                        <GameStatCards gameStats={stats.totals.gameStats} hideWinRate defaultExpanded />
                                     </div>
                                 )}
 
@@ -889,7 +889,7 @@ export default function AdminPanel() {
                                             className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${selectedLetter === letter
                                                 ? 'bg-red-600 text-white border-red-600'
                                                 : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
+                                                }`}
                                         >
                                             {letter}
                                             <span className="ml-1 text-[10px] opacity-70">{count}</span>

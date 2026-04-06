@@ -5,7 +5,16 @@ import { NextRequest, NextResponse } from 'next/server';
 const secret = new TextEncoder().encode(process.env.INTERNAL_API_KEY!);
 
 export async function GET(req: NextRequest) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET! });
+    const cookieName = process.env.NEXTAUTH_URL?.startsWith('https')
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token';
+
+    const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET!,
+        cookieName,
+    });
+
     if (!token?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

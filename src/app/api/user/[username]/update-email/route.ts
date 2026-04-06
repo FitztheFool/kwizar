@@ -1,15 +1,13 @@
-// src/app/api/user/[username]/update-email/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { requireRegistered } from '@/lib/authGuard';
 
 export async function PATCH(
     req: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
+    const { session, error } = await requireRegistered();
+    if (error) return error;
 
     const { username } = await params;
     if (session.user.username !== username)

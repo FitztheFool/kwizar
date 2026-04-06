@@ -27,11 +27,11 @@ export default function Header() {
         <div className="w-full px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5">
-              <img src="/logo/icon-light.svg" alt="Quiz App" width={36} height={36}
+              <img src="/logo/icon-light.svg" alt="Kwizar" width={36} height={36}
                 className="rounded-lg block dark:hidden" />
-              <img src="/logo/icon-dark.svg" alt="Quiz App" width={36} height={36}
+              <img src="/logo/icon-dark.svg" alt="Kwizar" width={36} height={36}
                 className="rounded-lg hidden dark:block" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Quiz App</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Kwizar</span>
             </Link>
             {isLoading ? (
               <div className="h-10 w-48 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />

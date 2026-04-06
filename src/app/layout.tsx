@@ -12,7 +12,7 @@ import FloatingChat from '@/components/Chat/FloatingChat';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Quiz App - Testez vos connaissances',
+  title: 'Kwizar - Testez vos connaissances',
   description: 'Application de quiz interactive avec classements',
   icons: {
     icon: [

@@ -61,6 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 userRole={session?.user?.role}
                 userName={session?.user?.name}
                 userEmail={session?.user?.email}
+                isAnonymous={session?.user?.isAnonymous}
             />
 
             {/* Main */}

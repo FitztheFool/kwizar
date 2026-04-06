@@ -87,10 +87,15 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
         prisma.user.count(),
         prisma.quiz.count(),
-        prisma.attempt.groupBy({
-            by: ['gameType'],
-            _sum: { score: true },
-        }),
+        prisma.$queryRaw<{ gameType: string; total_score: number; total_correct: number; total_answers: number }[]>`
+                SELECT
+                    "gameType",
+                    SUM(score)::int as total_score,
+                    SUM("correctAnswers")::int as total_correct,
+                    SUM("totalAnswers")::int as total_answers
+                FROM attempts
+                GROUP BY "gameType"
+            `,
         prisma.attempt.findMany({
             select: { gameType: true, gameId: true },
             distinct: ['gameId', 'gameType'],
@@ -242,22 +247,25 @@ export async function GET(req: NextRequest) {
         }),
     }));
 
-    // Initialise tous les jeux à 0 pour qu'ils apparaissent même sans données
-    const gameStats: Record<string, { count: number; points: number; rounds: number }> = {};
+
+    const gameStats: Record<string, { count: number; points: number; rounds: number; correctAnswers: number; totalAnswers: number }> = {};
+
     for (const g of Object.values(GAME_CONFIG)) {
-        gameStats[g.gameType] = { count: 0, points: 0, rounds: 0 };
+        gameStats[g.gameType] = { count: 0, points: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
     }
 
     for (const row of gameStatsByType) {
         gameStats[row.gameType] = {
             count: 0,
-            points: row._sum.score ?? 0,
+            points: Number(row.total_score) ?? 0,
             rounds: row.gameType === 'TABOO' ? totalTabooRounds : 0,
+            correctAnswers: Number(row.total_correct) ?? 0,
+            totalAnswers: Number(row.total_answers) ?? 0,
         };
     }
 
     for (const g of distinctGamesByType) {
-        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, rounds: 0 };
+        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
         gameStats[g.gameType].count++;
     }
 

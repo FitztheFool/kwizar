@@ -19,19 +19,21 @@ interface Props {
     gameStats: Record<string, GameStat>;
     ranks?: Record<string, number>;
     columns?: 4 | 6;
+    hideWinRate?: boolean;
+    defaultExpanded?: boolean;
 }
 
 function fmt(n: number) {
     return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
 
-function getSecondaryStat(type: string, stat: GameStat): { value: string | number; label: string } {
+function getSecondaryStat(type: string, stat: GameStat, hideWinRate = false): { value: string | number; label: string } {
     const { points, count, wins = 0 } = stat;
     const avg = count > 0 ? Math.round(points / count) : 0;
 
     switch (type) {
         case 'SKYJOW':
-            return { value: fmt(avg), label: 'moy/partie ↓' };
+            return { value: fmt(avg), label: 'moy/partie' };
         case 'YAHTZEE':
         case 'DIAMANT':
             return { value: fmt(avg), label: 'moy/partie' };
@@ -39,6 +41,7 @@ function getSecondaryStat(type: string, stat: GameStat): { value: string | numbe
             return { value: `${avg}/13`, label: 'moy/partie' };
         case 'PUISSANCE4':
         case 'BATTLESHIP':
+            if (hideWinRate) return { value: '', label: '' };
             return { value: wins, label: wins === 1 ? 'victoire' : 'victoires' };
         case 'QUIZ': {
             const { correctAnswers = 0, totalAnswers = 0 } = stat;
@@ -59,7 +62,8 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
         if (totalAnswers === 0) return null;
         const pct = Math.round((correctAnswers / totalAnswers) * 100);
         const color = pct >= 70 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500';
-        return { pct, label: `${pct}% exact.`, wins: null, color };
+        const NO_WINS_COUNTER = new Set(['PUISSANCE4', 'BATTLESHIP']);
+        return { pct, label: `${pct}% vict.`, wins: NO_WINS_COUNTER.has(type) ? null : wins, color };
     }
 
     const NO_WINRATE = new Set(['JUST_ONE']);
@@ -73,15 +77,15 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
 
 const PAGE = 4;
 
-export default function GameStatCards({ gameStats, ranks = {} }: Props) {
-    const [visibleCount, setVisibleCount] = useState(PAGE);
+export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = false, defaultExpanded = false }: Props) {
+    const [visibleCount, setVisibleCount] = useState(() => defaultExpanded ? Infinity : PAGE);
 
     if (Object.keys(gameStats).length === 0) {
         return <p className="text-gray-400 dark:text-gray-500 text-sm">Aucune statistique disponible.</p>;
     }
 
     const sorted = Object.entries(gameStats).sort((a, b) => b[1].count - a[1].count);
-    const visible = sorted.slice(0, visibleCount);
+    const visible = sorted.slice(0, visibleCount === Infinity ? sorted.length : visibleCount);
 
     return (
         <div className="space-y-3">
@@ -92,8 +96,8 @@ export default function GameStatCards({ gameStats, ranks = {} }: Props) {
                         bg: 'bg-gray-50 dark:bg-gray-800/50',
                         label: 'text-gray-600 dark:text-gray-400',
                     };
-                    const secondary = getSecondaryStat(type, stat);
-                    const bar = getBar(type, stat);
+                    const secondary = getSecondaryStat(type, stat, hideWinRate);
+                    const bar = hideWinRate ? null : getBar(type, stat);
 
                     const medal = MEDAL[ranks[type]];
                     return (
@@ -148,7 +152,7 @@ export default function GameStatCards({ gameStats, ranks = {} }: Props) {
                 })}
             </div>
             <div className="flex gap-4">
-                {visibleCount < sorted.length && (
+                {!defaultExpanded && visibleCount < sorted.length && (
                     <button
                         onClick={() => setVisibleCount(v => v + PAGE)}
                         className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -156,7 +160,7 @@ export default function GameStatCards({ gameStats, ranks = {} }: Props) {
                         Afficher plus ({visibleCount}/{sorted.length}) ↓
                     </button>
                 )}
-                {visibleCount > PAGE && (
+                {!defaultExpanded && visibleCount > PAGE && (
                     <button
                         onClick={() => setVisibleCount(v => v - PAGE)}
                         className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"

@@ -1,13 +1,14 @@
 // src/app/login/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
-
+import { randomUsername } from '@/lib/randomUsername';
 import { useState, useEffect, Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import DiscordButton from '@/components/DiscordButton';
 import GoogleButton from '@/components/GoogleButton';
+import GuestLoginButton from '@/components/GuestLoginButton';
 
 function LoginForm() {
     const { status } = useSession();
@@ -55,7 +56,20 @@ function LoginForm() {
                 setGuestError(data.error ?? 'Erreur lors de la création du compte invité');
                 return;
             }
-            // Rechargement complet pour que NextAuth lise le nouveau cookie de session
+            const data = await res.json();
+            localStorage.setItem('guestUsername', data.username);
+
+            // signIn via le provider guest → NextAuth forge le JWT correctement
+            const result = await signIn('guest', {
+                userId: data.userId,
+                redirect: false,
+            });
+
+            if (result?.error) {
+                setGuestError('Erreur lors de la connexion');
+                return;
+            }
+
             window.location.href = callbackUrl;
         } catch {
             setGuestError('Une erreur est survenue');
@@ -96,7 +110,7 @@ function LoginForm() {
             <div className="max-w-md w-full">
                 <div className="text-center mb-8">
                     <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
-                        🎯 Quiz App
+                        🎯 Kwizar
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Connectez-vous pour continuer</p>
                 </div>
@@ -188,13 +202,7 @@ function LoginForm() {
                                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">ou</span>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => { setGuestModal(true); setGuestError(''); }}
-                            className="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-all text-sm"
-                        >
-                            🎮 Jouer sans compte
-                        </button>
+                        <GuestLoginButton callbackUrl={callbackUrl} />
                     </div>
                 </div>
 

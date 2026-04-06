@@ -90,9 +90,11 @@ interface SidebarProps {
     userRole?: string;
     userName?: string | null;
     userEmail?: string | null;
+    isAnonymous?: boolean;
 }
 
-export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, userEmail }: SidebarProps) {
+export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, userEmail, isAnonymous }: SidebarProps) {
+
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(true);
     const [quizMenuOpen, setQuizMenuOpen] = useState(false);
@@ -184,10 +186,12 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                     {!collapsed && quizMenuOpen && (
                         <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
                             {isAuthenticated ? (
-                                QUIZ_NAV_ITEMS.map((item, i) => {
-                                    if (!item.label) return <div key={i} className="border-t border-gray-100 dark:border-gray-700 my-1" />;
-                                    return <SubNavLink key={item.href} href={item.href!} icon={item.icon} label={item.label} isActive={pathname === item.href} color="blue" />;
-                                })
+                                QUIZ_NAV_ITEMS
+                                    .filter(item => !(isAnonymous && item.href === '/quiz/my-quizzes'))
+                                    .map((item, i) => {
+                                        if (!item.label) return <div key={i} className="border-t border-gray-100 dark:border-gray-700 my-1" />;
+                                        return <SubNavLink key={item.href} href={item.href!} icon={item.icon} label={item.label} isActive={pathname === item.href} color="blue" />;
+                                    })
                             ) : (
                                 <SubNavLink href="/quiz/available" icon="🎯" label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
                             )}

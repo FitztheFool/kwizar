@@ -1,4 +1,4 @@
-// PATCH /api/auth/guest/claim — finalise un compte anonyme avec email + mot de passe
+// PATCH /api/auth/guest/claim
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

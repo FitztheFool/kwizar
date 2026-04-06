@@ -17,6 +17,7 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<TabType>('theme');
     const [mounted, setMounted] = useState(false);
     const initialized = useRef(false);
+    const isAnonymous = session?.user?.isAnonymous ?? false;
 
     // Password
     const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
@@ -52,19 +53,14 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (!session) return;
-
         if (!initialized.current) {
-            // Premier chargement — initialisation complète
             initialized.current = true;
-            setActiveTab('compte');
+            setActiveTab(isAnonymous ? 'theme' : 'compte');
             setUsernameValue(session.user?.username ?? session.user?.name ?? '');
             setEmailValue(session.user?.email ?? '');
         } else {
-            // Mise à jour de session (ex: updateSession) — ne pas toucher activeTab ni les statuts
             setUsernameValue(session.user?.username ?? session.user?.name ?? '');
-            if (!emailUpdated) {
-                setEmailValue(session.user?.email ?? '');
-            }
+            if (!emailUpdated) setEmailValue(session.user?.email ?? '');
         }
     }, [session]);
 
@@ -225,6 +221,7 @@ export default function SettingsPage() {
     const displayName = session?.user?.username ?? session?.user?.name ?? 'Utilisateur';
     const emailMatch = deleteEmail.trim().toLowerCase() === (emailUpdated ? emailValue : session?.user?.email ?? '').toLowerCase();
 
+
     if (!mounted) return null;
 
     return (
@@ -233,17 +230,6 @@ export default function SettingsPage() {
 
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mb-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <button
-                            onClick={() => router.back()}
-                            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 inline-flex items-center gap-1 transition-colors"
-                        >
-                            ← Retour
-                        </button>
-                        <Link href="/dashboard" className="text-sm text-blue-500 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
-                            📊 Dashboard
-                        </Link>
-                    </div>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl">⚙️</div>
                         <div>
@@ -251,24 +237,38 @@ export default function SettingsPage() {
                             <p className="text-gray-500 dark:text-gray-400 text-sm">Personnalisez votre expérience</p>
                         </div>
                     </div>
+                    {isAnonymous && (
+                        <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                            <p className="text-sm text-amber-700 dark:text-amber-400">
+                                🔒 Finalisez votre inscription pour accéder à toutes les options.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Tabs */}
                 <div className="border-b-2 border-gray-200 dark:border-gray-700">
                     <div className="flex gap-2">
-                        {visibleTabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`pb-3 px-4 font-semibold text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                                    }`}
-                            >
-                                <span>{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
+                        {visibleTabs.map((tab) => {
+                            const disabled = isAnonymous && tab.id !== 'theme';
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => !disabled && setActiveTab(tab.id)}
+                                    disabled={disabled}
+                                    title={disabled ? 'Non disponible pour les invités' : undefined}
+                                    className={`pb-3 px-4 font-semibold text-sm transition-colors border-b-2 flex items-center gap-2 ${disabled
+                                        ? 'border-transparent text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                        : activeTab === tab.id
+                                            ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                        }`}
+                                >
+                                    <span>{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -438,7 +438,6 @@ export default function SettingsPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 border border-red-200 dark:border-red-900">
                             <div className="flex items-center justify-between mb-1">
                                 <h2 className="text-lg font-bold text-red-600 dark:text-red-400">Zone dangereuse</h2>
-                                <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Irréversible</span>
                             </div>
 
                             {!deleteMode && (

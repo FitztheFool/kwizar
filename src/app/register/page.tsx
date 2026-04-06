@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import DiscordButton from '@/components/DiscordButton';
 import GoogleButton from '@/components/GoogleButton';
+import GuestLoginButton from '@/components/GuestLoginButton';
 
 function RegisterForm() {
     const router = useRouter();
@@ -88,7 +89,7 @@ function RegisterForm() {
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
                     <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
-                        🎯 Quiz App
+                        🎯 Kwizar
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">
                         Créez votre compte gratuitement
@@ -201,16 +202,25 @@ function RegisterForm() {
                         </div>
                     </div>
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 text-center space-y-3">
                         <p className="text-gray-600 dark:text-gray-300">
-                            Déjà un compte ?{' '}
+                            Pas encore de compte ?{' '}
                             <Link
-                                href={`/login${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
+                                href={`/register${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
                                 className="text-primary-600 hover:text-primary-700 font-semibold"
                             >
-                                Se connecter
+                                S&apos;inscrire
                             </Link>
                         </p>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">ou</span>
+                            </div>
+                        </div>
+                        <GuestLoginButton callbackUrl={callbackUrl} />
                     </div>
                 </div>
 
