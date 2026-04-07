@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GAME_EMOJI_MAP, GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { GAME_COLOR } from '@/lib/gameColor';
+import { plural } from '@/lib/utils';
 
 interface GameStat {
     count: number;
@@ -42,7 +43,7 @@ function getSecondaryStat(type: string, stat: GameStat, hideWinRate = false): { 
         case 'PUISSANCE4':
         case 'BATTLESHIP':
             if (hideWinRate) return { value: '', label: '' };
-            return { value: wins, label: wins === 1 ? 'victoire' : 'victoires' };
+            return { value: wins, label: plural(wins, 'victoire', 'victoires') };
         case 'QUIZ': {
             const { correctAnswers = 0, totalAnswers = 0 } = stat;
             const avgCorrect = count > 0 ? Math.round(correctAnswers / count) : 0;
@@ -136,7 +137,7 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                                 {bar?.wins !== null && bar?.wins !== undefined && (
                                     <div className="text-right">
                                         <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{bar.wins}</div>
-                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{bar.wins === 1 ? 'victoire' : 'victoires'}</div>
+                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{plural(bar.wins, 'victoire', 'victoires')}</div>
                                     </div>
                                 )}
                             </div>

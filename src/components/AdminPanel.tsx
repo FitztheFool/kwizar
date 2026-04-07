@@ -557,10 +557,9 @@ export default function AdminPanel() {
                                 {/* ── Statistiques par jeu ── */}
                                 {Object.values(stats.totals.gameStats).some((v) => v.count > 0) && (
                                     <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
-                                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
-                                            Statistiques par jeu
-                                        </h2>
-                                        <GameStatCards gameStats={stats.totals.gameStats} hideWinRate defaultExpanded />
+                                        <CollapseSection title="Statistiques par jeu" defaultOpen={true}>
+                                            <GameStatCards gameStats={stats.totals.gameStats} hideWinRate defaultExpanded />
+                                        </CollapseSection>
                                     </div>
                                 )}
 
