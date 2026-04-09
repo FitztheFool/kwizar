@@ -56,7 +56,7 @@ const COLOR_MAP: Record<string, string> = {
     green: 'bg-green-500',
     blue: 'bg-blue-500',
     yellow: 'bg-yellow-400',
-    wild: 'bg-gray-800',
+    wild: 'bg-gray-700 dark:bg-gray-800',
 };
 
 const COLOR_TEXT: Record<string, string> = {
@@ -207,25 +207,25 @@ export default function UnoPage() {
     };
 
     if (status === 'loading') {
-        return <div className="flex-1 bg-gray-900 flex items-center justify-center text-white">Chargement...</div>;
+        return <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-white">Chargement...</div>;
     }
 
     // ── Fin de partie ──────────────────────────────────────────────────────────
     if (gameState?.status === 'FINISHED') {
         const scores = gameState.finalScores ?? [];
         return (
-            <div className="flex-1 bg-gray-900 flex items-center justify-center p-4">
-                <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md text-white text-center">
+            <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-md text-gray-900 dark:text-white text-center shadow-lg">
                     <div className="text-6xl mb-2">🏆</div>
                     <h1 className="text-2xl font-bold mb-1">{gameState.winner?.username} a gagné !</h1>
-                    <p className="text-gray-400 text-sm mb-6">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
                         {gameState.spectator ? 'Vous avez observé cette partie' : 'Classement final'}
                     </p>
 
                     <div className="space-y-2 text-left">
                         {scores.map(s => (
                             <div key={s.userId} className={`flex items-center justify-between rounded-lg px-4 py-3
-                            ${s.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-gray-700'}
+                            ${s.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-gray-100 dark:bg-gray-700'}
                             ${s.kicked ? 'opacity-60' : ''}`}>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xl w-7 text-center">
@@ -235,13 +235,13 @@ export default function UnoPage() {
                                         <div className="flex items-center gap-1.5">
                                             <span className="font-semibold">{s.username}</span>
                                             {s.userId === me.userId && !gameState.spectator && (
-                                                <span className="text-gray-400 text-xs">(moi)</span>
+                                                <span className="text-gray-500 dark:text-gray-400 text-xs">(moi)</span>
                                             )}
                                             {s.kicked && (
                                                 <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>
                                             )}
                                         </div>
-                                        <span className="text-xs text-gray-400">
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
                                             {s.cardsLeft === 0
                                                 ? '0 carte restante'
                                                 : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
@@ -249,16 +249,16 @@ export default function UnoPage() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                                    <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'}`}>
                                         {s.score > 0 ? `+${s.score}` : '0'}
                                     </span>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">pts</div>
+                                    <div className="text-xs text-gray-400 dark:text-gray-500">pts</div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="mt-4 text-xs text-gray-500 text-left space-y-0.5">
+                    <div className="mt-4 text-xs text-gray-400 dark:text-gray-500 text-left space-y-0.5">
                         <p>0–9 = valeur faciale · Skip/Reverse/+2 = 20 pts · Wild/+4 = 50 pts</p>
                     </div>
 
@@ -269,7 +269,7 @@ export default function UnoPage() {
                     </button>
                     <button
                         onClick={() => router.push('/dashboard')}
-                        className="mt-3 w-full py-3 rounded-xl bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition">
+                        className="mt-3 w-full py-3 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                         🏠 Retour au dashboard
                     </button>
                 </div>
@@ -281,20 +281,20 @@ export default function UnoPage() {
     if (!gameState || gameState.status === 'WAITING') {
         const joined = lobbyState?.players.length ?? 0;
         return (
-            <div className="flex-1 bg-gray-900 flex items-center justify-center p-4">
-                <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md text-white text-center">
+            <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-md text-gray-900 dark:text-white text-center shadow-lg">
                     <div className="text-5xl mb-4 animate-pulse">🃏</div>
                     <h1 className="text-xl font-bold mb-1">Démarrage de la partie…</h1>
-                    <p className="text-gray-400 text-sm mb-6">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
                         {joined} joueur{joined > 1 ? 's' : ''} connecté{joined > 1 ? 's' : ''}…
                     </p>
                     <div className="space-y-2 text-left mb-6">
                         {lobbyState?.players.map(p => (
-                            <div key={p.userId} className="bg-gray-700 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                                <span className="text-green-400">✓</span>
+                            <div key={p.userId} className="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                                <span className="text-green-500 dark:text-green-400">✓</span>
                                 <span>{p.username}</span>
-                                {p.userId === lobbyState.hostId && <span className="text-yellow-400 text-xs">👑</span>}
-                                {p.userId === me.userId && <span className="text-gray-500 text-xs">(moi)</span>}
+                                {p.userId === lobbyState.hostId && <span className="text-yellow-500 dark:text-yellow-400 text-xs">👑</span>}
+                                {p.userId === me.userId && <span className="text-gray-400 text-xs">(moi)</span>}
                             </div>
                         ))}
                     </div>
@@ -305,7 +305,7 @@ export default function UnoPage() {
                     </button>
                     <button
                         onClick={() => router.push('/dashboard')}
-                        className="mt-3 w-full py-3 rounded-xl bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition">
+                        className="mt-3 w-full py-3 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                         🏠 Retour au dashboard
                     </button>
                 </div>
@@ -318,12 +318,12 @@ export default function UnoPage() {
     const isMeInactive = inactivityUserId === me.userId;
 
     return (
-        <div className="flex-1 bg-gray-900 text-white flex flex-col select-none">
+        <div className="flex-1 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white flex flex-col select-none">
 
             {showColorPicker && !gameState.spectator && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-                    <div className="bg-gray-800 rounded-2xl p-6 text-center">
-                        <h2 className="font-bold text-lg mb-4">Choisir une couleur</h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-xl">
+                        <h2 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">Choisir une couleur</h2>
                         <div className="grid grid-cols-2 gap-3">
                             {['red', 'green', 'blue', 'yellow'].map(c => (
                                 <button key={c} onClick={() => handleColorChoice(c)}
@@ -337,12 +337,11 @@ export default function UnoPage() {
             )}
 
             {/* Header */}
-            <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
+            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                     <span className="font-bold text-lg">🃏 UNO</span>
-                    <span className="text-gray-400 font-mono text-sm">{lobbyId}</span>
                     {gameState.spectator && (
-                        <span className="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-xs bg-purple-500/20 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full font-semibold">
                             👁 Spectateur
                         </span>
                     )}
@@ -352,7 +351,7 @@ export default function UnoPage() {
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <span>{gameState.direction === 1 ? '↻' : '↺'}</span>
                     <span>Couleur :</span>
                     <span className={`w-5 h-5 rounded-full ${COLOR_MAP[gameState.currentColor]}`} />
@@ -369,7 +368,7 @@ export default function UnoPage() {
                     const isInactive = inactivityUserId === p.userId && inactivitySeconds !== null;
                     return (
                         <div key={p.userId} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all
-                            ${isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800'}
+                            ${isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-white dark:bg-gray-800'}
                             ${isInactive ? 'ring-2 ring-orange-400' : ''}`}>
                             <div className="flex items-center gap-1.5">
                                 <span className="text-sm font-semibold">{p.username}</span>
@@ -387,14 +386,14 @@ export default function UnoPage() {
                                 {p.cardCount > 10 && <span className="text-xs text-gray-400">+{p.cardCount - 10}</span>}
                             </div>
                             <div className="flex items-center gap-1">
-                                <span className="text-xs text-gray-400">{p.cardCount} carte{p.cardCount > 1 ? 's' : ''}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">{p.cardCount} carte{p.cardCount > 1 ? 's' : ''}</span>
                                 {p.cardCount === 1 && !p.saidUno && !gameState.spectator && (
                                     <button onClick={() => socket?.emit('uno:callUno', { targetId: p.userId })}
                                         className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded font-bold hover:bg-red-400 transition">
                                         UNO !
                                     </button>
                                 )}
-                                {p.saidUno && <span className="text-xs text-yellow-400 font-bold">UNO!</span>}
+                                {p.saidUno && <span className="text-xs text-yellow-500 dark:text-yellow-400 font-bold">UNO!</span>}
                             </div>
                         </div>
                     );
@@ -410,7 +409,7 @@ export default function UnoPage() {
                             ${!gameState.spectator && gameState.isMyTurn ? 'cursor-pointer hover:bg-red-600 hover:scale-105 transition-all' : 'opacity-60 cursor-default'}`}>
                         🃏
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                         {gameState.drawStack > 0 ? `Piocher +${gameState.drawStack}` : 'Piocher'}
                     </span>
                 </div>
@@ -423,14 +422,14 @@ export default function UnoPage() {
             {/* Indicateur de tour */}
             <div className="text-center py-2">
                 {!gameState.spectator && gameState.isMyTurn ? (
-                    <span className={`font-bold ${isMeInactive ? 'text-orange-400 animate-pulse' : 'text-yellow-400 animate-pulse'}`}>
+                    <span className={`font-bold ${isMeInactive ? 'text-orange-400 animate-pulse' : 'text-yellow-500 dark:text-yellow-400 animate-pulse'}`}>
                         {isMeInactive
                             ? `⚠️ Joue vite ! exclusion dans ${inactivitySeconds}s`
                             : '✨ À toi de jouer !'}
                     </span>
                 ) : (
-                    <span className="text-gray-400 text-sm">
-                        Tour de <span className="text-white font-semibold">{currentPlayer?.username}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">
+                        Tour de <span className="text-gray-900 dark:text-white font-semibold">{currentPlayer?.username}</span>
                         {inactivityUserId === currentPlayer?.userId && inactivitySeconds !== null && (
                             <span className={`ml-2 text-xs font-bold px-1.5 py-0.5 rounded
                                 ${inactivitySeconds <= 10 ? 'bg-red-500 text-white animate-pulse' : 'bg-orange-500 text-white'}`}>
@@ -443,9 +442,9 @@ export default function UnoPage() {
 
             {/* Main — masquée pour les spectateurs */}
             {!gameState.spectator && (
-                <div className="bg-gray-800 border-t border-gray-700 px-4 py-4">
+                <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-400">Ma main ({gameState.hand.length} cartes)</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Ma main ({gameState.hand.length} cartes)</span>
                         {gameState.hand.length === 1 && (
                             <button onClick={() => socket?.emit('uno:sayUno')}
                                 className="text-xs bg-yellow-400 text-gray-900 px-3 py-1 rounded-full font-bold hover:bg-yellow-300 transition animate-bounce">

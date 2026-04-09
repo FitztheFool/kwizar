@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
         higherIsBetter: true,
         scoreLabel: 'Points',
         description: "Sois le premier à te défausser de toutes tes cartes !",
-        players: '2 – 8 joueurs',
+        players: '1 – 8 joueurs',
         rules: "Chaque joueur pose une carte qui correspond à la couleur ou au chiffre de la précédente. Les cartes spéciales (inversion, passe ton tour, +2, joker +4) pimentent la partie. N'oublie pas de crier UNO quand il te reste une seule carte !",
         score: "Le gagnant de chaque manche marque la valeur des cartes restantes : chiffres = valeur faciale, actions = 20 pts, jokers = 50 pts. Le classement est basé sur le total cumulé. En 2v2, les points sont partagés entre coéquipiers.",
     },
@@ -19,7 +19,7 @@ export const GAME_CONFIG = {
         higherIsBetter: false,
         scoreLabel: 'Score moyen',
         description: "Moins de points, c'est mieux !",
-        players: '2 – 8 joueurs',
+        players: '1 – 8 joueurs',
         rules: "Chaque joueur gère une grille de 12 cartes face cachée. À ton tour, pioche une carte et échange-la avec l'une de tes cartes. Les colonnes de 3 cartes identiques sont supprimées. La manche se termine quand toutes les cartes d'un joueur sont retournées.",
         score: "Ton score est la somme des cartes restantes dans ta grille. Si tu déclenches la fin de manche sans avoir le plus petit score, le tien est doublé ! Le classement repose sur le score moyen par partie.",
     },
@@ -43,7 +43,7 @@ export const GAME_CONFIG = {
         higherIsBetter: true,
         scoreLabel: 'Score total',
         description: "Teste tes connaissances sur tous les sujets !",
-        players: 'Solo',
+        players: '1-30 joueurs',
         rules: "Réponds aux questions le plus vite possible. Selon le mode choisi, un chrono par question ou global peut limiter ton temps. Les questions peuvent être vrai/faux, QCM ou texte libre.",
         score: "Pour chaque quiz, seul ton meilleur score est conservé. Ton score total correspond à la somme de tes meilleurs résultats sur tous les quiz joués.",
     },
@@ -103,7 +103,7 @@ export const GAME_CONFIG = {
         higherIsBetter: true,
         scoreLabel: 'Points',
         description: "Explorez la grotte et repartez avant qu'il ne soit trop tard !",
-        players: '2 – 8 joueurs',
+        players: '1 – 8 joueurs',
         rules: "Chaque tour, une carte est retournée : des gemmes à ramasser ou un danger. Tous les joueurs encore dans la grotte se partagent les gemmes. Avant chaque carte, décidez de continuer ou de sortir pour sécuriser vos gains. Si le même danger apparaît deux fois, tous ceux restés dans la grotte repartent les mains vides. Les reliques ne peuvent être récupérées que par un joueur sortant seul : les 3 premières valent 2 💎 chacune, les suivantes 4 💎.",
         score: "Les gemmes rapportées dans votre coffre comptent comme points. Le classement est basé sur le total de points cumulés sur 5 manches.",
     },
@@ -171,11 +171,23 @@ export const NO_OPTIONS_GAMES: Partial<Record<GameType, string>> = {
 
 export const BOT_SUPPORTED_GAMES: Set<string> = new Set(['puissance4', 'yahtzee', 'diamant', 'battleship', 'uno', 'skyjow']);
 
-// Dérivé automatiquement depuis mode — plus besoin de maintenir SOLO_GAMES séparément
-export const SOLO_GAMES: Record<string, string> = Object.fromEntries(
+// Badges par mode — chaque jeu n'apparaît que dans une seule catégorie
+export const SOLO_GAMES: Record<string, { text: string; color: string }> = Object.fromEntries(
     Object.entries(GAME_CONFIG)
-        .filter(([, g]) => g.mode === 'solo' || g.mode === 'both')
-        .map(([key]) => [key, '#A32D2D'])
+        .filter(([, g]) => g.mode === 'solo')
+        .map(([key]) => [key, { text: 'SOLO', color: '#A32D2D' }])
+);
+
+export const BOTH_GAMES: Record<string, { text: string; color: string }> = Object.fromEntries(
+    Object.entries(GAME_CONFIG)
+        .filter(([, g]) => g.mode === 'both')
+        .map(([key]) => [key, { text: 'MIXTE', color: '#7C3AED' }])
+);
+
+export const MULTI_GAMES: Record<string, { text: string; color: string }> = Object.fromEntries(
+    Object.entries(GAME_CONFIG)
+        .filter(([, g]) => g.mode === 'multi')
+        .map(([key]) => [key, { text: 'MULTI', color: '#1D4ED8' }])
 );
 
 export const GAME_URL_SLUGS = ['uno', 'skyjow', 'taboo', 'yahtzee', 'puissance4', 'just-one', 'battleship', 'diamant', 'impostor'] as const;

@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { GAME_CONFIG, SOLO_GAMES, type GameMode } from '@/lib/gameConfig';
-import { SoloBadge } from '@/components/SoloBadge';
+import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 
 const PAGE_SIZE = 6;
 

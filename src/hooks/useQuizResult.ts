@@ -1,7 +1,8 @@
 // src/hooks/useQuizResult.ts
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getQuizSocket } from '@/lib/socket';
@@ -73,53 +74,16 @@ export function useQuizResult() {
         return () => window.removeEventListener('quiz:result:ready', handler);
     }, [quizId]);
 
-    const [timeMode] = useState<string | null>(() => {
-        if (typeof window === 'undefined') return null;
-        // In multiplayer /quiz/[id]/[quizId]/result: params.id = lobbyId
-        // In solo /quiz/[id]/result with ?lobby=: use search param
-        const code = params?.quizId ? (params?.id as string) : new URLSearchParams(window.location.search).get('lobby');
-        return sessionStorage.getItem(`lobby_timeMode_${code}`) ?? null;
-    });
-
-    const [timePerQuestion] = useState<number>(() => {
-        if (typeof window === 'undefined') return 0;
-        const code = params?.quizId ? (params?.id as string) : new URLSearchParams(window.location.search).get('lobby');
-        return parseInt(sessionStorage.getItem(`lobby_timePerQuestion_${code}`) ?? '0', 10);
-    });
-
     useEffect(() => {
         return () => { sessionStorage.removeItem(`quiz_result_${quizId}`); };
     }, [quizId]);
-
 
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [playerProgress, setPlayerProgress] = useState<PlayerProgress[]>([]);
     const [totalPlayers, setTotalPlayers] = useState(0);
     const [allFinished, setAllFinished] = useState(false);
-    const [timeLeft, setTimeLeft] = useState<number | null>(null);
-
-
-    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const timeModeRef = useRef(timeMode);
-    const timePerQuestionRef = useRef(timePerQuestion);
-    timeModeRef.current = timeMode;
-    timePerQuestionRef.current = timePerQuestion;
 
     const socket = useMemo(() => getQuizSocket(), []);
-
-    const startCountdown = (initialSeconds: number) => {
-        if (countdownRef.current) clearInterval(countdownRef.current);
-        setTimeLeft(initialSeconds);
-        countdownRef.current = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev === null || prev <= 1) {
-                    if (countdownRef.current) clearInterval(countdownRef.current);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-    };
 
     useEffect(() => {
         if (!lobbyCode || !session?.user?.id) return;
@@ -131,32 +95,11 @@ export function useQuizResult() {
         }) => {
             setTotalPlayers(total);
             setLeaderboard(lb);
-            // totalPlayers === 0 means the server has no session → show results immediately
-            if (done || total === 0) {
-                setAllFinished(true);
-                setTimeLeft(null);
-                if (countdownRef.current) clearInterval(countdownRef.current);
-            }
+            if (done || total === 0) setAllFinished(true);
         };
 
         const onProgress = (progress: PlayerProgress[]) => {
             setPlayerProgress(progress);
-        };
-
-        const onTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
-            if (timeModeRef.current === 'total') setTimeLeft(t);
-        };
-
-        const onServerTimeLeft = ({ timeLeft: t }: { timeLeft: number }) => {
-            if (timeModeRef.current === 'quiz:per_question') {
-                setTimeLeft(prev => {
-                    if (prev === null || Math.abs(t - prev) > 5) {
-                        startCountdown(t);
-                        return t;
-                    }
-                    return prev;
-                });
-            }
         };
 
         const onLobbyState = ({ hostId }: { hostId: string }) => {
@@ -167,15 +110,12 @@ export function useQuizResult() {
 
         socket.on('game:leaderboard', onLeaderboard);
         socket.on('game:progress', onProgress);
-        socket.on('game:timeLeft', onTimeLeft);
-        socket.on('game:perQuestionTimeLeft', onServerTimeLeft);
         socket.on('lobby:state', onLobbyState);
 
         socket.on('lobby:redirectTo', ({ newLobbyId }) => {
             router.push(`/lobby/create/${newLobbyId}`);
         });
 
-        // ✅ quiz:rejoin (était lobby:rejoin)
         socket.emit('quiz:rejoin', {
             lobbyId: lobbyCode,
             userId: session.user.id,
@@ -185,10 +125,7 @@ export function useQuizResult() {
         return () => {
             socket.off('game:leaderboard', onLeaderboard);
             socket.off('game:progress', onProgress);
-            socket.off('game:timeLeft', onTimeLeft);
-            socket.off('game:perQuestionTimeLeft', onServerTimeLeft);
             socket.off('lobby:state', onLobbyState);
-            if (countdownRef.current) clearInterval(countdownRef.current);
         };
     }, [lobbyCode, socket, session?.user?.id, session?.user?.username, session?.user?.email]);
 
@@ -207,7 +144,6 @@ export function useQuizResult() {
         playerProgress,
         totalPlayers,
         allFinished,
-        timeLeft,
         isHost,
         handleRestart,
     };

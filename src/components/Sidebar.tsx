@@ -200,7 +200,7 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                 </div>
 
                 {/* ── Leaderboard ── */}
-                <NavLink href="/leaderboard/uno" icon="🏆" label="Leaderboard" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
+                <NavLink href="/leaderboard/uno" icon="🏆" label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
 
                 {/* ── Dashboard ── */}
                 {isAuthenticated && (

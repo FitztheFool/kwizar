@@ -4,11 +4,11 @@
 import { useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { SOLO_GAMES, BOT_SUPPORTED_GAMES } from '@/lib/gameConfig';
+import { SOLO_GAMES, BOTH_GAMES, MULTI_GAMES, BOT_SUPPORTED_GAMES } from '@/lib/gameConfig';
 import { getLobbySocket } from '@/lib/socket';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useChat } from '@/context/ChatContext';
-import { SoloBadge } from '@/components/SoloBadge';
+import { Badge } from '@/components/SoloBadge';
 
 import {
     GAME_OPTIONS,
@@ -595,7 +595,12 @@ export default function LobbyCodePage() {
                                                         ? 'border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/30 text-gray-300 dark:text-slate-700 cursor-not-allowed'
                                                         : 'border-gray-100 dark:border-slate-700/60 bg-gray-50 dark:bg-slate-800/40 text-gray-500 dark:text-slate-400 hover:border-gray-300 dark:hover:border-slate-600 hover:text-gray-700 dark:hover:text-slate-200 cursor-pointer'}`}>
                                             <span className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
-                                                {SOLO_GAMES[g.value] && <SoloBadge color={SOLO_GAMES[g.value]} />}
+                                                {(SOLO_GAMES[g.value] ?? BOTH_GAMES[g.value] ?? MULTI_GAMES[g.value]) && (
+                                                    <Badge
+                                                        text={(SOLO_GAMES[g.value] ?? BOTH_GAMES[g.value] ?? MULTI_GAMES[g.value]).text}
+                                                        color={(SOLO_GAMES[g.value] ?? BOTH_GAMES[g.value] ?? MULTI_GAMES[g.value]).color}
+                                                    />
+                                                )}
                                             </span>
                                             <span className="text-2xl">{g.icon}</span>
                                             <span className="leading-tight text-center">{g.label}</span>

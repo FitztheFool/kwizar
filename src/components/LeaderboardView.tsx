@@ -125,7 +125,7 @@ export default function LeaderboardView({ game }: Props) {
                         {GAME_CONFIG[game].icon}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leaderboard {label}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Classement {label}</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                             {pagination
                                 ? `${pagination.total} joueur${pagination.total > 1 ? 's' : ''} classé${pagination.total > 1 ? 's' : ''}`

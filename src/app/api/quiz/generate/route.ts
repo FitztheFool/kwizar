@@ -9,17 +9,24 @@ function validateQuizJSON(json: any): string | null {
     if (!Array.isArray(json.questions) || json.questions.length === 0) return 'Champ "questions" manquant ou vide';
     if (json.questions.length > 15) return 'Un quiz ne peut pas dépasser 15 questions';
 
+    const VALID_TYPES = ['MCQ', 'MCQ_UNIQUE', 'TRUE_FALSE', 'TEXT'];
+
     for (const [i, q] of json.questions.entries()) {
         if (!q.text) return `Question ${i + 1} : champ "text" manquant`;
-        if (!['MCQ', 'TRUE_FALSE', 'TEXT'].includes(q.type)) return `Question ${i + 1} : type "${q.type}" invalide`;
+        if (!VALID_TYPES.includes(q.type)) return `Question ${i + 1} : type "${q.type}" invalide`;
         if (!Array.isArray(q.answers) || q.answers.length === 0) return `Question ${i + 1} : aucune réponse`;
 
         const correctCount = q.answers.filter((a: any) => a.isCorrect).length;
         if (correctCount === 0) return `Question ${i + 1} : aucune réponse correcte`;
-        if (q.type !== 'TEXT' && correctCount > 1) return `Question ${i + 1} : plusieurs réponses correctes`;
+
+        // Only single-answer types must have exactly 1 correct answer
+        if (['MCQ_UNIQUE', 'TRUE_FALSE', 'TEXT'].includes(q.type) && correctCount > 1)
+            return `Question ${i + 1} : plusieurs réponses correctes (interdit pour ${q.type})`;
 
         if (q.type === 'MCQ' && q.answers.length !== 4)
             return `Question ${i + 1} : MCQ doit avoir exactement 4 réponses (reçu ${q.answers.length})`;
+        if (q.type === 'MCQ_UNIQUE' && q.answers.length !== 4)  // ← new
+            return `Question ${i + 1} : MCQ_UNIQUE doit avoir exactement 4 réponses (reçu ${q.answers.length})`;
         if (q.type === 'TRUE_FALSE' && q.answers.length !== 2)
             return `Question ${i + 1} : TRUE_FALSE doit avoir exactement 2 réponses`;
     }

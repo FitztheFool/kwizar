@@ -6,16 +6,8 @@ import { notFound as nextNotFound } from 'next/navigation';
 import { useMemo } from 'react';
 import QuizResults from '@/components/Quiz/QuizResults';
 import { useRouter } from 'next/navigation';
-import { useQuizResult, LeaderboardEntry } from '@/hooks/useQuizResult';
+import { useQuizResult, LeaderboardEntry, PlayerProgress } from '@/hooks/useQuizResult';
 import { getQuizSocket } from '@/lib/socket';
-
-export type PlayerProgress = {
-    userId: string;
-    username: string;
-    currentQuestion: number;
-    totalQuestions: number;
-    finished: boolean;
-};
 
 const PODIUM_EMOJIS = ['🥇', '🥈', '🥉'];
 
