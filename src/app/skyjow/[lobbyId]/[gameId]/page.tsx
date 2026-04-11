@@ -4,6 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
+import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
@@ -322,17 +323,13 @@ export default function skyjowGamePage() {
             )}
 
             {/* ── Header ── */}
-            <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
-                {/* Left */}
-                <div className="w-48 lg:w-72 shrink-0 flex items-center gap-2">
-                    <span className="font-bold text-gray-900 dark:text-white">🃏 Skyjow</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Manche {round}</span>
-                </div>
-
-                <div className="flex-1" />
-
-                {/* Right */}
-                <div className="w-48 shrink-0 flex justify-end items-center gap-2">
+            <GamePageHeader
+                left={<>
+                    <span className="shrink-0 font-bold text-gray-900 dark:text-white">🃏</span>
+                    <span className="hidden sm:inline font-bold text-gray-900 dark:text-white">Skyjow</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">Manche {round}</span>
+                </>}
+                right={<>
                     <div className="hidden sm:flex gap-2">
                         {[...scores].sort((a, b) => a.totalScore - b.totalScore).map(s => (
                             <div key={s.userId}
@@ -345,8 +342,8 @@ export default function skyjowGamePage() {
                     {phase !== 'ended' && phase !== 'game_end' && !iSurrendered && (
                         <SurrenderButton onSurrender={surrender} />
                     )}
-                </div>
-            </header>
+                </>}
+            />
 
             {/* ── Timer header ── */}
             {phase === 'flip2' && (

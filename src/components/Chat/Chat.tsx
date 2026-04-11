@@ -27,6 +27,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
     const [unread, setUnread] = useState(0);
     const [unreadLobby, setUnreadLobby] = useState(0);
     const [unreadTeam, setUnreadTeam] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -48,6 +49,22 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
             window.removeEventListener('resize', update);
         };
     }, []);
+
+    useEffect(() => {
+        const update = () => setIsMobile(window.innerWidth < 768);
+        update();
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+    }, []);
+
+    useEffect(() => {
+        if (isMobile && open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [isMobile, open]);
 
     const prevTeamMessagesLength = useRef(0);
     const prevMessagesLength = useRef(0);
@@ -104,7 +121,21 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
         new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     return (
-        <div className="fixed right-4 z-50" style={{ bottom: bottomOffset }}>
+        <>
+            {isMobile && open && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/40"
+                    onClick={toggle}
+                    aria-hidden="true"
+                />
+            )}
+            <div
+                className={isMobile
+                    ? (open ? 'fixed inset-x-0 bottom-0 z-50' : 'fixed right-4 bottom-4 z-50')
+                    : 'fixed right-4 z-50'
+                }
+                style={isMobile ? undefined : { bottom: bottomOffset }}
+            >
 
             {/* BOUTON FERMÉ */}
             {!open && (
@@ -121,7 +152,10 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
 
             {/* FENÊTRE CHAT */}
             {open && (
-                <div className="w-80 md:w-96 h-[420px] md:h-[500px] bg-white dark:bg-slate-900 border dark:border-slate-700 shadow-2xl rounded-2xl flex flex-col animate-in fade-in slide-in-from-bottom-4">
+                <div className={isMobile
+                    ? 'w-full h-[80vh] bg-white dark:bg-slate-900 flex flex-col rounded-t-2xl'
+                    : 'w-80 sm:w-96 max-w-[calc(100vw-2rem)] h-[500px] bg-white dark:bg-slate-900 border dark:border-slate-700 shadow-2xl rounded-2xl flex flex-col animate-in fade-in slide-in-from-bottom-4'
+                }>
 
                     {/* HEADER */}
                     <div className="bg-blue-600 dark:bg-slate-800 text-white rounded-t-2xl">
@@ -213,6 +247,8 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
 
                 </div>
             )}
-        </div>
+
+            </div>
+        </>
     );
 }

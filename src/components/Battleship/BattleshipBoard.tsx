@@ -216,8 +216,8 @@ export default function BattleshipBoard({
     }, [enemySunkShips, gameOver]);
 
     return (
-        <div className="flex flex-col gap-6 items-center w-full">
-            <div className="flex gap-8 flex-wrap justify-center items-start w-full max-w-5xl mx-auto">
+        <div className="flex flex-col gap-6 items-center w-full overflow-x-auto">
+            <div className="flex gap-4 sm:gap-8 flex-wrap justify-center items-start w-full max-w-5xl mx-auto">
                 <Grid
                     ships={enemyShipsForDisplay}
                     receivedShots={enemyReceivedShots}

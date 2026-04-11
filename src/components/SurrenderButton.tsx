@@ -12,7 +12,8 @@ export default function SurrenderButton({ onSurrender, disabled }: {
                     : 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600'
             }`}
         >
-            🏳️ Abandonner
+            <span className="hidden sm:inline">🏳️ Abandonner</span>
+            <span className="sm:hidden">🏳️</span>
         </button>
     );
 }

@@ -6,14 +6,14 @@ export default function GamePageHeader({ left, center, right }: {
     right?: ReactNode;
 }) {
     return (
-        <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
-            <div className="w-48 shrink-0 flex items-center gap-2">
+        <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 sm:px-4 flex items-center gap-2 sm:gap-4">
+            <div className="flex-1 flex items-center gap-2 min-w-0">
                 {left}
             </div>
-            <div className="flex-1 flex justify-center items-center gap-2">
+            <div className="shrink-0 flex justify-center items-center gap-2">
                 {center}
             </div>
-            <div className="w-48 shrink-0 flex justify-end items-center gap-2">
+            <div className="flex-1 flex justify-end items-center gap-2 min-w-0">
                 {right}
             </div>
         </header>

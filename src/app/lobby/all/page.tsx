@@ -1,10 +1,12 @@
 // src/app/lobby/all/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ServerWarmupLoader from '@/components/ServerWarmupLoader';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useLobbySocket } from '@/hooks/useSocket';
+import { useServerWarmup } from '@/hooks/useServerWarmup';
 import { GAME_CONFIG } from '@/lib/gameConfig';
 import PlayerModal from '@/components/PlayerModal';
 import LobbyCard from '@/components/LobbyCard';
@@ -30,6 +32,7 @@ const gameTypes = Object.keys(gameTypeEmojis);
 
 export default function LobbiesPage() {
     const router = useRouter();
+    const { status: warmupStatus } = useServerWarmup(process.env.NEXT_PUBLIC_LOBBY_SERVER_URL);
     const { socket, connected } = useLobbySocket();
     const [lobbies, setLobbies] = useState<Lobby[]>([]);
 
@@ -87,6 +90,8 @@ export default function LobbiesPage() {
         router.push(`/lobby/create/${lobbyId}`);
     };
 
+    if (warmupStatus === 'warming' || warmupStatus === 'checking') return <ServerWarmupLoader />;
+    if (warmupStatus === 'error') return <ServerWarmupLoader error />;
     if (loading) {
         return (
             <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
@@ -101,7 +106,7 @@ export default function LobbiesPage() {
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900">
-            <div className="max-w-7xl mx-auto px-4 py-12">
+            <div className="max-w-7xl mx-auto px-4 py-6 sm:py-12">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">🎮 Voir les lobbies</h1>
                     <p className="text-lg text-gray-600 dark:text-gray-300">Rejoignez une partie et amusez-vous !</p>
@@ -113,7 +118,7 @@ export default function LobbiesPage() {
                         <span className="text-2xl">🔍</span>
                         Filtres et Tri
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type de jeu</label>
                             <select

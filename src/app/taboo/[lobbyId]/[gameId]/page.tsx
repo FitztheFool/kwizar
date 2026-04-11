@@ -3,6 +3,8 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
+import GamePageHeader from '@/components/GamePageHeader';
+import SurrenderButton from '@/components/SurrenderButton';
 
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
@@ -70,33 +72,12 @@ function AttemptsList({ attempts, refEl }: {
     );
 }
 
-// ── Top bar shared header ─────────────────────────────────────────────────────
-
-function TopBar({
-    centerSlot,
-    rightSlot,
-}: {
-    centerSlot: React.ReactNode;
-    rightSlot?: React.ReactNode;
-}) {
-    return (
-        <div className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
-            {/* Left slot */}
-            <div className="w-48 shrink-0 flex items-center gap-2">
-                <span className="text-xl">🚫</span>
-                <span className="font-bold text-gray-900 dark:text-white">Taboo</span>
-            </div>
-            {/* Center slot */}
-            <div className="flex-1 flex justify-center">
-                {centerSlot}
-            </div>
-            {/* Right slot */}
-            <div className="w-48 shrink-0 flex justify-end text-sm text-gray-500 dark:text-gray-400">
-                {rightSlot}
-            </div>
-        </div>
-    );
-}
+const TABOO_LEFT = (
+    <>
+        <span className="shrink-0 text-xl">🚫</span>
+        <span className="hidden sm:block font-bold text-gray-900 dark:text-white truncate">Taboo</span>
+    </>
+);
 
 // ── Page principale ───────────────────────────────────────────────────────────
 
@@ -167,16 +148,18 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
-                <TopBar
-                    centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={
+                <GamePageHeader
+                    left={TABOO_LEFT}
+                    center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
+                    right={
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Phase pièges</span>
+                            <span className="hidden sm:inline text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Phase pièges</span>
                             <button
                                 onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
                                 className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                             >
-                                🏳️ Abandonner
+                                <span className="hidden sm:inline">🏳️ Abandonner</span>
+                                <span className="sm:hidden">🏳️</span>
                             </button>
                         </div>
                     }
@@ -222,16 +205,18 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
-                <TopBar
-                    centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={
+                <GamePageHeader
+                    left={TABOO_LEFT}
+                    center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
+                    right={
                         <div className="flex items-center gap-2">
-                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <span className="hidden sm:inline">Round </span><span className="whitespace-nowrap">{game.round}/{game.totalRounds}</span>
                             <button
                                 onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
                                 className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                             >
-                                🏳️ Abandonner
+                                <span className="hidden sm:inline">🏳️ Abandonner</span>
+                                <span className="sm:hidden">🏳️</span>
                             </button>
                         </div>
                     }
@@ -299,16 +284,18 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 <style>{FONTS}</style>
-                <TopBar
-                    centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                    rightSlot={
+                <GamePageHeader
+                    left={TABOO_LEFT}
+                    center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
+                    right={
                         <div className="flex items-center gap-2">
-                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <span className="hidden sm:inline">Round </span><span className="whitespace-nowrap">{game.round}/{game.totalRounds}</span>
                             <button
                                 onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
                                 className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                             >
-                                🏳️ Abandonner
+                                <span className="hidden sm:inline">🏳️ Abandonner</span>
+                                <span className="sm:hidden">🏳️</span>
                             </button>
                         </div>
                     }
@@ -432,12 +419,13 @@ export default function TabooGamePage() {
             style={{ fontFamily: "'DM Sans', sans-serif" }}>
             <style>{FONTS}</style>
 
-            <TopBar
-                centerSlot={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
-                rightSlot={
+            <GamePageHeader
+                left={TABOO_LEFT}
+                center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
+                right={
                     <div className="flex items-center gap-2">
                         <span className="text-right leading-tight">
-                            <span>Round {game.round}/{game.totalRounds}</span>
+                            <span className="hidden sm:inline">Round </span><span className="whitespace-nowrap">{game.round}/{game.totalRounds}</span>
                             <span className="text-gray-400 dark:text-gray-500"> · 🎤 {currentOratorUsername}</span>
                         </span>
                         <button

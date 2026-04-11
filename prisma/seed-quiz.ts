@@ -1,10 +1,7 @@
 // prisma/seed-quiz.ts
 import { PrismaClient } from '../src/generated/prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { QuestionType } from '../src/generated/prisma/client'
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-const prisma = new PrismaClient({ adapter })
 
 interface QuizQuestion {
     content: string;
@@ -49,7 +46,7 @@ export async function seedQuizzes(
                 { content: "Quel est le nom du héros principal de la saga Final Fantasy VII ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Tidus", isCorrect: false }, { content: "Lightning", isCorrect: false }, { content: "Cloud Strife", isCorrect: true }, { content: "Noctis", isCorrect: false }] },
                 { content: "Skyrim se déroule dans l'univers d'Elder Scrolls", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
                 { content: "Quel studio a développé la saga Dark Souls ?", type: "TEXT", points: 2, answers: [{ content: "fromsoftware", isCorrect: true }] },
-                { content: "Dans Zelda : Breath of the Wild, sur quelle console est sorti le jeu en premier ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Wii U", isCorrect: false }, { content: "Nintendo Switch", isCorrect: true }, { content: "3DS", isCorrect: false }, { content: "Wii U et Switch simultanément", isCorrect: false }] },
+                { content: "Dans Zelda : Breath of the Wild, sur quelle console est sorti le jeu en premier ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Wii U", isCorrect: false }, { content: "Nintendo Switch", isCorrect: false }, { content: "3DS", isCorrect: false }, { content: "Wii U et Switch simultanément", isCorrect: true }] },
             ]
         },
         {

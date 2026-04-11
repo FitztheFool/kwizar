@@ -59,7 +59,7 @@ export default function QuizCard({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-900 rounded-xl p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
+      className={`bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
         ? 'border-gray-200 dark:border-gray-700 opacity-70'
         : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl'
         }`}
@@ -148,7 +148,7 @@ export default function QuizCard({
         <button
           type="button"
           disabled
-          className="block w-full text-center py-3 rounded-lg font-semibold shadow-md bg-gray-400 cursor-not-allowed text-white"
+          className="block w-full text-center py-2.5 sm:py-3 rounded-lg font-semibold shadow-md bg-gray-400 cursor-not-allowed text-white"
           title="Ce quiz est privé"
         >
           Quiz privé 🔒
@@ -156,7 +156,7 @@ export default function QuizCard({
       ) : (
         <Link
           href={`/quiz/${quiz.id}`}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 transform hover:scale-105 active:scale-95"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2.5 sm:py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 transform hover:scale-105 active:scale-95"
         >
           {isPerfect ? 'Rejouer' : 'Jouer'}
         </Link>

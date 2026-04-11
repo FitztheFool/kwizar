@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react';
 import { SOLO_GAMES, BOTH_GAMES, MULTI_GAMES, BOT_SUPPORTED_GAMES } from '@/lib/gameConfig';
 import { getLobbySocket } from '@/lib/socket';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ServerWarmupLoader from '@/components/ServerWarmupLoader';
+import { useServerWarmup } from '@/hooks/useServerWarmup';
 import { useChat } from '@/context/ChatContext';
 import { Badge } from '@/components/SoloBadge';
 
@@ -237,6 +239,7 @@ export default function LobbyCodePage() {
     const params = useParams<{ code: string }>();
     const lobbyId = params?.code ?? '';
 
+    const { status: warmupStatus } = useServerWarmup(process.env.NEXT_PUBLIC_LOBBY_SERVER_URL);
     const socket = useMemo(() => getLobbySocket(), []);
     const joinedRef = useRef(false);
 
@@ -247,6 +250,7 @@ export default function LobbyCodePage() {
     const [canStart, setCanStart] = useState(false);
     const [tabooOk, setTabooOk] = useState(false);
     const [isLaunching, setIsLaunching] = useState(false);
+    const [isWarming, setIsWarming] = useState(false);
     const [activeGameId, setActiveGameId] = useState<string | null>(null);
     const [activeGameType, setActiveGameType] = useState<GameType | null>(null);
 
@@ -408,9 +412,12 @@ export default function LobbyCodePage() {
 
         socket.on('lobby:state', onState);
         socket.on('lobby:kicked', () => { alert('Vous avez été expulsé.'); router.push('/lobby/all'); });
+        socket.on('lobby:server_warming', () => { setIsWarming(true); });
+        socket.on('lobby:server_error', () => { setIsWarming(false); setIsLaunching(false); alert('Le serveur de jeu n\'a pas pu démarrer. Réessaie dans quelques secondes.'); });
 
         // ── game:start via GAME_ROUTES ────────────────────────────────────
         socket.on('game:start', (payload: { gameType: GameType; gameId?: string; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
+            setIsWarming(false);
             setIsLaunching(true);
             setActiveGameId(null);
             setActiveGameType(null);
@@ -456,12 +463,16 @@ export default function LobbyCodePage() {
         return () => {
             socket.off('lobby:state', onState);
             socket.off('lobby:kicked');
+            socket.off('lobby:server_warming');
+            socket.off('lobby:server_error');
             socket.off('game:start');
             socket.emit('lobby:leave');
             joinedRef.current = false;
         };
     }, [socket, lobbyId, status, session?.user?.id, session?.user?.username, session?.user?.email]);
 
+    if (warmupStatus === 'warming' || warmupStatus === 'checking') return <ServerWarmupLoader />;
+    if (warmupStatus === 'error') return <ServerWarmupLoader error />;
     if (status === 'loading') return <LoadingSpinner />;
     if (status !== 'authenticated' || !session?.user?.id) return null;
 
@@ -495,6 +506,21 @@ export default function LobbyCodePage() {
 
     return (
         <main className="bg-gray-50 dark:bg-slate-950 pb-8">
+
+            {/* Server warm-up overlay */}
+            {isWarming && (
+                <div className="fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+                        <div className="text-4xl mb-4">🔄</div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Démarrage du serveur</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Le serveur de jeu se réveille…<br />Environ 30–45 secondes</p>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                            <div className="h-2 bg-blue-500 rounded-full animate-[warmup_40s_linear_forwards]" style={{ width: '0%', animation: 'warmup 40s linear forwards' }} />
+                        </div>
+                        <style>{`@keyframes warmup { from { width: 0% } to { width: 95% } }`}</style>
+                    </div>
+                </div>
+            )}
 
             {/* Sticky header */}
             <div className="sticky top-0 z-20 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800 px-4 md:px-6 lg:px-8 py-3">
@@ -931,9 +957,11 @@ export default function LobbyCodePage() {
                                 Quitter
                             </button>
                             {isHost ? (
-                                <button onClick={() => { setIsLaunching(true); socket?.emit('lobby:start'); }} disabled={!canStart || isLaunching}
+                                <button onClick={() => { setIsLaunching(true); socket?.emit('lobby:start'); }} disabled={!canStart || isLaunching || isWarming}
                                     className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-200 dark:disabled:from-slate-800 disabled:to-gray-200 dark:disabled:to-slate-800 disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-lg shadow-green-500/20 disabled:shadow-none">
-                                    {isLaunching
+                                    {isWarming
+                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Serveur en démarrage…</span>
+                                        : isLaunching
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
                                         : canStart
                                             ? `🚀 Lancer ${selectedGame?.label ?? 'la partie'} !`
@@ -945,7 +973,9 @@ export default function LobbyCodePage() {
                                 </button>
                             ) : (
                                 <div className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
-                                    {isLaunching
+                                    {isWarming
+                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Serveur en démarrage…</span>
+                                        : isLaunching
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
                                         : '⏳ En attente du host…'}
                                 </div>
