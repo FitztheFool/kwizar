@@ -2,6 +2,8 @@
 'use client';
 
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import GameIcon from '@/components/GameIcon';
+import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 
 export type GameFilter = typeof GAME_CONFIG[keyof typeof GAME_CONFIG]['gameType'] | 'ALL';
 
@@ -16,7 +18,6 @@ interface Props {
 const GAMES = Object.values(GAME_CONFIG).map(g => ({
     gameType: g.gameType as GameFilter,
     label: g.label,
-    icon: g.icon,
 }));
 
 export default function GameFilterPills({
@@ -34,7 +35,7 @@ export default function GameFilterPills({
                     onClick={() => onChange('ALL')}
                     className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${value === 'ALL' ? activeClassName : inactiveClassName}`}
                 >
-                    🎮 Tous
+                    <RectangleGroupIcon className="w-3 h-3 inline mr-1" />Tous
                 </button>
             )}
             {games.map(g => (
@@ -43,7 +44,7 @@ export default function GameFilterPills({
                     onClick={() => onChange(g.gameType)}
                     className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${value === g.gameType ? activeClassName : inactiveClassName}`}
                 >
-                    {g.icon} {g.label}
+                    <GameIcon gameType={g.gameType} className="w-3 h-3 inline mr-1" />{g.label}
                 </button>
             ))}
         </div>

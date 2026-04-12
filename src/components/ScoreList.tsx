@@ -1,8 +1,14 @@
 // src/components/ScoreList.tsx
 import Link from 'next/link';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import GameIcon from '@/components/GameIcon';
 
-const PLACEMENT_EMOJI: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+function RankBadge({ placement }: { placement: number }) {
+    if (placement === 1) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold">1</span>;
+    if (placement === 2) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold">2</span>;
+    if (placement === 3) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold">3</span>;
+    return <span className="text-xs text-gray-400 font-semibold">#{placement}</span>;
+}
 
 interface Score {
     type: string;
@@ -29,7 +35,9 @@ export default function ScoreList({ scores }: { scores: Score[] }) {
 
                 return (
                     <div key={index} className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 flex items-center gap-4">
-                        <div className="text-2xl flex-shrink-0">{config?.icon ?? '🎮'}</div>
+                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                            <GameIcon gameType={score.type} className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                        </div>
                         <div className="flex-1 min-w-0">
                             {isQuiz && score.quiz ? (
                                 <Link href={`/quiz/${score.quiz.id}`}
@@ -40,7 +48,7 @@ export default function ScoreList({ scores }: { scores: Score[] }) {
                                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                     {config?.label ?? score.type}
                                     {score.placement && (
-                                        <span className="ml-2">{PLACEMENT_EMOJI[score.placement] ?? `#${score.placement}`}</span>
+                                        <span className="ml-2 inline-flex"><RankBadge placement={score.placement} /></span>
                                     )}
                                 </p>
                             )}

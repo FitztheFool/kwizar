@@ -1,4 +1,5 @@
 // src/components/PlayerButton.tsx
+import { UsersIcon } from '@heroicons/react/24/outline';
 
 interface Player {
     username: string;
@@ -19,7 +20,7 @@ export default function PlayerButton({ players, onClick }: PlayerButtonProps) {
             onClick={onClick}
             className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
-            👥 {players.length}
+            <UsersIcon className="w-3.5 h-3.5" /> {players.length}
         </button>
     );
 }

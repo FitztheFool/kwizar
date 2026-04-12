@@ -11,6 +11,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import { TrophyIcon, StarIcon, FaceSmileIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 // ─── Composants ───────────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ export default function JustOnePage() {
         if (roundState === 'END_GAME' && finalScore) {
             return (
                 <GameOverModal
-                    emoji={finalScore.score >= 10 ? '🏆' : finalScore.score >= 7 ? '🎉' : '😅'}
+                    icon={finalScore.score >= 10 ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : finalScore.score >= 7 ? <StarIcon className="w-8 h-8 text-blue-400" /> : <FaceSmileIcon className="w-8 h-8 text-gray-400" />}
                     title={`${finalScore.score}/13`}
                     subtitle={finalScore.level}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

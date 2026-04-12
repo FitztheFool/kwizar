@@ -136,7 +136,7 @@ export function useSkyjow({
             setTurnDuration(90);
             // Quand le tour de jeu commence, le timer flip2 n'a plus lieu d'être affiché
             setFlip2EndsAt(null);
-            if (currentUserId === userId) notify('🎯 C\'est ton tour !');
+            if (currentUserId === userId) notify('C\'est ton tour !');
         });
 
         sock.on('skyjow:drawn_card', (data: { value: number; from: 'deck' | 'discard'; mustSwap?: boolean }) => {
@@ -145,12 +145,12 @@ export function useSkyjow({
         });
 
         sock.on('skyjow:last_round', ({ triggerUsername }: { triggerUserId: string; triggerUsername: string }) => {
-            notify(`⚡ ${triggerUsername} a retourné toutes ses cartes ! Dernier tour pour tous !`, 5000);
+            notify(`${triggerUsername} a retourné toutes ses cartes ! Dernier tour pour tous !`, 5000);
             setPhase('last_round');
         });
 
         sock.on('skyjow:columns_removed', ({ username: uname, columns }: { userId: string; username: string; columns: { col: number; value: number }[] }) => {
-            notify(`🗑️ ${uname} a éliminé une colonne de ${columns[0]?.value} !`);
+            notify(`${uname} a éliminé une colonne de ${columns[0]?.value} !`);
         });
 
         sock.on('skyjow:round_end', (data: { scores: ScoreEntry[]; players: { userId: string; username: string; cards: CardState[] }[] }) => {
@@ -223,7 +223,7 @@ export function useSkyjow({
             setSurrenderedPlayers([]);
             // Réinitialiser le timer flip2 (le serveur va émettre flip2TimerStarted juste après)
             setFlip2EndsAt(null);
-            notify(`🔄 Manche ${data.round} !`);
+            notify(`Manche ${data.round} !`);
         });
 
         return () => {

@@ -1,5 +1,6 @@
 // src/components/QuizCard.tsx
 import Link from 'next/link';
+import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 interface QuizCardProps {
   quiz: {
@@ -67,18 +68,18 @@ export default function QuizCard({
       {/* Badges */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
         {isMyQuiz && (
-          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-            👤 Créé par moi
+          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+            <UserIcon className="w-3 h-3" />Créé par moi
           </span>
         )}
         {!quiz.isPublic && (
-          <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-            🔒 Privé
+          <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+            <LockClosedIcon className="w-3 h-3" />Privé
           </span>
         )}
         {isPerfect && (
-          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-            ✓ Complété
+          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+            <CheckIcon className="w-3 h-3" />Complété
           </span>
         )}
       </div>
@@ -95,30 +96,30 @@ export default function QuizCard({
 
         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-4">
           <span className="flex items-center gap-1">
-            📝 {quiz._count.questions} questions
+            <DocumentTextIcon className="w-3.5 h-3.5" />{quiz._count.questions} questions
           </span>
           {quiz.category && (
             <span className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">
-              🏷️ {quiz.category.name}
+              <TagIcon className="w-3 h-3" />{quiz.category.name}
             </span>
           )}
           {hasPlayed && (
             <span className={`flex items-center gap-1 font-semibold ${isPerfect ? 'text-green-600' : 'text-orange-500'}`}>
-              🏆 {score}/{totalPoints} pts
+              <TrophyIcon className="w-3.5 h-3.5" />{score}/{totalPoints} pts
             </span>
           )}
         </div>
 
         {formattedDate && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-            🕐 Créé le {formattedDate}
+            <ClockIcon className="w-3 h-3 inline mr-1" />Créé le {formattedDate}
           </p>
         )}
       </div>
 
       {quiz.creator?.username && (
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-          👤 Créé par{' '}
+          <UserIcon className="w-3 h-3 inline mr-1" />Créé par{' '}
           <Link
             href={currentUserId === quiz.creator.id ? '/dashboard' : `/user/${quiz.creator.username}`}
             className="font-semibold text-blue-600 hover:underline transition-colors"
@@ -151,7 +152,7 @@ export default function QuizCard({
           className="block w-full text-center py-2.5 sm:py-3 rounded-lg font-semibold shadow-md bg-gray-400 cursor-not-allowed text-white"
           title="Ce quiz est privé"
         >
-          Quiz privé 🔒
+          <LockClosedIcon className="w-4 h-4 inline mr-1" />Quiz privé
         </button>
       ) : (
         <Link

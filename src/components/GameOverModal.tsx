@@ -2,9 +2,10 @@
 'use client';
 
 import React from 'react';
+import { TrophyIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface GameOverModalProps {
-    emoji?: string;
+    icon?: React.ReactNode;
     title: string;
     subtitle?: string;
     children?: React.ReactNode;
@@ -12,12 +13,11 @@ interface GameOverModalProps {
     onLeave: () => void;
     onClose?: () => void;
     lobbyLabel?: string;
-    /** true = fixed overlay on top of the board; false (default) = full page */
     asModal?: boolean;
 }
 
 export default function GameOverModal({
-    emoji = '🏆',
+    icon,
     title,
     subtitle,
     children,
@@ -32,13 +32,17 @@ export default function GameOverModal({
             {onClose && (
                 <button
                     onClick={onClose}
-                    className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all text-lg"
+                    className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all"
                     aria-label="Fermer"
                 >
-                    ✕
+                    <XMarkIcon className="w-4 h-4" />
                 </button>
             )}
-            <div className="text-6xl">{emoji}</div>
+            <div className="flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    {icon ?? <TrophyIcon className="w-8 h-8 text-amber-500" />}
+                </div>
+            </div>
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
                 {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{subtitle}</p>}

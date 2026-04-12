@@ -90,23 +90,23 @@ export default function AdminPanel() {
     useEffect(() => { gameFilterRef.current = gameFilter; if (activeTab !== 'stats') return; setActivityPage(1); refreshActivity(activityPeriod, 1, userQueryRef.current, gameFilter); }, [gameFilter]);
     useEffect(() => { const fn = () => setActiveTab(hashToTab(window.location.hash)); window.addEventListener('hashchange', fn); return () => window.removeEventListener('hashchange', fn); }, []);
 
-    const tabs: { key: AdminTab; label: string; emoji: string }[] = [
-        { key: 'stats', label: 'Statistiques', emoji: '📊' },
-        { key: 'users', label: 'Utilisateurs', emoji: '👥' },
-        { key: 'quizzes', label: 'Quiz', emoji: '📝' },
-        { key: 'categories', label: 'Catégories', emoji: '🏷️' },
-        { key: 'words', label: 'Mots', emoji: '🔤' },
+    const tabs: { key: AdminTab; label: string }[] = [
+        { key: 'stats', label: 'Statistiques' },
+        { key: 'users', label: 'Utilisateurs' },
+        { key: 'quizzes', label: 'Quiz' },
+        { key: 'categories', label: 'Catégories' },
+        { key: 'words', label: 'Mots' },
     ];
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">🛡️ Administration</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Administration</h2>
 
             <div className="flex flex-wrap gap-2 mb-6">
                 {tabs.map(t => (
                     <button key={t.key} onClick={() => { setActiveTab(t.key); scrollToSection(t.key); }}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${activeTab === t.key ? 'bg-red-600 text-white border-red-600' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                        {t.emoji} {t.label}
+                        {t.label}
                     </button>
                 ))}
             </div>

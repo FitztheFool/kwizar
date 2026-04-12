@@ -2,6 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import { UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
 export default function Header() {
   const { data: session, status } = useSession();
   const isLoading = status === 'loading';
@@ -13,7 +14,7 @@ export default function Header() {
       {session && isAnonymous && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700/50 px-4 py-2 flex items-center justify-center gap-3 text-sm">
           <span className="text-amber-700 dark:text-amber-300">
-            👤 Vous jouez en tant qu&apos;invité — vos scores sont sauvegardés
+            <UserIcon className="w-4 h-4 inline mr-1" />Vous jouez en tant qu&apos;invité — vos scores sont sauvegardés
           </span>
           <Link
             href="/dashboard"
@@ -38,7 +39,7 @@ export default function Header() {
             ) : session ? (
               <div className="flex items-center gap-2 sm:gap-4 ml-auto min-w-0">
                 <Link href="/dashboard" className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-all min-w-0">
-                  <span className="hidden sm:inline text-sm">{isAnonymous ? '👤' : 'Bonjour,'}</span>
+                  <span className="hidden sm:inline text-sm">{isAnonymous ? <UserIcon className="w-4 h-4 inline" /> : 'Bonjour,'}</span>
                   <span className={`truncate max-w-[80px] sm:max-w-[140px] ${session.user.role === 'ADMIN'
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded text-xs font-semibold'
                     : isAnonymous
@@ -55,7 +56,7 @@ export default function Header() {
                   className="shrink-0 px-2 sm:px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md font-medium transition-all shadow-sm hover:shadow"
                 >
                   <span className="hidden sm:inline">Se déconnecter</span>
-                  <span className="sm:hidden">✕</span>
+                  <span className="sm:hidden"><XMarkIcon className="w-4 h-4" /></span>
                 </button>
               </div>
             ) : (

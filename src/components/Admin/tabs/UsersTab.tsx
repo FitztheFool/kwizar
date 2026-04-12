@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import { useSession } from 'next-auth/react';
+import { LockClosedIcon } from '@heroicons/react/24/outline';
 import type { AdminUser, UserSort } from '../types';
 
 const ROLES = ['GUEST', 'USER', 'RANDOM', 'ADMIN'] as const;
@@ -152,7 +153,7 @@ export default function UsersTab({
                                     <td className="px-3 py-2">
                                         {user.role === 'ADMIN' ? (
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
-                                                ADMIN <span className="opacity-60">🔒</span>
+                                                ADMIN <LockClosedIcon className="w-3 h-3 opacity-60 inline" />
                                             </span>
                                         ) : (
                                             <select

@@ -4,37 +4,48 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+    SignalIcon,
+    PlusIcon,
+    MagnifyingGlassIcon,
+    QuestionMarkCircleIcon,
+    ListBulletIcon,
+    BookmarkIcon,
+    SparklesIcon,
+    TrophyIcon,
+    Squares2X2Icon,
+    Cog6ToothIcon,
+    ShieldCheckIcon,
+    LockClosedIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ChevronDownIcon,
+} from '@heroicons/react/24/outline';
 
-const QUIZ_NAV_ITEMS: { label: string; icon: string; href?: string }[] = [
-    { label: 'Quiz disponibles', icon: '🎯', href: '/quiz/available' },
-    { label: 'Mes quiz', icon: '📝', href: '/quiz/my-quizzes' },
-    { label: '', icon: '' },
-    { label: 'Générer un quiz (IA)', icon: '✨', href: '/quiz/generate' },
-    { label: 'Créer un quiz', icon: '➕', href: '/quiz/create' },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type IconComponent = React.ComponentType<{ className?: string }>;
+type Color = 'blue' | 'green' | 'yellow' | 'red' | 'gray';
 
 const INACTIVE = 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200';
-const ACTIVE_STYLE = { item: 'text-gray-900 dark:text-white font-semibold', dot: 'bg-gray-900 dark:bg-white' };
-const ACTIVE: Record<string, { item: string; dot: string }> = {
-    blue: ACTIVE_STYLE, green: ACTIVE_STYLE, yellow: ACTIVE_STYLE, red: ACTIVE_STYLE, gray: ACTIVE_STYLE,
-};
+const ACTIVE_STYLE = 'text-gray-900 dark:text-white font-semibold';
+const DOT = 'bg-gray-900 dark:bg-white';
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
 
-function NavLink({ href, icon, label, isActive, collapsed, color }: {
-    href: string; icon: string; label: string;
-    isActive: boolean; collapsed: boolean; color: keyof typeof ACTIVE;
+function NavLink({ href, Icon, label, isActive, collapsed }: {
+    href: string; Icon: IconComponent; label: string;
+    isActive: boolean; collapsed: boolean; color: Color;
 }) {
-    const a = ACTIVE[color];
     return (
         <Link href={href} title={label}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : INACTIVE}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? ACTIVE_STYLE : INACTIVE}`}
         >
-            <span className="text-base flex-shrink-0">{icon}</span>
+            <Icon className="w-5 h-5 flex-shrink-0" />
             {!collapsed && (
                 <>
                     <span>{label}</span>
-                    {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${a.dot}`} />}
+                    {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${DOT}`} />}
                 </>
             )}
         </Link>
@@ -43,38 +54,36 @@ function NavLink({ href, icon, label, isActive, collapsed, color }: {
 
 // ─── SubNavLink ───────────────────────────────────────────────────────────────
 
-function SubNavLink({ href, icon, label, isActive, color }: {
-    href: string; icon: string; label: string;
-    isActive: boolean; color: keyof typeof ACTIVE;
+function SubNavLink({ href, Icon, label, isActive }: {
+    href: string; Icon: IconComponent; label: string;
+    isActive: boolean; color: Color;
 }) {
-    const a = ACTIVE[color];
     return (
         <Link href={href}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : INACTIVE}`}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? ACTIVE_STYLE : INACTIVE}`}
         >
-            <span className="text-sm">{icon}</span>
+            <Icon className="w-4 h-4 flex-shrink-0" />
             {label}
-            {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${a.dot}`} />}
+            {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${DOT}`} />}
         </Link>
     );
 }
 
 // ─── SectionToggle ────────────────────────────────────────────────────────────
 
-function SectionToggle({ icon, label, isActive, isOpen, collapsed, color, onClick }: {
-    icon: string; label: string; isActive: boolean; isOpen: boolean;
-    collapsed: boolean; color: keyof typeof ACTIVE; onClick: () => void;
+function SectionToggle({ Icon, label, isActive, isOpen, collapsed, onClick }: {
+    Icon: IconComponent; label: string; isActive: boolean; isOpen: boolean;
+    collapsed: boolean; color: Color; onClick: () => void;
 }) {
-    const a = ACTIVE[color];
     return (
         <button onClick={onClick} title={label}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? a.item : INACTIVE}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? ACTIVE_STYLE : INACTIVE}`}
         >
-            <span className="text-base flex-shrink-0">{icon}</span>
+            <Icon className="w-5 h-5 flex-shrink-0" />
             {!collapsed && (
                 <>
                     <span>{label}</span>
-                    <span className={`ml-auto text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    <ChevronDownIcon className={`ml-auto w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                 </>
             )}
         </button>
@@ -94,7 +103,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, userEmail, isAnonymous }: SidebarProps) {
-
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(true);
     const [quizMenuOpen, setQuizMenuOpen] = useState(false);
@@ -103,7 +111,7 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
 
     useEffect(() => { setLobbyCode(crypto.randomUUID()); }, []);
 
-    const quizSectionActive = QUIZ_NAV_ITEMS.some(n => n.href && pathname.startsWith(n.href));
+    const quizSectionActive = ['/quiz/available', '/quiz/my-quizzes', '/quiz/generate', '/quiz/create'].some(p => pathname.startsWith(p));
     const isCreatingLobby = pathname.startsWith('/lobby/create/');
     const lobbySectionActive = pathname.startsWith('/lobby/');
 
@@ -114,10 +122,7 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
 
     useEffect(() => {
         const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-
-        if (isDesktop && pathname.startsWith('/dashboard')) {
-            setCollapsed(false);
-        }
+        if (isDesktop && pathname.startsWith('/dashboard')) setCollapsed(false);
     }, [pathname]);
 
     return (
@@ -150,7 +155,10 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                     className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 dark:text-gray-500 flex-shrink-0"
                     title={collapsed ? 'Ouvrir' : 'Réduire'}
                 >
-                    {collapsed ? '→' : '←'}
+                    {collapsed
+                        ? <ChevronRightIcon className="w-4 h-4" />
+                        : <ChevronLeftIcon className="w-4 h-4" />
+                    }
                 </button>
             </div>
 
@@ -161,15 +169,15 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                 {isAuthenticated && (
                     <div>
                         <SectionToggle
-                            icon="🎮" label="Lobby"
+                            Icon={SignalIcon} label="Lobby"
                             isActive={lobbySectionActive} isOpen={lobbyMenuOpen}
                             collapsed={collapsed} color="green"
                             onClick={() => { if (collapsed) setCollapsed(false); else setLobbyMenuOpen(prev => !prev); }}
                         />
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <SubNavLink href={`/lobby/create/${lobbyCode}`} icon="➕" label="Créer un lobby" isActive={isCreatingLobby} color="green" />
-                                <SubNavLink href="/lobby/all" icon="🔍" label="Voir les lobbies" isActive={pathname === '/lobby/all'} color="green" />
+                                <SubNavLink href={`/lobby/create/${lobbyCode}`} Icon={PlusIcon} label="Créer un lobby" isActive={isCreatingLobby} color="green" />
+                                <SubNavLink href="/lobby/all" Icon={MagnifyingGlassIcon} label="Voir les lobbies" isActive={pathname === '/lobby/all'} color="green" />
                             </div>
                         )}
                     </div>
@@ -178,7 +186,7 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                 {/* ── Quiz ── */}
                 <div>
                     <SectionToggle
-                        icon="🎯" label="Quiz"
+                        Icon={QuestionMarkCircleIcon} label="Quiz"
                         isActive={quizSectionActive} isOpen={quizMenuOpen}
                         collapsed={collapsed} color="blue"
                         onClick={() => { if (collapsed) setCollapsed(false); else setQuizMenuOpen(prev => !prev); }}
@@ -186,38 +194,39 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, userName, u
                     {!collapsed && quizMenuOpen && (
                         <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
                             {isAuthenticated ? (
-                                QUIZ_NAV_ITEMS
-                                    .filter(item => !(isAnonymous && item.href === '/quiz/my-quizzes'))
-                                    .map((item, i) => {
-                                        if (!item.label) return <div key={i} className="border-t border-gray-100 dark:border-gray-700 my-1" />;
-                                        return <SubNavLink key={item.href} href={item.href!} icon={item.icon} label={item.label} isActive={pathname === item.href} color="blue" />;
-                                    })
+                                <>
+                                    <SubNavLink href="/quiz/available" Icon={ListBulletIcon} label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
+                                    {!isAnonymous && <SubNavLink href="/quiz/my-quizzes" Icon={BookmarkIcon} label="Mes quiz" isActive={pathname === '/quiz/my-quizzes'} color="blue" />}
+                                    <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                                    <SubNavLink href="/quiz/generate" Icon={SparklesIcon} label="Générer (IA)" isActive={pathname === '/quiz/generate'} color="blue" />
+                                    <SubNavLink href="/quiz/create" Icon={PlusIcon} label="Créer un quiz" isActive={pathname === '/quiz/create'} color="blue" />
+                                </>
                             ) : (
-                                <SubNavLink href="/quiz/available" icon="🎯" label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
+                                <SubNavLink href="/quiz/available" Icon={ListBulletIcon} label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
                             )}
                         </div>
                     )}
                 </div>
 
                 {/* ── Leaderboard ── */}
-                <NavLink href="/leaderboard/uno" icon="🏆" label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
+                <NavLink href="/leaderboard/uno" Icon={TrophyIcon} label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
 
                 {/* ── Dashboard ── */}
                 {isAuthenticated && (
-                    <NavLink href="/dashboard" icon="🎛️" label="Dashboard" isActive={pathname === '/dashboard'} collapsed={collapsed} color="blue" />
+                    <NavLink href="/dashboard" Icon={Squares2X2Icon} label="Dashboard" isActive={pathname === '/dashboard'} collapsed={collapsed} color="blue" />
                 )}
 
                 {/* ── Paramètres ── */}
-                <NavLink href="/settings" icon="⚙️" label="Paramètres" isActive={pathname === '/settings'} collapsed={collapsed} color="gray" />
+                <NavLink href="/settings" Icon={Cog6ToothIcon} label="Paramètres" isActive={pathname === '/settings'} collapsed={collapsed} color="gray" />
 
                 {/* ── Admin ── */}
                 {isAuthenticated && userRole === 'ADMIN' && (
-                    <NavLink href="/admin" icon="🛡️" label="Admin" isActive={pathname === '/admin'} collapsed={collapsed} color="red" />
+                    <NavLink href="/admin" Icon={ShieldCheckIcon} label="Admin" isActive={pathname === '/admin'} collapsed={collapsed} color="red" />
                 )}
 
-                {/* ── Connexion (non connectés) ── */}
+                {/* ── Connexion ── */}
                 {!isAuthenticated && (
-                    <NavLink href="/login" icon="🔐" label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} color="blue" />
+                    <NavLink href="/login" Icon={LockClosedIcon} label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} color="blue" />
                 )}
             </nav>
         </aside>

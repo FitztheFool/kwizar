@@ -11,7 +11,15 @@ import Pagination from '@/components/Pagination';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import GameIcon from '@/components/GameIcon';
+import { BookOpenIcon, ChartBarIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-bold">1</span>;
+    if (rank === 2) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-xs font-bold">2</span>;
+    if (rank === 3) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-bold">3</span>;
+    return <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">#{rank}</span>;
+}
 
 interface LeaderboardEntry {
     rank: number;
@@ -39,7 +47,6 @@ interface PaginationData {
     totalPages: number;
 }
 
-const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 const LIMIT = 20;
 
 
@@ -121,8 +128,8 @@ export default function LeaderboardView({ game }: Props) {
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-3xl flex-shrink-0">
-                        {GAME_CONFIG[game].icon}
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                        <GameIcon gameType={gameType} className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Classement {label}</h1>
@@ -139,19 +146,19 @@ export default function LeaderboardView({ game }: Props) {
                 <div className="mb-6 space-y-2">
                     {(config?.description ?? GAME_CONFIG[game].description) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">🎮 Description</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</p>
                             <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.description ?? GAME_CONFIG[game].description }} />
                         </div>
                     )}
                     {(config?.rules ?? GAME_CONFIG[game].rules) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">📖 Règles</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><BookOpenIcon className="w-3.5 h-3.5" /> Règles</p>
                             <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.rules ?? GAME_CONFIG[game].rules }} />
                         </div>
                     )}
                     {(config?.score ?? GAME_CONFIG[game].score) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">📊 Calcul des points</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><ChartBarIcon className="w-3.5 h-3.5" /> Calcul des points</p>
                             <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.score ?? GAME_CONFIG[game].score }} />
                         </div>
                     )}
@@ -161,7 +168,7 @@ export default function LeaderboardView({ game }: Props) {
                 {myEntry && (
                     <div className="mb-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-5 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl">{MEDAL[myEntry.rank] ?? `#${myEntry.rank}`}</span>
+                            <RankBadge rank={myEntry.rank} />
                             <div>
                                 <p className="font-bold text-gray-900 dark:text-white">
                                     {myEntry.username} <span className="text-xs text-gray-400 font-normal">(moi)</span>
@@ -184,7 +191,7 @@ export default function LeaderboardView({ game }: Props) {
                     </div>
                 ) : leaderboard.length === 0 ? (
                     <div className="text-center py-12">
-                        <p className="text-4xl mb-3">🏜️</p>
+                        <RectangleGroupIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                         <p className="text-gray-600 font-semibold">Aucune partie enregistrée</p>
                         <p className="text-gray-400 text-sm mt-1">Soyez le premier à jouer !</p>
                     </div>
@@ -215,10 +222,7 @@ export default function LeaderboardView({ game }: Props) {
                                             <tr key={entry.userId}
                                                 className={`transition-colors ${isMe ? 'bg-blue-50 dark:bg-blue-900/20 font-semibold' : isPodium ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    {MEDAL[entry.rank]
-                                                        ? <span className="text-xl">{MEDAL[entry.rank]}</span>
-                                                        : <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">#{entry.rank}</span>
-                                                    }
+                                                    <RankBadge rank={entry.rank} />
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
                                                     <Link href={isMe ? '/dashboard' : `/user/${entry.username}`}

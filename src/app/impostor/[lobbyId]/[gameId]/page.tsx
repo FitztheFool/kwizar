@@ -10,6 +10,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ export default function ImpostorPage() {
             .map(([id, pts]) => ({ id, pts, name: players.find(p => p.id === id)?.name ?? id }));
         return (
             <GameOverModal
-                emoji={iWon ? '🎉' : '😔'}
+                icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <FaceFrownIcon className="w-8 h-8 text-gray-400" />}
                 title={gameEnd.winner === 'players' ? 'Les joueurs ont gagné !' : "L'imposteur a gagné !"}
                 subtitle={`Mot secret : "${gameEnd.word}" — Imposteur : ${gameEnd.impostorName}`}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
@@ -84,7 +85,7 @@ export default function ImpostorPage() {
                             ? 'bg-green-500/10 border-green-500/30 text-green-400'
                             : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
                         <span>Réponse de l'imposteur :</span>
-                        <span className="font-bold">{gameEnd.impostorGuessCorrect ? '✓' : '✗'} {gameEnd.impostorGuess}</span>
+                        <span className="font-bold flex items-center gap-1">{gameEnd.impostorGuessCorrect ? <CheckCircleIcon className="w-4 h-4" /> : <XCircleIcon className="w-4 h-4" />} {gameEnd.impostorGuess}</span>
                     </div>
                 )}
                 <div className="space-y-1 mt-2">
@@ -237,7 +238,7 @@ export default function ImpostorPage() {
                                 </div>
                             )}
                             {isMyTurn && clueSubmitted && (
-                                <div className="text-center py-3 mt-2 text-green-500 font-medium text-sm">✓ Indice envoyé</div>
+                                <div className="text-center py-3 mt-2 text-green-500 font-medium text-sm flex items-center justify-center gap-1"><CheckCircleIcon className="w-4 h-4" /> Indice envoyé</div>
                             )}
                         </div>
 
@@ -257,7 +258,7 @@ export default function ImpostorPage() {
                                                 : done ? 'text-gray-400 dark:text-gray-500'
                                                     : 'text-gray-600 dark:text-gray-400'}`}>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                                <span className="w-5 text-center text-xs flex-shrink-0">{done ? '✓' : current ? '▶' : i + 1}</span>
+                                                <span className="w-5 text-center text-xs flex-shrink-0 flex items-center justify-center">{done ? <CheckCircleIcon className="w-3.5 h-3.5" /> : current ? <span className="text-blue-500">›</span> : i + 1}</span>
                                                 <span className={done ? 'line-through' : ''}>{p?.name ?? id}{id === me.userId ? ' (moi)' : ''}</span>
                                             </div>
                                             {allForPlayer.length > 0 && (
@@ -289,7 +290,7 @@ export default function ImpostorPage() {
                                             ? 'bg-orange-500/20 text-orange-400 cursor-not-allowed'
                                             : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
                                 >
-                                    {hasVotedUnmask ? '✓ Demandé' : '🎭 Démasquer'}
+                                    {hasVotedUnmask ? <><CheckCircleIcon className="w-4 h-4 inline mr-1" />Demandé</> : 'Démasquer'}
                                 </button>
                             </div>
                         </div>

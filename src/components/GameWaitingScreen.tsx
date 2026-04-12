@@ -21,47 +21,73 @@ export default function GameWaitingScreen({ icon, gameName, lobbyId, players, my
 
     return (
         <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
-            <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-4">
-                <div className="w-48 shrink-0">
-                    <span className="font-bold">{icon} {gameName}</span>
+            {/* Header */}
+            <header className="shrink-0 h-14 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-sm px-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-xl">{icon}</span>
+                    <span className="font-semibold">{gameName}</span>
                 </div>
-                <div className="flex-1 flex justify-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">En attente de joueurs…</span>
-                </div>
-                <div className="w-48 shrink-0 flex justify-end" />
+                <span className="text-xs text-gray-400 dark:text-white/40 tracking-widest uppercase">En attente</span>
             </header>
 
+            {/* Main */}
             <main className="flex-1 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 w-full max-w-md text-center">
-                    <div className="text-5xl mb-4 animate-pulse">{icon}</div>
-                    <h1 className="text-xl font-bold mb-1">Démarrage de la partie…</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-                        {players.length} joueur{players.length > 1 ? 's' : ''} connecté{players.length > 1 ? 's' : ''}…
-                    </p>
+                <div className="w-full max-w-sm flex flex-col items-center gap-6">
+
+                    {/* Spinner */}
+                    <div className="w-16 h-16 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-sm">
+                        <svg className="w-7 h-7 text-gray-400 dark:text-white/40 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                    </div>
+
+                    {/* Title */}
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold tracking-tight">Démarrage…</h1>
+                        <p className="text-gray-500 dark:text-white/50 text-sm mt-1">
+                            {players.length} joueur{players.length > 1 ? 's' : ''} connecté{players.length > 1 ? 's' : ''}
+                        </p>
+                    </div>
+
+                    {/* Players list */}
                     {players.length > 0 && (
-                        <div className="space-y-2 text-left mb-6">
-                            {players.map(p => (
-                                <div key={p.userId} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                                    <span className="text-green-500 dark:text-green-400">✓</span>
-                                    <span>{p.username}</span>
-                                    {hostId && p.userId === hostId && <span className="text-yellow-500 dark:text-yellow-400 text-xs">👑</span>}
-                                    {p.userId === myUserId && <span className="text-gray-400 dark:text-gray-500 text-xs">(moi)</span>}
+                        <div className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+                            {players.map((p, i) => (
+                                <div
+                                    key={p.userId}
+                                    className={`flex items-center gap-3 px-4 py-3 ${i < players.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''}`}
+                                >
+                                    <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 shrink-0" />
+                                    <span className="flex-1 text-sm font-medium truncate">{p.username}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        {hostId && p.userId === hostId && (
+                                            <span className="text-xs bg-yellow-100 dark:bg-yellow-400/20 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">host</span>
+                                        )}
+                                        {p.userId === myUserId && (
+                                            <span className="text-xs bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/50 px-2 py-0.5 rounded-full">moi</span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
-                    <button
-                        onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="w-full py-3 rounded-xl bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition"
-                    >
-                        Retour au lobby
-                    </button>
-                    <button
-                        onClick={() => router.push('/')}
-                        className="mt-3 w-full py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                        Quitter
-                    </button>
+
+                    {/* Actions */}
+                    <div className="w-full flex flex-col gap-2">
+                        <button
+                            onClick={() => router.push(`/lobby/create/${lobbyId}`)}
+                            className="w-full py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm hover:bg-gray-700 dark:hover:bg-gray-100 transition"
+                        >
+                            Retour au lobby
+                        </button>
+                        <button
+                            onClick={() => router.push('/')}
+                            className="w-full py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/60 font-semibold text-sm hover:bg-gray-200 dark:hover:bg-white/10 transition"
+                        >
+                            Quitter
+                        </button>
+                    </div>
                 </div>
             </main>
         </div>

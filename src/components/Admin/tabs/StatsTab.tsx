@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Pagination from '@/components/Pagination';
 import GameFilterPills, { type GameFilter } from '@/components/GameFilterPills';
 import GameStatCards from '@/components/GameStatCards';
@@ -8,6 +9,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ActivityTable from '@/components/ActivityTable';
 import CollapseSection from '../CollapseSection';
 import Link from 'next/link';
+
 import StatChip from '@/components/StatChip';
 import type { AdminStats } from '../types';
 
@@ -57,7 +59,7 @@ export default function StatsTab({
             )}
 
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
-                <CollapseSection title="🏆 Quiz les plus joués" defaultOpen={false}>
+                <CollapseSection title="Quiz les plus joués" defaultOpen={false}>
                     <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
                         <table className="w-full text-sm">
                             <thead className="bg-white dark:bg-gray-900">
@@ -87,7 +89,7 @@ export default function StatsTab({
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
-                <CollapseSection title="🕐 Activité récente">
+                <CollapseSection title="Activité récente">
                     <div className="flex flex-wrap gap-2 items-center mb-3">
                         <select
                             value={activityPeriod}
@@ -102,7 +104,7 @@ export default function StatsTab({
                         </select>
 
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none text-sm">🔍</span>
+                            <MagnifyingGlassIcon className="absolute inset-y-0 left-3 my-auto w-3.5 h-3.5 text-gray-400 pointer-events-none" />
                             <input
                                 type="text"
                                 value={activityUserQuery}

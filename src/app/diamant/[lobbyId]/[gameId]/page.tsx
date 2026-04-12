@@ -46,6 +46,7 @@ const TREASURE_IMG: Record<number, string> = {
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import { TrophyIcon, XCircleIcon, CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 // ── Card component ────────────────────────────────────────────────────────────
 
@@ -110,7 +111,7 @@ function ExpeditionCard({
                     <img src={getRelicImg(relicsExited)} alt="Relique" className="w-full rounded-xl" />
                     {isRelic && (
                         <div className="absolute -top-2.5 -right-2.5 bg-emerald-500 text-black text-xs font-black rounded-full w-6 h-6 flex items-center justify-center shadow">
-                            ✓
+                            <CheckCircleIcon className="w-4 h-4" />
                         </div>
                     )}
                 </>
@@ -143,7 +144,7 @@ function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
             {/* Cave status */}
             {player.inCave ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">
-                    {player.hasDecided ? '✅ décidé' : '⏳ réfléchit…'}
+                    {player.hasDecided ? <span className="flex items-center gap-0.5"><CheckCircleIcon className="w-3.5 h-3.5 text-green-500" />décidé</span> : <span className="flex items-center gap-0.5"><ClockIcon className="w-3.5 h-3.5" />réfléchit…</span>}
                 </span>
             ) : (
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">🏕️ au camp</span>
@@ -239,8 +240,8 @@ export default function DiamantPage() {
                     className="mx-4 mt-3 px-4 py-2 bg-red-50 dark:bg-red-500/20 border border-red-300 dark:border-red-500/50 rounded-lg text-red-600 dark:text-red-300 text-sm flex justify-between items-center cursor-pointer"
                     onClick={clearError}
                 >
-                    <span>⚠️ {state.error}</span>
-                    <span className="text-red-400 ml-4">✕</span>
+                    <span className="flex items-center gap-1"><ExclamationTriangleIcon className="w-4 h-4" />{state.error}</span>
+                    <XMarkIcon className="w-4 h-4 text-red-400 ml-4" />
                 </div>
             )}
 
@@ -275,13 +276,13 @@ export default function DiamantPage() {
                                         ? amInCave
                                             ? state.myDecision
                                                 ? state.myDecision === 'continue'
-                                                    ? '⚡ Vous continuez l\'exploration…'
-                                                    : '🏕️ Vous rentrez au campement…'
-                                                : '⏳ Continuez ou rentrez au camp ?'
-                                            : '👀 Les explorateurs décident…'
+                                                    ? 'Vous continuez l\'exploration…'
+                                                    : 'Vous rentrez au campement…'
+                                                : 'Continuez ou rentrez au camp ?'
+                                            : 'Les explorateurs décident…'
                                         : state.revealedCards.length === 0
-                                            ? '🕯️ L\'expédition commence…'
-                                            : '🃏 Révélation de la prochaine carte…'
+                                            ? 'L\'expédition commence…'
+                                            : 'Révélation de la prochaine carte…'
                                     }
                                 </div>
                             )}
@@ -388,7 +389,7 @@ export default function DiamantPage() {
             {/* Game over */}
             {state.phase === 'finished' && (
                 <GameOverModal
-                    emoji={state.winnerId === myUserId ? '🏆' : '💀'}
+                    icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                     title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

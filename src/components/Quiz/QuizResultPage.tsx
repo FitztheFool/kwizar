@@ -8,8 +8,13 @@ import QuizResults from '@/components/Quiz/QuizResults';
 import { useRouter } from 'next/navigation';
 import { useQuizResult, LeaderboardEntry, PlayerProgress } from '@/hooks/useQuizResult';
 import { getQuizSocket } from '@/lib/socket';
+import { TrophyIcon, CheckIcon } from '@heroicons/react/24/outline';
 
-const PODIUM_EMOJIS = ['🥇', '🥈', '🥉'];
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-lg font-bold">1</span>;
+    if (rank === 2) return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-lg font-bold">2</span>;
+    return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-lg font-bold">3</span>;
+}
 
 const rankStyle = (i: number) => ({
     border:
@@ -103,7 +108,7 @@ export default function QuizResultPage() {
             <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
                 <div className="mb-8 rounded-xl bg-white p-8 shadow-2xl dark:bg-gray-900">
                     <div className="mb-6 text-center">
-                        <div className="mb-3 text-6xl">🏆</div>
+                        <div className="mb-3 flex justify-center"><TrophyIcon className="w-16 h-16 text-amber-500" /></div>
                         <h1 className="mb-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
                             {isSolo ? 'Résultats' : 'Classement final'}
                         </h1>
@@ -131,7 +136,7 @@ export default function QuizResultPage() {
                                             key={entry.userId}
                                             className={`flex items-center gap-4 rounded-xl border-2 p-4 ${s.border} ${s.bg}`}
                                         >
-                                            <span className="w-10 text-center text-4xl">{PODIUM_EMOJIS[i]}</span>
+                                            <RankBadge rank={i + 1} />
                                             <span className={`flex-1 text-lg font-bold ${s.text}`}>
                                                 {entry.username}
                                                 {entry.userId === session?.user?.id && <MeTag />}
@@ -236,7 +241,7 @@ function LobbyWaitingRoom({
             <div className="w-full max-w-lg">
                 <div className="mb-4 flex items-center justify-between rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
                     <div>
-                        <p className="font-bold text-gray-800 dark:text-gray-100">Quiz terminé ! 🎉</p>
+                        <p className="font-bold text-gray-800 dark:text-gray-100">Quiz terminé !</p>
                         <p className="text-sm text-gray-400 dark:text-gray-500">
                             En attente des autres joueurs…
                         </p>
@@ -268,7 +273,7 @@ function LobbyWaitingRoom({
                     <div className="space-y-3">
                         {leaderboard.map((entry) => (
                             <div key={entry.userId} className="flex items-center gap-3">
-                                <span className="w-6 shrink-0 text-center text-lg text-green-500 dark:text-green-400">✓</span>
+                                <CheckIcon className="w-5 h-5 shrink-0 text-green-500 dark:text-green-400" />
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                                     {entry.username}
                                     {entry.userId === currentUserId && <MeTag />}

@@ -1,10 +1,7 @@
 // src/components/LobbyCard.tsx
-import { GAME_CONFIG } from '@/lib/gameConfig';
-
-const gameTypeEmojis: Record<string, string> = {
-    all: '🎮',
-    ...Object.fromEntries(Object.entries(GAME_CONFIG).map(([key, val]) => [key, val.icon])),
-};
+import { UsersIcon, StarIcon, PlayIcon, CheckIcon } from '@heroicons/react/24/outline';
+import GameIcon from '@/components/GameIcon';
+import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 
 interface LobbyCardProps {
     lobby: {
@@ -24,16 +21,19 @@ interface LobbyCardProps {
 
 export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardProps) {
     const isFull = lobby.currentPlayers >= lobby.maxPlayers;
+    const isWaiting = lobby.status === 'waiting';
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl transition-all relative flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{lobby.title}</h3>
-                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${lobby.status === 'waiting'
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    }`}>
-                    {lobby.status === 'waiting' ? '🟢 En attente' : '🔵 En cours'}
+                <span className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${
+                    isWaiting
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isWaiting ? 'bg-green-500' : 'bg-blue-500'}`} />
+                    {isWaiting ? 'En attente' : 'En cours'}
                 </span>
             </div>
 
@@ -45,13 +45,20 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
 
             <div className="space-y-3 mb-6 flex-1">
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">🎮 Jeu:</span>
-                    <span className="font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                        {gameTypeEmojis[lobby.gameType] || '🎮'} {lobby.gameType.charAt(0).toUpperCase() + lobby.gameType.slice(1)}
+                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                        <GameIcon gameType={lobby.gameType} className="w-4 h-4" />
+                        Jeu
+                    </span>
+                    <span className="font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded flex items-center gap-1.5">
+                        <GameIcon gameType={lobby.gameType} className="w-3.5 h-3.5" />
+                        {GAME_LABEL_MAP[lobby.gameType.toUpperCase()] ?? GAME_LABEL_MAP[lobby.gameType] ?? lobby.gameType}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">👥 Joueurs:</span>
+                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                        <UsersIcon className="w-4 h-4" />
+                        Joueurs
+                    </span>
                     <button
                         onClick={() => onPlayersClick(lobby.id, lobby.playerNames ?? [])}
                         className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
@@ -60,7 +67,10 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
                     </button>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">👑 Hôte:</span>
+                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                        <StarIcon className="w-4 h-4" />
+                        Hôte
+                    </span>
                     <span className="font-semibold text-gray-900 dark:text-white">{lobby.host}</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -73,10 +83,13 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
 
             <button
                 onClick={() => onJoin(lobby.id)}
-                disabled={isFull && lobby.status === 'waiting'}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 hover:scale-105 active:scale-95"
+                disabled={isFull && isWaiting}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
-                {isFull && lobby.status === 'waiting' ? '🏁 Complet' : '🚀 Rejoindre'}
+                {isFull && isWaiting
+                    ? <><CheckIcon className="w-4 h-4" /> Complet</>
+                    : <><PlayIcon className="w-4 h-4" /> Rejoindre</>
+                }
             </button>
         </div>
     );

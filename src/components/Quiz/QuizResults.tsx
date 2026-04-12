@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { plural, normalizeAnswer } from '@/lib/utils';
+import { TrophyIcon, HandThumbUpIcon, BookOpenIcon, LockClosedIcon, ClipboardDocumentListIcon, CheckCircleIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export interface QuestionResult {
     questionId: string;

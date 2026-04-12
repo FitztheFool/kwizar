@@ -1,9 +1,10 @@
 // src/components/GameStatCards.tsx
 'use client';
 import { useState } from 'react';
-import { GAME_EMOJI_MAP, GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { GAME_COLOR } from '@/lib/gameColor';
 import { plural } from '@/lib/utils';
+import GameIcon from '@/components/GameIcon';
 
 interface GameStat {
     count: number;
@@ -14,7 +15,12 @@ interface GameStat {
     totalAnswers?: number;
 }
 
-const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[9px] font-bold">1</span>;
+    if (rank === 2) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 text-[9px] font-bold">2</span>;
+    if (rank === 3) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-bold">3</span>;
+    return null;
+}
 
 interface Props {
     gameStats: Record<string, GameStat>;
@@ -103,17 +109,17 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                     const secondary = getSecondaryStat(type, stat, hideWinRate);
                     const bar = hideWinRate ? null : getBar(type, stat);
 
-                    const medal = MEDAL[ranks[type]];
+                    const rankVal = ranks[type];
                     return (
                         <div key={type} className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
                             {/* Header */}
                             <div className="flex items-center justify-between gap-1 mb-2">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-base leading-none">{GAME_EMOJI_MAP[type] ?? '🎮'}</span>
+                                    <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0" />
                                     <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${c.label}`}>
                                         {GAME_LABEL_MAP[type] ?? type}
                                     </span>
-                                    {medal && <span className="text-sm leading-none shrink-0">{medal}</span>}
+                                    {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
                                 </div>
                                 {bar && (
                                     <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>

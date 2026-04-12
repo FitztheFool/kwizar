@@ -93,9 +93,9 @@ export function useYahtzee({
         const onResults = ({ results }: { results: ResultEntry[] }) => setResults(results);
         const onAfkWarning = ({ username: uname, secondsLeft }: { username: string; secondsLeft: number | null }) => {
             if (secondsLeft !== null) {
-                addToast(`⏰ ${uname} va être exclu pour inactivité dans ${secondsLeft}s !`, 'warning');
+                addToast(`${uname} va être exclu pour inactivité dans ${secondsLeft}s !`, 'warning');
             } else {
-                addToast(`⚠️ ${uname} n'a pas joué — sera exclu au prochain timeout`, 'warning');
+                addToast(`${uname} n'a pas joué — sera exclu au prochain timeout`, 'warning');
             }
         };
         const onSurrendered = ({ userId: uid, username: uname, scoreCard, total }: { userId: string; username: string; scoreCard: ScoreCard; total: number }) => {
@@ -103,7 +103,7 @@ export function useYahtzee({
         };
         const onKicked = ({ userId: uid, username: uname, scoreCard, total }: { userId: string; username: string; scoreCard?: ScoreCard; total?: number }) => {
             if (uid && scoreCard) setEliminatedPlayers(prev => [...prev, { userId: uid, username: uname, total: total ?? 0, scoreCard, afk: true }]);
-            addToast(`🚫 ${uname} a été exclu pour inactivité`, 'kick');
+            addToast(`${uname} a été exclu pour inactivité`, 'kick');
         };
 
         socket.on('notFound', onNotFound);

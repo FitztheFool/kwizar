@@ -11,6 +11,8 @@ import ServerWarmupLoader from '@/components/ServerWarmupLoader';
 import { useServerWarmup } from '@/hooks/useServerWarmup';
 import { useChat } from '@/context/ChatContext';
 import { Badge } from '@/components/SoloBadge';
+import GameIcon from '@/components/GameIcon';
+import { StarIcon, UserIcon, GlobeAltIcon, LockClosedIcon, ArrowsRightLeftIcon, CheckIcon, CheckCircleIcon, ExclamationTriangleIcon, CpuChipIcon, XMarkIcon, ShieldCheckIcon, PlayIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 import {
     GAME_OPTIONS,
@@ -511,7 +513,7 @@ export default function LobbyCodePage() {
             {isWarming && (
                 <div className="fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
-                        <div className="text-4xl mb-4">🔄</div>
+                        <div className="mb-4 flex items-center justify-center"><svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg></div>
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Démarrage du serveur</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Le serveur de jeu se réveille…<br />Environ 30–45 secondes</p>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -525,8 +527,8 @@ export default function LobbyCodePage() {
             {/* Sticky header */}
             <div className="sticky top-0 z-20 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800 px-4 md:px-6 lg:px-8 py-3">
                 <div className="max-w-6xl mx-auto flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 text-xl flex-shrink-0">
-                        {selectedGame?.icon ?? '🎮'}
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 flex-shrink-0 text-white">
+                        <GameIcon gameType={selectedGame?.value ?? ''} className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                         <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight truncate leading-tight">
@@ -534,10 +536,10 @@ export default function LobbyCodePage() {
                         </h1>
                         <div className="flex items-center gap-2">
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isHost ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-gray-200 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400'}`}>
-                                {isHost ? '👑 Hôte' : '👤 Participant'}
+                                {isHost ? <><StarIcon className="w-3.5 h-3.5 inline mr-0.5" />Hôte</> : <><UserIcon className="w-3.5 h-3.5 inline mr-0.5" />Participant</>}
                             </span>
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isPublic ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' : 'bg-gray-200 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400'}`}>
-                                {isPublic ? '🌍 Public' : '🔒 Privé'}
+                                {isPublic ? <><GlobeAltIcon className="w-3.5 h-3.5 inline mr-0.5" />Public</> : <><LockClosedIcon className="w-3.5 h-3.5 inline mr-0.5" />Privé</>}
                             </span>
                         </div>
                     </div>
@@ -628,7 +630,7 @@ export default function LobbyCodePage() {
                                                     />
                                                 )}
                                             </span>
-                                            <span className="text-2xl">{g.icon}</span>
+                                            <GameIcon gameType={g.value} className="w-6 h-6" />
                                             <span className="leading-tight text-center">{g.label}</span>
                                             {notEnoughPlayers && (
                                                 <span className="absolute -top-1 -right-1 text-[9px] font-bold bg-amber-400 text-white rounded-full w-4 h-4 flex items-center justify-center leading-none">
@@ -646,7 +648,7 @@ export default function LobbyCodePage() {
                             <div className={`bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-700/50 rounded-2xl p-5 space-y-3 ${!isHost ? 'opacity-60 pointer-events-none' : ''}`}>
                                 <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Options UNO</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {([{ v: 'none', label: '👤 Solo', desc: '2–8 joueurs' }, { v: '2v2', label: '👥 2v2', desc: '4 joueurs' }] as const).map(opt => (
+                                    {([{ v: 'none', label: 'Solo', desc: '2–8 joueurs' }, { v: '2v2', label: '2v2', desc: '4 joueurs' }] as const).map(opt => (
                                         <button key={opt.v} onClick={() => isHost && handleUnoTeamMode(opt.v)}
                                             className={`py-2.5 px-3 rounded-xl border-2 text-xs font-semibold transition-all flex flex-col items-center gap-0.5
                                                 ${unoTeamMode === opt.v
@@ -805,7 +807,7 @@ export default function LobbyCodePage() {
                                     {isHost && (
                                         <button onClick={() => socket?.emit('lobby:shuffleTeams')}
                                             className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors underline">
-                                            🔀 Mélanger
+                                            <ArrowsRightLeftIcon className="w-3.5 h-3.5 inline mr-1" />Mélanger
                                         </button>
                                     )}
                                 </div>
@@ -817,13 +819,13 @@ export default function LobbyCodePage() {
                                             <div key={team} className={`rounded-xl border p-3 space-y-2 ${team === 0 ? 'border-blue-500/30 bg-blue-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <span className={`text-xs font-semibold ${team === 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
-                                                        {team === 0 ? '🔵 Équipe Bleue' : '🔴 Équipe Rouge'}
+                                                        <span className={`w-2 h-2 rounded-full inline-block mr-1 ${team === 0 ? 'bg-blue-500' : 'bg-red-500'}`} />{team === 0 ? 'Équipe Bleue' : 'Équipe Rouge'}
                                                     </span>
                                                     <button onClick={() => socket?.emit('lobby:setTeam', { team })}
                                                         className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-all ${myTeamLocal === team
                                                             ? (team === 0 ? 'bg-blue-500 text-white' : 'bg-red-500 text-white')
                                                             : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-300 dark:hover:bg-slate-600'}`}>
-                                                        {myTeamLocal === team ? '✓ Rejoint' : 'Rejoindre'}
+                                                        {myTeamLocal === team ? <><CheckIcon className="w-3 h-3 inline mr-0.5" />Rejoint</> : 'Rejoindre'}
                                                     </button>
                                                 </div>
                                                 <div className="space-y-1">
@@ -831,7 +833,7 @@ export default function LobbyCodePage() {
                                                         <div key={p.userId} className="flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
                                                             <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-blue-400' : 'bg-red-400'}`} />
                                                             {p.username}
-                                                            {p.userId === hostId && <span className="text-yellow-500">👑</span>}
+                                                            {p.userId === hostId && <StarIcon className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />}
                                                         </div>
                                                     ))}
                                                     {teamPlayers.length === 0 && <p className="text-xs text-gray-400 dark:text-slate-600 italic">Aucun joueur</p>}
@@ -844,8 +846,8 @@ export default function LobbyCodePage() {
                                     const t0 = players.filter(p => teams?.[p.userId] === 0).length;
                                     const t1 = players.filter(p => teams?.[p.userId] === 1).length;
                                     return t0 >= 2 && t1 >= 2
-                                        ? <p className="text-xs text-green-600 dark:text-green-400 mt-2">✅ Équipes prêtes !</p>
-                                        : <p className="text-xs text-orange-500 dark:text-orange-400 mt-2">⚠️ Minimum 2 joueurs par équipe</p>;
+                                        ? <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1"><CheckCircleIcon className="w-3.5 h-3.5" />Équipes prêtes !</p>
+                                        : <p className="text-xs text-orange-500 dark:text-orange-400 mt-2 flex items-center gap-1"><ExclamationTriangleIcon className="w-3.5 h-3.5" />Minimum 2 joueurs par équipe</p>;
                                 })()}
                             </div>
                         )}
@@ -864,7 +866,7 @@ export default function LobbyCodePage() {
                                 <button
                                     onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                                     className="flex-shrink-0 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 whitespace-nowrap">
-                                    {copied ? '✅ Copié !' : '⧉ Copier'}
+                                    {copied ? <><CheckIcon className="w-3.5 h-3.5 inline mr-0.5" />Copié !</> : 'Copier'}
                                 </button>
                             </div>
                         </div>
@@ -878,7 +880,7 @@ export default function LobbyCodePage() {
                                         <button
                                             onClick={() => socket?.emit('lobby:addBot')}
                                             className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors px-2 py-0.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 whitespace-nowrap">
-                                            🤖 Ajouter un bot
+                                            <CpuChipIcon className="w-3.5 h-3.5 inline mr-1" />Ajouter un bot
                                         </button>
                                     )}
                                     <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 rounded-full px-2 py-0.5">
@@ -899,23 +901,23 @@ export default function LobbyCodePage() {
                                     <div key={p.userId} className="flex items-center gap-2.5 bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/40 rounded-xl px-3 py-2">
                                         <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
                                         <span className="text-sm text-gray-900 dark:text-white font-medium flex-1 truncate">{p.username}</span>
-                                        {p.userId === hostId && <span className="text-sm">👑</span>}
+                                        {p.userId === hostId && <StarIcon className="w-4 h-4 text-yellow-500 flex-shrink-0" />}
                                         {p.userId === me && <span className="text-xs text-gray-400 dark:text-slate-500 flex-shrink-0">(moi)</span>}
                                         {isAdmin && !isHost && p.userId === me && (
                                             <button onClick={() => socket?.emit('lobby:claimHost')} title="Prendre le contrôle (admin)"
                                                 className="text-xs px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition-colors flex-shrink-0">
-                                                🛡️
+                                                <ShieldCheckIcon className="w-3.5 h-3.5" />
                                             </button>
                                         )}
                                         {isHost && p.userId !== me && (
                                             <div className="flex items-center gap-1 flex-shrink-0">
                                                 <button onClick={() => socket?.emit('lobby:transferHost', { targetUserId: p.userId })} title="Transférer le statut d'hôte"
                                                     className="text-xs px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 transition-colors">
-                                                    👑
+                                                    <StarIcon className="w-3.5 h-3.5" />
                                                 </button>
                                                 <button onClick={() => socket?.emit('lobby:kick', { targetUserId: p.userId })} title="Expulser"
                                                     className="text-xs px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-500 dark:text-red-400 hover:bg-red-500/20 transition-colors">
-                                                    ✕
+                                                    <XMarkIcon className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         )}
@@ -924,11 +926,11 @@ export default function LobbyCodePage() {
                                 {Array.from({ length: botCount }).map((_, i) => (
                                     <div key={`bot-${i}`} className="flex items-center gap-2.5 bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/40 rounded-xl px-3 py-2">
                                         <span className="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0" />
-                                        <span className="text-sm text-gray-500 dark:text-slate-400 font-medium flex-1 truncate">🤖 Bot {i + 1}</span>
+                                        <span className="text-sm text-gray-500 dark:text-slate-400 font-medium flex-1 truncate flex items-center gap-1.5"><CpuChipIcon className="w-4 h-4 flex-shrink-0" />Bot {i + 1}</span>
                                         {isHost && (
                                             <button onClick={() => socket?.emit('lobby:removeBot')} title="Retirer le bot"
                                                 className="text-xs px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-500 dark:text-red-400 hover:bg-red-500/20 transition-colors flex-shrink-0">
-                                                ✕
+                                                <XMarkIcon className="w-3.5 h-3.5" />
                                             </button>
                                         )}
                                     </div>
@@ -942,7 +944,7 @@ export default function LobbyCodePage() {
                         {/* Actions */}
                         {activeGameId && activeGameType && (
                             <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 text-sm">
-                                <span className="text-amber-700 dark:text-amber-300 font-medium">⚠️ Partie en cours</span>
+                                <span className="text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1"><ExclamationTriangleIcon className="w-4 h-4" />Partie en cours</span>
                                 <button
                                     onClick={() => { const fn = GAME_ROUTES[activeGameType]; if (fn) router.push(fn(lobbyId, activeGameId)); }}
                                     className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs transition-all"
@@ -964,12 +966,12 @@ export default function LobbyCodePage() {
                                         : isLaunching
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
                                         : canStart
-                                            ? `🚀 Lancer ${selectedGame?.label ?? 'la partie'} !`
+                                            ? <span className="flex items-center justify-center gap-1.5"><PlayIcon className="w-4 h-4" />Lancer {selectedGame?.label ?? 'la partie'} !</span>
                                             : gameType === 'quiz' && !selectedQuizId && players.length >= 2
-                                                ? '🎯 Choix du quiz…'
+                                                ? <span className="flex items-center justify-center gap-1.5"><QuestionMarkCircleIcon className="w-4 h-4" />Choix du quiz…</span>
                                                 : (gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2')) && !tabooOk
-                                                    ? '⏳ En attente des équipes…'
-                                                    : '⏳ En attente de joueurs…'}
+                                                    ? <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente des équipes…</span>
+                                                    : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente de joueurs…</span>}
                                 </button>
                             ) : (
                                 <div className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
@@ -977,7 +979,7 @@ export default function LobbyCodePage() {
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Serveur en démarrage…</span>
                                         : isLaunching
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
-                                        : '⏳ En attente du host…'}
+                                        : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente du host…</span>}
                                 </div>
                             )}
                         </div>

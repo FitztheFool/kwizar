@@ -4,7 +4,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Pagination from '@/components/Pagination';
-import { GAME_EMOJI_MAP, GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import GameIcon from '@/components/GameIcon';
 import PlayerModal from '@/components/PlayerModal';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import GameStatCards from '@/components/GameStatCards';
@@ -98,17 +99,20 @@ export default function UserStats({ username }: Props) {
                 />
 
                 {bestGame ? (
-                    <StatChip
-                        value={`${GAME_EMOJI_MAP[bestGame[0]]} ${GAME_LABEL_MAP[bestGame[0]] ?? bestGame[0]}`}
-                        label="meilleur jeu"
-                        className="bg-white dark:bg-gray-900"
-                    />
+                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-lg font-bold text-gray-900 dark:text-white">
+                            <GameIcon gameType={bestGame[0]} className="w-5 h-5" />
+                            {GAME_LABEL_MAP[bestGame[0]] ?? bestGame[0]}
+                        </div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">meilleur jeu</div>
+                    </div>
                 ) : <div />}
 
                 {lastActivity ? (
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                            {GAME_EMOJI_MAP[lastActivity.gameType] ?? '🎮'} {GAME_LABEL_MAP[lastActivity.gameType] ?? lastActivity.gameType}
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
+                            <GameIcon gameType={lastActivity.gameType} className="w-4 h-4" />
+                            {GAME_LABEL_MAP[lastActivity.gameType] ?? lastActivity.gameType}
                         </div>
                         <div className="text-xs text-gray-600 dark:text-white">
                             {new Date(lastActivity.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {new Date(lastActivity.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -117,17 +121,20 @@ export default function UserStats({ username }: Props) {
                             .filter(([, r]) => r <= 3)
                             .sort((a, b) => a[1] - b[1])
                             .map(([type, r]) => (
-                                <div key={type} className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
-                                    {r === 1 ? '🥇' : r === 2 ? '🥈' : '🥉'} {GAME_LABEL_MAP[type] ?? type}
+                                <div key={type} className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 mt-0.5">
+                                    <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold ${r === 1 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : r === 2 ? 'bg-gray-100 dark:bg-gray-700 text-gray-500' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'}`}>{r}</span>
+                                    {GAME_LABEL_MAP[type] ?? type}
                                 </div>
                             ))}
                     </div>
                 ) : worstGame && worstGame[0] !== bestGame?.[0] ? (
-                    <StatChip
-                        value={`${GAME_EMOJI_MAP[worstGame[0]]} ${GAME_LABEL_MAP[worstGame[0]] ?? worstGame[0]}`}
-                        label="à améliorer"
-                        className="bg-white dark:bg-gray-900"
-                    />
+                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-lg font-bold text-gray-900 dark:text-white">
+                            <GameIcon gameType={worstGame[0]} className="w-5 h-5" />
+                            {GAME_LABEL_MAP[worstGame[0]] ?? worstGame[0]}
+                        </div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">à améliorer</div>
+                    </div>
                 ) : <div />}
             </div>
 

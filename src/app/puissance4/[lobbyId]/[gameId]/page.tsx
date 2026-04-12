@@ -11,6 +11,7 @@ import GameWaitingScreen from '@/components/GameWaitingScreen';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon } from '@heroicons/react/24/outline';
 
 const ROWS = 6;
 const COLS = 7;
@@ -120,10 +121,10 @@ export default function Puissance4Page() {
                         duration={gameState.turnDuration}
                         label={
                             isMyTurn
-                                ? '🎯 Votre tour'
+                                ? 'Votre tour'
                                 : vsBot && isBot(players.find(p => p.colorIndex === gameState.currentTurn))
-                                    ? '🤖 Le bot réfléchit…'
-                                    : `⏳ Tour de ${players.find(p => p.colorIndex === gameState.currentTurn)?.username ?? '…'}`
+                                    ? 'Le bot réfléchit…'
+                                    : `Tour de ${players.find(p => p.colorIndex === gameState.currentTurn)?.username ?? '…'}`
                         }
                     />
                 )}
@@ -192,7 +193,7 @@ export default function Puissance4Page() {
 
                 {gameState.status === 'finished' && !modalDismissed && (
                     <GameOverModal
-                        emoji={gameState.winner === 'draw' ? '🤝' : winnerPlayer?.userId === me.userId ? '🏆' : isBot(winnerPlayer) ? '🤖' : '😔'}
+                        icon={gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                         title={
                             gameState.winner === 'draw'
                                 ? 'Match nul !'

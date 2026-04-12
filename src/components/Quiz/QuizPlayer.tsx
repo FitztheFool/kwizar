@@ -5,6 +5,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import TimerBar from '@/components/TimerBar';
 import { useQuizPlayer, type Question, type Feedback } from '@/hooks/useQuizPlayer';
 import { normalizeAnswer } from '@/lib/utils';
+import { DocumentTextIcon, CheckIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ function QuizHeader({ title, progress, currentIndex, total, points }: {
     return (
         <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 sm:px-4 flex items-center gap-2 sm:gap-4">
             <div className="shrink-0 flex items-center gap-2 min-w-0">
-                <span className="shrink-0 text-base">📝</span>
+                <DocumentTextIcon className="w-4 h-4 shrink-0 text-gray-500 dark:text-gray-400" />
                 <span className="hidden sm:block font-semibold truncate text-gray-900 dark:text-white text-sm max-w-[120px] lg:max-w-xs">{title}</span>
             </div>
             <div className="flex-1 flex flex-col justify-center items-center gap-1">
@@ -86,7 +87,7 @@ function AnswerOption({ label, text, isSelected, showCorrect, showWrong, disable
             className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 font-medium transition-all duration-150 select-none ${rowCls}`}
         >
             <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${badgeCls}`}>
-                {showCorrect ? '✓' : showWrong ? '✗' : label}
+                {showCorrect ? <CheckIcon className="w-4 h-4" /> : showWrong ? <XMarkIcon className="w-4 h-4" /> : label}
             </span>
             <span>{text}</span>
         </button>
@@ -121,7 +122,7 @@ function TrueFalseOptions({ question, selectedAnswer, feedback, showFeedback, on
                                         : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 text-gray-700 dark:text-gray-200 cursor-pointer'
                             }`}
                     >
-                        {showCorrect ? '✓' : showWrong ? '✗' : answer.text}
+                        {showCorrect ? <CheckIcon className="w-5 h-5" /> : showWrong ? <XMarkIcon className="w-5 h-5" /> : answer.text}
                     </button>
                 );
             })}
@@ -190,7 +191,7 @@ function MultiTextInput({ values, count, onChange, disabled, feedback, showFeedb
                             ${isFieldCorrect ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                             : isFieldWrong ? 'bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                            {isFieldCorrect ? '✓' : isFieldWrong ? '✗' : i + 1}
+                            {isFieldCorrect ? <CheckIcon className="w-4 h-4" /> : isFieldWrong ? <XMarkIcon className="w-4 h-4" /> : i + 1}
                         </span>
                         <input
                             type="text"
@@ -222,7 +223,7 @@ function FeedbackBanner({ feedback }: { feedback: Feedback }) {
                 ? 'bg-green-50 dark:bg-green-900/25 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800'
                 : 'bg-red-50 dark:bg-red-900/25 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'
             }`}>
-            <span className="text-base font-bold shrink-0">{feedback.isCorrect ? '✓' : '✗'}</span>
+            <span className="shrink-0">{feedback.isCorrect ? <CheckIcon className="w-5 h-5" /> : <XMarkIcon className="w-5 h-5" />}</span>
             <span>{feedback.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse'}</span>
         </div>
     );
@@ -263,7 +264,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
 
                     {status === 'unauthenticated' && (
                         <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl px-4 py-3">
-                            <span className="shrink-0">🔒</span>
+                            <LockClosedIcon className="w-4 h-4 shrink-0" />
                             <p className="text-sm">
                                 Scores non enregistrés sans connexion.{' '}
                                 {loginCallbackUrl && (
@@ -381,7 +382,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                             disabled={isSubmitting}
                             className="w-full py-3.5 rounded-xl bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-sm"
                         >
-                            {isSubmitting ? 'Envoi en cours...' : isLastQuestion ? 'Voir mes résultats 🎯' : 'Question suivante →'}
+                            {isSubmitting ? 'Envoi en cours...' : isLastQuestion ? 'Voir mes résultats' : 'Question suivante →'}
                         </button>
                     )}
                 </div>

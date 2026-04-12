@@ -15,6 +15,7 @@ import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import { TrophyIcon, XCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -118,13 +119,13 @@ export default function BattleshipPage() {
 
             {/* Timer bar */}
             {state.phase === 'placement' && (
-                <TimerBar endsAt={state.placementEndsAt} duration={options.placementDuration ?? 60} label="⚓ Placez vos navires" />
+                <TimerBar endsAt={state.placementEndsAt} duration={options.placementDuration ?? 60} label="Placez vos navires" />
             )}
             {state.phase === 'playing' && (
                 <TimerBar
                     endsAt={state.turnEndsAt}
                     duration={options.turnDuration ?? 30}
-                    label={isMyTurn ? '🎯 Votre tour' : `⏳ Tour de ${opponent?.username ?? 'l\'adversaire'}`}
+                    label={isMyTurn ? 'Votre tour' : `Tour de ${opponent?.username ?? "l'adversaire"}`}
                 />
             )}
 
@@ -134,8 +135,8 @@ export default function BattleshipPage() {
                     className="mx-4 mt-3 px-4 py-2 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-600 dark:text-red-400 text-sm flex justify-between items-center cursor-pointer"
                     onClick={clearError}
                 >
-                    <span>⚠️ {state.error}</span>
-                    <span className="text-red-400 dark:text-red-600 ml-4">✕</span>
+                    <span className="flex items-center gap-1"><ExclamationTriangleIcon className="w-4 h-4" />{state.error}</span>
+                    <XMarkIcon className="w-4 h-4 text-red-400 dark:text-red-600 ml-4" />
                 </div>
             )}
 
@@ -208,7 +209,7 @@ export default function BattleshipPage() {
                 );
                 return (
                     <GameOverModal
-                        emoji={won ? '🏆' : '💀'}
+                        icon={won ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                         title={won ? 'Victoire !' : 'Défaite'}
                         subtitle={reasonLabel[state.gameOverReason ?? ''] ?? ''}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

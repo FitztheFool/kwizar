@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import GameWaitingScreen from '@/components/GameWaitingScreen';
 
 type CardColor = 'red' | 'green' | 'blue' | 'yellow' | 'wild';
 type Card = { id: string; color: CardColor; value: string };
@@ -206,9 +208,7 @@ export default function UnoPage() {
         setShowColorPicker(false);
     };
 
-    if (status === 'loading') {
-        return <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-white">Chargement...</div>;
-    }
+    if (status === 'loading') return <LoadingSpinner />;
 
     // ── Fin de partie ──────────────────────────────────────────────────────────
     if (gameState?.status === 'FINISHED') {
@@ -279,37 +279,11 @@ export default function UnoPage() {
 
     // ── Attente ────────────────────────────────────────────────────────────────
     if (!gameState || gameState.status === 'WAITING') {
-        const joined = lobbyState?.players.length ?? 0;
         return (
-            <div className="flex-1 bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-md text-gray-900 dark:text-white text-center shadow-lg">
-                    <div className="text-5xl mb-4 animate-pulse">🃏</div>
-                    <h1 className="text-xl font-bold mb-1">Démarrage de la partie…</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-                        {joined} joueur{joined > 1 ? 's' : ''} connecté{joined > 1 ? 's' : ''}…
-                    </p>
-                    <div className="space-y-2 text-left mb-6">
-                        {lobbyState?.players.map(p => (
-                            <div key={p.userId} className="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                                <span className="text-green-500 dark:text-green-400">✓</span>
-                                <span>{p.username}</span>
-                                {p.userId === lobbyState.hostId && <span className="text-yellow-500 dark:text-yellow-400 text-xs">👑</span>}
-                                {p.userId === me.userId && <span className="text-gray-400 text-xs">(moi)</span>}
-                            </div>
-                        ))}
-                    </div>
-                    <button
-                        onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                        className="w-full py-3 rounded-xl bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-300 transition">
-                        🔄 Retour au lobby
-                    </button>
-                    <button
-                        onClick={() => router.push('/dashboard')}
-                        className="mt-3 w-full py-3 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                        🏠 Retour au dashboard
-                    </button>
-                </div>
-            </div>
+            <GameWaitingScreen icon="🃏" gameName="Uno" lobbyId={lobbyId}
+                players={lobbyState?.players ?? []}
+                myUserId={me.userId}
+                hostId={lobbyState?.hostId ?? undefined} />
         );
     }
 

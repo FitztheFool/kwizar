@@ -104,7 +104,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Points',
         description: "Explorez la grotte et repartez avant qu'il ne soit trop tard !",
         players: '1 – 8 joueurs',
-        rules: "Chaque tour, une carte est retournée : des gemmes à ramasser ou un danger. Tous les joueurs encore dans la grotte se partagent les gemmes. Avant chaque carte, décidez de continuer ou de sortir pour sécuriser vos gains. Si le même danger apparaît deux fois, tous ceux restés dans la grotte repartent les mains vides. Les reliques ne peuvent être récupérées que par un joueur sortant seul : les 3 premières valent 2 💎 chacune, les suivantes 4 💎.",
+        rules: "Chaque tour, une carte est retournée : des gemmes à ramasser ou un danger. Tous les joueurs encore dans la grotte se partagent les gemmes. Avant chaque carte, décidez de continuer ou de sortir pour sécuriser vos gains. Si le même danger apparaît deux fois, tous ceux restés dans la grotte repartent les mains vides. Les reliques ne peuvent être récupérées que par un joueur sortant seul : les 3 premières valent 2 rubis chacune, les suivantes 4.",
         score: "Les gemmes rapportées dans votre coffre comptent comme points. Le classement est basé sur le total de points cumulés sur 5 manches.",
     },
     impostor: {
@@ -162,11 +162,11 @@ export const MIN_PLAYERS: Partial<Record<GameType, number>> = {
 };
 
 export const NO_OPTIONS_GAMES: Partial<Record<GameType, string>> = {
-    yahtzee: `${GAME_CONFIG.yahtzee.icon} Yahtzee — 2 à 8 joueurs`,
-    puissance4: `${GAME_CONFIG.puissance4.icon} Puissance 4 — solo (vs bot) ou 2 joueurs.`,
-    battleship: `${GAME_CONFIG.battleship.icon} Bataille Navale — solo (vs bot) ou 2 joueurs.`,
-    just_one: `${GAME_CONFIG.just_one.icon} Just One — 3 à 7 joueurs.`,
-    diamant: `${GAME_CONFIG.diamant.icon} Diamant — 2 à 8 joueurs.`,
+    yahtzee: 'Yahtzee — 2 à 8 joueurs',
+    puissance4: 'Puissance 4 — solo (vs bot) ou 2 joueurs.',
+    battleship: 'Bataille Navale — solo (vs bot) ou 2 joueurs.',
+    just_one: 'Just One — 3 à 7 joueurs.',
+    diamant: 'Diamant — 2 à 8 joueurs.',
 };
 
 export const BOT_SUPPORTED_GAMES: Set<string> = new Set(['puissance4', 'yahtzee', 'diamant', 'battleship', 'uno', 'skyjow']);

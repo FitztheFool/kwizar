@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { randomUsername } from '@/lib/randomUsername';
+import { PlayIcon } from '@heroicons/react/24/outline';
 
 interface GuestLoginButtonProps {
     callbackUrl?: string;
@@ -59,7 +60,7 @@ export default function GuestLoginButton({ callbackUrl = '/dashboard' }: GuestLo
                 onClick={openModal}
                 className="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-all text-sm"
             >
-                🎮 Jouer sans compte
+                <PlayIcon className="w-4 h-4 inline mr-1" />Jouer sans compte
             </button>
 
             {modal && (

@@ -13,6 +13,7 @@ import { useGamePage } from '@/hooks/useGamePage';
 import { useSkyjow } from '@/hooks/useSkyjow';
 
 import type { CardState, PlayerPublic, Phase } from '@/hooks/useSkyjow';
+import { ChartBarIcon, ClockIcon, NoSymbolIcon, ExclamationTriangleIcon, BoltIcon } from '@heroicons/react/24/outline';
 
 // ── Helpers visuels ───────────────────────────────────────────────────────────
 
@@ -188,13 +189,13 @@ export default function skyjowGamePage() {
 
     if (phase === 'round_end' && roundEndData) {
         const sortedScores = [...roundEndData.scores].sort((a, b) => a.totalScore - b.totalScore);
-        const MEDAL: Record<number, string> = { 0: '🥇', 1: '🥈', 2: '🥉' };
+        const MEDAL: Record<number, string> = { 0: '1', 1: '2', 2: '3' };
         const totalPlayers = players.length + surrenderedPlayers.length;
         return (
             <GameOverModal
-                emoji="📊"
+                icon={<ChartBarIcon className="w-8 h-8 text-blue-400" />}
                 title={`Fin de la manche ${round}`}
-                subtitle={scores.some(s => s.totalScore >= 100) ? '⚠️ Un joueur a atteint 100 points — fin de partie !' : undefined}
+                subtitle={scores.some(s => s.totalScore >= 100) ? 'Un joueur a atteint 100 points — fin de partie !' : undefined}
                 onLobby={readyNextRound}
                 onLeave={() => router.push('/')}
                 lobbyLabel={readyCount > 0 ? `Prêt (${readyCount}/${players.length})` : 'Manche suivante'}
@@ -216,13 +217,13 @@ export default function skyjowGamePage() {
                                 }`}>
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2">
-                                        <span>{isAbandoned ? (isAfk ? '⌛' : '🚫') : (MEDAL[i] ?? `${i + 1}.`)}</span>
+                                        <span>{isAbandoned ? (isAfk ? <ClockIcon className="w-4 h-4 text-gray-400" /> : <NoSymbolIcon className="w-4 h-4 text-gray-400" />) : (MEDAL[i] ?? `${i + 1}.`)}</span>
                                         <span className={s.userId === userId ? 'text-amber-600 dark:text-amber-300 font-bold' : ''}>
                                             {s.username}{s.userId === userId && ' (moi)'}
                                         </span>
                                         {isAbandoned && (
                                             <span className="text-xs bg-orange-500/30 text-orange-400 px-1.5 py-0.5 rounded">
-                                                {isAfk ? '⌛ AFK' : '🚫 Abandon'}
+                                                {isAfk ? 'AFK' : 'Abandon'}
                                             </span>
                                         )}
                                     </span>
@@ -262,7 +263,7 @@ export default function skyjowGamePage() {
             if (!a.abandon && b.abandon) return -1;
             return a.totalScore - b.totalScore;
         });
-        const MEDAL: Record<number, string> = { 0: '🥇', 1: '🥈', 2: '🥉' };
+        const MEDAL: Record<number, string> = { 0: '1', 1: '2', 2: '3' };
         return (
             <GameOverModal
                 title="Fin de partie !"
@@ -281,7 +282,7 @@ export default function skyjowGamePage() {
                             <div key={s.userId} className={`rounded-xl border px-4 py-3 ${i === 0 && !disq ? 'bg-amber-400/20 border-amber-400/50' : disq ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xl">{disq ? (isAfk ? '⌛' : '🚫') : (MEDAL[i] ?? `${i + 1}.`)}</span>
+                                        <span className="text-xl">{disq ? (isAfk ? <ClockIcon className="w-5 h-5 text-gray-400" /> : <NoSymbolIcon className="w-5 h-5 text-gray-400" />) : (MEDAL[i] ?? `${i + 1}.`)}</span>
                                         <span className={`font-bold ${s.userId === userId ? 'text-amber-600 dark:text-amber-300' : 'text-gray-800 dark:text-white'}`}>
                                             {s.username}{s.userId === userId && ' (moi)'}
                                         </span>
@@ -325,7 +326,7 @@ export default function skyjowGamePage() {
             {/* ── Header ── */}
             <GamePageHeader
                 left={<>
-                    <span className="shrink-0 font-bold text-gray-900 dark:text-white">🃏</span>
+                    <span className="shrink-0 font-bold text-gray-900 dark:text-white">S</span>
                     <span className="hidden sm:inline font-bold text-gray-900 dark:text-white">Skyjow</span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">Manche {round}</span>
                 </>}
@@ -334,7 +335,7 @@ export default function skyjowGamePage() {
                         {[...scores].sort((a, b) => a.totalScore - b.totalScore).map(s => (
                             <div key={s.userId}
                                 className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 ${s.abandon ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 line-through opacity-60' : s.userId === userId ? 'bg-sky-100 dark:bg-sky-700 text-sky-700 dark:text-sky-100' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
-                                {s.afk ? <span title="AFK">⌛</span> : s.abandon ? <span title="Abandon">🚫</span> : null}
+                                {s.afk ? <ClockIcon className="w-3.5 h-3.5 text-gray-400" title="AFK" /> : s.abandon ? <NoSymbolIcon className="w-3.5 h-3.5 text-gray-400" title="Abandon" /> : null}
                                 {s.username.split(' ')[0]}: {s.totalScore}
                             </div>
                         ))}
@@ -388,7 +389,7 @@ export default function skyjowGamePage() {
                             <div key={p.userId} className="rounded-xl p-3 border border-gray-200 dark:border-gray-700 opacity-50">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-xs">{scores.find(s => s.userId === p.userId)?.afk ? '⌛' : '🚫'}</span>
+                                        {scores.find(s => s.userId === p.userId)?.afk ? <ClockIcon className="w-3.5 h-3.5 text-gray-400" /> : <NoSymbolIcon className="w-3.5 h-3.5 text-gray-400" />}
 
                                         <span className="font-semibold text-sm text-gray-800 dark:text-gray-200 line-through">{p.username}</span>
                                     </div>
@@ -436,16 +437,16 @@ export default function skyjowGamePage() {
                                     const waitingNames = waiting
                                         .map(p => p.userId === userId ? 'toi' : p.username)
                                         .join(', ');
-                                    return `En attente de — ⏳ ${waitingNames || '…'}`;
+                                    return `En attente de — ${waitingNames || '…'}`;
                                 })()
                                 : phase === 'last_round'
-                                    ? '⚡ Dernier tour !'
+                                    ? 'Dernier tour !'
                                     : isCurrent
                                         ? isMeInactive
-                                            ? '⚠️ Joue vite ! exclusion imminente'
-                                            : '⭐ Ton tour'
+                                            ? 'Joue vite ! exclusion imminente'
+                                            : 'Ton tour'
                                         : inactivityUserId === currentPlayerId && inactivityEndsAt !== null
-                                            ? `⏰ ${players[currentPlayerIndex]?.username ?? '…'} — inactivité`
+                                            ? `${players[currentPlayerIndex]?.username ?? '…'} — inactivité`
                                             : `Tour: ${players[currentPlayerIndex]?.username ?? '…'}`}
                         </div>
                     )}

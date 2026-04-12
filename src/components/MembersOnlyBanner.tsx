@@ -1,6 +1,7 @@
 // components/MembersOnlyBanner.tsx
 'use client';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { LockClosedIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 export function MembersOnlyBanner() {
@@ -32,7 +33,7 @@ export function MembersOnlyBanner() {
             role="alert"
             className="flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-800 shadow-sm"
         >
-            <span className="text-lg">🔒</span>
+            <LockClosedIcon className="w-5 h-5 shrink-0" />
             <p className="text-sm font-medium">
                 Seuls les membres inscrits peuvent créer ou générer un quiz.
             </p>
@@ -41,7 +42,7 @@ export function MembersOnlyBanner() {
                 className="ml-auto text-amber-500 hover:text-amber-700 transition"
                 aria-label="Fermer"
             >
-                ✕
+                <XMarkIcon className="w-4 h-4" />
             </button>
         </div>
     );

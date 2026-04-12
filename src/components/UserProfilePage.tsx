@@ -9,6 +9,7 @@ import QuizCard from '@/components/Quiz/QuizCard';
 import Pagination from '@/components/Pagination';
 import UserStats from '@/components/UserStats';
 import { MembersOnlyBanner } from '@/components/MembersOnlyBanner';
+import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, PencilSquareIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 // ── Bloc finaliser le compte ───────────────────────────────────────────────────
 
@@ -233,7 +234,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                         }`}
                                 >
-                                    {tab === 'stats' ? '📊 Stats' : '📝 Quiz'}
+                                    {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
                                 </button>
                             ))}
                         </div>
@@ -252,7 +253,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                 href="/settings"
                                 className="text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
                             >
-                                ⚙️ Paramètres
+                                <Cog6ToothIcon className="w-3.5 h-3.5 inline mr-1" />Paramètres
                             </a>
                         )}
                     </div>
@@ -270,10 +271,10 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                             {isOwnProfile && (
                                 <div className="flex gap-2">
                                     <Link href="/quiz/create" className="rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white transition">
-                                        ✏️ Créer
+                                        <PencilSquareIcon className="w-3.5 h-3.5 inline mr-1" />Créer
                                     </Link>
                                     <Link href="/quiz/generate" className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 transition">
-                                        🤖 Générer
+                                        <SparklesIcon className="w-3.5 h-3.5 inline mr-1" />Générer
                                     </Link>
                                 </div>
                             )}

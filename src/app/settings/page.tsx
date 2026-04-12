@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { UserIcon, LockClosedIcon, SwatchIcon, SunIcon, MoonIcon, ComputerDesktopIcon, Cog6ToothIcon, PencilSquareIcon, CheckIcon, XMarkIcon, ExclamationTriangleIcon, TrashIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 type TabType = 'theme' | 'compte' | 'securite';
 type DeleteType = 'soft' | 'hard';
@@ -203,18 +204,18 @@ export default function SettingsPage() {
         setDeleteStatus(null);
     };
 
-    const TABS: { id: TabType; label: string; icon: string; requireAuth: boolean }[] = [
-        { id: 'compte', label: 'Compte', icon: '👤', requireAuth: true },
-        { id: 'securite', label: 'Sécurité', icon: '🔒', requireAuth: true },
-        { id: 'theme', label: 'Thème', icon: '🎨', requireAuth: false },
+    const TABS: { id: TabType; label: string; icon: React.ReactNode; requireAuth: boolean }[] = [
+        { id: 'compte', label: 'Compte', icon: <UserIcon className="w-4 h-4" />, requireAuth: true },
+        { id: 'securite', label: 'Sécurité', icon: <LockClosedIcon className="w-4 h-4" />, requireAuth: true },
+        { id: 'theme', label: 'Thème', icon: <SwatchIcon className="w-4 h-4" />, requireAuth: false },
     ];
 
     const visibleTabs = TABS.filter(t => !t.requireAuth || !!session);
 
-    const THEMES = [
-        { id: 'light', label: 'Clair', icon: '☀️', desc: 'Interface lumineuse' },
-        { id: 'dark', label: 'Sombre', icon: '🌙', desc: 'Interface sombre' },
-        { id: 'system', label: 'Système', icon: '💻', desc: 'Suit les préférences de votre appareil' },
+    const THEMES: { id: string; label: string; icon: React.ReactNode; desc: string }[] = [
+        { id: 'light', label: 'Clair', icon: <SunIcon className="w-10 h-10" />, desc: 'Interface lumineuse' },
+        { id: 'dark', label: 'Sombre', icon: <MoonIcon className="w-10 h-10" />, desc: 'Interface sombre' },
+        { id: 'system', label: 'Système', icon: <ComputerDesktopIcon className="w-10 h-10" />, desc: "Suit les préférences de votre appareil" },
     ];
 
     const currentAvatar = avatarPreview ?? session?.user?.image ?? null;
@@ -231,7 +232,7 @@ export default function SettingsPage() {
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mb-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl">⚙️</div>
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"><Cog6ToothIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" /></div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Paramètres</h1>
                             <p className="text-gray-500 dark:text-gray-400 text-sm">Personnalisez votre expérience</p>
@@ -240,7 +241,7 @@ export default function SettingsPage() {
                     {isAnonymous && (
                         <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
                             <p className="text-sm text-amber-700 dark:text-amber-400">
-                                🔒 Finalisez votre inscription pour accéder à toutes les options.
+                                <LockClosedIcon className="w-4 h-4 inline mr-1" />Finalisez votre inscription pour accéder à toutes les options.
                             </p>
                         </div>
                     )}
@@ -286,7 +287,7 @@ export default function SettingsPage() {
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {avatarStatus.type === 'success' ? '✅' : '❌'} {avatarStatus.msg}
+                                    {avatarStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{avatarStatus.msg}
                                 </div>
                             )}
 
@@ -337,7 +338,7 @@ export default function SettingsPage() {
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {emailStatus.type === 'success' ? '✅' : '❌'} {emailStatus.msg}
+                                    {emailStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{emailStatus.msg}
                                 </div>
                             )}
 
@@ -354,7 +355,7 @@ export default function SettingsPage() {
                                         onClick={() => { setEmailEdit(true); setEmailStatus(null); }}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
-                                        ✏️ Modifier
+                                        <PencilSquareIcon className="w-4 h-4 inline mr-1" />Modifier
                                     </button>
                                 ) : (
                                     <div className="flex gap-2">
@@ -363,7 +364,7 @@ export default function SettingsPage() {
                                             disabled={emailLoading || !emailValue.trim().includes('@')}
                                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
                                         >
-                                            {emailLoading ? '...' : '✓'}
+                                            {emailLoading ? '...' : <CheckIcon className="w-4 h-4" />}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -373,7 +374,7 @@ export default function SettingsPage() {
                                             }}
                                             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
-                                            ✕
+                                            <XMarkIcon className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
@@ -390,7 +391,7 @@ export default function SettingsPage() {
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {usernameStatus.type === 'success' ? '✅' : '❌'} {usernameStatus.msg}
+                                    {usernameStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{usernameStatus.msg}
                                 </div>
                             )}
 
@@ -408,7 +409,7 @@ export default function SettingsPage() {
                                         onClick={() => { setUsernameEdit(true); setUsernameStatus(null); }}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
-                                        ✏️ Modifier
+                                        <PencilSquareIcon className="w-4 h-4 inline mr-1" />Modifier
                                     </button>
                                 ) : (
                                     <div className="flex gap-2">
@@ -417,7 +418,7 @@ export default function SettingsPage() {
                                             disabled={usernameLoading || usernameValue.trim().length < 3}
                                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
                                         >
-                                            {usernameLoading ? '...' : '✓'}
+                                            {usernameLoading ? '...' : <CheckIcon className="w-4 h-4" />}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -427,7 +428,7 @@ export default function SettingsPage() {
                                             }}
                                             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
-                                            ✕
+                                            <XMarkIcon className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
@@ -444,7 +445,7 @@ export default function SettingsPage() {
                                 <div className="mt-4 space-y-3">
                                     <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800">
                                         <div>
-                                            <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">🔒 Désactiver le compte</p>
+                                            <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 flex items-center gap-1"><LockClosedIcon className="w-4 h-4" />Désactiver le compte</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                 Bloque l'accès sans supprimer vos données. Réactivable à la reconnexion.
                                             </p>
@@ -459,7 +460,7 @@ export default function SettingsPage() {
 
                                     <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
                                         <div>
-                                            <p className="text-sm font-semibold text-red-700 dark:text-red-400">🗑️ Supprimer le compte</p>
+                                            <p className="text-sm font-semibold text-red-700 dark:text-red-400 flex items-center gap-1"><TrashIcon className="w-4 h-4" />Supprimer le compte</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                 Suppression définitive et immédiate de toutes vos données.
                                             </p>
@@ -481,13 +482,13 @@ export default function SettingsPage() {
                                         : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
                                         }`}>
                                         {deleteMode === 'soft'
-                                            ? '⚠️ Votre compte sera désactivé. Vous serez déconnecté immédiatement.'
-                                            : '💀 Toutes vos données seront supprimées définitivement. Cette action est irréversible.'}
+                                            ? <><ExclamationTriangleIcon className="w-4 h-4 inline mr-1" />Votre compte sera désactivé. Vous serez déconnecté immédiatement.</>
+                                            : <><XCircleIcon className="w-4 h-4 inline mr-1" />Toutes vos données seront supprimées définitivement. Cette action est irréversible.</>}
                                     </div>
 
                                     {deleteStatus && (
                                         <div className="p-3 rounded-lg text-sm border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300">
-                                            ❌ {deleteStatus.msg}
+                                            <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />{deleteStatus.msg}
                                         </div>
                                     )}
 
@@ -546,7 +547,7 @@ export default function SettingsPage() {
                                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                 : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                 }`}>
-                                {pwStatus.type === 'success' ? '✅' : '❌'} {pwStatus.msg}
+                                {pwStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{pwStatus.msg}
                             </div>
                         )}
 
@@ -603,7 +604,7 @@ export default function SettingsPage() {
                                                 </svg>
                                             </div>
                                         )}
-                                        <span className="text-4xl">{t.icon}</span>
+                                        <span className="text-gray-600 dark:text-gray-300">{t.icon}</span>
                                         <div className="text-center">
                                             <div className={`font-semibold text-sm ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
                                                 {t.label}

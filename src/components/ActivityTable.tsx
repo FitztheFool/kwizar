@@ -2,13 +2,20 @@
 'use client';
 
 import Link from 'next/link';
-import { GAME_EMOJI_MAP, GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { GAME_COLOR } from '@/lib/gameColor';
 import PlayerButton from '@/components/PlayerButton';
+import GameIcon from '@/components/GameIcon';
+import { NoSymbolIcon, ClockIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const PLACEMENT_EMOJI: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+function RankBadge({ placement }: { placement: number }) {
+    if (placement === 1) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold">1</span>;
+    if (placement === 2) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold">2</span>;
+    if (placement === 3) return <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold">3</span>;
+    return <span className="text-xs text-gray-400 font-semibold">#{placement}</span>;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -107,7 +114,7 @@ export default function ActivityTable({
                                             'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                                             }`}
                                     >
-                                        {GAME_EMOJI_MAP[row.gameType] ?? '🎮'}{' '}
+                                        <GameIcon gameType={row.gameType} className="w-3 h-3 inline mr-1" />
                                         {GAME_LABEL_MAP[row.gameType] ?? row.gameType}
                                     </span>
                                 </td>
@@ -142,13 +149,11 @@ export default function ActivityTable({
                                 {isUser && (
                                     <td className="px-3 py-2 whitespace-nowrap text-sm">
                                         {row.abandon ? (
-                                            <span title="Abandon">🚫</span>
+                                            <NoSymbolIcon className="w-4 h-4 text-gray-400" title="Abandon" />
                                         ) : row.afk ? (
-                                            <span title="AFK">⏳</span>
+                                            <ClockIcon className="w-4 h-4 text-gray-400" title="AFK" />
                                         ) : row.placement != null ? (
-                                            <span>
-                                                {PLACEMENT_EMOJI[row.placement] ?? `#${row.placement}`}
-                                            </span>
+                                            <RankBadge placement={row.placement} />
                                         ) : (
                                             <span className="text-gray-300 dark:text-gray-600">—</span>
                                         )}
@@ -167,7 +172,7 @@ export default function ActivityTable({
                                             onClick={() => onPlayerClick(row)}
                                             className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                         >
-                                            👥 {row.playerCount}
+                                            <UsersIcon className="w-3.5 h-3.5 inline mr-0.5" />{row.playerCount}
                                         </button>
                                     )}
                                 </td>

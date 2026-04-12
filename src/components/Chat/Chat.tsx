@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 type ChatTab = 'lobby' | 'team';
 
@@ -141,7 +142,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
             {!open && (
                 <button onClick={toggle}
                     className="relative bg-blue-600 dark:bg-slate-700 hover:bg-blue-700 dark:hover:bg-slate-600 text-white px-4 py-3 rounded-full shadow-xl">
-                    💬
+                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
                     {unread > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-xs px-2 py-0.5 rounded-full">
                             {unread}
@@ -160,7 +161,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                     {/* HEADER */}
                     <div className="bg-blue-600 dark:bg-slate-800 text-white rounded-t-2xl">
                         <div className="flex justify-between items-center px-4 py-2 cursor-pointer" onClick={toggle}>
-                            <div className="font-semibold">💬 Lobby Chat</div>
+                            <div className="font-semibold flex items-center gap-1.5"><ChatBubbleLeftRightIcon className="w-4 h-4" />Lobby Chat</div>
                             <div className="text-lg">—</div>
                         </div>
 
@@ -173,7 +174,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                                             ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400'
                                             : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
                                         }`}>
-                                    💬 Lobby
+                                    <ChatBubbleLeftRightIcon className="w-3.5 h-3.5 inline mr-1" />Lobby
                                     {unreadLobby > 0 && (
                                         <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
                                             {unreadLobby}
@@ -189,7 +190,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                                                 : 'bg-white dark:bg-slate-900 text-red-600 dark:text-red-400'
                                             : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
                                         }`}>
-                                    {teamColor === 0 ? '🔵 Équipe Bleue' : '🔴 Équipe Rouge'}
+                                    <span className={`inline-block w-2 h-2 rounded-full mr-1 ${teamColor === 0 ? 'bg-blue-400' : 'bg-red-400'}`} />{teamColor === 0 ? 'Équipe Bleue' : 'Équipe Rouge'}
                                     {unreadTeam > 0 && (
                                         <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
                                             {unreadTeam}
@@ -240,8 +241,8 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                             className="flex-1 border rounded-xl px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                         />
                         <button onClick={sendChat}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-xl">
-                            ➤
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-xl flex items-center justify-center">
+                            <PaperAirplaneIcon className="w-4 h-4" />
                         </button>
                     </div>
 
