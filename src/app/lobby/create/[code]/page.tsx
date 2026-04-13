@@ -244,6 +244,7 @@ export default function LobbyCodePage() {
     const { status: warmupStatus } = useServerWarmup(process.env.NEXT_PUBLIC_LOBBY_SERVER_URL);
     const socket = useMemo(() => getLobbySocket(), []);
     const joinedRef = useRef(false);
+    const reconnectConfigRef = useRef({ gameType: 'uno' as GameType, maxPlayers: 8, isPublic: false, meta: null as LobbyMeta | null });
 
     const [meta, setMeta] = useState<LobbyMeta | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
@@ -293,6 +294,11 @@ export default function LobbyCodePage() {
     useEffect(() => {
         fetch('/api/categories').then(r => r.ok ? r.json() : []).then(setCategories).catch(() => { });
     }, []);
+
+    // Keep reconnect config ref in sync so the reconnect handler always has fresh values
+    useEffect(() => {
+        reconnectConfigRef.current = { gameType, maxPlayers, isPublic, meta };
+    }, [gameType, maxPlayers, isPublic, meta]);
 
     useEffect(() => {
         if (!selectedQuizId || selectedQuizTitle) return;
@@ -465,12 +471,30 @@ export default function LobbyCodePage() {
             if (m?.quizOptions) setTimeout(() => socket.emit('lobby:setQuizOptions', m!.quizOptions), 400);
         }
 
+        // Re-join after lobby-server restart (server memory cleared on redeploy/wake)
+        const handleReconnect = () => {
+            if (!joinedRef.current) return;
+            const cfg = reconnectConfigRef.current;
+            socket.emit('lobby:join', {
+                lobbyId,
+                userId: meUserId,
+                username: meUsername,
+                title: cfg.meta?.title,
+                description: cfg.meta?.description,
+                maxPlayers: cfg.maxPlayers,
+                isPublic: cfg.isPublic,
+                gameType: cfg.gameType,
+            });
+        };
+        socket.io.on('reconnect', handleReconnect);
+
         return () => {
             socket.off('lobby:state', onState);
             socket.off('lobby:kicked');
             socket.off('lobby:server_warming');
             socket.off('lobby:server_error');
             socket.off('game:start');
+            socket.io.off('reconnect', handleReconnect);
             socket.emit('lobby:leave');
             joinedRef.current = false;
         };
