@@ -25,7 +25,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://res.cloudinary.com",
               "font-src 'self'",
-              "connect-src 'self' wss: ws:",
+              "connect-src 'self' wss: ws: https://*.onrender.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
