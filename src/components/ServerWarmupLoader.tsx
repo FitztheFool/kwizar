@@ -28,10 +28,10 @@ export default function ServerWarmupLoader({ error }: { error?: boolean }) {
                     </svg>
                 </div>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Démarrage du serveur…</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Environ 30–45 secondes</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Environ 45–90 secondes</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1 overflow-hidden">
                     <style>{`@keyframes warmup { from { width: 0% } to { width: 92% } }`}</style>
-                    <div className="h-1 bg-gray-500 dark:bg-white/50 rounded-full" style={{ animation: 'warmup 45s linear forwards' }} />
+                    <div className="h-1 bg-gray-500 dark:bg-white/50 rounded-full" style={{ animation: 'warmup 90s linear forwards' }} />
                 </div>
             </div>
         </div>
