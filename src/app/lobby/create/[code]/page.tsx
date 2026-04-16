@@ -280,7 +280,6 @@ export default function LobbyCodePage() {
     const [teams, setTeams] = useState<Record<string, 0 | 1> | null>(null);
     const [gridSize, setGridSize] = useState(10);
     const [turnTime, setTurnTime] = useState(30);
-    const [autoPlace, setAutoPlace] = useState(true);
     const [impostorRounds, setImpostorRounds] = useState(1);
     const [impostorTime, setImpostorTime] = useState(60);
     const [botCount, setBotCount] = useState(0);
@@ -309,7 +308,7 @@ export default function LobbyCodePage() {
         const lobbyUrl = process.env.NEXT_PUBLIC_LOBBY_SERVER_URL;
         if (!lobbyUrl) return;
         let gameServerUrl: string | null = null;
-        const notifyReady = () => socket.emit('lobby:gameServerReady', { gameType });
+        const notifyReady = () => socket?.emit('lobby:gameServerReady', { gameType });
         const interval = setInterval(async () => {
             try {
                 if (!gameServerUrl) {
