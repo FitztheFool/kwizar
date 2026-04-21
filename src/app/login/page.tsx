@@ -37,7 +37,7 @@ function LoginForm() {
         if (e === 'OAuthAccountConflict') return 'Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe ou utilisez la récupération de mot de passe.';
         if (e === 'OAuthEmailConflict') return `Cet email est déjà associé à un compte ${providerLabel ?? 'OAuth'}. Connectez-vous avec ${providerLabel ?? 'ce provider'}.`; // ← ICI
         if (e === 'AccountBanned') return 'Votre compte a été banni.';
-        if (e === 'SessionExpired') return 'Session expirée, veuillez vous reconnecter avec Discord.';
+        if (e === 'SessionExpired') return 'Session expirée, veuillez vous reconnecter.';
         return '';
     });
     const [loading, setLoading] = useState(false);
