@@ -311,17 +311,22 @@ export default function LobbyCodePage() {
         const notifyReady = () => socket?.emit('lobby:gameServerReady', { gameType });
         const interval = setInterval(async () => {
             try {
+                // Étape 1 : récupère l'URL du game server (une seule fois)
                 if (!gameServerUrl) {
                     const res = await fetch(`${lobbyUrl}/warmup/${gameType}`);
                     const data = await res.json();
-                    gameServerUrl = data.gameServerUrl ?? null;
-                    if (res.ok) { clearInterval(interval); notifyReady(); return; }
+                    if (data.gameServerUrl) gameServerUrl = data.gameServerUrl;
+                    // ⚠️ On NE s'arrête PAS ici — le lobby répond OK immédiatement
+                    // même si le game server dort encore
                 }
+                // Étape 2 : poll directement le /health du game server
                 if (gameServerUrl) {
-                    const res = await fetch(`${gameServerUrl}/health`);
+                    const res = await fetch(`${gameServerUrl}/health`, {
+                        signal: AbortSignal.timeout(5_000),
+                    });
                     if (res.ok) { clearInterval(interval); notifyReady(); }
                 }
-            } catch { /* ignore */ }
+            } catch { /* timeout / CORS / réseau — on réessaie au prochain tick */ }
         }, 3_000);
         return () => clearInterval(interval);
     }, [isWarming, gameType, socket]);
@@ -1017,22 +1022,22 @@ export default function LobbyCodePage() {
                                     {isWarming
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Serveur en démarrage…</span>
                                         : isLaunching
-                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
-                                        : canStart
-                                            ? <span className="flex items-center justify-center gap-1.5"><PlayIcon className="w-4 h-4" />Lancer {selectedGame?.label ?? 'la partie'} !</span>
-                                            : gameType === 'quiz' && !selectedQuizId && players.length >= 2
-                                                ? <span className="flex items-center justify-center gap-1.5"><QuestionMarkCircleIcon className="w-4 h-4" />Choix du quiz…</span>
-                                                : (gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2')) && !tabooOk
-                                                    ? <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente des équipes…</span>
-                                                    : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente de joueurs…</span>}
+                                            ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
+                                            : canStart
+                                                ? <span className="flex items-center justify-center gap-1.5"><PlayIcon className="w-4 h-4" />Lancer {selectedGame?.label ?? 'la partie'} !</span>
+                                                : gameType === 'quiz' && !selectedQuizId && players.length >= 2
+                                                    ? <span className="flex items-center justify-center gap-1.5"><QuestionMarkCircleIcon className="w-4 h-4" />Choix du quiz…</span>
+                                                    : (gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2')) && !tabooOk
+                                                        ? <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente des équipes…</span>
+                                                        : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente de joueurs…</span>}
                                 </button>
                             ) : (
                                 <div className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 text-gray-400 dark:text-slate-500 text-sm font-semibold text-center">
                                     {isWarming
                                         ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Serveur en démarrage…</span>
                                         : isLaunching
-                                        ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
-                                        : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente du host…</span>}
+                                            ? <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Lancement…</span>
+                                            : <span className="flex items-center justify-center gap-1.5"><ClockIcon className="w-4 h-4" />En attente du host…</span>}
                                 </div>
                             )}
                         </div>
