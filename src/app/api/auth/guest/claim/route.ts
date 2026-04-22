@@ -22,6 +22,9 @@ export async function PATCH(req: NextRequest) {
     if (password.length < 6) {
         return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 6 caractères' }, { status: 400 });
     }
+    if (username && !/^[a-zA-Z0-9_]{2,32}$/.test(username)) {
+        return NextResponse.json({ error: 'Nom d\'utilisateur invalide (2-32 caractères, lettres/chiffres/underscore uniquement)' }, { status: 400 });
+    }
 
     // Vérifier conflits
     const conflict = await prisma.user.findFirst({

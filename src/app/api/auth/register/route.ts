@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!/^[a-zA-Z0-9_]{2,32}$/.test(username)) {
+      return NextResponse.json(
+        { error: 'Nom d\'utilisateur invalide (2-32 caractères, lettres/chiffres/underscore uniquement)' },
+        { status: 400 }
+      );
+    }
+
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findFirst({
       where: {

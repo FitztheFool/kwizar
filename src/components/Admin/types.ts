@@ -12,6 +12,7 @@ export interface AdminUser {
     deactivatedAt: string | null;
     bannedAt: string | null;
     image: string | null;
+    providers: string[];
 }
 
 export interface AdminQuiz {

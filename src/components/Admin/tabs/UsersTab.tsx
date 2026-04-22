@@ -8,6 +8,19 @@ import type { AdminUser, UserSort } from '../types';
 
 const ROLES = ['GUEST', 'USER', 'RANDOM', 'ADMIN'] as const;
 
+const PROVIDER_LABELS: Record<string, { label: string; className: string }> = {
+    credentials: { label: 'Email', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700' },
+    google:      { label: 'Google', className: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' },
+    discord:     { label: 'Discord', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' },
+};
+
+function ProviderBadge({ provider }: { provider: string }) {
+    const cfg = PROVIDER_LABELS[provider] ?? { label: provider, className: 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700' };
+    return (
+        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${cfg.className}`}>{cfg.label}</span>
+    );
+}
+
 interface Props {
     users: AdminUser[];
     userPage: number;
@@ -81,7 +94,7 @@ export default function UsersTab({
                     <table className="w-full text-sm">
                         <thead className="bg-white dark:bg-gray-900">
                             <tr className="text-left">
-                                {['', 'Utilisateur', 'Email', 'Inscrit le', 'Vu le'].map(h => (
+                                {['', 'Utilisateur', 'Email', 'Provider', 'Inscrit le', 'Vu le'].map(h => (
                                     <th key={h} className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
                                 ))}
                                 <th className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
@@ -103,7 +116,7 @@ export default function UsersTab({
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                             {users.length === 0 ? (
-                                <tr><td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">Aucun utilisateur trouvé</td></tr>
+                                <tr><td colSpan={9} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">Aucun utilisateur trouvé</td></tr>
                             ) : users.map(user => (
                                 <tr key={user.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
 
@@ -121,6 +134,16 @@ export default function UsersTab({
 
                                     {/* Email */}
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{user.email}</td>
+
+                                    {/* Provider */}
+                                    <td className="px-3 py-2">
+                                        <div className="flex flex-wrap gap-1">
+                                            {user.providers.length === 0
+                                                ? <span className="text-[10px] text-gray-400 dark:text-gray-600">—</span>
+                                                : user.providers.map(p => <ProviderBadge key={p} provider={p} />)
+                                            }
+                                        </div>
+                                    </td>
 
                                     {/* Inscrit le */}
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString('fr-FR')}</td>

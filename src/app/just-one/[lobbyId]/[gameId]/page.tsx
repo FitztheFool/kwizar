@@ -7,6 +7,7 @@ import { useGamePage } from '@/hooks/useGamePage';
 import { useJustOne } from '@/hooks/useJustOne';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
 import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
@@ -30,16 +31,6 @@ function PlayerBadge({ name, submitted, isGuesser, isMe }: {
             <span>{name}{isMe ? ' (moi)' : ''}</span>
             {isGuesser && <span>👁️</span>}
             {!isGuesser && submitted && <span>✅</span>}
-        </div>
-    );
-}
-
-function ScoreBadge({ score }: { score: number }) {
-    return (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-            <span className="text-xs text-blue-500 dark:text-blue-400 font-semibold">Score</span>
-            <span className="text-sm font-bold text-blue-600 dark:text-blue-300">{score}</span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">/13</span>
         </div>
     );
 }
@@ -92,7 +83,7 @@ export default function JustOnePage() {
     if (status !== 'authenticated') return null;
 
     if (roundState === 'WAITING' && !guesserName) return (
-        <GameWaitingScreen icon="🔤" gameName="Just One" lobbyId={lobbyId}
+        <GameWaitingScreen gameType="just_one" gameName="Just One" lobbyId={lobbyId}
             players={players.map(p => ({ userId: p.id, username: p.name }))}
             myUserId={me} />
     );
@@ -328,14 +319,16 @@ export default function JustOnePage() {
         <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <GamePageHeader
-                left={<span className="font-bold">🔤 Just One</span>}
-                center={<div className="text-center">
-                    {round > 0 && <p className="text-sm font-semibold text-gray-900 dark:text-white">Manche {round}/13</p>}
+                left={<><GameIcon gameType="just_one" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Just One</span></>}
+                center={<div className="text-center leading-tight">
+                    {round > 0 && <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">Manche {round}/13 · <span className="text-blue-500">{score} pt{score !== 1 ? 's' : ''}</span></p>}
                     {guesserName && <p className="text-xs text-gray-500 dark:text-gray-400">{isGuesser ? 'Tu devines' : <><span>👁️ </span><span className="font-medium">{guesserName}</span> devine</>}</p>}
                 </div>}
                 right={<>
-                    <ScoreBadge score={score} />
-                    <button onClick={() => setShowHistory(h => !h)} className="text-xs px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-all">📜 Historique</button>
+                    <button onClick={() => setShowHistory(h => !h)} className="text-xs px-2 sm:px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-all whitespace-nowrap">
+                        <span className="hidden sm:inline">📜 Historique</span>
+                        <span className="sm:hidden">📜</span>
+                    </button>
                     {roundState !== 'WAITING' && roundState !== 'END_GAME' && <SurrenderButton onSurrender={surrender} />}
                 </>}
             />

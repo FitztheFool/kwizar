@@ -6,6 +6,7 @@ import { useGamePage } from '@/hooks/useGamePage';
 import { useImpostor } from '@/hooks/useImpostor';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
 import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
@@ -147,7 +148,7 @@ export default function ImpostorPage() {
 
     const header = (
         <GamePageHeader
-            left={<span className="font-bold">🎭 Imposteur</span>}
+            left={<><GameIcon gameType="impostor" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Imposteur</span></>}
             center={<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 {roundState !== 'WAITING' && <span className="font-semibold text-gray-900 dark:text-white">Round {currentRound}/{totalRounds}</span>}
                 <span>{phaseLabel[roundState]}</span>
@@ -184,7 +185,7 @@ export default function ImpostorPage() {
     // ─── Attente ──────────────────────────────────────────────────────────────
 
     if (roundState === 'WAITING') return (
-        <GameWaitingScreen icon="🎭" gameName="Imposteur" lobbyId={lobbyId}
+        <GameWaitingScreen gameType="impostor" gameName="Imposteur" lobbyId={lobbyId}
             players={players.map(p => ({ userId: p.id, username: p.name }))}
             myUserId={me.userId} />
     );

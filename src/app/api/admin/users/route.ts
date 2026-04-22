@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
                 deactivatedAt: true,
                 _count: { select: { createdQuizzes: true } },
                 attempts: { select: { gameType: true } },
+                accounts: { select: { provider: true } },
             },
             orderBy: getOrderBy(sort),
             skip: (page - 1) * pageSize,
@@ -63,8 +64,9 @@ export async function GET(req: NextRequest) {
         prisma.user.count({ where }),
     ]);
 
-    const users = rawUsers.map(({ attempts, ...user }) => ({
+    const users = rawUsers.map(({ attempts, accounts, ...user }) => ({
         ...user,
+        providers: [...new Set(accounts.map(a => a.provider))],
         quizAttempts: attempts.filter(a => a.gameType === 'QUIZ').length,
         unoAttempts: attempts.filter(a => a.gameType === 'UNO').length,
     }));

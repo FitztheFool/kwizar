@@ -2,7 +2,6 @@ export const GAME_CONFIG = {
     uno: {
         gameType: 'UNO' as const,
         label: 'UNO',
-        icon: '🃏',
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Points',
@@ -14,7 +13,6 @@ export const GAME_CONFIG = {
     skyjow: {
         gameType: 'SKYJOW' as const,
         label: 'Skyjow',
-        icon: '🂠',
         mode: 'both' as const,
         higherIsBetter: false,
         scoreLabel: 'Score moyen',
@@ -26,7 +24,6 @@ export const GAME_CONFIG = {
     taboo: {
         gameType: 'TABOO' as const,
         label: 'Taboo',
-        icon: '🗣️',
         mode: 'multi' as const,
         higherIsBetter: true,
         scoreLabel: 'Points',
@@ -38,7 +35,6 @@ export const GAME_CONFIG = {
     quiz: {
         gameType: 'QUIZ' as const,
         label: 'Quiz',
-        icon: '🎯',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Score total',
@@ -50,7 +46,6 @@ export const GAME_CONFIG = {
     yahtzee: {
         gameType: 'YAHTZEE' as const,
         label: 'Yahtzee',
-        icon: '🎲',
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Score total',
@@ -62,7 +57,6 @@ export const GAME_CONFIG = {
     puissance4: {
         gameType: 'PUISSANCE4' as const,
         label: 'Puissance 4',
-        icon: '🔴',
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Victoires',
@@ -74,7 +68,6 @@ export const GAME_CONFIG = {
     just_one: {
         gameType: 'JUST_ONE' as const,
         label: 'Just One',
-        icon: '🔤',
         mode: 'multi' as const,
         higherIsBetter: true,
         scoreLabel: 'Score moyen',
@@ -86,7 +79,6 @@ export const GAME_CONFIG = {
     battleship: {
         gameType: 'BATTLESHIP' as const,
         label: 'Bataille Navale',
-        icon: '🚢',
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Victoires',
@@ -98,7 +90,6 @@ export const GAME_CONFIG = {
     diamant: {
         gameType: 'DIAMANT' as const,
         label: 'Diamant',
-        icon: '💎',
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Points',
@@ -110,7 +101,6 @@ export const GAME_CONFIG = {
     impostor: {
         gameType: 'IMPOSTOR' as const,
         label: 'Imposteur',
-        icon: '🎭',
         mode: 'multi' as const,
         higherIsBetter: true,
         scoreLabel: 'Points',
@@ -124,17 +114,12 @@ export const GAME_CONFIG = {
 export type GameType = keyof typeof GAME_CONFIG;
 export type GameMode = 'solo' | 'both' | 'multi';
 
-export const GAME_EMOJI_MAP = Object.fromEntries(
-    Object.values(GAME_CONFIG).map(g => [g.gameType, g.icon])
-) as Record<string, string>;
-
 export const GAME_LABEL_MAP = Object.fromEntries(
     Object.values(GAME_CONFIG).map(g => [g.gameType, g.label])
 ) as Record<string, string>;
 
 export const GAME_OPTIONS = Object.entries(GAME_CONFIG).map(([key, g]) => ({
     value: key as GameType,
-    icon: g.icon,
     label: g.label,
 }));
 

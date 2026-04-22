@@ -13,7 +13,7 @@ import { TrophyIcon, CheckIcon } from '@heroicons/react/24/outline';
 function RankBadge({ rank }: { rank: number }) {
     if (rank === 1) return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-lg font-bold">1</span>;
     if (rank === 2) return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-lg font-bold">2</span>;
-    return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-200 dark:bg-orange-900/50 text-orange-800 dark:text-orange-400 text-lg font-bold">3</span>;
+    return <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-700 dark:bg-orange-800 text-orange-50 dark:text-orange-100 text-lg font-bold">3</span>;
 }
 
 const rankStyle = (i: number) => ({
@@ -102,6 +102,14 @@ export default function QuizResultPage() {
 
     // solo + podium use the same layout
     const isSolo = mode === 'solo';
+    const displayLeaderboard: LeaderboardEntry[] = isSolo
+        ? [{
+            userId: session?.user?.id ?? 'me',
+            username: session?.user?.username ?? session?.user?.email ?? 'Vous',
+            totalScore: payload.score,
+            questionResults: payload.questionResults,
+        }]
+        : leaderboard;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900">
@@ -110,7 +118,7 @@ export default function QuizResultPage() {
                     <div className="mb-6 text-center">
                         <div className="mb-3 flex justify-center"><TrophyIcon className="w-16 h-16 text-amber-500" /></div>
                         <h1 className="mb-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
-                            {isSolo ? 'Résultats' : 'Classement final'}
+                            Classement final
                         </h1>
                         <p className="mb-4 text-gray-500 dark:text-gray-400">{payload.quizTitle}</p>
                         <div className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 dark:border-blue-700 dark:bg-blue-900/20">
@@ -126,10 +134,10 @@ export default function QuizResultPage() {
                         </div>
                     </div>
 
-                    {!isSolo && leaderboard.length > 0 && (
+                    {displayLeaderboard.length > 0 && (
                         <>
                             <div className="mb-4 space-y-3">
-                                {leaderboard.slice(0, 3).map((entry, i) => {
+                                {displayLeaderboard.slice(0, 3).map((entry, i) => {
                                     const s = rankStyle(i);
                                     return (
                                         <div
@@ -149,9 +157,9 @@ export default function QuizResultPage() {
                                 })}
                             </div>
 
-                            {leaderboard.length > 3 && (
+                            {displayLeaderboard.length > 3 && (
                                 <div className="space-y-2">
-                                    {leaderboard.slice(3).map((entry, i) => (
+                                    {displayLeaderboard.slice(3).map((entry, i) => (
                                         <div
                                             key={entry.userId}
                                             className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"

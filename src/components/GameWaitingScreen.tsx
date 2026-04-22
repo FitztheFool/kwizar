@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import GameIcon from './GameIcon';
 
 interface Player {
     userId: string;
@@ -9,7 +10,7 @@ interface Player {
 }
 
 interface GameWaitingScreenProps {
-    icon: string;
+    gameType: string;
     gameName: string;
     lobbyId: string;
     players: Player[];
@@ -17,7 +18,7 @@ interface GameWaitingScreenProps {
     hostId?: string;
 }
 
-export default function GameWaitingScreen({ icon, gameName, lobbyId, players, myUserId, hostId }: GameWaitingScreenProps) {
+export default function GameWaitingScreen({ gameType, gameName, lobbyId, players, myUserId, hostId }: GameWaitingScreenProps) {
     const router = useRouter();
     const [cachedPlayers, setCachedPlayers] = useState<Player[]>([]);
 
@@ -41,7 +42,7 @@ export default function GameWaitingScreen({ icon, gameName, lobbyId, players, my
             {/* Header */}
             <header className="shrink-0 h-14 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-sm px-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="text-xl">{icon}</span>
+                    <GameIcon gameType={gameType} className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                     <span className="font-semibold">{gameName}</span>
                 </div>
                 <span className="text-xs text-gray-400 dark:text-white/40 tracking-widest uppercase">En attente</span>

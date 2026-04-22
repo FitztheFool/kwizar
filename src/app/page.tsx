@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
+import GameIcon from '@/components/GameIcon';
 import { PlayIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 6;
@@ -32,7 +33,7 @@ const GAMES_BY_MODE = {
 } satisfies Record<GameMode, [string, typeof GAME_CONFIG[keyof typeof GAME_CONFIG]][]>;
 
 const ALL_GAMES = Object.entries(GAME_CONFIG).map(([key, g]) => ({
-    key, label: g.label, icon: g.icon, href: `/leaderboard/${key}`,
+    key, label: g.label, href: `/leaderboard/${key}`,
 }));
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -92,8 +93,8 @@ function GameCard({ gameKey, mode, wide = false }: { gameKey: string; mode: Game
                 hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-0.5
                 transition-all duration-150
             `}>
-            <span className={`text-3xl leading-none ${wide ? 'mt-0.5 shrink-0' : 'mb-2 block'} group-hover:scale-110 transition-transform`}>
-                {g.icon}
+            <span className={`text-gray-700 dark:text-gray-300 ${wide ? 'mt-0.5 shrink-0' : 'mb-2 block'} group-hover:scale-110 transition-transform`}>
+                <GameIcon gameType={g.gameType} className="w-8 h-8" />
             </span>
             <div className="flex-1 min-w-0">
                 <div className="font-bold text-sm text-gray-900 dark:text-gray-100 mb-1">{g.label}</div>

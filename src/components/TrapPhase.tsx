@@ -94,7 +94,6 @@ function buildSlotsFromTrapsByPlayer(
     teamTraps: string[],
     writers: { userId: string; username: string }[],
     trapWordCount: number,
-    myId: string,
     rich: boolean,
 ): TrapSlotData[] {
     return Array.from({ length: trapWordCount }, (_, i) => {
@@ -174,12 +173,11 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             teamTraps,
             myTeamWriters,
             game.trapWordCount,
-            myId,
             rich,
         );
     }, [serverHasSlots, myTeam, game.team0Slots, game.team1Slots,
         game.team0Traps, game.team1Traps, game.trapsByPlayer,
-        game.trapWordCount, myId, rich]);
+        game.trapWordCount, rich]);
 
     // Vider draft — mode A
     useEffect(() => {
@@ -279,10 +277,10 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
             {myTeam !== null && wordToPiege ? (
                 <div className="mb-5 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                     <p className="text-xs text-gray-500 dark:text-white/40 uppercase tracking-widest mb-1">
-                        Mot à piéger — équipe {myTeam === 0 ? '🔴 Rouge' : '🔵 Bleue'}
+                        Mot à piéger — pour l'équipe {myTeam === 0 ? 'rouge 🔴' : 'bleue 🔵'}
                     </p>
                     <p style={{ fontFamily: "'Bebas Neue', cursive" }}
-                        className="text-4xl tracking-widest text-yellow-400">
+                        className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-400">
                         {wordToPiege}
                     </p>
                 </div>

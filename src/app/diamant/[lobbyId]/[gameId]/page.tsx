@@ -7,6 +7,7 @@ import { useDiamant, Card, PlayerInfo } from '@/hooks/useDiamant';
 import { useGamePage } from '@/hooks/useGamePage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
@@ -46,7 +47,7 @@ const TREASURE_IMG: Record<number, string> = {
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
-import { TrophyIcon, XCircleIcon, CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 // ── Card component ────────────────────────────────────────────────────────────
 
@@ -202,24 +203,28 @@ export default function DiamantPage() {
     const canDecide = state.decisionPhase && amInCave && state.myDecision === null;
 
     if (state.phase === 'waiting') return (
-        <GameWaitingScreen icon="💎" gameName="Diamant" lobbyId={lobbyId} players={state.players} myUserId={myUserId} />
+        <GameWaitingScreen gameType="diamant" gameName="Diamant" lobbyId={lobbyId} players={state.players} myUserId={myUserId} />
     );
 
     return (
         <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><span className="text-xl">💎</span><h1 className="text-base font-black tracking-tight text-amber-800 dark:text-amber-100">Diamant</h1></>}
+                left={<><GameIcon gameType="diamant" className="shrink-0 w-5 h-5 text-amber-700 dark:text-amber-300" /><h1 className="hidden sm:block text-base font-black tracking-tight text-amber-800 dark:text-amber-100">Diamant</h1></>}
                 center={<>
-                    {Array.from({ length: state.totalRounds }, (_, i) => (
-                        <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${i < state.round - 1 ? 'bg-gray-400 dark:bg-gray-600' : i === state.round - 1 ? 'bg-amber-400 shadow-lg shadow-amber-400/50' : 'bg-gray-200 border border-gray-300 dark:bg-gray-800 dark:border-gray-700'}`} />
-                    ))}
-                    <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">Manche {state.round}/{state.totalRounds}</span>
+                    <span className="sm:hidden text-gray-500 dark:text-gray-400 text-xs font-semibold whitespace-nowrap">{state.round}/{state.totalRounds}</span>
+                    <div className="hidden sm:flex items-center gap-2">
+                        {Array.from({ length: state.totalRounds }, (_, i) => (
+                            <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all shrink-0 ${i < state.round - 1 ? 'bg-gray-400 dark:bg-gray-600' : i === state.round - 1 ? 'bg-amber-400 shadow-lg shadow-amber-400/50' : 'bg-gray-200 border border-gray-300 dark:bg-gray-800 dark:border-gray-700'}`} />
+                        ))}
+                        <span className="text-gray-500 dark:text-gray-400 text-xs ml-1 whitespace-nowrap">Manche {state.round}/{state.totalRounds}</span>
+                    </div>
                 </>}
                 right={<>
                     {me && (
-                        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm">
+                        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm whitespace-nowrap">
                             <span className="text-amber-600 dark:text-amber-400 font-bold">💎{me.safeRubies}</span>
-                            {me.relicPoints > 0 && (<><span className="text-gray-400 dark:text-gray-600">+</span><span className="text-emerald-600 dark:text-emerald-400 font-bold">🏺{me.relicPoints}pts</span></>)}
+                            <span className="text-gray-400 dark:text-gray-600">+</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">🏺{me.relicPoints}</span>
                             <span className="text-gray-400 dark:text-gray-600">=</span>
                             <span className="text-gray-800 dark:text-white font-black">{me.safeRubies + me.relicPoints}</span>
                             <span className="text-gray-400 dark:text-gray-600 text-xs">pts</span>
@@ -389,7 +394,7 @@ export default function DiamantPage() {
             {/* Game over */}
             {state.phase === 'finished' && (
                 <GameOverModal
-                    icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <TrophyIcon className="w-8 h-8 text-gray-400" />}
                     title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

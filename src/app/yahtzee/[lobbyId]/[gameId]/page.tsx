@@ -1,6 +1,7 @@
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
 import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
@@ -116,7 +117,7 @@ export default function YahtzeePage() {
     const myId = session?.user?.id ?? meInfo.userId;
     const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
 
-    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, roll, toggleHold, scoreCategory, forceScore, surrender } = useYahtzee({
+    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
         lobbyId,
         userId: myId,
         username: myUsername,
@@ -129,7 +130,7 @@ export default function YahtzeePage() {
     if (isNotFound) notFound();
 
     if (!game) return (
-        <GameWaitingScreen icon="🎲" gameName="Yahtzee" lobbyId={lobbyId} players={[]} myUserId={myId} />
+        <GameWaitingScreen gameType="yahtzee" gameName="Yahtzee" lobbyId={lobbyId} players={[]} myUserId={myId} />
     );
 
     const isMyTurn = game?.currentUserId === myId;
@@ -265,9 +266,9 @@ export default function YahtzeePage() {
 
             <GamePageHeader
                 left={
-                    <><span className="text-xl">🎲</span>
+                    <><GameIcon gameType="yahtzee" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                         <div>
-                            <span className="font-bold leading-none">Yahtzee{vsBot && <span className="ml-2 text-xs font-normal text-indigo-400">vs Bot</span>}</span>
+                            <span className="font-bold leading-none">Yahtzee</span>
                             <p className="text-xs text-gray-400 dark:text-gray-500 leading-none">Tour {game.turn} / 13</p>
                         </div></>
                 }

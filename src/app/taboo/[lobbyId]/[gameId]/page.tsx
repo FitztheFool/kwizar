@@ -4,7 +4,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
 import GamePageHeader from '@/components/GamePageHeader';
-import SurrenderButton from '@/components/SurrenderButton';
+import GameIcon from '@/components/GameIcon';
 
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
@@ -35,13 +35,11 @@ function ScoreBar({ scores, myTeam, currentTeam }: {
         <div className="flex items-center gap-2 justify-center">
             <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">vous</span>
             <span className="text-base leading-none">{myIcon}</span>
-            <span style={{ fontFamily: "'Bebas Neue', cursive" }}
-                className={`text-2xl leading-none transition-colors ${myActive ? (myT === '0' ? 'text-blue-500' : 'text-red-500') : 'text-gray-900 dark:text-white'}`}>
+            <span className={`text-2xl font-bold leading-none transition-colors ${myActive ? (myT === '0' ? 'text-blue-500' : 'text-red-500') : 'text-gray-900 dark:text-white'}`}>
                 {scores[myT] ?? 0}
             </span>
             <span className="text-gray-400 dark:text-gray-500 font-bold text-sm">–</span>
-            <span style={{ fontFamily: "'Bebas Neue', cursive" }}
-                className={`text-2xl leading-none transition-colors ${advActive ? (advT === '0' ? 'text-blue-500' : 'text-red-500') : 'text-gray-900 dark:text-white'}`}>
+            <span className={`text-2xl font-bold leading-none transition-colors ${advActive ? (advT === '0' ? 'text-blue-500' : 'text-red-500') : 'text-gray-900 dark:text-white'}`}>
                 {scores[advT] ?? 0}
             </span>
             <span className="text-base leading-none">{advIcon}</span>
@@ -74,7 +72,7 @@ function AttemptsList({ attempts, refEl }: {
 
 const TABOO_LEFT = (
     <>
-        <span className="shrink-0 text-xl">🚫</span>
+        <GameIcon gameType="taboo" className="shrink-0 w-5 h-5 text-gray-700 dark:text-gray-300" />
         <span className="hidden sm:block font-bold text-gray-900 dark:text-white truncate">Taboo</span>
     </>
 );
@@ -116,7 +114,7 @@ export default function TabooGamePage() {
     if (status === 'loading') return <LoadingSpinner />;
     if (status !== 'authenticated') return null;
     if (!game) return (
-        <GameWaitingScreen icon="🗣️" gameName="Taboo" lobbyId={lobbyId} players={[]} myUserId={myId} />
+        <GameWaitingScreen gameType="taboo" gameName="Taboo" lobbyId={lobbyId} players={[]} myUserId={myId} />
     );
 
     const myTeam = game.teams?.[myId] ?? null;
@@ -139,14 +137,13 @@ export default function TabooGamePage() {
         setAttemptInput('');
     };
 
-    const FONTS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bebas+Neue&display=swap');`;
+    const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`;
 
 
     // ── Phase trap ────────────────────────────────────────────────────────────
     if (game.phase === 'trap') {
         return (
-            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <style>{FONTS}</style>
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -202,8 +199,7 @@ export default function TabooGamePage() {
         const trapsUsed = teamWhoJustPlayed === 0 ? game.team1Traps : game.team0Traps;
 
         return (
-            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <style>{FONTS}</style>
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -224,13 +220,13 @@ export default function TabooGamePage() {
                 <div className="flex items-center justify-center p-4 py-8">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Fin du tour</p>
-                        <p style={{ fontFamily: "'Bebas Neue'" }} className={`text-3xl tracking-widest text-center ${teamColor}`}>{teamLabel}</p>
+                        <p className={`text-2xl font-bold text-center ${teamColor}`}>{teamLabel}</p>
                         <p className={`text-xl font-bold text-center ${resultColor}`}>{resultLabel}</p>
                         <p className="text-gray-400 dark:text-white/30 text-xs text-center">Round {game.round}/{game.totalRounds}</p>
 
                         <div className="rounded-2xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-4 text-center">
                             <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-1">Mot mystère 👁</p>
-                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-4xl tracking-widest text-yellow-600 dark:text-yellow-300">
+                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                 {wordJustPlayed ?? '???'}
                             </p>
                         </div>
@@ -281,8 +277,7 @@ export default function TabooGamePage() {
         const myTeamPlayers = game.players.filter(p => p.team === myTeam);
 
         return (
-            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <style>{FONTS}</style>
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -303,7 +298,7 @@ export default function TabooGamePage() {
                 <div className="flex items-center justify-center p-4 py-8">
                     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Prochain tour</p>
-                        <p style={{ fontFamily: "'Bebas Neue'" }} className={`text-3xl tracking-widest text-center ${teamColor}`}>{teamLabel}</p>
+                        <p className={`text-2xl font-bold text-center ${teamColor}`}>{teamLabel}</p>
 
                         <div className="space-y-1 text-sm text-center">
                             <p className="text-gray-500 dark:text-white/60">
@@ -331,7 +326,7 @@ export default function TabooGamePage() {
                         {isCurrentTeam && (
                             <div className="p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                                 <p className="text-xs text-gray-400 dark:text-white/40 uppercase tracking-widest mb-1 text-center">Mot à trouver</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl tracking-widest text-gray-400 dark:text-white/20 text-center">???</p>
+                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl tracking-wider text-gray-400 dark:text-white/20 text-center">???</p>
                                 <p className="text-xs text-gray-400 dark:text-white/30 mt-2 text-center">{isOrator ? 'Le mot vous sera révélé une fois prêt !' : "Écoutez l'orateur !"}</p>
                             </div>
                         )}
@@ -340,7 +335,7 @@ export default function TabooGamePage() {
                             <>
                                 <div className="rounded-2xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-4 text-center">
                                     <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot mystère 👁</p>
-                                    <p style={{ fontFamily: "'Bebas Neue'" }} className="text-4xl tracking-widest text-yellow-600 dark:text-yellow-300">
+                                    <p style={{ fontFamily: "'Bebas Neue'" }} className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                         {game.currentWord ?? '???'}
                                     </p>
                                 </div>
@@ -415,8 +410,7 @@ export default function TabooGamePage() {
         : '?';
 
     return (
-        <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}>
+        <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <style>{FONTS}</style>
 
             <GamePageHeader
@@ -424,19 +418,20 @@ export default function TabooGamePage() {
                 center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                 right={
                     <div className="flex items-center gap-2">
-                        <span className="text-right leading-tight">
-                            <span className="hidden sm:inline">Round </span><span className="whitespace-nowrap">{game.round}/{game.totalRounds}</span>
-                            <span className="text-gray-400 dark:text-gray-500"> · 🎤 {currentOratorUsername}</span>
-                        </span>
+                        <span className="whitespace-nowrap text-xs sm:text-sm"><span className="hidden sm:inline">Round </span>{game.round}/{game.totalRounds}</span>
                         <button
                             onClick={() => { if (confirm('Abandonner la partie ?')) socketRef.current?.emit('taboo:surrender'); }}
                             className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-300 dark:border-red-800 hover:border-red-400 dark:hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
                         >
-                            🏳️ Abandonner
+                            🏳️ <span className="hidden sm:inline">Abandonner</span>
                         </button>
                     </div>
                 }
             />
+
+            <div className="shrink-0 px-4 py-1.5 bg-white/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400 text-center">
+                🎤 Orateur : <span className="font-semibold text-gray-900 dark:text-white">{currentOratorUsername}</span>
+            </div>
 
             <div className="flex flex-col items-center justify-center p-4 py-8 gap-4">
 
@@ -462,7 +457,7 @@ export default function TabooGamePage() {
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-green-500/30 bg-green-50 dark:bg-green-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot à faire deviner</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-5xl tracking-widest text-green-700 dark:text-green-300">
+                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-green-700 dark:text-green-300">
                                     {game.currentWord ?? '???'}
                                 </p>
                             </div>
@@ -486,7 +481,7 @@ export default function TabooGamePage() {
                     <div className="w-full max-w-sm space-y-3">
                         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 p-6 text-center">
                             <p className="text-xs text-gray-400 dark:text-white/50 uppercase tracking-widest mb-2">Mot à trouver</p>
-                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-5xl tracking-widest text-gray-400 dark:text-white/40">???</p>
+                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-4xl sm:text-5xl tracking-wider text-gray-400 dark:text-white/40">???</p>
                         </div>
                         {!game.paused && (
                             <div className="flex gap-2">
@@ -519,7 +514,7 @@ export default function TabooGamePage() {
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot mystère 👁</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-5xl tracking-widest text-yellow-600 dark:text-yellow-300">
+                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                     {game.currentWord ?? '???'}
                                 </p>
                             </div>

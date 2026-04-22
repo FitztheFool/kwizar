@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
 
 type CardColor = 'red' | 'green' | 'blue' | 'yellow' | 'wild';
 type Card = { id: string; color: CardColor; value: string };
@@ -280,7 +281,7 @@ export default function UnoPage() {
     // ── Attente ────────────────────────────────────────────────────────────────
     if (!gameState || gameState.status === 'WAITING') {
         return (
-            <GameWaitingScreen icon="🃏" gameName="Uno" lobbyId={lobbyId}
+            <GameWaitingScreen gameType="uno" gameName="Uno" lobbyId={lobbyId}
                 players={lobbyState?.players ?? []}
                 myUserId={me.userId}
                 hostId={lobbyState?.hostId ?? undefined} />
@@ -313,7 +314,7 @@ export default function UnoPage() {
             {/* Header */}
             <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
-                    <span className="font-bold text-lg">🃏 UNO</span>
+                    <span className="flex items-center gap-2 font-bold text-lg"><GameIcon gameType="uno" className="w-5 h-5" /> UNO</span>
                     {gameState.spectator && (
                         <span className="text-xs bg-purple-500/20 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full font-semibold">
                             👁 Spectateur

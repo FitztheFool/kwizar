@@ -153,7 +153,7 @@ export const authOptions: NextAuthOptions = {
                     }
                 }
 
-                if (dbUser?.status === 'DEACTIVATED') {
+                if (dbUser?.status === 'PENDING' || dbUser?.status === 'DEACTIVATED') {
                     await prisma.user.update({ where: { id: dbUser.id }, data: { status: 'ACTIVE', deactivatedAt: null } });
                 }
             }
@@ -201,7 +201,8 @@ export const authOptions: NextAuthOptions = {
             let username = base;
             const taken = await prisma.user.findFirst({ where: { username: base, NOT: { id: user.id } } });
             if (taken) username = `user_${user.id.slice(-8)}`;
-            await prisma.user.update({ where: { id: user.id }, data: { username } });
+            // OAuth-created users are active immediately (no email confirmation needed)
+            await prisma.user.update({ where: { id: user.id }, data: { username, status: 'ACTIVE' } });
         },
         signIn: async ({ user, account }) => {
             if (account?.provider === 'oauth-completion') return;
