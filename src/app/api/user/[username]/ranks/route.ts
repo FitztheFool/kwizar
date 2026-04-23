@@ -25,7 +25,8 @@ export async function GET(
             where: { role: { notIn: ['ADMIN', 'RANDOM'] } },
             select: { id: true },
         });
-        const eligibleIds = eligibleUsers.map(u => u.id);
+        // Toujours inclure l'utilisateur demandeur pour qu'il ait un rang même s'il est admin
+        const eligibleIds = [...new Set([...eligibleUsers.map(u => u.id), user.id])];
 
         // ── 1. Jeux classés par score total (UNO, TABOO, YAHTZEE, DIAMANT, IMPOSTOR) ─
         const sumRanks = await prisma.$queryRaw<RankRow[]>`

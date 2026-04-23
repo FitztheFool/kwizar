@@ -8,6 +8,7 @@ import Link from 'next/link';
 import DiscordButton from '@/components/DiscordButton';
 import GoogleButton from '@/components/GoogleButton';
 import GuestLoginButton from '@/components/GuestLoginButton';
+import { UserPlusIcon } from '@heroicons/react/24/outline';
 
 function RegisterForm() {
     const router = useRouter();
@@ -71,10 +72,9 @@ function RegisterForm() {
                 setError(data.error || 'Une erreur est survenue');
             } else {
                 // Rediriger vers la page de login avec le callback URL
-                const loginUrl = callbackUrl !== '/dashboard'
-                    ? `/login?registered=true&callbackUrl=${encodeURIComponent(callbackUrl)}`
-                    : '/login?registered=true';
-                router.push(loginUrl);
+                const params = new URLSearchParams({ registered: 'true', email: formData.email });
+                if (callbackUrl !== '/dashboard') params.set('callbackUrl', callbackUrl);
+                router.push(`/login?${params}`);
             }
         } catch (err) {
             setError('Une erreur est survenue');
@@ -84,12 +84,12 @@ function RegisterForm() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4 py-12">
             <div className="max-w-md w-full">
-                {/* Logo/Title */}
-                <div className="text-center mb-8">
-                    <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
-                        🎯 Kwizar
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-flex flex-col items-center gap-2 text-gray-900 dark:text-white">
+                        <UserPlusIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <span className="text-3xl font-bold">Kwizar</span>
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">
                         Créez votre compte gratuitement

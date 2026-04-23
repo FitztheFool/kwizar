@@ -35,7 +35,7 @@ export const GAME_CONFIG = {
     quiz: {
         gameType: 'QUIZ' as const,
         label: 'Quiz',
-        mode: 'solo' as const,
+        mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Score total',
         description: "Teste tes connaissances sur tous les sujets !",

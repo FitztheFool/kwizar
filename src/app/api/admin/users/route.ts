@@ -66,7 +66,9 @@ export async function GET(req: NextRequest) {
 
     const users = rawUsers.map(({ attempts, accounts, ...user }) => ({
         ...user,
-        providers: [...new Set(accounts.map(a => a.provider))],
+        providers: accounts.length > 0
+            ? [...new Set(accounts.map(a => a.provider))]
+            : user.role !== 'GUEST' ? ['credentials'] : [],
         quizAttempts: attempts.filter(a => a.gameType === 'QUIZ').length,
         unoAttempts: attempts.filter(a => a.gameType === 'UNO').length,
     }));

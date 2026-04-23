@@ -9,6 +9,7 @@ import Link from 'next/link';
 import DiscordButton from '@/components/DiscordButton';
 import GoogleButton from '@/components/GoogleButton';
 import GuestLoginButton from '@/components/GuestLoginButton';
+import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 function LoginForm() {
     const { status } = useSession();
@@ -35,12 +36,48 @@ function LoginForm() {
         const providerLabel = provider ? (PROVIDER_LABELS[provider] ?? provider) : null;
 
         if (e === 'OAuthAccountConflict') return 'Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe ou utilisez la récupération de mot de passe.';
-        if (e === 'OAuthEmailConflict') return `Cet email est déjà associé à un compte ${providerLabel ?? 'OAuth'}. Connectez-vous avec ${providerLabel ?? 'ce provider'}.`; // ← ICI
+        if (e === 'OAuthEmailConflict') return `Cet email est déjà associé à un compte ${providerLabel ?? 'OAuth'}. Connectez-vous avec ${providerLabel ?? 'ce provider'}.`;
         if (e === 'AccountBanned') return 'Votre compte a été banni.';
         if (e === 'SessionExpired') return 'Session expirée, veuillez vous reconnecter.';
+        if (e === 'TokenExpired') return 'Ce lien d\'activation a expiré. Connectez-vous pour en recevoir un nouveau.';
+        if (e === 'InvalidToken') return 'Lien d\'activation invalide.';
         return '';
     });
     const [loading, setLoading] = useState(false);
+    const [pendingEmail, setPendingEmail] = useState(() => searchParams.get('email') ?? '');
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendRateLimited, setResendRateLimited] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+    const registered = searchParams.get('registered') === 'true';
+    const verified = searchParams.get('verified') === '1';
+
+    const handleResend = async () => {
+        if (!pendingEmail || resendCooldown > 0) return;
+        setResendLoading(true);
+        try {
+            const res = await fetch('/api/auth/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: pendingEmail }),
+            });
+            const rateLimited = res.status === 429;
+            setResendRateLimited(rateLimited);
+            const cooldown = rateLimited ? 180 : res.ok ? 180 : 0;
+            if (cooldown > 0) {
+                setResendCooldown(cooldown);
+                const interval = setInterval(() => {
+                    setResendCooldown(c => {
+                        if (c <= 1) { clearInterval(interval); return 0; }
+                        return c - 1;
+                    });
+                }, 1000);
+            }
+        } catch {
+            // silencieux, le bouton reste disponible
+        } finally {
+            setResendLoading(false);
+        }
+    };
 
     // ✅ si déjà connecté -> va sur callbackUrl, pas /dashboard
     useEffect(() => {
@@ -101,7 +138,10 @@ function LoginForm() {
             });
 
             if (result?.error) {
-                if (result.error === 'deactivated') setError('Votre compte a été banni.');
+                if (result.error === 'AccountPending') {
+                    setPendingEmail(identifier);
+                    setError('AccountPending');
+                } else if (result.error === 'deactivated') setError('Votre compte a été banni.');
                 else setError('Email ou mot de passe incorrect');
             } else {
                 router.push(callbackUrl);  // ← supprimer result?.url
@@ -115,11 +155,12 @@ function LoginForm() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4 py-12">
             <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <Link href="/" className="text-4xl font-bold text-gray-900 dark:text-white">
-                        🎯 Kwizar
+                <div className="text-center mb-10">
+                    <Link href="/" className="inline-flex flex-col items-center gap-2 text-gray-900 dark:text-white">
+                        <LockClosedIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <span className="text-3xl font-bold">Kwizar</span>
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Connectez-vous pour continuer</p>
                 </div>
@@ -133,11 +174,52 @@ function LoginForm() {
                         </div>
                     )}
 
-                    {error && (
+                    {verified && (
+                        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg text-sm text-green-700 dark:text-green-300">
+                            <p className="font-semibold">Email confirmé ✓</p>
+                            <p className="mt-1">Votre compte est activé. Vous pouvez vous connecter.</p>
+                        </div>
+                    )}
+
+                    {registered && !error && (
+                        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                            <p className="font-semibold flex items-center gap-1.5"><EnvelopeIcon className="w-4 h-4" />Vérifiez votre boîte mail</p>
+                            <p className="mt-1">Un lien d'activation a été envoyé à votre adresse email. Cliquez dessus pour activer votre compte.</p>
+                            {resendCooldown > 0 ? (
+                                <p className="mt-2 text-xs">
+                                    {resendRateLimited ? 'Trop de tentatives —' : 'Lien envoyé ✓ —'} Renvoi possible dans <span className="font-semibold">{Math.floor(resendCooldown / 60)}:{String(resendCooldown % 60).padStart(2, '0')}</span>
+                                </p>
+                            ) : (
+                                <button onClick={handleResend} disabled={resendLoading} className="mt-2 text-xs font-semibold underline hover:no-underline disabled:opacity-50">
+                                    {resendLoading ? 'Envoi…' : 'Renvoyer le lien'}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {error === 'AccountPending' ? (
+                        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+                            <p className="font-semibold">Compte non activé</p>
+                            <p className="mt-1">Vérifiez votre boîte mail et cliquez sur le lien d'activation.</p>
+                            {resendCooldown > 0 ? (
+                                <p className="mt-2 text-xs">
+                                    {resendRateLimited ? 'Trop de tentatives —' : 'Lien envoyé ✓ —'} Renvoi possible dans <span className="font-semibold">{Math.floor(resendCooldown / 60)}:{String(resendCooldown % 60).padStart(2, '0')}</span>
+                                </p>
+                            ) : (
+                                <button
+                                    onClick={handleResend}
+                                    disabled={resendLoading}
+                                    className="mt-2 text-xs font-semibold underline hover:no-underline disabled:opacity-50"
+                                >
+                                    {resendLoading ? 'Envoi…' : 'Renvoyer le lien'}
+                                </button>
+                            )}
+                        </div>
+                    ) : error ? (
                         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 rounded-lg">
                             {error}
                         </div>
-                    )}
+                    ) : null}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

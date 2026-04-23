@@ -1,7 +1,9 @@
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import prisma from '@/lib/prisma';
+import { sendVerificationEmail } from '@/lib/mail';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -78,9 +80,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Créer le token de vérification et envoyer l'email
+    const token = randomBytes(32).toString('hex');
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    await sendVerificationEmail(email, token).catch(err =>
+      console.error('Erreur envoi email de vérification:', err)
+    );
+
     return NextResponse.json(
       {
-        message: 'Compte créé avec succès',
+        message: 'Compte créé avec succès. Vérifiez votre email pour activer votre compte.',
         user,
       },
       { status: 201 }

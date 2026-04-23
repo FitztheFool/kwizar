@@ -85,6 +85,7 @@ export const authOptions: NextAuthOptions = {
                 });
                 if (!user || !user.passwordHash) throw new Error('Identifiants incorrects');
                 if (user.status === 'BANNED') throw new Error('AccountBanned');
+                if (user.status === 'PENDING') throw new Error('AccountPending');
                 const isPasswordValid = await compare(credentials.password, user.passwordHash);
                 if (!isPasswordValid) throw new Error('Identifiants incorrects');
                 if (user.status === 'DEACTIVATED') {

@@ -53,11 +53,11 @@ async function main() {
     // ─── 3. Utilisateurs ──────────────────────────────────────────────────────
     const defaultPasswordHash = await bcrypt.hash('123456', 10);
 
-    const upsert = (email: string, username: string, role: 'ADMIN' | 'RANDOM' | 'USER') =>
+    const upsert = (email: string, username: string, role: 'ADMIN' | 'RANDOM' | 'USER', status: 'ACTIVE' | 'PENDING' = 'ACTIVE') =>
         prisma.user.upsert({
             where: { email },
-            update: {},
-            create: { email, username, role, passwordHash: defaultPasswordHash },
+            update: { status },
+            create: { email, username, role, status, passwordHash: defaultPasswordHash },
         });
 
     const adminUser = await upsert('admin@quiz.app', 'Admin', 'ADMIN');
@@ -67,7 +67,7 @@ async function main() {
 
     const numbered = await Promise.all(
         Array.from({ length: 10 }, (_, i) =>
-            upsert(`user${i + 1}@quiz.app`, `User${i + 1}`, 'USER')
+            upsert(`user${i + 1}@quiz.app`, `User${i + 1}`, 'USER', i < 5 ? 'ACTIVE' : 'PENDING')
         )
     );
     const [user1, user2, user3, user4, user5, user6, user7, user8, user9, user10] = numbered;

@@ -43,7 +43,8 @@
       "Bash(git -C /home/faros/quiz show HEAD:src/middleware.ts)",
       "Bash(git -C /home/faros/quiz diff HEAD -- src/lib/gameConfig.ts src/app/lobby/create/\\\\[code\\\\]/page.tsx)",
       "Bash(git -C /home/faros/quiz diff HEAD -- src/app/login/page.tsx)",
-      "Bash(git -C /home/faros/quiz diff HEAD -- package.json tsconfig.json)"
+      "Bash(git -C /home/faros/quiz diff HEAD -- package.json tsconfig.json)",
+      "Bash(npx tsc *)"
     ],
     "additionalDirectories": [
       "/home/faros/dev-launcher/impostor-server/src",

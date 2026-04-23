@@ -70,17 +70,9 @@ export default function UserStats({ username }: Props) {
 
     if (!stats) return <p className="text-gray-600 dark:text-white text-sm">Impossible de charger les statistiques.</p>;
 
-    const gamesWithRate = Object.entries(stats.gameStats)
-        .filter(([, v]) => v.count > 0)
-        .sort((a, b) => {
-            const ra = a[1].wins ? a[1].wins / a[1].count : 0;
-            const rb = b[1].wins ? b[1].wins / b[1].count : 0;
-            return rb - ra;
-        });
-    const bestGame = gamesWithRate[0] ?? null;
-    const worstGame = gamesWithRate.length > 1 ? gamesWithRate[gamesWithRate.length - 1] : null;
     const lastActivity = stats.recentActivity[0] ?? null;
     const activeGameStats = Object.fromEntries(Object.entries(stats.gameStats).filter(([, v]) => v.count > 0));
+    const bestRank = Object.entries(ranks).sort((a, b) => a[1] - b[1])[0] ?? null;
 
     return (
         <div className="space-y-4">
@@ -94,46 +86,48 @@ export default function UserStats({ username }: Props) {
                 />
                 <StatChip
                     value={Object.keys(activeGameStats).length}
-                    label="jeux différents"
+                    label={Object.keys(activeGameStats).length <= 1 ? 'jeu différent' : 'jeux différents'}
                     className="bg-white dark:bg-gray-900"
                 />
 
-                {bestGame ? (
+                {stats.totalGames > 0 && (
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-lg font-bold text-gray-900 dark:text-white">
-                            <GameIcon gameType={bestGame[0]} className="w-5 h-5" />
-                            {GAME_LABEL_MAP[bestGame[0]] ?? bestGame[0]}
-                        </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">meilleur jeu</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Classement</div>
+                        {Object.keys(ranks).length > 0 ? (
+                            <div className="space-y-1.5 mt-1">
+                                {Object.entries(ranks)
+                                    .sort((a, b) => a[1] - b[1])
+                                    .slice(0, 3)
+                                    .map(([type, r]) => (
+                                        <div key={type} className="flex items-center gap-2">
+                                            {r <= 3 ? (
+                                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 ${r === 1 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : r === 2 ? 'bg-gray-100 dark:bg-gray-700 text-gray-500' : 'bg-orange-700 text-orange-50'}`}>{r}</span>
+                                            ) : (
+                                                <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-5 text-center shrink-0">#{r}</span>
+                                            )}
+                                            <div className="flex items-center gap-1 min-w-0">
+                                                <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0 text-gray-500 dark:text-gray-400" />
+                                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{GAME_LABEL_MAP[type] ?? type}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm font-semibold text-gray-400 dark:text-gray-500 mt-1">—</p>
+                        )}
                     </div>
-                ) : <div />}
+                )}
 
                 {lastActivity ? (
                     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Dernière partie</div>
                         <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
                             <GameIcon gameType={lastActivity.gameType} className="w-4 h-4" />
                             {GAME_LABEL_MAP[lastActivity.gameType] ?? lastActivity.gameType}
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-white">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {new Date(lastActivity.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {new Date(lastActivity.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        {Object.entries(ranks)
-                            .filter(([, r]) => r <= 3)
-                            .sort((a, b) => a[1] - b[1])
-                            .map(([type, r]) => (
-                                <div key={type} className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 mt-0.5">
-                                    <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold ${r === 1 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : r === 2 ? 'bg-gray-100 dark:bg-gray-700 text-gray-500' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'}`}>{r}</span>
-                                    {GAME_LABEL_MAP[type] ?? type}
-                                </div>
-                            ))}
-                    </div>
-                ) : worstGame && worstGame[0] !== bestGame?.[0] ? (
-                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-lg font-bold text-gray-900 dark:text-white">
-                            <GameIcon gameType={worstGame[0]} className="w-5 h-5" />
-                            {GAME_LABEL_MAP[worstGame[0]] ?? worstGame[0]}
-                        </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">à améliorer</div>
                     </div>
                 ) : <div />}
             </div>

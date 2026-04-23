@@ -221,10 +221,10 @@ export default function DiamantPage() {
                 </>}
                 right={<>
                     {me && (
-                        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm whitespace-nowrap">
+                        <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2 sm:px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap">
                             <span className="text-amber-600 dark:text-amber-400 font-bold">💎{me.safeRubies}</span>
-                            <span className="text-gray-400 dark:text-gray-600">+</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">🏺{me.relicPoints}</span>
+                            <span className="hidden sm:inline text-gray-400 dark:text-gray-600">+</span>
+                            <span className="hidden sm:inline text-emerald-600 dark:text-emerald-400 font-bold">🏺{me.relicPoints}</span>
                             <span className="text-gray-400 dark:text-gray-600">=</span>
                             <span className="text-gray-800 dark:text-white font-black">{me.safeRubies + me.relicPoints}</span>
                             <span className="text-gray-400 dark:text-gray-600 text-xs">pts</span>
