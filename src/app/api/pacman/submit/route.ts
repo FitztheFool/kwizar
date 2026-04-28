@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { score, gameId } = await req.json();
+        const { score, gameId, level } = await req.json();
 
         if (typeof score !== 'number' || score < 0 || score > 1000000) {
             return NextResponse.json({ error: 'Score invalide' }, { status: 400 });
@@ -19,15 +19,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'gameId manquant' }, { status: 400 });
         }
 
+        const rounds = typeof level === 'number' && level > 0 ? level : 1;
+
         await prisma.attempt.upsert({
             where: { userId_gameId: { userId: session.user.id, gameId } },
-            update: { score },
-            create: {
-                userId: session.user.id,
-                gameType: 'PACMAN',
-                gameId,
-                score,
-            },
+            update: { score, rounds },
+            create: { userId: session.user.id, gameType: 'PACMAN', gameId, score, rounds },
         });
 
         return NextResponse.json({ ok: true });

@@ -47,6 +47,7 @@ const TREASURE_IMG: Record<number, string> = {
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { TrophyIcon, CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 // ── Card component ────────────────────────────────────────────────────────────
@@ -126,7 +127,7 @@ function ExpeditionCard({
 
 // ── Player row ────────────────────────────────────────────────────────────────
 
-function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
+function PlayerRow({ player, isMe, inactivityEndsAt }: { player: PlayerInfo; isMe: boolean; inactivityEndsAt?: number | null }) {
     return (
         <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all
             ${!player.inCave ? 'border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900/40' : ''}
@@ -137,9 +138,10 @@ function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
             <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${player.inCave ? 'bg-green-500 dark:bg-green-400 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} />
 
             {/* Name */}
-            <span className={`text-sm font-semibold flex-1 ${player.surrendered ? 'line-through text-gray-400 dark:text-gray-600' : isMe ? 'text-amber-700 dark:text-amber-300' : 'text-gray-700 dark:text-gray-300'}`}>
+            <span className={`text-sm font-semibold flex-1 flex items-center gap-1.5 ${player.surrendered ? 'line-through text-gray-400 dark:text-gray-600' : isMe ? 'text-amber-700 dark:text-amber-300' : 'text-gray-700 dark:text-gray-300'}`}>
                 {player.username}
-                {isMe && <span className="text-gray-400 dark:text-gray-500 text-xs font-normal ml-1">(moi)</span>}
+                {isMe && <span className="text-gray-400 dark:text-gray-500 text-xs font-normal">(moi)</span>}
+                {inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
             </span>
 
             {/* Cave status */}
@@ -186,7 +188,7 @@ function PlayerRow({ player, isMe }: { player: PlayerInfo; isMe: boolean }) {
 export default function DiamantPage() {
     const { status, router, me: meInfo, lobbyId } = useGamePage();
 
-    const { state, decide, clearError, gameNotFound, surrender } = useDiamant({
+    const { state, decide, clearError, gameNotFound, surrender, inactivityUserId, inactivityEndsAt } = useDiamant({
         lobbyId,
         userId: meInfo.userId,
         username: meInfo.username,
@@ -383,7 +385,7 @@ export default function DiamantPage() {
                             <div className="space-y-2">
                                 <p className="text-[10px] text-gray-600 dark:text-gray-500 uppercase tracking-widest font-semibold">Explorateurs</p>
                                 {state.players.map((p) => (
-                                    <PlayerRow key={p.userId} player={p} isMe={p.userId === myUserId} />
+                                    <PlayerRow key={p.userId} player={p} isMe={p.userId === myUserId} inactivityEndsAt={inactivityUserId === p.userId ? inactivityEndsAt : null} />
                                 ))}
                             </div>
                         </>

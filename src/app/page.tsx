@@ -31,14 +31,6 @@ const MODE_STYLES = {
     multi: { pill: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', accent: 'border-l-emerald-400', label: 'Multi' },
 };
 
-function Pill({ mode }: { mode: GameMode }) {
-    const s = MODE_STYLES[mode];
-    return (
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${s.pill}`}>
-            {s.label}
-        </span>
-    );
-}
 
 function SectionDivider({ label, badge, mode }: { label: string; badge: string; mode: GameMode }) {
     const colors = {
@@ -94,7 +86,7 @@ function GameCard({ gameKey, mode }: { gameKey: string; mode: GameMode }) {
                             className="text-[11px] font-bold px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
                             Rejoindre
                         </Link>
-                        <Link href={`/lobby/create/${lobbyCode}`}
+                        <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`}
                             className="text-[11px] font-bold px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
                             Créer
                         </Link>

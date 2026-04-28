@@ -42,6 +42,7 @@ enum GameType {
   IMPOSTOR
   SNAKE
   PACMAN
+  BREAKOUT
 }
 
 model Account {

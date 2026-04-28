@@ -35,6 +35,21 @@ function SnakeIcon({ className }: { className?: string }) {
     );
 }
 
+function BreakoutIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+            <rect x="2" y="4" width="5" height="3" rx="0.5" opacity="0.9" />
+            <rect x="9" y="4" width="5" height="3" rx="0.5" opacity="0.9" />
+            <rect x="16" y="4" width="5" height="3" rx="0.5" opacity="0.9" />
+            <rect x="2" y="9" width="5" height="3" rx="0.5" opacity="0.7" />
+            <rect x="9" y="9" width="5" height="3" rx="0.5" opacity="0.7" />
+            <rect x="16" y="9" width="5" height="3" rx="0.5" opacity="0.7" />
+            <circle cx="12" cy="16" r="1.5" />
+            <rect x="7" y="20" width="10" height="2.5" rx="1.25" />
+        </svg>
+    );
+}
+
 const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
     UNO:        RectangleStackIcon,
     SKYJOW:     Squares2X2Icon,
@@ -48,6 +63,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     IMPOSTOR:   EyeSlashIcon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
+    BREAKOUT:   BreakoutIcon,
     // lowercase keys for gameConfig key-based lookups
     uno:        RectangleStackIcon,
     skyjow:     Squares2X2Icon,
@@ -61,6 +77,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     impostor:   EyeSlashIcon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,
+    breakout:   BreakoutIcon,
 };
 
 interface Props {

@@ -69,8 +69,9 @@ export async function GET(req: NextRequest) {
         providers: accounts.length > 0
             ? [...new Set(accounts.map(a => a.provider))]
             : user.role !== 'GUEST' ? ['credentials'] : [],
+        totalAttempts: attempts.length,
         quizAttempts: attempts.filter(a => a.gameType === 'QUIZ').length,
-        unoAttempts: attempts.filter(a => a.gameType === 'UNO').length,
+        soloAttempts: attempts.filter(a => a.gameType === 'SNAKE' || a.gameType === 'PACMAN' || a.gameType === 'BREAKOUT').length,
     }));
 
     return NextResponse.json({

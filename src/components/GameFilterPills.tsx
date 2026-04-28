@@ -13,9 +13,10 @@ interface Props {
     activeClassName?: string;
     inactiveClassName?: string;
     showAll?: boolean;
+    allowedGameTypes?: string[];
 }
 
-const GAMES = Object.values(GAME_CONFIG).map(g => ({
+const ALL_GAMES = Object.values(GAME_CONFIG).map(g => ({
     gameType: g.gameType as GameFilter,
     label: g.label,
 }));
@@ -26,11 +27,14 @@ export default function GameFilterPills({
     activeClassName = 'bg-red-600 text-white border-red-600',
     inactiveClassName = 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700',
     showAll = true,
+    allowedGameTypes,
 }: Props) {
-    const games = showAll ? GAMES : GAMES;
+    const games = allowedGameTypes
+        ? ALL_GAMES.filter(g => allowedGameTypes.includes(g.gameType))
+        : ALL_GAMES;
     return (
         <div className="flex flex-wrap gap-2">
-            {showAll && (
+            {showAll && games.length > 1 && (
                 <button
                     onClick={() => onChange('ALL')}
                     className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${value === 'ALL' ? activeClassName : inactiveClassName}`}

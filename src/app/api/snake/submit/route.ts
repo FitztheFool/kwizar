@@ -22,12 +22,7 @@ export async function POST(req: NextRequest) {
         await prisma.attempt.upsert({
             where: { userId_gameId: { userId: session.user.id, gameId } },
             update: { score },
-            create: {
-                userId: session.user.id,
-                gameType: 'SNAKE',
-                gameId,
-                score,
-            },
+            create: { userId: session.user.id, gameType: 'SNAKE', gameId, score },
         });
 
         return NextResponse.json({ ok: true });

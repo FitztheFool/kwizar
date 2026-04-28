@@ -20,14 +20,12 @@ interface GameWaitingScreenProps {
 
 export default function GameWaitingScreen({ gameType, gameName, lobbyId, players, myUserId, hostId }: GameWaitingScreenProps) {
     const router = useRouter();
-    const [cachedPlayers, setCachedPlayers] = useState<Player[]>([]);
-
-    useEffect(() => {
-        const cached = sessionStorage.getItem(`lobby_players_${lobbyId}`);
-        if (cached) {
-            try { setCachedPlayers(JSON.parse(cached)); } catch { /* ignore */ }
-        }
-    }, [lobbyId]);
+    const [cachedPlayers] = useState<Player[]>(() => {
+        try {
+            const cached = sessionStorage.getItem(`lobby_players_${lobbyId}`);
+            return cached ? JSON.parse(cached) : [];
+        } catch { return []; }
+    });
 
     useEffect(() => {
         if (players.length > 0) {

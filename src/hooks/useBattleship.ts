@@ -91,6 +91,8 @@ export function useBattleship({
     const joinedRef = useRef(false);
 
     const [gameNotFound, setGameNotFound] = useState(false);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
     const [state, setState] = useState<BattleshipState>({
         phase: 'waiting',
         yourSeat: null,
@@ -255,6 +257,22 @@ export function useBattleship({
             }));
         });
 
+        // ── AFK ───────────────────────────────────────────────────────────────
+        socket.on('battleship:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+
+        socket.on('battleship:playerKicked', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
+        socket.on('battleship:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
         // ── Errors ────────────────────────────────────────────────────────────
         socket.on('battleship:error', (payload: { message: string }) => {
             setState((prev) => ({ ...prev, error: payload.message }));
@@ -296,5 +314,5 @@ export function useBattleship({
         setState((prev) => ({ ...prev, error: null }));
     }, []);
 
-    return { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound };
+    return { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound, inactivityUserId, inactivityEndsAt };
 }

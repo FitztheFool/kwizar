@@ -12,25 +12,30 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { TrophyIcon, StarIcon, FaceSmileIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 // ─── Composants ───────────────────────────────────────────────────────────────
 
-function PlayerBadge({ name, submitted, isGuesser, isMe }: {
-    name: string; submitted: boolean; isGuesser: boolean; isMe: boolean;
+function PlayerBadge({ name, submitted, isGuesser, isMe, inactivityEndsAt }: {
+    name: string; submitted: boolean; isGuesser: boolean; isMe: boolean; inactivityEndsAt?: number | null;
 }) {
+    const isInactive = inactivityEndsAt != null;
     return (
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all
-            ${isGuesser
-                ? 'border-yellow-400/50 bg-yellow-400/10 text-yellow-600 dark:text-yellow-300'
-                : submitted
-                    ? 'border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400'
-                    : 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}>
+            ${isInactive
+                ? 'border-orange-400/60 bg-orange-400/10 text-orange-600 dark:text-orange-300'
+                : isGuesser
+                    ? 'border-yellow-400/50 bg-yellow-400/10 text-yellow-600 dark:text-yellow-300'
+                    : submitted
+                        ? 'border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}>
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0
-                ${isGuesser ? 'bg-yellow-400' : submitted ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                ${isInactive ? 'bg-orange-400' : isGuesser ? 'bg-yellow-400' : submitted ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
             <span>{name}{isMe ? ' (moi)' : ''}</span>
             {isGuesser && <span>👁️</span>}
             {!isGuesser && submitted && <span>✅</span>}
+            {isInactive && <AfkCountdown endsAt={inactivityEndsAt!} />}
         </div>
     );
 }
@@ -62,6 +67,8 @@ export default function JustOnePage() {
         history,
         finalScore,
         currentWordIndex,
+        inactivityUserId,
+        inactivityEndsAt,
         isGuesser,
         pickWord,
         submitClue,
@@ -182,7 +189,8 @@ export default function JustOnePage() {
                             {players.filter(p => p.id !== guesserId).map(p => (
                                 <PlayerBadge key={p.id} name={p.name}
                                     submitted={submittedPlayers.includes(p.id)}
-                                    isGuesser={false} isMe={p.id === me} />
+                                    isGuesser={false} isMe={p.id === me}
+                                    inactivityEndsAt={inactivityUserId === p.id ? inactivityEndsAt : null} />
                             ))}
                         </div>
                     </div>
@@ -228,7 +236,8 @@ export default function JustOnePage() {
                         {players.filter(p => p.id !== guesserId).map(p => (
                             <PlayerBadge key={p.id} name={p.name}
                                 submitted={p.id === me ? clueSubmitted : submittedPlayers.includes(p.id)}
-                                isGuesser={false} isMe={p.id === me} />
+                                isGuesser={false} isMe={p.id === me}
+                                inactivityEndsAt={inactivityUserId === p.id ? inactivityEndsAt : null} />
                         ))}
                     </div>
                 </div>
@@ -343,6 +352,7 @@ export default function JustOnePage() {
                         submitted={submittedPlayers.includes(p.id) || (p.id === me && clueSubmitted)}
                         isGuesser={p.id === guesserId}
                         isMe={p.id === me}
+                        inactivityEndsAt={inactivityUserId === p.id ? inactivityEndsAt : null}
                     />
                 ))}
             </div>

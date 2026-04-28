@@ -101,6 +101,8 @@ export function useDiamant({
     const joinedRef = useRef(false);
 
     const [gameNotFound, setGameNotFound] = useState(false);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
     const [state, setState] = useState<DiamantState>({
         phase: 'waiting',
         round: 1,
@@ -273,6 +275,22 @@ export function useDiamant({
             }));
         });
 
+        // ── AFK ───────────────────────────────────────────────────────────────
+        socket.on('diamant:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+
+        socket.on('diamant:playerKicked', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
+        socket.on('diamant:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
         // ── Error ─────────────────────────────────────────────────────────────
         socket.on('diamant:error', (payload: { message: string }) => {
             if (payload.message === 'Room not found' && joinAttempts < 6) {
@@ -285,6 +303,9 @@ export function useDiamant({
 
         return () => {
             socket.off('notFound');
+            socket.off('diamant:inactivityWarning');
+            socket.off('diamant:playerKicked');
+            socket.off('diamant:playerReconnected');
             socket.disconnect();
             socketRef.current = null;
             joinedRef.current = false;
@@ -307,5 +328,5 @@ export function useDiamant({
         socketRef.current?.emit('diamant:surrender');
     }, []);
 
-    return { state, decide, clearError, gameNotFound, surrender };
+    return { state, decide, clearError, gameNotFound, surrender, inactivityUserId, inactivityEndsAt };
 }

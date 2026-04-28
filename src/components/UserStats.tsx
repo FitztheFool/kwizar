@@ -15,7 +15,7 @@ import ActivityTable, { type ActivityRow } from '@/components/ActivityTable';
 
 interface Stats {
     user: { id: string; username: string; image: string | null };
-    gameStats: Record<string, { count: number; points: number; wins: number }>;
+    gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number }>;
     totalGames: number;
     recentActivity: ActivityRow[];
     pagination: { page: number; pageSize: number; totalGames: number; totalPages: number };
@@ -72,7 +72,6 @@ export default function UserStats({ username }: Props) {
 
     const lastActivity = stats.recentActivity[0] ?? null;
     const activeGameStats = Object.fromEntries(Object.entries(stats.gameStats).filter(([, v]) => v.count > 0));
-    const bestRank = Object.entries(ranks).sort((a, b) => a[1] - b[1])[0] ?? null;
 
     return (
         <div className="space-y-4">
@@ -153,6 +152,7 @@ export default function UserStats({ username }: Props) {
                         onChange={handleFilterChange}
                         activeClassName="bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
                         inactiveClassName="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        allowedGameTypes={Object.keys(activeGameStats)}
                     />
                 </div>
 

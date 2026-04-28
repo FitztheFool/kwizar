@@ -37,6 +37,8 @@ export interface ActivityRow {
     players: ActivityPlayer[];
     /** Only present in UserStats context */
     score?: number;
+    /** Only present in UserStats context — niveau atteint (Pacman / Breakout) */
+    level?: number;
     /** Only present in UserStats context */
     placement?: number | null;
     /** Only present in UserStats context */
@@ -142,6 +144,11 @@ export default function ActivityTable({
                                             {row.score ?? 0}
                                         </span>
                                         <span className="text-[10px] text-gray-400 ml-0.5">pts</span>
+                                        {row.level != null && (
+                                            <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">
+                                                · niv.{row.level}
+                                            </span>
+                                        )}
                                     </td>
                                 )}
 

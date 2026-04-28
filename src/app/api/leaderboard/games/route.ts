@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         // UNO, SKYJOW, TABOO, PUISSANCE4, ...
         const attempts = await prisma.attempt.findMany({
             where: { userId: { in: eligibleUserIds }, gameType: config.gameType as GameType },
-            select: { userId: true, score: true, trapScore: true, placement: true, gameId: true },
+            select: { userId: true, score: true, trapScore: true, placement: true, gameId: true, rounds: true },
         });
 
         // Pour Taboo : rounds dédupliqués par (userId, gameId) via raw SQL
@@ -91,9 +91,9 @@ export async function GET(req: NextRequest) {
             tabooRoundsByUser.map(r => [r.userId, r.total_rounds])
         );
 
-        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; draws: number; gameIds: Set<string> }>();
+        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; draws: number; gameIds: Set<string>; rounds: number[] }>();
         for (const a of attempts) {
-            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], draws: 0, gameIds: new Set() });
+            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], draws: 0, gameIds: new Set(), rounds: [] });
             const u = byUser.get(a.userId)!;
             u.scores.push(a.score);
             u.trapScores.push(a.trapScore ?? 0);
@@ -103,6 +103,7 @@ export async function GET(req: NextRequest) {
                 u.placements.push(a.placement);
             }
             if (a.gameId) u.gameIds.add(a.gameId);
+            if (a.rounds != null) u.rounds.push(a.rounds);
         }
 
         const sorted = Array.from(byUser.entries())
@@ -116,9 +117,10 @@ export async function GET(req: NextRequest) {
                 const draws = data.draws;
                 const score = game === 'skyjow' || game === 'just_one' ? avgScore
                     : game === 'puissance4' || game === 'battleship' ? wins
-                    : (game === 'snake' || game === 'pacman') ? Math.max(...data.scores)
+                    : (game === 'snake' || game === 'pacman' || game === 'breakout') ? Math.max(...data.scores)
                         : totalScore;
                 const totalRounds = roundsByUser.get(userId) ?? 0;
+                const bestLevel = data.rounds.length > 0 ? Math.max(...data.rounds) : undefined;
 
                 let detail: string;
                 switch (game) {
@@ -144,8 +146,11 @@ export async function GET(req: NextRequest) {
                         detail = `${totalScore} pt${totalScore > 1 ? 's' : ''} · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                         break;
                     case 'snake':
-                    case 'pacman': {
                         detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'pacman':
+                    case 'breakout': {
+                        detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}${bestLevel != null ? ` · meilleur niv. ${bestLevel}` : ''}`;
                         break;
                     }
                     default:
@@ -159,6 +164,7 @@ export async function GET(req: NextRequest) {
                     gamesPlayed,
                     wins,
                     detail,
+                    bestLevel,
                 };
             })
             .sort((a, b) => config.higherIsBetter ? b.score - a.score : a.score - b.score);

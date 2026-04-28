@@ -133,6 +133,7 @@ export function useUno({
         socket.on('uno:state', onGameState);
         socket.on('uno:inactivityWarning', onInactivityWarning);
         socket.on('uno:playerKicked', clearInactivity);
+        socket.on('uno:playerReconnected', clearInactivity);
 
         if (!joinedRef.current) {
             joinedRef.current = true;
@@ -145,6 +146,7 @@ export function useUno({
             socket.off('uno:state', onGameState);
             socket.off('uno:inactivityWarning', onInactivityWarning);
             socket.off('uno:playerKicked', clearInactivity);
+            socket.off('uno:playerReconnected', clearInactivity);
             if (inactivityIntervalRef.current) clearInterval(inactivityIntervalRef.current);
             joinedRef.current = false;
         };

@@ -131,6 +131,17 @@ export const GAME_CONFIG = {
         rules: "Dirigez Pac-Man avec les flèches (ou ZQSD) pour manger tous les points du labyrinthe. Évitez les fantômes rouges — ils vous coûtent une vie. Les super-gommes vous permettent de les dévorer temporairement.",
         score: "10 pts par point, 50 pts par super-gomme, 200 pts par fantôme mangé. Seul votre meilleur score est conservé.",
     },
+    breakout: {
+        gameType: 'BREAKOUT' as const,
+        label: 'Casse-brique',
+        mode: 'solo' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Meilleur score',
+        description: "Cassez toutes les briques avec la balle et la palette !",
+        players: '1 joueur',
+        rules: "Déplacez la palette pour rebondir la balle et casser les briques. Ramassez les bonus qui tombent. Vous avez 3 vies.",
+        score: "10 pts par brique, 20 pts par brique dure. Meilleur score conservé pour le classement.",
+    },
 } as const;
 
 export type GameType = keyof typeof GAME_CONFIG;
@@ -162,6 +173,7 @@ export const MAX_PLAYERS_BY_GAME: Record<GameType, number[]> = {
     impostor: [4, 5, 6, 7, 8],
     snake: [1],
     pacman: [1],
+    breakout: [1],
 };
 
 export const MIN_PLAYERS: Partial<Record<GameType, number>> = {

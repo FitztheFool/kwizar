@@ -1,9 +1,9 @@
-import { MAZE_TEMPLATE, COLS, ROWS, DELTA, OPP, FRIGHTEN_TICKS, GHOST_SCORE, GHOST_STARTS, TUNNEL_ROW, type Pos, type Dir, type Tile } from './constants';
+import { getMaze, COLS, ROWS, DELTA, OPP, FRIGHTEN_TICKS, GHOST_SCORE, GHOST_STARTS, TUNNEL_ROW, type Pos, type Dir, type Tile } from './constants';
 
 export type Ghost = {
     pos: Pos;
     dir: Dir;
-    frightened: number; // ticks remaining
+    frightened: number;
     dead: boolean;
 };
 
@@ -18,10 +18,11 @@ export type GameState = {
     dotsLeft: number;
     tick: number;
     frightenedTicks: number;
+    level: number;
 };
 
-export function cloneMaze(): Tile[][] {
-    return MAZE_TEMPLATE.map(row => [...row] as Tile[]);
+export function cloneMaze(level = 1): Tile[][] {
+    return getMaze(level);
 }
 
 export function countDots(maze: Tile[][]): number {
@@ -44,7 +45,6 @@ function canMove(maze: Tile[][], pos: Pos, dir: Dir, isGhost: boolean): boolean 
     const nx = wrapX(pos.x + d.x, ny);
     const tile = maze[ny][nx];
     if (tile === 1) return false;
-    if (!isGhost && tile === 2) return false;
     return true;
 }
 
@@ -59,20 +59,62 @@ function dist(a: Pos, b: Pos): number {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
+function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
 function ghostDirs(maze: Tile[][], ghost: Ghost): Dir[] {
     const dirs: Dir[] = ['U', 'D', 'L', 'R'];
     const forward = dirs.filter(d => {
         if (d === OPP[ghost.dir] && ghost.dir !== 'N') return false;
         return canMove(maze, ghost.pos, d, true);
     });
-    // Dead-end: allow reversal rather than staying stuck
     if (forward.length > 0) return forward;
     return dirs.filter(d => canMove(maze, ghost.pos, d, true));
 }
 
-export function stepGhost(maze: Tile[][], ghost: Ghost, pacPos: Pos, index: number): Ghost {
+// ── Ghost chase targets ───────────────────────────────────────────────────────
+//
+// Ghost 0 (Rouge – Blinky) : chasseur pur — cible toujours la case exacte de Pac-Man.
+// Ghost 1 (Rose – Pinky)   : embusqueur — cible 4 cases DEVANT la direction de Pac-Man.
+// Ghost 2 (Cyan – Inky)    : tenaille   — cible le reflet de Blinky par rapport à
+//                             2 cases devant Pac-Man, créant un effet de ciseau.
+
+function chaseTarget(index: number, pacPos: Pos, pacDir: Dir, allGhosts: Ghost[]): Pos {
+    if (index === 0) {
+        return pacPos;
+    }
+    if (index === 1) {
+        const d = DELTA[pacDir !== 'N' ? pacDir : 'R'];
+        return {
+            x: clamp(pacPos.x + d.x * 4, 0, COLS - 1),
+            y: clamp(pacPos.y + d.y * 4, 0, ROWS - 1),
+        };
+    }
+    // Inky: pivot = 2 cases devant Pac-Man, cible = symétrique de Blinky par rapport au pivot
+    const blinky = allGhosts[0]?.pos ?? pacPos;
+    const d = DELTA[pacDir !== 'N' ? pacDir : 'R'];
+    const pivot = { x: pacPos.x + d.x * 2, y: pacPos.y + d.y * 2 };
+    return {
+        x: clamp(pivot.x * 2 - blinky.x, 0, COLS - 1),
+        y: clamp(pivot.y * 2 - blinky.y, 0, ROWS - 1),
+    };
+}
+
+// Taux de mouvement aléatoire par indice (réduit à chaque niveau)
+function randomRate(index: number, level: number): number {
+    const base = index === 0 ? 0 : index === 1 ? 0.28 : 0.18;
+    return Math.max(0, base - (level - 1) * 0.05);
+}
+
+export function stepGhost(
+    maze: Tile[][],
+    ghost: Ghost,
+    pacPos: Pos,
+    pacDir: Dir,
+    index: number,
+    allGhosts: Ghost[],
+    level: number,
+): Ghost {
     if (ghost.dead) {
-        // Return to ghost house
         const target = GHOST_STARTS[index];
         const options = ghostDirs(maze, ghost);
         if (options.length === 0) return ghost;
@@ -92,16 +134,12 @@ export function stepGhost(maze: Tile[][], ghost: Ghost, pacPos: Pos, index: numb
         return { ...ghost, pos: movePos(ghost.pos, chosen), dir: chosen, frightened: ghost.frightened - 1 };
     }
 
-    // Chase (index 0) or scatter to far corner (index 1)
-    const target = index === 0
-        ? pacPos
-        : (ghost.pos.x < COLS / 2 ? { x: 1, y: 1 } : { x: COLS - 2, y: 1 });
-
+    const target = chaseTarget(index, pacPos, pacDir, allGhosts);
     const options = ghostDirs(maze, ghost);
     if (options.length === 0) return ghost;
 
     let chosen: Dir;
-    if (index === 1 && Math.random() < 0.35) {
+    if (Math.random() < randomRate(index, level)) {
         chosen = options[Math.floor(Math.random() * options.length)];
     } else {
         chosen = options.reduce((best, d) => {
@@ -124,12 +162,10 @@ export function initialGhosts(): Ghost[] {
 
 export function stepGame(state: GameState, pendingDir: Dir): { state: GameState; ate: boolean; died: boolean; won: boolean } {
     const maze = state.maze.map(r => [...r] as Tile[]);
-    let { pacPos, pacDir, pacNextDir, ghosts, score, lives, dotsLeft, tick, frightenedTicks } = state;
+    let { pacPos, pacDir, pacNextDir, ghosts, score, lives, dotsLeft, tick, frightenedTicks, level } = state;
 
     pacNextDir = pendingDir !== 'N' ? pendingDir : pacNextDir;
 
-    // Try buffered direction first, then fall back to current direction.
-    // pacDir is never reset to 'N' so the wall-following memory is preserved.
     let newDir: Dir = 'N';
     if (pacNextDir !== 'N' && canMove(maze, pacPos, pacNextDir, false)) {
         newDir = pacNextDir;
@@ -139,6 +175,10 @@ export function stepGame(state: GameState, pendingDir: Dir): { state: GameState;
 
     let newPos = pacPos;
     if (newDir !== 'N') newPos = movePos(pacPos, newDir);
+    const effectiveDir = newDir !== 'N' ? newDir : pacDir;
+
+    // Frayeur réduite à chaque niveau (minimum 8 ticks)
+    const frightenDuration = Math.max(8, FRIGHTEN_TICKS - (level - 1) * 5);
 
     let newScore = score;
     let newDotsLeft = dotsLeft;
@@ -154,26 +194,25 @@ export function stepGame(state: GameState, pendingDir: Dir): { state: GameState;
         maze[newPos.y][newPos.x] = 4;
         newScore += 50;
         newDotsLeft--;
-        newFrighten = FRIGHTEN_TICKS;
+        newFrighten = frightenDuration;
     }
 
-    // Update ghosts (every other tick for speed balance)
+    // Les fantômes bougent tous les ticks à partir du niveau 3, sinon 1 tick sur 2
+    const ghostMoveEvery = level >= 3 ? 1 : 2;
     let newGhosts = ghosts;
-    if (tick % 2 === 0) {
+    if (tick % ghostMoveEvery === 0) {
         newGhosts = ghosts.map((g, i) => {
             const g2 = { ...g, frightened: newFrighten > 0 ? (g.frightened > 0 ? g.frightened - 1 : newFrighten) : 0 };
             if (newFrighten > 0 && g.frightened === 0) return { ...g2, frightened: newFrighten };
-            return stepGhost(maze, g2, newPos, i);
+            return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
         });
     }
 
-    // Frighten on pellet eaten
     if (tile === 3) {
-        newGhosts = newGhosts.map(g => ({ ...g, frightened: FRIGHTEN_TICKS }));
+        newGhosts = newGhosts.map(g => ({ ...g, frightened: frightenDuration }));
     }
 
     let died = false;
-    // Collision check
     for (let i = 0; i < newGhosts.length; i++) {
         const g = newGhosts[i];
         if (g.pos.x === newPos.x && g.pos.y === newPos.y) {
@@ -201,6 +240,7 @@ export function stepGame(state: GameState, pendingDir: Dir): { state: GameState;
             dotsLeft: newDotsLeft,
             tick: tick + 1,
             frightenedTicks: newFrighten,
+            level,
         },
         ate: ateGhost,
         died,

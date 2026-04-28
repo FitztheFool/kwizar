@@ -56,6 +56,8 @@ export function useJustOne({
     const [finalScore, setFinalScore] = useState<{ score: number; level: string } | null>(null);
 
     const [currentWordIndex, setCurrentWordIndex] = useState<number | null>(null);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
 
     const isGuesser = guesserId === userId;
 
@@ -132,6 +134,21 @@ export function useJustOne({
             stopTimer();
         });
 
+        socket.on('just_one:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+
+        socket.on('just_one:playerKicked', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
+        socket.on('just_one:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
         return () => {
             socket.off('notFound', onNotFound);
             socket.off('just_one:players');
@@ -142,6 +159,9 @@ export function useJustOne({
             socket.off('just_one:guessStart');
             socket.off('just_one:roundResult');
             socket.off('just_one:finished');
+            socket.off('just_one:inactivityWarning');
+            socket.off('just_one:playerKicked');
+            socket.off('just_one:playerReconnected');
             joinedRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -189,6 +209,8 @@ export function useJustOne({
         history,
         finalScore,
         currentWordIndex,
+        inactivityUserId,
+        inactivityEndsAt,
         isGuesser,
         pickWord,
         submitClue,

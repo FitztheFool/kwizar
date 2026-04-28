@@ -12,6 +12,7 @@ import GameIcon from '@/components/GameIcon';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon } from '@heroicons/react/24/outline';
 
 const ROWS = 6;
@@ -41,13 +42,14 @@ function BotBadge() {
     );
 }
 
-function PlayerLabel({ player, active, vsBot: _vsBot }: { player: PlayerInfo; active: boolean; vsBot: boolean }) {
+function PlayerLabel({ player, active, vsBot: _vsBot, inactivityEndsAt }: { player: PlayerInfo; active: boolean; vsBot: boolean; inactivityEndsAt?: number | null }) {
     const bot = isBot(player);
     return (
         <span className={`flex items-center gap-1.5 transition-all ${active ? 'font-bold' : 'font-normal opacity-60'}`}>
             {PLAYER_COLORS[player.colorIndex].emoji}
             {player.username}
             {bot && <BotBadge />}
+            {inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
         </span>
     );
 }
@@ -55,7 +57,7 @@ function PlayerLabel({ player, active, vsBot: _vsBot }: { player: PlayerInfo; ac
 export default function Puissance4Page() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
 
-    const { players, gameState, myColorIndex, isMyTurn, vsBot, winSet, drop, surrender } = usePuissance4({
+    const { players, gameState, myColorIndex, isMyTurn, vsBot, winSet, inactivityUserId, inactivityEndsAt, drop, surrender } = usePuissance4({
         lobbyId,
         userId: me.userId,
         username: me.username ?? '',
@@ -104,9 +106,9 @@ export default function Puissance4Page() {
                         <div className="flex items-center gap-2 text-sm">
                             {players.length === 2 && player0 && player1 ? (
                                 <>
-                                    <PlayerLabel player={player0} active={gameState.status === 'playing' && gameState.currentTurn === 0} vsBot={vsBot} />
+                                    <PlayerLabel player={player0} active={gameState.status === 'playing' && gameState.currentTurn === 0} vsBot={vsBot} inactivityEndsAt={inactivityUserId === player0.userId ? inactivityEndsAt : null} />
                                     <span className="text-gray-400 dark:text-gray-600">vs</span>
-                                    <PlayerLabel player={player1} active={gameState.status === 'playing' && gameState.currentTurn === 1} vsBot={vsBot} />
+                                    <PlayerLabel player={player1} active={gameState.status === 'playing' && gameState.currentTurn === 1} vsBot={vsBot} inactivityEndsAt={inactivityUserId === player1.userId ? inactivityEndsAt : null} />
                                 </>
                             ) : (
                                 <span className="text-gray-400 dark:text-gray-500 text-xs">En attente de joueurs…</span>

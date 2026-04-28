@@ -73,6 +73,8 @@ export function useImpostor({
     const [gameEnd, setGameEnd] = useState<GameEndPayload | null>(null);
     const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
     const [timerDuration, setTimerDuration] = useState(60);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
 
     function startTimer(seconds: number) {
         setTimerDuration(seconds);
@@ -189,6 +191,21 @@ export function useImpostor({
             setRoundState('END');
         });
 
+        socket.on('impostor:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+
+        socket.on('impostor:playerKicked', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
+        socket.on('impostor:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+
         return () => {
             socket.off('notFound', onNotFound);
             socket.off('impostor:players');
@@ -203,6 +220,9 @@ export function useImpostor({
             socket.off('impostor:guessPhase');
             socket.off('impostor:wordGuessResult');
             socket.off('impostor:finished');
+            socket.off('impostor:inactivityWarning');
+            socket.off('impostor:playerKicked');
+            socket.off('impostor:playerReconnected');
             joinedRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -266,6 +286,8 @@ export function useImpostor({
         gameEnd,
         timerEndsAt,
         timerDuration,
+        inactivityUserId,
+        inactivityEndsAt,
         submitClue,
         requestUnmask,
         vote,

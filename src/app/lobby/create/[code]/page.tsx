@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, startTransition } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { SOLO_GAMES, BOTH_GAMES, MULTI_GAMES, BOT_SUPPORTED_GAMES } from '@/lib/gameConfig';
 import { getLobbySocket } from '@/lib/socket';
@@ -15,6 +15,7 @@ import GameIcon from '@/components/GameIcon';
 import { StarIcon, UserIcon, GlobeAltIcon, LockClosedIcon, ArrowsRightLeftIcon, CheckIcon, CheckCircleIcon, ExclamationTriangleIcon, CpuChipIcon, XMarkIcon, ShieldCheckIcon, PlayIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 import {
+    GAME_CONFIG,
     LOBBY_GAME_OPTIONS,
     MAX_PLAYERS_BY_GAME,
     MIN_PLAYERS,
@@ -239,6 +240,7 @@ export default function LobbyCodePage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const params = useParams<{ code: string }>();
+    const searchParams = useSearchParams();
     const lobbyId = params?.code ?? '';
 
     const { status: warmupStatus } = useServerWarmup(process.env.NEXT_PUBLIC_LOBBY_SERVER_URL);
@@ -257,7 +259,10 @@ export default function LobbyCodePage() {
     const [activeGameId, setActiveGameId] = useState<string | null>(null);
     const [activeGameType, setActiveGameType] = useState<GameType | null>(null);
 
-    const [gameType, setGameTypeState] = useState<GameType>('uno');
+    const [gameType, setGameTypeState] = useState<GameType>(() => {
+        const g = searchParams.get('game');
+        return (g && g in GAME_CONFIG) ? g as GameType : 'uno';
+    });
     const [maxPlayers, setMaxPlayersState] = useState(8);
     const [isPublic, setIsPublicState] = useState(false);
     const [selectedQuizId, setSelectedQuizId] = useState<string | undefined>();
@@ -493,7 +498,9 @@ export default function LobbyCodePage() {
                 if (m.impostorOptions) { setImpostorRounds(m.impostorOptions.rounds ?? 1); setImpostorTime(m.impostorOptions.timePerRound ?? 60); }
             }
             socket.emit('lobby:join', { lobbyId, userId: meUserId, username: meUsername, title: m?.title, description: m?.description, maxPlayers: m?.maxPlayers, isPublic: m?.isPublic });
-            if (m?.gameType && m.gameType !== 'quiz') setTimeout(() => socket.emit('lobby:setGameType', { gameType: m!.gameType }), 300);
+            const gameFromUrl = searchParams.get('game');
+            const initialGameType = m?.gameType ?? (gameFromUrl && gameFromUrl in GAME_CONFIG ? gameFromUrl as GameType : null);
+            if (initialGameType && initialGameType !== 'quiz') setTimeout(() => socket.emit('lobby:setGameType', { gameType: initialGameType }), 300);
             if (m?.unoOptions) setTimeout(() => socket.emit('lobby:setUnoOptions', m!.unoOptions), 400);
             if (m?.tabooOptions) setTimeout(() => socket.emit('lobby:setTabooOptions', m!.tabooOptions), 400);
             if (m?.skyjowOptions) setTimeout(() => socket.emit('lobby:setSkyjowOptions', m!.skyjowOptions), 400);

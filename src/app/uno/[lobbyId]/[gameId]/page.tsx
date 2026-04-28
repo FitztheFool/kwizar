@@ -8,6 +8,7 @@ import { getUnoSocket } from '@/lib/socket';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
+import SurrenderButton from '@/components/SurrenderButton';
 
 type CardColor = 'red' | 'green' | 'blue' | 'yellow' | 'wild';
 type Card = { id: string; color: CardColor; value: string };
@@ -326,10 +327,11 @@ export default function UnoPage() {
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                     <span>{gameState.direction === 1 ? '↻' : '↺'}</span>
                     <span>Couleur :</span>
                     <span className={`w-5 h-5 rounded-full ${COLOR_MAP[gameState.currentColor]}`} />
+                    {!gameState.spectator && <SurrenderButton onSurrender={() => socket?.emit('uno:surrender')} />}
                 </div>
             </div>
 

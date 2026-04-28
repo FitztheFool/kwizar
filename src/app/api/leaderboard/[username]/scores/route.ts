@@ -89,12 +89,17 @@ export async function GET(req: NextRequest) {
                 const totalTrapScore = data.trapScores.reduce((s, v) => s + v, 0);
                 const avgScore = gamesPlayed > 0 ? Math.round(totalScore / gamesPlayed) : 0;
                 const wins = data.placements.filter(p => p === 1).length;
-                const score = game === 'skyjow' ? avgScore : totalScore;
+                const isSolo = game === 'snake' || game === 'pacman' || game === 'breakout';
+                const score = game === 'skyjow' ? avgScore
+                    : isSolo ? Math.max(...data.scores, 0)
+                    : totalScore;
 
                 const detail = game === 'skyjow'
                     ? `Moy. ${avgScore} pts · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`
                     : game === 'taboo'
                         ? `${totalScore - totalTrapScore} trouvé${totalScore - totalTrapScore > 1 ? 's' : ''} · ${totalTrapScore} piégé${totalTrapScore > 1 ? 's' : ''} · ${totalRounds} manche${totalRounds > 1 ? 's' : ''}`
+                    : isSolo
+                        ? `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`
                         : `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
 
                 return {

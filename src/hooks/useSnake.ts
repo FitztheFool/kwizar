@@ -1,57 +1,52 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useRef, useEffect, useCallback } from 'react';
+import { useGameTheme } from '@/hooks/useGameTheme';
+import { useSoloGame } from '@/hooks/useSoloGame';
 import { COLS, ROWS, CELL, TICK, OPP, DELTA, COLORS, KEY_DIR, STARTERS, type Pos, type Dir, type SnakeColor } from '@/lib/snake/constants';
 import { drawGame } from '@/lib/snake/drawing';
 import { randomApple, initialSnake } from '@/lib/snake/engine';
-
-export type Phase = 'idle' | 'playing' | 'over';
+import { useState } from 'react';
 
 export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
-    const { data: session } = useSession();
+    const {
+        session,
+        phase,
+        phaseRef,
+        startGameRef,
+        displayScore,
+        setDisplayScore,
+        bestScore,
+        isNewBest,
+        submitState,
+        endGame: soloEndGame,
+        resetForStart,
+    } = useSoloGame({
+        gameKey: 'snake',
+        submitEndpoint: '/api/snake/submit',
+        localStorageKey: 'snakeBest',
+        starters: STARTERS,
+    });
 
     const snakeRef = useRef<Pos[]>([]);
     const dirRef = useRef<Dir>('R');
     const pendingRef = useRef<Dir>('R');
     const appleRef = useRef<Pos>({ x: 15, y: 10 });
     const scoreRef = useRef(0);
-    const gameIdRef = useRef('');
     const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const colorRef = useRef<SnakeColor>(COLORS[0]);
 
-    const phaseRef = useRef<Phase>('idle');
-    const startGameRef = useRef<() => void>(() => {});
-
-    const [phase, setPhase] = useState<Phase>('idle');
-    const [displayScore, setDisplayScore] = useState(0);
-    const [bestScore, setBestScore] = useState(0);
-    const [isNewBest, setIsNewBest] = useState(false);
-    const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
-    const [dark, setDark] = useState(false);
+    const dark = useGameTheme();
     const [colorIndex, setColorIndex] = useState(0);
 
     useEffect(() => {
-        const savedBest = parseInt(localStorage.getItem('snakeBest') ?? '0');
-        if (!isNaN(savedBest)) setBestScore(savedBest);
+        snakeRef.current = initialSnake();
 
         const savedColor = parseInt(localStorage.getItem('snakeColor') ?? '0');
         if (!isNaN(savedColor) && savedColor >= 0 && savedColor < COLORS.length) {
             setColorIndex(savedColor);
             colorRef.current = COLORS[savedColor];
         }
-    }, []);
-
-    useEffect(() => {
-        const update = () => setDark(document.documentElement.classList.contains('dark'));
-        update();
-        const obs = new MutationObserver(update);
-        obs.observe(document.documentElement, { attributeFilter: ['class'] });
-        return () => obs.disconnect();
-    }, []);
-
-    useEffect(() => {
-        snakeRef.current = initialSnake();
     }, []);
 
     const redraw = useCallback(() => {
@@ -72,36 +67,10 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
         if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
     }, []);
 
-    const endGame = useCallback(async (finalScore: number) => {
+    const endGame = useCallback((finalScore: number) => {
         stopTick();
-        setPhase('over');
-        setDisplayScore(finalScore);
-
-        let newBest = false;
-        setBestScore(prev => {
-            if (finalScore > prev) {
-                newBest = true;
-                localStorage.setItem('snakeBest', String(finalScore));
-                return finalScore;
-            }
-            return prev;
-        });
-        setIsNewBest(newBest);
-
-        if (session?.user && finalScore > 0) {
-            setSubmitState('loading');
-            try {
-                const res = await fetch('/api/snake/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ score: finalScore, gameId: gameIdRef.current }),
-                });
-                setSubmitState(res.ok ? 'done' : 'error');
-            } catch {
-                setSubmitState('error');
-            }
-        }
-    }, [session, stopTick]);
+        soloEndGame(finalScore);
+    }, [stopTick, soloEndGame]);
 
     const startGame = useCallback(() => {
         stopTick();
@@ -110,12 +79,8 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
         pendingRef.current = 'R';
         scoreRef.current = 0;
         appleRef.current = randomApple(snakeRef.current);
-        gameIdRef.current = crypto.randomUUID();
 
-        setPhase('playing');
-        setDisplayScore(0);
-        setSubmitState('idle');
-        setIsNewBest(false);
+        resetForStart();
         redraw();
 
         tickRef.current = setInterval(() => {
@@ -148,12 +113,13 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
                 drawGame(canvasRef.current, snakeRef.current, appleRef.current, isDark, colorRef.current);
             }
         }, TICK);
-    }, [stopTick, endGame, redraw, canvasRef]);
+    }, [stopTick, endGame, resetForStart, setDisplayScore, redraw, canvasRef]);
 
     const press = useCallback((dir: Dir) => {
         if (phase === 'playing') pendingRef.current = dir;
     }, [phase]);
 
+    // Keyboard direction
     useEffect(() => {
         if (phase !== 'playing') return;
         const handle = (e: KeyboardEvent) => {
@@ -164,17 +130,7 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
         return () => window.removeEventListener('keydown', handle);
     }, [phase]);
 
-    useEffect(() => {
-        if (phase !== 'idle' && phase !== 'over') return;
-        const handle = (e: KeyboardEvent) => {
-            if (STARTERS.has(e.key)) { e.preventDefault(); startGame(); }
-        };
-        window.addEventListener('keydown', handle);
-        return () => window.removeEventListener('keydown', handle);
-    }, [phase, startGame]);
-
-    useEffect(() => { phaseRef.current = phase; }, [phase]);
-    useEffect(() => { startGameRef.current = startGame; }, [startGame]);
+    useEffect(() => { startGameRef.current = startGame; }, [startGame, startGameRef]);
 
     // Swipe-to-play on canvas
     useEffect(() => {
@@ -213,7 +169,7 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
             canvas.removeEventListener('touchstart', onTouchStart);
             canvas.removeEventListener('touchend', onTouchEnd);
         };
-    }, [canvasRef]);
+    }, [canvasRef, phaseRef, startGameRef]);
 
     useEffect(() => () => stopTick(), [stopTick]);
 

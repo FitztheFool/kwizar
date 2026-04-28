@@ -25,10 +25,10 @@ export async function GET(
             return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
         }
 
-        const gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number }> = {};
+        const gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number }> = {};
         for (const key of Object.keys(GAME_CONFIG)) {
             const type = GAME_CONFIG[key as keyof typeof GAME_CONFIG].gameType;
-            gameStats[type] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0 };
+            gameStats[type] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
         }
 
         // Points + rounds par gameType
@@ -58,7 +58,7 @@ export async function GET(
         const tabooRounds = tabooRoundsResult[0]?.total_rounds ?? 0;
 
         for (const row of attemptSumsByType) {
-            if (!gameStats[row.gameType]) gameStats[row.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0 };
+            if (!gameStats[row.gameType]) gameStats[row.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
             gameStats[row.gameType].points = row._sum.score ?? 0;
             gameStats[row.gameType].rounds = row.gameType === 'TABOO' ? tabooRounds : 0;
             gameStats[row.gameType].correctAnswers = row._sum.correctAnswers ?? 0;
@@ -66,18 +66,22 @@ export async function GET(
         }
 
         for (const g of distinctGamesByType) {
-            if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0 };
+            if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
             gameStats[g.gameType].count++;
             if (g.placement === 1) gameStats[g.gameType].wins++;
         }
 
         const soloAttempts = await prisma.attempt.findMany({
-            where: { userId: user.id, gameType: { in: ['SNAKE', 'PACMAN'] } },
-            select: { score: true, gameType: true },
+            where: { userId: user.id, gameType: { in: ['SNAKE', 'PACMAN', 'BREAKOUT'] } },
+            select: { score: true, gameType: true, rounds: true },
         });
         for (const a of soloAttempts) {
-            if (gameStats[a.gameType] && a.score > gameStats[a.gameType].bestScore) {
+            if (!gameStats[a.gameType]) continue;
+            if (a.score > gameStats[a.gameType].bestScore) {
                 gameStats[a.gameType].bestScore = a.score;
+            }
+            if ((a.gameType === 'PACMAN' || a.gameType === 'BREAKOUT') && a.rounds > gameStats[a.gameType].bestLevel) {
+                gameStats[a.gameType].bestLevel = a.rounds;
             }
         }
 
@@ -158,11 +162,12 @@ export async function GET(
             byGame.get(a.gameId)!.push(a);
         }
 
-        const recentActivity = paginatedGameIds.map(gameId => {
+        const recentActivity = paginatedGameIds.flatMap(gameId => {
             const attempts = byGame.get(gameId) ?? [];
             const first = attempts[0];
+            if (!first) return [];
             const myEntry = playersByGame.get(gameId)?.find(p => p.username === user.username);
-            return {
+            return [{
                 gameId,
                 gameType: first.gameType,
                 createdAt: first.createdAt,
@@ -170,6 +175,7 @@ export async function GET(
                 score: first.gameType === 'PUISSANCE4'
                     ? ((myEntry?.score ?? first.score) > 0 ? 1 : 0)
                     : (myEntry?.score ?? first.score),
+                level: (first.gameType === 'PACMAN' || first.gameType === 'BREAKOUT') ? (first.rounds ?? 1) : undefined,
                 placement: myEntry?.placement ?? first.placement,
                 abandon: myEntry?.abandon ?? first.abandon,
                 afk: myEntry?.afk ?? first.afk,
@@ -180,7 +186,7 @@ export async function GET(
                     if (b.placement != null) return 1;
                     return b.score - a.score;
                 }),
-            }
+            }];
         });
 
         return NextResponse.json({

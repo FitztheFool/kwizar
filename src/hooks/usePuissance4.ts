@@ -47,6 +47,8 @@ export function usePuissance4({
     const [players, setPlayers] = useState<PlayerInfo[]>([]);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [dropping, setDropping] = useState(false);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
 
     const myPlayer = players.find(p => p.userId === userId);
     const myColorIndex = myPlayer?.colorIndex ?? null;
@@ -68,9 +70,23 @@ export function usePuissance4({
             if (state.status === 'playing') onModalReset();
         };
 
+        const clearInactivity = () => { setInactivityUserId(null); setInactivityEndsAt(null); };
+
         socket.on('notFound', onNotFound);
         socket.on('p4:players', onPlayers);
-        socket.on('p4:state', onState);
+        socket.on('p4:state', (state: GameState) => { onState(state); clearInactivity(); });
+        socket.on('p4:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+        socket.on('p4:playerKicked', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
+        socket.on('p4:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
 
         if (!joinedRef.current) {
             joinedRef.current = true;
@@ -80,7 +96,10 @@ export function usePuissance4({
         return () => {
             socket.off('notFound', onNotFound);
             socket.off('p4:players', onPlayers);
-            socket.off('p4:state', onState);
+            socket.off('p4:state');
+            socket.off('p4:inactivityWarning');
+            socket.off('p4:playerKicked');
+            socket.off('p4:playerReconnected');
             joinedRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,6 +128,8 @@ export function usePuissance4({
         isMyTurn,
         vsBot,
         winSet,
+        inactivityUserId,
+        inactivityEndsAt,
         drop,
         surrender,
         rematch,

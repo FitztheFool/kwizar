@@ -6,6 +6,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
@@ -117,7 +118,7 @@ export default function YahtzeePage() {
     const myId = session?.user?.id ?? meInfo.userId;
     const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
 
-    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
+    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, inactivityUserId, inactivityEndsAt, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
         lobbyId,
         userId: myId,
         username: myUsername,
@@ -393,6 +394,7 @@ export default function YahtzeePage() {
                                                         {p.username}{isMe && ' (moi)'}
                                                     </span>
                                                     {bot && <BotBadge />}
+                                                    {inactivityUserId === p.userId && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
                                                 </div>
                                                 <span className="font-black text-xl">{p.total}</span>
                                             </div>

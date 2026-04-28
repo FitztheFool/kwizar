@@ -16,6 +16,7 @@ import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { TrophyIcon, XCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ export default function BattleshipPage() {
         }
     }, [lobbyId]);
 
-    const { state, placeShips, shoot, surrender, clearError, gameNotFound } = useBattleship({
+    const { state, placeShips, shoot, surrender, clearError, gameNotFound, inactivityUserId, inactivityEndsAt } = useBattleship({
         lobbyId,
         userId: meInfo.userId,
         username: meInfo.username,
@@ -110,8 +111,9 @@ export default function BattleshipPage() {
                             {me?.username ?? 'Vous'}{state.phase === 'playing' && isMyTurn && ' ⚡'}
                         </span>
                         <span className="text-gray-400 dark:text-gray-600">vs</span>
-                        <span className={`${state.phase === 'playing' && !isMyTurn ? 'font-bold text-gray-900 dark:text-white' : 'font-normal text-gray-500 dark:text-gray-400'}`}>
+                        <span className={`flex items-center gap-1 ${state.phase === 'playing' && !isMyTurn ? 'font-bold text-gray-900 dark:text-white' : 'font-normal text-gray-500 dark:text-gray-400'}`}>
                             {opponent?.username ?? 'Adversaire'}{state.phase === 'playing' && !isMyTurn && ' ⚡'}
+                            {inactivityUserId === opponent?.userId && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
                         </span>
                     </div>
                 }

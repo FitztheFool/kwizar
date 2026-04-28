@@ -29,6 +29,7 @@ interface LeaderboardEntry {
     gamesPlayed: number;
     wins?: number;
     detail: string;
+    bestLevel?: number;
 }
 
 interface LeaderboardConfig {
@@ -184,7 +185,9 @@ export default function LeaderboardView({ game }: Props) {
                         </div>
                         <div className="text-right">
                             <p className="text-2xl font-bold text-blue-700">{myEntry.score}</p>
-                            <p className="text-xs text-gray-400">{scoreLabel}</p>
+                            <p className="text-xs text-gray-400">
+                                {scoreLabel}{myEntry.bestLevel != null ? ` · niv. ${myEntry.bestLevel}` : ''}
+                            </p>
                         </div>
                     </div>
                 )}
@@ -241,6 +244,9 @@ export default function LeaderboardView({ game }: Props) {
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                                                         {entry.score}
                                                     </span>
+                                                    {entry.bestLevel != null && (
+                                                        <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 hidden sm:table-cell">
                                                     <span className="text-xs text-gray-700 dark:text-gray-300">{entry.detail}</span>

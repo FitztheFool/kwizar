@@ -11,6 +11,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import AfkCountdown from '@/components/AfkCountdown';
 import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -48,6 +49,8 @@ export default function ImpostorPage() {
         gameEnd,
         timerEndsAt,
         timerDuration,
+        inactivityUserId,
+        inactivityEndsAt,
         submitClue,
         requestUnmask,
         vote,
@@ -261,6 +264,7 @@ export default function ImpostorPage() {
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                 <span className="w-5 text-center text-xs flex-shrink-0 flex items-center justify-center">{done ? <CheckCircleIcon className="w-3.5 h-3.5" /> : current ? <span className="text-blue-500">›</span> : i + 1}</span>
                                                 <span className={done ? 'line-through' : ''}>{p?.name ?? id}{id === me.userId ? ' (moi)' : ''}</span>
+                                                {inactivityUserId === id && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
                                             </div>
                                             {allForPlayer.length > 0 && (
                                                 <span className="text-gray-700 dark:text-gray-300 font-semibold text-sm text-right">
@@ -354,7 +358,10 @@ export default function ImpostorPage() {
                                             ${votedFor === p.id ? 'bg-red-500 text-white'
                                                 : votedFor ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
                                                     : 'bg-gray-100 dark:bg-gray-800 hover:bg-red-500/10 border border-transparent text-gray-700 dark:text-gray-300'}`}>
-                                        {p.name}{votedFor === p.id ? ' ← votre vote' : ''}
+                                        <span className="flex items-center gap-2">
+                                            {p.name}{votedFor === p.id ? ' ← votre vote' : ''}
+                                            {inactivityUserId === p.id && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
+                                        </span>
                                     </button>
                                 ))}
                             </div>

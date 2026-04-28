@@ -35,8 +35,16 @@ interface AttemptPayload {
 export async function POST(req: NextRequest) {
     const auth = req.headers.get('authorization');
     const secret = process.env.INTERNAL_API_KEY;
+    const expected = `Bearer ${secret}`;
 
-    if (!secret || auth !== `Bearer ${secret}`) {
+    // Comparaison en temps constant pour éviter les timing attacks
+    const authorized =
+        secret &&
+        auth &&
+        auth.length === expected.length &&
+        require('crypto').timingSafeEqual(Buffer.from(auth), Buffer.from(expected));
+
+    if (!authorized) {
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 

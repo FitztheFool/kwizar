@@ -7,7 +7,8 @@ import { prisma } from '@/lib/prisma';
 // GET /api/taboo/word?count=2&exclude=WORD1,WORD2
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
-    const count = Math.min(Number(searchParams.get('count') ?? 1), 10);
+    const rawCount = parseInt(searchParams.get('count') ?? '1', 10);
+    const count = Math.min(isNaN(rawCount) || rawCount < 1 ? 1 : rawCount, 10);
     const exclude = searchParams.get('exclude')?.split(',').filter(Boolean) ?? [];
 
     const total = await prisma.word.count({

@@ -14,6 +14,7 @@ interface GameStat {
     correctAnswers?: number;
     totalAnswers?: number;
     bestScore?: number;
+    bestLevel?: number;
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -32,7 +33,11 @@ interface Props {
 }
 
 function fmt(n: number) {
-    return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+    if (n >= 10000) {
+        const k = n / 1000;
+        return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+    }
+    return String(n);
 }
 
 function getSecondaryStat(type: string, stat: GameStat, hideWinRate = false): { value: string | number; label: string } {
@@ -42,6 +47,9 @@ function getSecondaryStat(type: string, stat: GameStat, hideWinRate = false): { 
     switch (type) {
         case 'SNAKE':
             return { value: fmt(stat.bestScore ?? stat.points), label: 'meilleur score' };
+        case 'PACMAN':
+        case 'BREAKOUT':
+            return { value: fmt(stat.bestScore ?? 0), label: 'meilleur score' };
         case 'SKYJOW':
             return { value: fmt(avg), label: 'moy/partie' };
         case 'YAHTZEE':
@@ -77,7 +85,7 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
         return { pct, label: `${pct}% rép.`, wins: null, color };
     }
 
-    if (type === 'SNAKE') {
+    if (type === 'SNAKE' || type === 'PACMAN' || type === 'BREAKOUT') {
         return { pct: 0, label: `${fmt(stat.points)} pts`, wins: null, color: 'bg-emerald-500' };
     }
 
@@ -132,29 +140,49 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                             </div>
 
                             {/* Stats */}
-                            <div className="flex items-end justify-between gap-3">
-                                <div className="flex items-end gap-3">
-                                    <div>
-                                        <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{stat.count}</div>
-                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                                            {type === 'TABOO' && stat.rounds && stat.rounds > 0
-                                                ? `parties · ${stat.rounds}m`
-                                                : `partie${stat.count > 1 ? 's' : ''}`}
+                            {(type === 'PACMAN' || type === 'BREAKOUT') ? (
+                                <div className="flex items-end justify-between gap-3">
+                                    <div className="flex items-end gap-3">
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{stat.count}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">partie{stat.count > 1 ? 's' : ''}</div>
+                                        </div>
+                                        <div className="w-px self-stretch bg-gray-200 dark:bg-gray-700" />
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{fmt(stat.bestScore ?? 0)}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">meilleur score</div>
                                         </div>
                                     </div>
-                                    <div className="w-px self-stretch bg-gray-200 dark:bg-gray-700" />
-                                    <div>
-                                        <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{secondary.value}</div>
-                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{secondary.label}</div>
+                                    <div className="text-right">
+                                        <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{stat.bestLevel || 1}</div>
+                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">niveau max</div>
                                     </div>
                                 </div>
-                                {bar?.wins !== null && bar?.wins !== undefined && (
-                                    <div className="text-right">
-                                        <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{bar.wins}</div>
-                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{plural(bar.wins, 'victoire', 'victoires')}</div>
+                            ) : (
+                                <div className="flex items-end justify-between gap-3">
+                                    <div className="flex items-end gap-3">
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{stat.count}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                                {type === 'TABOO' && stat.rounds && stat.rounds > 0
+                                                    ? `parties · ${stat.rounds}m`
+                                                    : `partie${stat.count > 1 ? 's' : ''}`}
+                                            </div>
+                                        </div>
+                                        <div className="w-px self-stretch bg-gray-200 dark:bg-gray-700" />
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{secondary.value}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{secondary.label}</div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
+                                    {bar?.wins !== null && bar?.wins !== undefined && (
+                                        <div className="text-right">
+                                            <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{bar.wins}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{plural(bar.wins, 'victoire', 'victoires')}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Bar */}
                             {bar && bar.pct > 0 && (

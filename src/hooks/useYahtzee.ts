@@ -62,6 +62,8 @@ export function useYahtzee({
     const [rolling, setRolling] = useState(false);
     const [timerEndsAt, setTimerEndsAt] = useState<number | null>(null);
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
+    const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
 
     const vsBot = useMemo(
         () => (game?.players ?? []).some(p => isBot(p) && p.userId !== userId),
@@ -106,13 +108,23 @@ export function useYahtzee({
             addToast(`${uname} a été exclu pour inactivité`, 'kick');
         };
 
+        const clearInactivity = () => { setInactivityUserId(null); setInactivityEndsAt(null); };
+
         socket.on('notFound', onNotFound);
         socket.on('yahtzee:state', onState);
         socket.on('yahtzee:ended', onResults);
         socket.on('yahtzee:finished', onResults);
         socket.on('yahtzee:afkWarning', onAfkWarning);
         socket.on('yahtzee:playerSurrendered', onSurrendered);
-        socket.on('yahtzee:playerKicked', onKicked);
+        socket.on('yahtzee:playerKicked', (data) => { onKicked(data); clearInactivity(); });
+        socket.on('yahtzee:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; username: string; secondsLeft: number }) => {
+            setInactivityUserId(uid);
+            setInactivityEndsAt(Date.now() + secondsLeft * 1000);
+        });
+        socket.on('yahtzee:playerReconnected', ({ userId: uid }: { userId: string }) => {
+            setInactivityUserId(prev => prev === uid ? null : prev);
+            setInactivityEndsAt(null);
+        });
 
         return () => {
             socket.off('notFound', onNotFound);
@@ -121,7 +133,9 @@ export function useYahtzee({
             socket.off('yahtzee:finished', onResults);
             socket.off('yahtzee:afkWarning', onAfkWarning);
             socket.off('yahtzee:playerSurrendered', onSurrendered);
-            socket.off('yahtzee:playerKicked', onKicked);
+            socket.off('yahtzee:playerKicked');
+            socket.off('yahtzee:inactivityWarning');
+            socket.off('yahtzee:playerReconnected');
             joinedRef.current = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,6 +166,7 @@ export function useYahtzee({
         game, results, eliminatedPlayers,
         rolling, timerEndsAt, toasts,
         vsBot,
+        inactivityUserId, inactivityEndsAt,
         roll, toggleHold, scoreCategory, forceScore, surrender,
     };
 }

@@ -51,7 +51,7 @@ export async function GET(
                 SELECT "userId", "gameType"::text, MAX(score) AS val
                 FROM attempts
                 WHERE "userId" = ANY(${eligibleIds})
-                  AND "gameType"::text = ANY(ARRAY['SNAKE','PACMAN'])
+                  AND "gameType"::text = ANY(ARRAY['SNAKE','PACMAN','BREAKOUT'])
                 GROUP BY "userId", "gameType"
             ),
             ranked AS (
