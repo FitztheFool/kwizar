@@ -1,6 +1,8 @@
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireRegistered } from '@/lib/authGuard';
+import { sendVerificationEmail } from '@/lib/mail';
 
 export async function PATCH(
     req: NextRequest,
@@ -27,10 +29,19 @@ export async function PATCH(
     if (existing && existing.id !== session.user.id)
         return NextResponse.json({ error: 'Cet email est déjà utilisé.' }, { status: 409 });
 
-    const updated = await prisma.user.update({
+    await prisma.user.update({
         where: { id: session.user.id },
-        data: { email: trimmed },
+        data: { email: trimmed, status: 'PENDING' },
     });
 
-    return NextResponse.json({ email: updated.email });
+    await prisma.verificationToken.deleteMany({ where: { identifier: trimmed } });
+    const token = randomBytes(32).toString('hex');
+    await prisma.verificationToken.create({
+        data: { identifier: trimmed, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+    });
+    await sendVerificationEmail(trimmed, token).catch(err =>
+        console.error('[update-email] sendVerificationEmail failed:', err)
+    );
+
+    return NextResponse.json({ email: trimmed, status: 'PENDING' });
 }

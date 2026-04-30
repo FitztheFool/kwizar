@@ -137,6 +137,7 @@ export default function AdminPanel() {
                             onRoleChange={usersHook.handleRoleChange}
                             onToggleBan={usersHook.handleToggleBan}
                             onDeleteUser={usersHook.handleDeleteUser}
+                            onDeleteGuests={usersHook.handleDeleteGuests}
                         />
                     )}
                     {activeTab === 'quizzes' && (

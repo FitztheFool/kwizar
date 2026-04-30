@@ -37,6 +37,7 @@ interface Props {
     onRoleChange: (userId: string, role: string) => void;
     onToggleBan: (userId: string, isBanned: boolean) => void;
     onDeleteUser: (userId: string, username: string) => void;
+    onDeleteGuests: () => void;
 }
 
 export default function UsersTab({
@@ -44,7 +45,7 @@ export default function UsersTab({
     userQuery, setUserQuery, userSort, setUserSort,
     userRole, setUserRole,
     userStatus, setUserStatus,
-    onPageChange, onRoleChange, onToggleBan, onDeleteUser,
+    onPageChange, onRoleChange, onToggleBan, onDeleteUser, onDeleteGuests,
 }: Props) {
     const { data: session } = useSession();
 
@@ -87,6 +88,14 @@ export default function UsersTab({
                     <option value="BANNED">Banni</option>
                     <option value="DEACTIVATED">Désactivé</option>
                 </select>
+                {session?.user?.role === 'ADMIN' && (
+                    <button
+                        onClick={onDeleteGuests}
+                        className="text-xs font-semibold px-3 py-1.5 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors whitespace-nowrap"
+                    >
+                        Supprimer les guests
+                    </button>
+                )}
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">

@@ -51,6 +51,7 @@ function LoginForm() {
     const registered = searchParams.get('registered') === 'true';
     const verified = searchParams.get('verified') === '1';
     const passwordReset = searchParams.get('password_reset') === '1';
+    const emailChanged = searchParams.get('msg') === 'email-changed';
 
     const handleResend = async () => {
         if (!pendingEmail || resendCooldown > 0) return;
@@ -186,6 +187,12 @@ function LoginForm() {
                         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg text-sm text-green-700 dark:text-green-300">
                             <p className="font-semibold">Mot de passe modifié ✓</p>
                             <p className="mt-1">Vous pouvez vous connecter.</p>
+                        </div>
+                    )}
+                    {emailChanged && (
+                        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                            <p className="font-semibold flex items-center gap-1.5"><EnvelopeIcon className="w-4 h-4" />Adresse email modifiée</p>
+                            <p className="mt-1">Un lien de validation a été envoyé à votre nouvelle adresse. Cliquez dessus avant de vous reconnecter.</p>
                         </div>
                     )}
 

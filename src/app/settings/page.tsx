@@ -12,7 +12,6 @@ type TabType = 'theme' | 'compte' | 'securite';
 type DeleteType = 'soft' | 'hard';
 
 export default function SettingsPage() {
-    const router = useRouter();
     const { data: session, update: updateSession } = useSession();
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState<TabType>('theme');
@@ -133,10 +132,7 @@ export default function SettingsPage() {
             if (!res.ok) {
                 setEmailStatus({ type: 'error', msg: data.error ?? 'Erreur serveur.' });
             } else {
-                setEmailUpdated(true);
-                setEmailEdit(false);
-                setEmailStatus({ type: 'success', msg: 'Email mis à jour !' });
-                await updateSession();
+                await signOut({ callbackUrl: '/login?msg=email-changed' });
             }
         } catch {
             setEmailStatus({ type: 'error', msg: 'Erreur réseau.' });

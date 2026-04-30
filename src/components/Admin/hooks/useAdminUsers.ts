@@ -66,6 +66,13 @@ export function useAdminUsers() {
         else alert((await res.json()).error);
     };
 
+    const handleDeleteGuests = async () => {
+        if (!confirm('Supprimer tous les utilisateurs GUEST ?')) return;
+        const res = await fetch('/api/admin/users/guests', { method: 'DELETE' });
+        if (res.ok) { const { deleted } = await res.json(); alert(`${deleted} guest(s) supprimé(s).`); await fetchUsers(1); }
+        else alert((await res.json())?.error ?? 'Erreur');
+    };
+
     return {
         users, userPage, userTotalPages,
         userQuery, setUserQuery,
@@ -73,6 +80,6 @@ export function useAdminUsers() {
         userRole, setUserRole,
         userStatus, setUserStatus,
         fetchUsers,
-        handleRoleChange, handleToggleBan, handleDeleteUser,
+        handleRoleChange, handleToggleBan, handleDeleteUser, handleDeleteGuests,
     };
 }
