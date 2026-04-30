@@ -6,6 +6,8 @@ import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameIcon from '@/components/GameIcon';
 import { PlayIcon, PlusIcon } from '@heroicons/react/24/outline';
 
+type Stats = { parties: number; points: number };
+
 // ── Derived from GAME_CONFIG — single source of truth ────────────────────────
 
 const GAMES_BY_MODE = {
@@ -99,9 +101,21 @@ function GameCard({ gameKey, mode }: { gameKey: string; mode: GameMode }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+function fmt(n: number): string {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'k';
+    return n.toString();
+}
+
 export default function HomePage() {
     const [lobbyCode, setCode] = useState('');
+    const [stats, setStats] = useState<Stats | null>(null);
+    const nbJeux = Object.keys(GAME_CONFIG).length;
+
     useEffect(() => { setCode(crypto.randomUUID()); }, []);
+    useEffect(() => {
+        fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => {});
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -129,12 +143,18 @@ export default function HomePage() {
                                 </Link>
                             </div>
                         </div>
-                        {/* Right: live stat placeholders */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:shrink-0">
-                            {[1, 2, 3, 4].map(i => (
-                                <div key={i} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3 min-w-[90px] text-center">
-                                    <span className="text-xl font-black text-gray-300 dark:text-gray-600">—</span>
-                                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-600">Bientôt</span>
+                        {/* Right: live stats */}
+                        <div className="grid grid-cols-3 gap-2.5 md:shrink-0">
+                            {([
+                                { value: fmt(nbJeux),                        label: 'jeux' },
+                                { value: stats ? fmt(stats.parties) : null, label: 'parties' },
+                                { value: stats ? fmt(stats.points)  : null, label: 'points' },
+                            ] as const).map(({ value, label }) => (
+                                <div key={label} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3 min-w-[90px] text-center">
+                                    <span className="text-xl font-black text-gray-900 dark:text-white">
+                                        {value ?? <span className="text-gray-300 dark:text-gray-600">—</span>}
+                                    </span>
+                                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">{label}</span>
                                 </div>
                             ))}
                         </div>

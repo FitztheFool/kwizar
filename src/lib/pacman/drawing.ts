@@ -1,5 +1,137 @@
-import { COLS, ROWS, CELL, GHOST_COLORS, type Pos } from './constants';
+import { COLS, ROWS, CELL, FRUIT_POS, type Pos, type FruitType } from './constants';
 import type { GameState } from './engine';
+import { GHOST_COLORS } from './constants';
+
+// ── Image cache ───────────────────────────────────────────────────────────────
+
+const IMG: Record<string, HTMLImageElement> = {};
+// Stores background-removed canvases. Only set when removeBackground succeeds.
+// Falls back to IMG[src] (the raw element) when not present.
+const PROCESSED: Record<string, CanvasImageSource> = {};
+
+function removeBackground(img: HTMLImageElement): HTMLCanvasElement | null {
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0);
+    return removeBackgroundFromCtx(ctx, c.width, c.height) ? c : null;
+}
+
+function removeBackgroundFromCtx(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    width: number,
+    height: number,
+): boolean {
+    const id = ctx.getImageData(0, 0, width, height);
+    const d = id.data;
+
+    for (let i = 3; i < Math.min(d.length, 400); i += 4) {
+        if (d[i] < 250) return false; // déjà transparent
+    }
+
+    const w = width;
+    const corners = [
+        [d[0], d[1], d[2]],
+        [d[(w - 1) * 4], d[(w - 1) * 4 + 1], d[(w - 1) * 4 + 2]],
+        [d[(height - 1) * w * 4], d[(height - 1) * w * 4 + 1], d[(height - 1) * w * 4 + 2]],
+        [d[((height - 1) * w + w - 1) * 4], d[((height - 1) * w + w - 1) * 4 + 1], d[((height - 1) * w + w - 1) * 4 + 2]],
+    ];
+    const [bgR, bgG, bgB] = corners[0];
+    const allSame = corners.every(([r, g, b]) =>
+        Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB) < 30
+    );
+    if (!allSame) return false;
+
+    let removed = 0;
+    const tol = 40;
+    for (let i = 0; i < d.length; i += 4) {
+        if (Math.abs(d[i] - bgR) + Math.abs(d[i + 1] - bgG) + Math.abs(d[i + 2] - bgB) < tol) {
+            d[i + 3] = 0;
+            removed++;
+        }
+    }
+    if (removed / (d.length / 4) > 0.8) return false;
+
+    ctx.putImageData(id, 0, 0);
+    return true;
+}
+
+const PAC_FRAMES = [
+    '/pacman/pacman/pacman_ferme.png',
+    '/pacman/pacman/pacman_mi_ouvert.png',
+    '/pacman/pacman/pacman_ouvert.png',
+];
+const GHOST_IMGS = [
+    '/pacman/fantomes/blinky.png',
+    '/pacman/fantomes/pinky.png',
+    '/pacman/fantomes/inky.png',
+    '/pacman/fantomes/clyde.png',
+];
+const EFFRAYE = '/pacman/fantomes/fantome_effraye.png';
+const CLIGNOTANT = '/pacman/fantomes/fantome_clignotant.png';
+const YEUX = '/pacman/fantomes/fantome_yeux.png';
+const DOT_IMG = '/pacman/items/dot.png';
+const ENERG_IMG = '/pacman/items/energizer.png';
+
+const FRUIT_IMGS: Record<FruitType, string> = {
+    cerise: '/pacman/items/cerise.png',
+    fraise: '/pacman/items/fraise.png',
+    orange: '/pacman/items/orange.png',
+    pomme: '/pacman/items/pomme.png',
+    melon: '/pacman/items/melon.png',
+    galaxian: '/pacman/items/cle.png',
+    cloche: '/pacman/items/cle.png',
+    cle: '/pacman/items/cle.png',
+};
+
+
+export function preloadPacmanImages() {
+    const all = [
+        ...PAC_FRAMES, ...GHOST_IMGS,
+        EFFRAYE, CLIGNOTANT, YEUX,
+        DOT_IMG, ENERG_IMG,
+        ...Object.values(FRUIT_IMGS),
+    ];
+    for (const src of all) {
+        if (!IMG[src]) {
+            const el = new Image();
+            el.onload = () => {
+                const process = () => {
+                    if (typeof OffscreenCanvas !== 'undefined') {
+                        const oc = new OffscreenCanvas(el.naturalWidth, el.naturalHeight);
+                        const ctx = oc.getContext('2d');
+                        if (!ctx) return;
+                        ctx.drawImage(el, 0, 0);
+                        if (removeBackgroundFromCtx(ctx, oc.width, oc.height)) {
+                            PROCESSED[src] = oc;
+                        }
+                    } else {
+                        const canvas = removeBackground(el);
+                        if (canvas) PROCESSED[src] = canvas;
+                    }
+                };
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(process, { timeout: 2000 });
+                } else {
+                    setTimeout(process, 0);
+                }
+            };
+            el.src = src;
+            IMG[src] = el;
+        }
+    }
+}
+
+// Returns a background-removed canvas if available, falls back to the raw
+// HTMLImageElement once loaded, or null if not yet ready (triggers fallback drawing).
+function loaded(src: string): CanvasImageSource | null {
+    if (PROCESSED[src]) return PROCESSED[src];
+    const img = IMG[src];
+    if (img?.complete && img.naturalWidth > 0) return img;
+    return null;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -12,165 +144,141 @@ function neighbor(maze: number[][], x: number, y: number): number {
     return maze[y][x];
 }
 
-// ── Neon wall drawing ─────────────────────────────────────────────────────────
-// Draw glowing lines on type-1 wall-cell edges that face open corridors.
+// ── Wall rendering — neon outline style ──────────────────────────────────────
+// Each wall cell gets a dark fill, then a glowing blue line on every side that
+// faces a corridor. This naturally handles all topologies (T, cross, corner…)
+// without needing per-topology tile assets.
 
-function drawNeonWalls(ctx: CanvasRenderingContext2D, maze: number[][]) {
-    // 3 passes: wide outer glow → medium halo → bright core
-    const passes: [number, number, string][] = [
-        [20, 4, 'rgba(37,99,235,0.55)'],
-        [8, 2.5, 'rgba(96,165,250,0.85)'],
-        [2, 1.5, '#dbeafe'],
-    ];
+function drawWallTile(ctx: CanvasRenderingContext2D, maze: number[][], x: number, y: number) {
+    const px = x * CELL;
+    const py = y * CELL;
 
-    for (const [blur, width, color] of passes) {
-        ctx.save();
-        ctx.strokeStyle = color;
-        ctx.shadowColor = '#2563eb';
-        ctx.shadowBlur = blur;
-        ctx.lineWidth = width;
-        ctx.lineCap = 'round';   // rounded ends fill junction gaps cleanly
+    ctx.fillStyle = '#060820';
+    ctx.fillRect(px, py, CELL, CELL);
 
-        ctx.beginPath();
-        for (let y = 0; y < ROWS; y++) {
-            for (let x = 0; x < COLS; x++) {
-                if (maze[y][x] !== 1) continue;
-                const px = x * CELL, py = y * CELL;
+    const U = isWallLike(neighbor(maze, x, y - 1));
+    const D = isWallLike(neighbor(maze, x, y + 1));
+    const L = isWallLike(neighbor(maze, x - 1, y));
+    const R = isWallLike(neighbor(maze, x + 1, y));
 
-                if (!isWallLike(neighbor(maze, x, y - 1))) {
-                    ctx.moveTo(px, py); ctx.lineTo(px + CELL, py);
-                }
-                if (!isWallLike(neighbor(maze, x, y + 1))) {
-                    ctx.moveTo(px, py + CELL); ctx.lineTo(px + CELL, py + CELL);
-                }
-                if (!isWallLike(neighbor(maze, x - 1, y))) {
-                    ctx.moveTo(px, py); ctx.lineTo(px, py + CELL);
-                }
-                if (!isWallLike(neighbor(maze, x + 1, y))) {
-                    ctx.moveTo(px + CELL, py); ctx.lineTo(px + CELL, py + CELL);
-                }
-            }
-        }
-        ctx.stroke();
-        ctx.restore();
+    type Seg = [number, number, number, number];
+    const edges: Seg[] = [];
+    if (!U) edges.push([px, py, px + CELL, py]);
+    if (!D) edges.push([px, py + CELL, px + CELL, py + CELL]);
+    if (!L) edges.push([px, py, px, py + CELL]);
+    if (!R) edges.push([px + CELL, py, px + CELL, py + CELL]);
+    if (edges.length === 0) return;
+
+    // Pass 1 — wide glow
+    ctx.save();
+    ctx.strokeStyle = '#1d4ed8';
+    ctx.shadowColor = '#3b82f6';
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'square';
+    for (const [x1, y1, x2, y2] of edges) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
     }
+    ctx.restore();
+
+    // Pass 2 — bright crisp line on top
+    ctx.save();
+    ctx.strokeStyle = '#93c5fd';
+    ctx.shadowColor = '#bfdbfe';
+    ctx.shadowBlur = 4;
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'square';
+    for (const [x1, y1, x2, y2] of edges) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+    ctx.restore();
 }
 
-// ── Ghost house outline (pink neon) ───────────────────────────────────────────
-// Solid box at cols 7–11, rows 9–11.
-// Gate tubes only drawn when the maze actually has type-2 gate cells in row 7.
 
-function drawGhostHouseOutline(ctx: CanvasRenderingContext2D, maze: number[][]) {
-    const L = 7 * CELL, R = 12 * CELL;
-    const T = 9 * CELL, B = 12 * CELL;
-    const gateTop = 7 * CELL;
-
-    // Detect gate type from maze row 7
-    const hasCenterGate = maze[7]?.[9] === 2;
-    const hasDoubleGate = maze[7]?.[8] === 2 || maze[7]?.[10] === 2;
-    const hasGate = hasCenterGate || hasDoubleGate;
-    const gateL = hasCenterGate ? 9 * CELL : 8 * CELL;
-    const gateR = hasCenterGate ? 10 * CELL : 11 * CELL;
-
-    const passes: [number, number][] = [[16, 2.5], [4, 2]];
-
-    for (const [blur, width] of passes) {
-        ctx.save();
-        ctx.strokeStyle = '#e879f9';
-        ctx.shadowColor = '#e879f9';
-        ctx.shadowBlur = blur;
-        ctx.lineWidth = width;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Left + bottom + right
-        ctx.beginPath();
-        ctx.moveTo(L, T); ctx.lineTo(L, B);
-        ctx.lineTo(R, B); ctx.lineTo(R, T);
-        ctx.stroke();
-
-        if (hasGate) {
-            // Top with gate gap + tubes rising to row 7
-            ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(gateL, T); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(gateR, T); ctx.lineTo(R, T); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(gateL, T); ctx.lineTo(gateL, gateTop); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(gateR, T); ctx.lineTo(gateR, gateTop); ctx.stroke();
-        } else {
-            // Fully closed top
-            ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(R, T); ctx.stroke();
-        }
-
-        ctx.restore();
-    }
-}
-
-// ── Dot / pellet ──────────────────────────────────────────────────────────────
+// ── Dot ───────────────────────────────────────────────────────────────────────
 
 function drawDot(ctx: CanvasRenderingContext2D, x: number, y: number) {
-    ctx.beginPath();
-    ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fill();
+    const cx = x * CELL + CELL / 2;
+    const cy = y * CELL + CELL / 2;
+    const img = loaded(DOT_IMG);
+    if (img) {
+        const s = CELL * 0.38;
+        ctx.drawImage(img, cx - s / 2, cy - s / 2, s, s);
+    } else {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fill();
+    }
 }
+
+// ── Power pellet ──────────────────────────────────────────────────────────────
 
 function drawPellet(ctx: CanvasRenderingContext2D, x: number, y: number, phase: number) {
     const cx = x * CELL + CELL / 2;
     const cy = y * CELL + CELL / 2;
-    const r = 4.5 + Math.sin(phase * 2) * 0.8;
+    const pulse = 1 + Math.sin(phase * 2) * 0.08;
+    const img = loaded(ENERG_IMG);
+    const s = CELL * 0.72 * pulse;
 
-    ctx.save();
+    ctx.save();                          // ← save AVANT toute mutation
     ctx.shadowColor = '#facc15';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = '#facc15';
-    ctx.fill();
-    ctx.restore();
+    ctx.shadowBlur = 12;
+    if (img) {
+        ctx.drawImage(img, cx - s / 2, cy - s / 2, s, s);
+    } else {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4.5 + Math.sin(phase * 2) * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#facc15';
+        ctx.fill();
+    }
+    ctx.restore();                       // ← restore annule shadow proprement
 }
 
 // ── Pac-Man sprite ────────────────────────────────────────────────────────────
+
+const DIR_ROT: Record<string, number> = {
+    R: 0, L: Math.PI, U: -Math.PI / 2, D: Math.PI / 2, N: 0,
+};
 
 function drawPacmanSprite(
     ctx: CanvasRenderingContext2D,
     pos: Pos,
     dir: string,
-    mouthAngle: number
+    mouthAngle: number,
 ) {
     const cx = pos.x * CELL + CELL / 2;
     const cy = pos.y * CELL + CELL / 2;
-    const r = CELL / 2 - 1;
+    const rot = DIR_ROT[dir] ?? 0;
 
-    const angle = 0.12 + Math.abs(Math.sin(mouthAngle)) * 0.28;
-
-    const rotations: Record<string, number> = {
-        R: 0, L: Math.PI, U: -Math.PI / 2, D: Math.PI / 2, N: 0,
-    };
-    const rot = rotations[dir] ?? 0;
+    // Pick animation frame: 0 = ferme, 1 = mi-ouvert, 2 = ouvert
+    const t = Math.abs(Math.sin(mouthAngle));
+    const frameIdx = t < 0.33 ? 0 : t < 0.66 ? 1 : 2;
+    const img = loaded(PAC_FRAMES[frameIdx]);
 
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(rot);
 
-    const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.35, 1, 0, 0, r);
-    grad.addColorStop(0, '#fef08a');
-    grad.addColorStop(0.6, '#facc15');
-    grad.addColorStop(1, '#ca8a04');
-
-    ctx.shadowColor = 'rgba(250,204,21,0.6)';
-    ctx.shadowBlur = 10;
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, r, angle, Math.PI * 2 - angle);
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    ctx.beginPath();
-    ctx.arc(r * 0.15, -r * 0.45, Math.max(1.5, r * 0.12), 0, Math.PI * 2);
-    ctx.fillStyle = '#111827';
-    ctx.fill();
+    if (img) {
+        ctx.drawImage(img, -CELL / 2, -CELL / 2, CELL, CELL);
+    } else {
+        // Fallback canvas Pac-Man
+        const r = CELL / 2 - 1;
+        const angle = 0.12 + t * 0.28;
+        const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.35, 1, 0, 0, r);
+        grad.addColorStop(0, '#fef08a');
+        grad.addColorStop(0.6, '#facc15');
+        grad.addColorStop(1, '#ca8a04');
+        ctx.shadowColor = 'rgba(250,204,21,0.6)';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, angle, Math.PI * 2 - angle);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
 
     ctx.restore();
 }
@@ -181,12 +289,34 @@ function drawGhost(
     ctx: CanvasRenderingContext2D,
     pos: Pos,
     index: number,
-    frightened: boolean,
+    frightened: number,
     ghostDir: string,
     dead = false,
 ) {
     const cx = pos.x * CELL + CELL / 2;
     const cy = pos.y * CELL + CELL / 2;
+    const px = pos.x * CELL;
+    const py = pos.y * CELL;
+
+    // Choose image source
+    let src: string;
+    if (dead) {
+        src = YEUX;
+    } else if (frightened > 0) {
+        // Flash during last ~8 ticks
+        const flash = frightened < 8 && Math.floor(Date.now() / 220) % 2 === 0;
+        src = flash ? CLIGNOTANT : EFFRAYE;
+    } else {
+        src = GHOST_IMGS[index] ?? GHOST_IMGS[0];
+    }
+
+    const img = loaded(src);
+    if (img) {
+        ctx.drawImage(img, px, py, CELL, CELL);
+        return;
+    }
+
+    // ── Fallback canvas ghost ─────────────────────────────────────────────────
 
     if (dead) {
         const eyeOffX = 3.5;
@@ -207,31 +337,17 @@ function drawGhost(
     }
 
     const r = CELL / 2 - 1;
-    const bodyColor = frightened ? '#3730a3' : (GHOST_COLORS[index]?.body ?? '#ff4444');
-
+    const bodyColor = frightened > 0 ? '#3730a3' : (GHOST_COLORS[index]?.body ?? '#ff4444');
     ctx.save();
-
-    const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.3, 1, cx, cy, r * 1.4);
-    if (frightened) {
-        grad.addColorStop(0, '#6366f1');
-        grad.addColorStop(1, '#1e1b4b');
-    } else {
-        const base = GHOST_COLORS[index]?.body ?? '#ff4444';
-        grad.addColorStop(0, lighten(base, 0.4));
-        grad.addColorStop(1, darken(base, 0.2));
-    }
-
-    ctx.shadowColor = frightened ? 'rgba(99,102,241,0.5)' : `${bodyColor}88`;
+    ctx.shadowColor = `${bodyColor}88`;
     ctx.shadowBlur = 8;
-    ctx.fillStyle = grad;
-
+    ctx.fillStyle = bodyColor;
     const bot = cy + r;
     const left = cx - r;
     const right = cx + r;
     const bumpH = 5;
     const numBumps = 3;
     const bumpW = (r * 2) / numBumps;
-
     ctx.beginPath();
     ctx.arc(cx, cy - 1, r, Math.PI, 0);
     for (let b = 0; b < numBumps; b++) {
@@ -246,38 +362,28 @@ function drawGhost(
     ctx.lineTo(left, bot);
     ctx.closePath();
     ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.restore();
+}
 
-    if (!frightened) {
-        const eyeOffX = 3.5;
-        const eyeY = cy - r * 0.25;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.ellipse(cx - eyeOffX, eyeY, 3, 3.8, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(cx + eyeOffX, eyeY, 3, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+// ── Fruit bonus ───────────────────────────────────────────────────────────────
 
-        const pupilDirs: Record<string, [number, number]> = {
-            L: [-1.2, 0], R: [1.2, 0], U: [0, -1.2], D: [0, 1.2], N: [0, 0],
-        };
-        const [pdx, pdy] = pupilDirs[ghostDir] ?? [0, 0];
-        ctx.fillStyle = '#1d4ed8';
-        ctx.beginPath(); ctx.arc(cx - eyeOffX + pdx, eyeY + pdy, 1.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + eyeOffX + pdx, eyeY + pdy, 1.8, 0, Math.PI * 2); ctx.fill();
+function drawFruit(ctx: CanvasRenderingContext2D, type: FruitType) {
+    const cx = FRUIT_POS.x * CELL + CELL / 2;
+    const cy = FRUIT_POS.y * CELL + CELL / 2;
+    const src = FRUIT_IMGS[type];
+    const img = loaded(src);
+    const s = CELL * 1.1;
+    ctx.save();
+    ctx.shadowColor = '#facc15';
+    ctx.shadowBlur = 10;
+    if (img) {
+        ctx.drawImage(img, cx - s / 2, cy - s / 2, s, s);
     } else {
-        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
+        ctx.fillStyle = '#facc15';
         ctx.beginPath();
-        ctx.moveTo(cx - 5, cy - 1);
-        ctx.lineTo(cx - 2.5, cy + 2);
-        ctx.lineTo(cx, cy - 1);
-        ctx.lineTo(cx + 2.5, cy + 2);
-        ctx.lineTo(cx + 5, cy - 1);
-        ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.beginPath(); ctx.arc(cx - 3.5, cy - 4, 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(cx + 3.5, cy - 4, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.arc(cx, cy, CELL / 2 - 1, 0, Math.PI * 2);
+        ctx.fill();
     }
-
     ctx.restore();
 }
 
@@ -288,21 +394,24 @@ function drawLives(ctx: CanvasRenderingContext2D, lives: number) {
         const lx = (i + 1) * (CELL + 3);
         const ly = ROWS * CELL - CELL / 2;
         const r = CELL / 2 - 3;
-
-        const grad = ctx.createRadialGradient(lx - r * 0.2, ly - r * 0.3, 1, lx, ly, r);
-        grad.addColorStop(0, '#fef08a');
-        grad.addColorStop(1, '#ca8a04');
-
-        ctx.save();
-        ctx.shadowColor = 'rgba(250,204,21,0.5)';
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.arc(lx, ly, r, 0.3 * Math.PI, 1.7 * Math.PI);
-        ctx.lineTo(lx, ly);
-        ctx.closePath();
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.restore();
+        const img = loaded(PAC_FRAMES[2]);
+        if (img) {
+            ctx.drawImage(img, lx - r, ly - r, r * 2, r * 2);
+        } else {
+            const grad = ctx.createRadialGradient(lx - r * 0.2, ly - r * 0.3, 1, lx, ly, r);
+            grad.addColorStop(0, '#fef08a');
+            grad.addColorStop(1, '#ca8a04');
+            ctx.save();
+            ctx.shadowColor = 'rgba(250,204,21,0.5)';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(lx, ly, r, 0.3 * Math.PI, 1.7 * Math.PI);
+            ctx.lineTo(lx, ly);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.restore();
+        }
     }
 }
 
@@ -320,47 +429,30 @@ export function drawPacman(
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
 
+    // Walls (tile images) + dots/pellets
     for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
             const tile = state.maze[y][x];
-            if (tile === 0) drawDot(ctx, x, y);
+            if (tile === 1) drawWallTile(ctx, state.maze, x, y);
+            else if (tile === 0) drawDot(ctx, x, y);
             else if (tile === 3) drawPellet(ctx, x, y, mouthAngle);
         }
     }
 
-    drawNeonWalls(ctx, state.maze);
-    drawGhostHouseOutline(ctx, state.maze);
 
     for (let i = 0; i < state.ghosts.length; i++) {
         const g = state.ghosts[i];
-        drawGhost(ctx, g.pos, i, g.frightened > 0, g.dir ?? 'N', g.dead);
+        drawGhost(ctx, g.pos, i, g.frightened, g.dir ?? 'N', g.dead);
     }
+
+    if (state.fruit) drawFruit(ctx, state.fruit.type);
 
     drawPacmanSprite(ctx, state.pacPos, state.pacDir, mouthAngle);
     drawLives(ctx, state.lives);
 }
 
 // ── Idle screen ───────────────────────────────────────────────────────────────
-// Kept for API compatibility; the hook renders idle via drawPacman(makeInitialState()).
 
 export function drawIdleScreen(_canvas: HTMLCanvasElement, _isDark: boolean) {
     // no-op
-}
-
-// ── Color helpers ─────────────────────────────────────────────────────────────
-
-function lighten(hex: string, amount: number): string {
-    const n = parseInt(hex.slice(1), 16);
-    const r = Math.min(255, ((n >> 16) & 0xff) + Math.round(255 * amount));
-    const g = Math.min(255, ((n >> 8) & 0xff) + Math.round(255 * amount));
-    const b = Math.min(255, (n & 0xff) + Math.round(255 * amount));
-    return `rgb(${r},${g},${b})`;
-}
-
-function darken(hex: string, amount: number): string {
-    const n = parseInt(hex.slice(1), 16);
-    const r = Math.max(0, ((n >> 16) & 0xff) - Math.round(255 * amount));
-    const g = Math.max(0, ((n >> 8) & 0xff) - Math.round(255 * amount));
-    const b = Math.max(0, (n & 0xff) - Math.round(255 * amount));
-    return `rgb(${r},${g},${b})`;
 }

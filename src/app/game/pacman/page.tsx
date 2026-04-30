@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type React from 'react';
 import Link from 'next/link';
 import { usePacman } from '@/hooks/usePacman';
@@ -10,6 +10,7 @@ import { StarIcon, TrophyIcon, HeartIcon, SparklesIcon } from '@heroicons/react/
 
 export default function PacmanPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [debugLevel, setDebugLevel] = useState(1);
     const {
         phase,
         displayScore,
@@ -20,7 +21,9 @@ export default function PacmanPage() {
         submitState,
         startGame,
         session,
-    } = usePacman(canvasRef);
+    } = usePacman(canvasRef, debugLevel);
+
+    const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
@@ -87,7 +90,7 @@ export default function PacmanPage() {
                     submitState={submitState}
                     session={session}
                     leaderboardHref="/leaderboard/pacman"
-                    onReplay={startGame}
+                    onReplay={() => startGame(debugLevel)}
                     title="Game Over"
                     titleClassName="text-yellow-400"
                     replayClassName="px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm rounded-xl transition-all"
@@ -97,8 +100,16 @@ export default function PacmanPage() {
             {/* ── Play button ── */}
             {phase === 'idle' && (
                 <div className="mt-6 flex flex-col items-center gap-3">
+                    {isAdmin && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs font-mono">
+                            <span className="opacity-60">🔧 Niveau</span>
+                            <button onClick={() => setDebugLevel(l => Math.max(1, l - 1))} className="w-5 h-5 rounded hover:bg-orange-500/20 font-bold">−</button>
+                            <span className="w-5 text-center font-bold">{debugLevel}</span>
+                            <button onClick={() => setDebugLevel(l => l + 1)} className="w-5 h-5 rounded hover:bg-orange-500/20 font-bold">+</button>
+                        </div>
+                    )}
                     <button
-                        onClick={startGame}
+                        onClick={() => startGame(debugLevel)}
                         className="group relative flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
                         style={{ boxShadow: '0 4px 24px rgba(250,204,21,0.35), 0 0 0 0 rgba(250,204,21,0)' }}
                     >

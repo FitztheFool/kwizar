@@ -1,4 +1,8 @@
-import { getMaze, COLS, ROWS, DELTA, OPP, FRIGHTEN_TICKS, GHOST_SCORE, GHOST_STARTS, TUNNEL_ROW, type Pos, type Dir, type Tile } from './constants';
+import {
+    getMaze, COLS, ROWS, DELTA, OPP, FRIGHTEN_TICKS, GHOST_SCORE, GHOST_STARTS, GHOST_HOME, TUNNEL_ROW,
+    FRUIT_POS, FRUIT_DOTS_TRIGGERS, FRUIT_DURATION_TICKS, FRUIT_SCORES, levelFruit,
+    type Pos, type Dir, type Tile, type FruitType,
+} from './constants';
 
 export type Ghost = {
     pos: Pos;
@@ -19,6 +23,9 @@ export type GameState = {
     tick: number;
     frightenedTicks: number;
     level: number;
+    fruit: { type: FruitType; ticks: number } | null;
+    dotsEaten: number;
+    fruitSpawned: number;
 };
 
 export function cloneMaze(level = 1): Tile[][] {
@@ -45,6 +52,8 @@ function canMove(maze: Tile[][], pos: Pos, dir: Dir, isGhost: boolean): boolean 
     const nx = wrapX(pos.x + d.x, ny);
     const tile = maze[ny][nx];
     if (tile === 1) return false;
+    // Ghost-house doors (tile=2) are only traversable by ghosts
+    if (tile === 2 && !isGhost) return false;
     return true;
 }
 
@@ -115,16 +124,22 @@ export function stepGhost(
     level: number,
 ): Ghost {
     if (ghost.dead) {
-        const target = GHOST_STARTS[index];
-        const options = ghostDirs(maze, ghost);
-        if (options.length === 0) return ghost;
-        const chosen = options.reduce((best, d) => {
-            const np = movePos(ghost.pos, d);
-            return dist(np, target) < dist(movePos(ghost.pos, best), target) ? d : best;
-        }, options[0]);
-        const newPos = movePos(ghost.pos, chosen);
-        const isDead = newPos.x === target.x && newPos.y === target.y;
-        return { ...ghost, pos: newPos, dir: chosen, dead: isDead, frightened: 0 };
+        // Les yeux volent en ligne droite vers le centre de la cage, sans tenir compte des murs
+        if (ghost.pos.x === GHOST_HOME.x && ghost.pos.y === GHOST_HOME.y) {
+            return { ...ghost, dir: 'N', dead: false, frightened: 0 };
+        }
+        const dx = GHOST_HOME.x - ghost.pos.x;
+        const dy = GHOST_HOME.y - ghost.pos.y;
+        let newPos: Pos;
+        let dir: Dir;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            newPos = { x: ghost.pos.x + Math.sign(dx), y: ghost.pos.y };
+            dir = dx > 0 ? 'R' : 'L';
+        } else {
+            newPos = { x: ghost.pos.x, y: ghost.pos.y + Math.sign(dy) };
+            dir = dy > 0 ? 'D' : 'U';
+        }
+        return { ...ghost, pos: newPos, dir, dead: true, frightened: 0 };
     }
 
     if (ghost.frightened > 0) {
@@ -162,7 +177,8 @@ export function initialGhosts(): Ghost[] {
 
 export function stepGame(state: GameState, pendingDir: Dir): { state: GameState; ate: boolean; died: boolean; won: boolean } {
     const maze = state.maze.map(r => [...r] as Tile[]);
-    let { pacPos, pacDir, pacNextDir, ghosts, score, lives, dotsLeft, tick, frightenedTicks, level } = state;
+    let { pacPos, pacDir, pacNextDir, ghosts, score, lives, dotsLeft, tick, frightenedTicks, level,
+          fruit, dotsEaten, fruitSpawned } = state;
 
     pacNextDir = pendingDir !== 'N' ? pendingDir : pacNextDir;
 
@@ -184,32 +200,55 @@ export function stepGame(state: GameState, pendingDir: Dir): { state: GameState;
     let newDotsLeft = dotsLeft;
     let newFrighten = frightenedTicks > 0 ? frightenedTicks - 1 : 0;
     let ateGhost = false;
+    let newDotsEaten = dotsEaten;
+    let newFruitSpawned = fruitSpawned;
 
     const tile = maze[newPos.y]?.[newPos.x];
     if (tile === 0) {
         maze[newPos.y][newPos.x] = 4;
         newScore += 10;
         newDotsLeft--;
+        newDotsEaten++;
     } else if (tile === 3) {
         maze[newPos.y][newPos.x] = 4;
         newScore += 50;
         newDotsLeft--;
+        newDotsEaten++;
         newFrighten = frightenDuration;
     }
 
-    // Les fantômes bougent tous les ticks à partir du niveau 3, sinon 1 tick sur 2
-    const ghostMoveEvery = level >= 3 ? 1 : 2;
-    const anyDead = ghosts.some(g => g.dead);
-    let newGhosts = ghosts;
-    if (tick % ghostMoveEvery === 0) {
-        newGhosts = ghosts.map((g, i) => {
-            const g2 = { ...g, frightened: newFrighten > 0 ? (g.frightened > 0 ? g.frightened - 1 : newFrighten) : 0 };
-            if (newFrighten > 0 && g.frightened === 0) return { ...g2, frightened: newFrighten };
-            // Gèle les fantômes vivants pendant qu'un fantôme mangé retourne à la maison
-            if (anyDead && !g.dead) return g2;
-            return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
-        });
+    // Tick down current fruit; spawn new fruit at 70 and 170 dots
+    let newFruit: typeof fruit = fruit ? { ...fruit, ticks: fruit.ticks - 1 } : null;
+    if (newFruit && newFruit.ticks <= 0) newFruit = null;
+
+    for (let ti = 0; ti < FRUIT_DOTS_TRIGGERS.length; ti++) {
+        if (newFruitSpawned <= ti && newDotsEaten >= FRUIT_DOTS_TRIGGERS[ti]) {
+            newFruit = { type: levelFruit(level), ticks: FRUIT_DURATION_TICKS };
+            newFruitSpawned = ti + 1;
+        }
     }
+
+    // Pac-Man eats the fruit
+    if (newFruit && newPos.x === FRUIT_POS.x && newPos.y === FRUIT_POS.y) {
+        const base = FRUIT_SCORES[newFruit.type];
+        newScore += newFrighten > 0 ? base * 2 : base;
+        newFruit = null;
+    }
+
+    // Les fantômes vivants bougent tous les ticks à partir du niveau 3, sinon 1 tick sur 2.
+    // Les fantômes morts (yeux) bougent à chaque tick, en vol direct, sans geler les autres.
+    const ghostMoveEvery = level >= 3 ? 1 : 2;
+    const shouldMoveLiving = tick % ghostMoveEvery === 0;
+
+    let newGhosts = ghosts.map((g, i) => {
+        const g2 = { ...g, frightened: newFrighten > 0 ? (g.frightened > 0 ? g.frightened - 1 : newFrighten) : 0 };
+        if (newFrighten > 0 && g.frightened === 0) return { ...g2, frightened: newFrighten };
+        if (g.dead) {
+            return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
+        }
+        if (!shouldMoveLiving) return g2;
+        return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
+    });
 
     if (tile === 3) {
         newGhosts = newGhosts.map(g => ({ ...g, frightened: frightenDuration }));
@@ -244,6 +283,9 @@ export function stepGame(state: GameState, pendingDir: Dir): { state: GameState;
             tick: tick + 1,
             frightenedTicks: newFrighten,
             level,
+            fruit: newFruit,
+            dotsEaten: newDotsEaten,
+            fruitSpawned: newFruitSpawned,
         },
         ate: ateGhost,
         died,

@@ -7,7 +7,7 @@ import { W, POWERUP_IMAGE_PATHS } from '@/lib/breakout/constants';
 import { makeInitialState, stepGame, launchBall, buildLevel, type GameState } from '@/lib/breakout/engine';
 import { drawBreakout, drawIdleScreen, preloadPowerUpImages } from '@/lib/breakout/drawing';
 
-export function useBreakout(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+export function useBreakout(canvasRef: React.RefObject<HTMLCanvasElement | null>, debugLevel = 1) {
     const {
         session,
         phase,
@@ -22,6 +22,7 @@ export function useBreakout(canvasRef: React.RefObject<HTMLCanvasElement | null>
         resetForStart,
     } = useSoloGame({
         gameKey: 'breakout',
+        gameType: 'BREAKOUT',
         submitEndpoint: '/api/breakout/submit',
         localStorageKey: 'breakoutBest',
         starters: new Set(['Enter', ' ']),
@@ -43,8 +44,8 @@ export function useBreakout(canvasRef: React.RefObject<HTMLCanvasElement | null>
     const redrawIdle = useCallback(() => {
         if (!canvasRef.current) return;
         const isDark = document.documentElement.classList.contains('dark');
-        drawIdleScreen(canvasRef.current, isDark);
-    }, [canvasRef]);
+        drawBreakout(canvasRef.current, makeInitialState(debugLevel), isDark);
+    }, [canvasRef, debugLevel]);
 
     useEffect(() => {
         if (phase === 'idle') redrawIdle();
@@ -59,16 +60,16 @@ export function useBreakout(canvasRef: React.RefObject<HTMLCanvasElement | null>
         soloEndGame(finalScore, { level: finalLevel });
     }, [stopLoop, soloEndGame]);
 
-    const startGame = useCallback(() => {
+    const startGame = useCallback((startLevel = 1) => {
         stopLoop();
-        const state = makeInitialState(1);
+        const state = makeInitialState(startLevel);
         stateRef.current = state;
         paddleTargetXRef.current = null;
         fireRef.current = false;
 
         resetForStart();
         setDisplayLives(3);
-        setDisplayLevel(1);
+        setDisplayLevel(startLevel);
 
         if (canvasRef.current) {
             const isDark = document.documentElement.classList.contains('dark');

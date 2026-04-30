@@ -5,10 +5,10 @@ import { useGameTheme } from '@/hooks/useGameTheme';
 import { useSoloGame } from '@/hooks/useSoloGame';
 import { COLS, ROWS, CELL, KEY_DIR, STARTERS, PACMAN_START, type Dir } from '@/lib/pacman/constants';
 import { cloneMaze, countDots, initialGhosts, stepGame, type GameState } from '@/lib/pacman/engine';
-import { drawPacman, drawIdleScreen } from '@/lib/pacman/drawing';
+import { drawPacman, drawIdleScreen, preloadPacmanImages } from '@/lib/pacman/drawing';
 
-function makeInitialState(): GameState {
-    const maze = cloneMaze();
+function makeInitialState(level = 1): GameState {
+    const maze = cloneMaze(level);
     return {
         maze,
         pacPos: { ...PACMAN_START },
@@ -20,11 +20,14 @@ function makeInitialState(): GameState {
         dotsLeft: countDots(maze),
         tick: 0,
         frightenedTicks: 0,
-        level: 1,
+        level,
+        fruit: null,
+        dotsEaten: 0,
+        fruitSpawned: 0,
     };
 }
 
-export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>, debugLevel = 1) {
     const {
         session,
         phase,
@@ -40,6 +43,7 @@ export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         resetForStart,
     } = useSoloGame({
         gameKey: 'pacman',
+        gameType: 'PACMAN',
         submitEndpoint: '/api/pacman/submit',
         localStorageKey: 'pacmanBest',
         starters: STARTERS,
@@ -57,11 +61,17 @@ export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     const redrawIdle = useCallback(() => {
         if (!canvasRef.current) return;
         const isDark = document.documentElement.classList.contains('dark');
-        drawPacman(canvasRef.current, makeInitialState(), 0.5, isDark);
-    }, [canvasRef]);
+        drawPacman(canvasRef.current, makeInitialState(debugLevel), 0.5, isDark);
+    }, [canvasRef, debugLevel]);
+
+    useEffect(() => { preloadPacmanImages(); }, []);
 
     useEffect(() => {
-        if (phase === 'idle') redrawIdle();
+        if (phase !== 'idle') return;
+        redrawIdle();
+        // Redraw at increasing delays to catch images as they finish loading
+        const timers = [50, 150, 400, 800, 1500].map(ms => setTimeout(redrawIdle, ms));
+        return () => timers.forEach(clearTimeout);
     }, [dark, phase, redrawIdle]);
 
     const stopTick = useCallback(() => {
@@ -73,15 +83,15 @@ export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         soloEndGame(finalScore, { level: finalLevel });
     }, [stopTick, soloEndGame]);
 
-    const startGame = useCallback(() => {
+    const startGame = useCallback((startLevel = 1) => {
         stopTick();
-        stateRef.current = makeInitialState();
+        stateRef.current = makeInitialState(startLevel);
         pendingDirRef.current = 'N';
         mouthAngleRef.current = 0;
 
         resetForStart();
         setDisplayLives(3);
-        setDisplayLevel(1);
+        setDisplayLevel(startLevel);
 
         if (canvasRef.current) {
             const isDark = document.documentElement.classList.contains('dark');
@@ -117,6 +127,9 @@ export function usePacman(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
                     pacNextDir: 'N',
                     ghosts: initialGhosts(),
                     level: nextLevel,
+                    fruit: null,
+                    dotsEaten: 0,
+                    fruitSpawned: 0,
                 };
                 pendingDirRef.current = 'N';
                 setDisplayLevel(nextLevel);

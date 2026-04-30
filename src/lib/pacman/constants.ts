@@ -83,7 +83,7 @@ export const MAZE_3: Tile[][] = [
     [1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
     [4, 4, 4, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 4, 4, 4],
     [1, 1, 1, 1, 0, 1, 0, 1, 1, 4, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 2, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 0, 1, 1, 1, 1],
     [1, 1, 1, 1, 0, 1, 1, 4, 4, 4, 4, 4, 1, 1, 0, 1, 1, 1, 1],
     [1, 1, 1, 1, 0, 1, 1, 2, 2, 2, 2, 2, 1, 1, 0, 1, 1, 1, 1],
     [4, 4, 4, 4, 0, 1, 1, 2, 4, 4, 4, 2, 1, 1, 0, 4, 4, 4, 4],
@@ -106,17 +106,48 @@ export function getMaze(level: number): Tile[][] {
 }
 
 export const PACMAN_START: Pos = { x: 9, y: 16 };
+
+// ── Fruits bonus ──────────────────────────────────────────────────────────────
+
+export type FruitType = 'cerise' | 'fraise' | 'orange' | 'pomme' | 'melon' | 'galaxian' | 'cloche' | 'cle';
+
+export const FRUIT_SCORES: Record<FruitType, number> = {
+    cerise: 100, fraise: 300, orange: 500, pomme: 700,
+    melon: 1000, galaxian: 2000, cloche: 3000, cle: 5000,
+};
+
+export function levelFruit(level: number): FruitType {
+    if (level === 1) return 'cerise';
+    if (level === 2) return 'fraise';
+    if (level <= 4) return 'orange';
+    if (level <= 6) return 'pomme';
+    if (level <= 8) return 'melon';
+    if (level <= 10) return 'galaxian';
+    if (level <= 12) return 'cloche';
+    return 'cle';
+}
+
+// Fruit apparaît au centre du labyrinthe (dessous de la maison des fantômes)
+export const FRUIT_POS: Pos = { x: 9, y: 16 };
+// Déclencheurs : nombre de dots mangés pour faire apparaître le fruit (2 fois par niveau)
+export const FRUIT_DOTS_TRIGGERS = [70, 170] as const;
+// Durée d'apparition en ticks (≈9 s à 150 ms/tick)
+export const FRUIT_DURATION_TICKS = 60;
 export const GHOST_STARTS: Pos[] = [
     { x: 8, y: 10 },
     { x: 10, y: 10 },
     { x: 9, y: 9 },
 ];
 
+// Point de retour pour les yeux : centre de la cage, commun à tous les fantômes
+export const GHOST_HOME: Pos = { x: 9, y: 10 };
+
 export const GHOST_COLORS = [
-    { body: '#ff4444', frightened: '#4444ff' },
-    { body: '#ffb8ff', frightened: '#4444ff' },
-    { body: '#00b8d4', frightened: '#4444ff' },
-];
+    { body: '#ff4444', frightened: '#4444ff' }, // Blinky
+    { body: '#ffb8ff', frightened: '#4444ff' }, // Pinky
+    { body: '#00b8d4', frightened: '#4444ff' }, // Inky
+    { body: '#ffb852', frightened: '#4444ff' }, // Clyde ← manquait
+] as const;
 
 export const KEY_DIR: Record<string, Dir> = {
     ArrowUp: 'U', z: 'U', Z: 'U',

@@ -22,6 +22,7 @@ export function useTetris(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         resetForStart,
     } = useSoloGame({
         gameKey: 'tetris',
+        gameType: 'TETRIS',
         submitEndpoint: '/api/tetris/submit',
         localStorageKey: 'tetrisBest',
         starters: STARTERS,

@@ -23,6 +23,7 @@ export function useSnake(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
         resetForStart,
     } = useSoloGame({
         gameKey: 'snake',
+        gameType: 'SNAKE',
         submitEndpoint: '/api/snake/submit',
         localStorageKey: 'snakeBest',
         starters: STARTERS,
