@@ -274,11 +274,11 @@ export default function LobbyCodePage() {
     const [unoTeamWinMode, setUnoTeamWinMode] = useState<'one' | 'both'>('one');
     const [unoStackable, setUnoStackable] = useState(false);
     const [unoJumpIn, setUnoJumpIn] = useState(false);
-    const [tabooTurnDuration, setTabooTurnDuration] = useState(60);
+    const [tabooTurnDuration, setTabooTurnDuration] = useState(120);
     const [tabooTotalRounds, setTabooTotalRounds] = useState(3);
     const [tabooTrapWordCount, setTabooTrapWordCount] = useState(5);
     const [tabooMaxAttempts, setTabooMaxAttempts] = useState(10);
-    const [tabooTrapDuration, setTabooTrapDuration] = useState(60);
+    const [tabooTrapDuration, setTabooTrapDuration] = useState(90);
     const [quizTimeMode, setQuizTimeMode] = useState<'per_question' | 'total' | 'none'>('none');
     const [quizTimePerQuestion, setQuizTimePerQuestion] = useState(15);
     const [skyjowEliminateRows, setSkyjowEliminateRows] = useState(false);
@@ -403,11 +403,11 @@ export default function LobbyCodePage() {
                 setUnoJumpIn(state.unoOptions.jumpIn ?? false);
             }
             if (state.tabooOptions) {
-                setTabooTurnDuration(state.tabooOptions.turnDuration ?? 60);
+                setTabooTurnDuration(state.tabooOptions.turnDuration ?? 120);
                 setTabooTotalRounds(state.tabooOptions.totalRounds ?? 3);
                 setTabooTrapWordCount(state.tabooOptions.trapWordCount ?? 5);
                 setTabooMaxAttempts(state.tabooOptions.maxAttempts ?? 10);
-                setTabooTrapDuration(state.tabooOptions.trapDuration ?? 60);
+                setTabooTrapDuration(state.tabooOptions.trapDuration ?? 90);
             }
             if (state.timeMode) setQuizTimeMode(state.timeMode as 'per_question' | 'total' | 'none');
             if (state.timePerQuestion) setQuizTimePerQuestion(state.timePerQuestion);

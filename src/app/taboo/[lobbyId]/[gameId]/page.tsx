@@ -5,6 +5,7 @@ import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameOverModal from '@/components/GameOverModal';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameIcon from '@/components/GameIcon';
+import TimerBar from '@/components/TimerBar';
 
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
@@ -126,10 +127,6 @@ export default function TabooGamePage() {
     const isGuesser = isCurrentTeam && !isOrator;
     const isAdversary = myTeam !== null && myTeam !== game.currentTeam;
 
-    const timerPct = game.turnDuration > 0 ? game.turnTimeLeft / game.turnDuration : 0;
-    const timerColor = timerPct > 0.5 ? '#22c55e' : timerPct > 0.25 ? '#f97316' : '#ef4444';
-    const circumference = 2 * Math.PI * 56;
-
     const sendAttempt = () => {
         const w = attemptInput.trim();
         if (!w) return;
@@ -137,14 +134,13 @@ export default function TabooGamePage() {
         setAttemptInput('');
     };
 
-    const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`;
 
 
     // ── Phase trap ────────────────────────────────────────────────────────────
     if (game.phase === 'trap') {
         return (
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
-                <style>{FONTS}</style>
+                
                 <GamePageHeader
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
@@ -200,7 +196,7 @@ export default function TabooGamePage() {
 
         return (
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
-                <style>{FONTS}</style>
+                
                 <GamePageHeader
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
@@ -226,7 +222,7 @@ export default function TabooGamePage() {
 
                         <div className="rounded-2xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-4 text-center">
                             <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-1">Mot mystère 👁</p>
-                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
+                            <p className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                 {wordJustPlayed ?? '???'}
                             </p>
                         </div>
@@ -278,7 +274,7 @@ export default function TabooGamePage() {
 
         return (
             <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
-                <style>{FONTS}</style>
+                
                 <GamePageHeader
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
@@ -326,7 +322,7 @@ export default function TabooGamePage() {
                         {isCurrentTeam && (
                             <div className="p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                                 <p className="text-xs text-gray-400 dark:text-white/40 uppercase tracking-widest mb-1 text-center">Mot à trouver</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl tracking-wider text-gray-400 dark:text-white/20 text-center">???</p>
+                                <p className="text-3xl tracking-wider text-gray-400 dark:text-white/20 text-center">???</p>
                                 <p className="text-xs text-gray-400 dark:text-white/30 mt-2 text-center">{isOrator ? 'Le mot vous sera révélé une fois prêt !' : "Écoutez l'orateur !"}</p>
                             </div>
                         )}
@@ -335,7 +331,7 @@ export default function TabooGamePage() {
                             <>
                                 <div className="rounded-2xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-4 text-center">
                                     <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot mystère 👁</p>
-                                    <p style={{ fontFamily: "'Bebas Neue'" }} className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
+                                    <p className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                         {game.currentWord ?? '???'}
                                     </p>
                                 </div>
@@ -411,7 +407,7 @@ export default function TabooGamePage() {
 
     return (
         <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
-            <style>{FONTS}</style>
+            
 
             <GamePageHeader
                 left={TABOO_LEFT}
@@ -433,31 +429,16 @@ export default function TabooGamePage() {
                 🎤 Orateur : <span className="font-semibold text-gray-900 dark:text-white">{currentOratorUsername}</span>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-4 py-8 gap-4">
+            <TimerBar endsAt={game.turnDeadline ?? undefined} duration={game.turnDuration} paused={game.paused} />
 
-                <div className="relative w-32 h-32">
-                    <svg className="w-32 h-32 -rotate-90" viewBox="0 0 130 130">
-                        <circle cx="65" cy="65" r="56" fill="none" stroke="rgba(0,0,0,0.08)" className="dark:[stroke:rgba(255,255,255,0.08)]" strokeWidth="10" />
-                        <circle cx="65" cy="65" r="56" fill="none" stroke={timerColor} strokeWidth="10"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={circumference * (1 - timerPct)}
-                            strokeLinecap="round"
-                            style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.5s' }} />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-4xl font-bold" style={{ color: timerColor }}>
-                            {game.paused ? '⏸' : game.turnTimeLeft}
-                        </span>
-                        <span className="text-xs text-gray-400 dark:text-white/30">sec</span>
-                    </div>
-                </div>
+            <div className="flex flex-col items-center justify-center p-4 py-8 gap-4">
 
                 {isOrator && (
                     <div className="w-full max-w-sm space-y-3">
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-green-500/30 bg-green-50 dark:bg-green-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot à faire deviner</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-green-700 dark:text-green-300">
+                                <p className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-green-700 dark:text-green-300">
                                     {game.currentWord ?? '???'}
                                 </p>
                             </div>
@@ -481,7 +462,7 @@ export default function TabooGamePage() {
                     <div className="w-full max-w-sm space-y-3">
                         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 p-6 text-center">
                             <p className="text-xs text-gray-400 dark:text-white/50 uppercase tracking-widest mb-2">Mot à trouver</p>
-                            <p style={{ fontFamily: "'Bebas Neue'" }} className="text-4xl sm:text-5xl tracking-wider text-gray-400 dark:text-white/40">???</p>
+                            <p className="text-4xl sm:text-5xl tracking-wider text-gray-400 dark:text-white/40">???</p>
                         </div>
                         {!game.paused && (
                             <div className="flex gap-2">
@@ -514,7 +495,7 @@ export default function TabooGamePage() {
                         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot mystère 👁</p>
-                                <p style={{ fontFamily: "'Bebas Neue'" }} className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
+                                <p className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
                                     {game.currentWord ?? '???'}
                                 </p>
                             </div>

@@ -56,8 +56,11 @@ export default function JustOnePage() {
         timerEndsAt,
         timerDuration,
         submittedPlayers,
+        cluesPerPlayer,
         myClue,
         setMyClue,
+        myClue2,
+        setMyClue2,
         clueSubmitted,
         validatedClues,
         validClues,
@@ -210,24 +213,35 @@ export default function JustOnePage() {
                                 type="text"
                                 value={myClue}
                                 onChange={e => setMyClue(e.target.value.toUpperCase())}
-                                onKeyDown={e => { if (e.key === 'Enter' && myClue.trim()) submitClue(); }}
-                                placeholder="Ton indice…"
+                                onKeyDown={e => { if (e.key === 'Enter' && myClue.trim() && (cluesPerPlayer < 2 || myClue2.trim())) submitClue(); }}
+                                placeholder={cluesPerPlayer >= 2 ? 'Indice 1…' : 'Ton indice…'}
                                 maxLength={30}
                                 autoFocus
                                 className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-lg font-semibold text-center uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all"
                             />
+                            {cluesPerPlayer >= 2 && (
+                                <input
+                                    type="text"
+                                    value={myClue2}
+                                    onChange={e => setMyClue2(e.target.value.toUpperCase())}
+                                    onKeyDown={e => { if (e.key === 'Enter' && myClue.trim() && myClue2.trim()) submitClue(); }}
+                                    placeholder="Indice 2…"
+                                    maxLength={30}
+                                    className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-lg font-semibold text-center uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/60 transition-all"
+                                />
+                            )}
                             <button
                                 onClick={submitClue}
-                                disabled={!myClue.trim()}
+                                disabled={!myClue.trim() || (cluesPerPlayer >= 2 && !myClue2.trim())}
                                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-all">
-                                Envoyer mon indice
+                                {cluesPerPlayer >= 2 ? 'Envoyer mes 2 indices' : 'Envoyer mon indice'}
                             </button>
                         </div>
                     ) : (
                         <div className="text-center space-y-2">
                             <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3">
-                                <p className="text-xs text-green-600 dark:text-green-400">Indice envoyé ✅</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{myClue}</p>
+                                <p className="text-xs text-green-600 dark:text-green-400">Indices envoyés ✅</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{myClue}{cluesPerPlayer >= 2 && myClue2 ? ` · ${myClue2}` : ''}</p>
                             </div>
                             <p className="text-xs text-gray-400 dark:text-gray-500">En attente des autres joueurs…</p>
                         </div>

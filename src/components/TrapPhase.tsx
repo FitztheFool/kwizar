@@ -49,12 +49,13 @@ export type TabooState = {
     team1Slots: TrapSlotData[];
     team0Traps: string[];
     team1Traps: string[];
-    // Peut être string[] (ancien serveur) ou { value, updatedAt }[] (nouveau)
     trapsByPlayer: Record<string, (string | RichSlot)[]>;
     players: { userId: string; username: string; team: 0 | 1 | null }[];
     scores: Record<string, number>;
     currentTeam: 0 | 1 | null;
     teams?: Record<string, 0 | 1> | null;
+    wordChangeCount?: { "0": number; "1": number };
+    pendingWordChange?: { team: number; approvals: string[] } | null;
 };
 
 // ── Couleurs coéquipiers ──────────────────────────────────────────────────────
@@ -247,6 +248,24 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
 
     const wordToPiege = myTeam === 0 ? game.team1Word : myTeam === 1 ? game.team0Word : null;
 
+    const myTeamKey = myTeam !== null ? String(myTeam) as "0" | "1" : null;
+    const changesLeft = myTeamKey ? 2 - (game.wordChangeCount?.[myTeamKey] ?? 0) : 0;
+    const pending = game.pendingWordChange ?? null;
+    const isPendingForMyTeam = pending && pending.team === myTeam;
+    const iHaveApproved = isPendingForMyTeam && pending.approvals.includes(myId);
+
+    const handleRequestChange = () => {
+        socketRef.current?.emit('taboo:requestWordChange', { lobbyId });
+    };
+
+    const handleApprove = () => {
+        socketRef.current?.emit('taboo:approveWordChange', { lobbyId });
+    };
+
+    const handleCancel = () => {
+        socketRef.current?.emit('taboo:cancelWordChange', { lobbyId });
+    };
+
     const trapPct = game.trapTimeLeft !== null && game.trapDuration > 0
         ? (game.trapTimeLeft / game.trapDuration) * 100 : 100;
     const trapColor = (game.trapTimeLeft ?? 999) <= 10 ? '#ef4444'
@@ -289,6 +308,40 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
                     <p className="text-gray-400 dark:text-white/30 text-sm animate-pulse">Chargement du mot…</p>
                 </div>
             ) : null}
+
+            {/* Bannière vote de changement de mot */}
+            {isPendingForMyTeam && (
+                <div className="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-sm">
+                    <p className="text-orange-400 font-semibold mb-1">Changement de mot demandé.</p>
+                    <p className="text-xs text-white/40 mb-3">
+                        {pending.approvals.length}/{game.players.filter(p => p.team === myTeam).length} approbation(s)
+                    </p>
+                    {iHaveApproved ? (
+                        <p className="text-xs text-green-400">✓ Vous avez approuvé — en attente des coéquipiers</p>
+                    ) : (
+                        <button onClick={handleApprove}
+                            className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-colors">
+                            Approuver
+                        </button>
+                    )}
+                    <button onClick={handleCancel}
+                        className="ml-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-colors">
+                        Annuler
+                    </button>
+                </div>
+            )}
+
+            {/* Bouton changer de mot */}
+            {myTeam !== null && !isPendingForMyTeam && changesLeft > 0 && (
+                <div className="mb-4">
+                    <button
+                        onClick={handleRequestChange}
+                        className="text-xs text-white/30 hover:text-white/60 underline underline-offset-2 transition-colors"
+                    >
+                        Changer de mot ({changesLeft} restant{changesLeft > 1 ? 's' : ''})
+                    </button>
+                </div>
+            )}
 
             {myTeam !== null && (
                 <div className="space-y-2 text-left">

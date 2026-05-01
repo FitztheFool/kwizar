@@ -44,7 +44,9 @@ export function useJustOne({
     const [timerDuration, setTimerDuration] = useState(60);
 
     const [submittedPlayers, setSubmittedPlayers] = useState<string[]>([]);
+    const [cluesPerPlayer, setCluesPerPlayer] = useState(1);
     const [myClue, setMyClue] = useState('');
+    const [myClue2, setMyClue2] = useState('');
     const [clueSubmitted, setClueSubmitted] = useState(false);
 
     const [validatedClues, setValidatedClues] = useState<Clue[]>([]);
@@ -89,6 +91,7 @@ export function useJustOne({
             setGuesserName(payload.guesserName);
             setCard(payload.card ?? null);
             setMyClue('');
+            setMyClue2('');
             setClueSubmitted(false);
             setSubmittedPlayers([]);
             setValidatedClues([]);
@@ -98,14 +101,15 @@ export function useJustOne({
             startTimer(30);
         });
 
-        socket.on('just_one:writeClues', ({ wordIndex }: { wordIndex: number }) => {
+        socket.on('just_one:writeClues', ({ wordIndex, cluesPerPlayer: cpp }: { wordIndex: number; cluesPerPlayer?: number }) => {
             setCurrentWordIndex(wordIndex);
+            setCluesPerPlayer(cpp ?? 1);
             setRoundState('WRITE_CLUES');
             startTimer(60);
         });
 
-        socket.on('just_one:clueSubmitted', ({ playerId }: { playerId: string }) => {
-            setSubmittedPlayers(prev => prev.includes(playerId) ? prev : [...prev, playerId]);
+        socket.on('just_one:clueSubmitted', ({ playerId, playerDone }: { playerId: string; playerDone?: boolean }) => {
+            if (playerDone) setSubmittedPlayers(prev => prev.includes(playerId) ? prev : [...prev, playerId]);
         });
 
         socket.on('just_one:cluesValidated', ({ allClues }: { allClues: Clue[] }) => {
@@ -175,9 +179,11 @@ export function useJustOne({
 
     const submitClue = useCallback(() => {
         if (!myClue.trim()) return;
+        if (cluesPerPlayer >= 2 && !myClue2.trim()) return;
         socket?.emit('just_one:submitClue', { lobbyId, clue: myClue.trim() });
+        if (cluesPerPlayer >= 2) socket?.emit('just_one:submitClue', { lobbyId, clue: myClue2.trim() });
         setClueSubmitted(true);
-    }, [socket, lobbyId, myClue]);
+    }, [socket, lobbyId, myClue, myClue2, cluesPerPlayer]);
 
     const submitGuess = useCallback((guess: string | null) => {
         socket?.emit('just_one:submitGuess', { lobbyId, guess });
@@ -198,8 +204,11 @@ export function useJustOne({
         timerEndsAt,
         timerDuration,
         submittedPlayers,
+        cluesPerPlayer,
         myClue,
         setMyClue,
+        myClue2,
+        setMyClue2,
         clueSubmitted,
         validatedClues,
         validClues,

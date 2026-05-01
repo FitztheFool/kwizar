@@ -91,17 +91,16 @@ model User {
   name          String?
   username      String?   @unique
   email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  role          Role      @default(USER)
-  lastSeen      DateTime  @default(now())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  isAnonymous   Boolean   @default(false)
-  status        UserStatus @default(PENDING)
-  activatedAt   DateTime?
-  deactivatedAt DateTime?
+  emailVerifiedAt DateTime?
+  image           String?
+  passwordHash    String?
+  role            Role      @default(USER)
+  lastSeen        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isAnonymous     Boolean   @default(false)
+  status          UserStatus @default(PENDING)
+  deactivatedAt   DateTime?
   bannedAt      DateTime?
   deletedAt     DateTime?
 

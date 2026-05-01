@@ -28,6 +28,7 @@ export type TabooState = {
     hostId: string;
     trapTimeLeft: number | null;
     trapDeadline: number | null;
+    turnDeadline: number | null;
     trapStarted: boolean;
     team0Traps: string[];
     team1Traps: string[];

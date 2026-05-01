@@ -1,14 +1,15 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
-type Props = { endsAt: number; duration: number; label?: string; };
+type Props = { endsAt: number; duration: number; label?: string; paused?: boolean; };
 
-export default function TurnTimer({ endsAt, duration }: Props) {
+export default function TurnTimer({ endsAt, duration, paused }: Props) {
     const [secs, setSecs] = useState(() => Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)));
     const barRef = useRef<HTMLDivElement>(null);
     const prevSecsRef = useRef(secs);
 
     useEffect(() => {
+        if (paused) return;
         let raf: number;
 
         const tick = () => {
@@ -30,7 +31,7 @@ export default function TurnTimer({ endsAt, duration }: Props) {
 
         raf = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(raf);
-    }, [endsAt, duration]);
+    }, [endsAt, duration, paused]);
 
     const pct = duration > 0 ? Math.min((secs / duration) * 100, 100) : 0;
     const urgent = pct <= 20 || secs <= 10;
