@@ -204,12 +204,12 @@ function RegisterForm() {
 
                     <div className="mt-6 text-center space-y-3">
                         <p className="text-gray-600 dark:text-gray-300">
-                            Pas encore de compte ?{' '}
+                            Déjà un compte ?{' '}
                             <Link
-                                href={`/register${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
+                                href={`/login${callbackUrl !== '/dashboard' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
                                 className="text-primary-600 hover:text-primary-700 font-semibold"
                             >
-                                S&apos;inscrire
+                                Se connecter
                             </Link>
                         </p>
                         <div className="relative">

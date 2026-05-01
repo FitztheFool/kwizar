@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 
+const LOGO_URL = 'https://kwizar.vercel.app/logo/icon-light-192.png';
+
 function getTransporter() {
     const user = process.env.GMAIL_USER;
     const clientId = process.env.GMAIL_CLIENT_ID;
@@ -19,7 +21,7 @@ function getTransporter() {
 const FROM    = () => `Kwizar <${process.env.GMAIL_USER}>`;
 const APP_URL = () => process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
-function baseTemplate(accentColor: string, icon: string, title: string, body: string, btnText: string, btnUrl: string, footer: string) {
+function baseTemplate(accentColor: string, title: string, body: string, btnText: string, btnUrl: string, footer: string) {
     return `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -31,10 +33,11 @@ function baseTemplate(accentColor: string, icon: string, title: string, body: st
         <!-- Header -->
         <tr>
           <td style="background:${accentColor};padding:32px;text-align:center">
-            <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50%;padding:14px;line-height:0">
-              ${icon}
-            </div>
-            <div style="margin-top:12px;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px">Kwizar</div>
+            <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding-bottom:12px">
+              <img src="${LOGO_URL}" alt="" width="64" height="64" style="border-radius:16px;border:0;outline:none;text-decoration:none">
+            </td></tr><tr><td align="center">
+              <span style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Kwizar</span>
+            </td></tr></table>
           </td>
         </tr>
 
@@ -72,7 +75,7 @@ function baseTemplate(accentColor: string, icon: string, title: string, body: st
 }
 
 export async function sendVerificationEmail(email: string, token: string) {
-    const url = `${APP_URL()}/api/auth/verify-email?token=${token}`;
+    const url = `${APP_URL()}/verify-email?token=${token}`;
     try {
         await getTransporter().sendMail({
             from: FROM(),
@@ -80,7 +83,6 @@ export async function sendVerificationEmail(email: string, token: string) {
             subject: 'Confirmez votre adresse email — Kwizar',
             html: baseTemplate(
                 '#2563eb',
-                `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>`,
                 'Confirmez votre adresse email',
                 'Merci de vous être inscrit sur Kwizar ! Cliquez sur le bouton ci-dessous pour activer votre compte.',
                 'Confirmer mon email',
@@ -102,8 +104,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
             to: email,
             subject: 'Réinitialisation de votre mot de passe — Kwizar',
             html: baseTemplate(
-                '#dc2626',
-                `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>`,
+                '#2563eb',
                 'Réinitialisation du mot de passe',
                 'Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte Kwizar. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
                 'Réinitialiser mon mot de passe',
