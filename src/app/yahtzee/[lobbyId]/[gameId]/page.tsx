@@ -284,7 +284,7 @@ export default function YahtzeePage() {
             />
 
             {game?.phase !== 'ended' && (
-                <TimerBar endsAt={timerEndsAt} duration={60} label="Temps restant" />
+                <TimerBar endsAt={timerEndsAt} duration={60} />
             )}
 
             <div className="p-4">

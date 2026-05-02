@@ -120,7 +120,9 @@ export async function GET(req: NextRequest) {
                     : (game === 'snake' || game === 'pacman' || game === 'breakout') ? Math.max(...data.scores)
                         : totalScore;
                 const totalRounds = roundsByUser.get(userId) ?? 0;
-                const bestLevel = data.rounds.length > 0 ? Math.max(...data.rounds) : undefined;
+                const bestLevel = (game === 'pacman' || game === 'breakout') && data.rounds.length > 0
+                    ? Math.max(...data.rounds)
+                    : undefined;
 
                 let detail: string;
                 switch (game) {

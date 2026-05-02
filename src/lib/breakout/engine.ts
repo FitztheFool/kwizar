@@ -273,7 +273,7 @@ function brickRect(b: Brick) {
 function ballRectCollide(
     bx: number, by: number, br: number,
     rx: number, ry: number, rw: number, rh: number
-): { overlapX: number; overlapY: number } | null {
+): { overlapX: number; overlapY: number; dx: number; dy: number } | null {
     const closestX = Math.max(rx, Math.min(bx, rx + rw));
     const closestY = Math.max(ry, Math.min(by, ry + rh));
     const dx = bx - closestX;
@@ -283,7 +283,7 @@ function ballRectCollide(
     // overlap for bounce direction resolution
     const overlapX = br - Math.abs(dx);
     const overlapY = br - Math.abs(dy);
-    return { overlapX, overlapY };
+    return { overlapX, overlapY, dx, dy };
 }
 
 export type StepResult = {
@@ -509,13 +509,20 @@ export function stepGame(state: GameState, paddleTargetX: number | null, fireLas
             const col = ballRectCollide(x, y, BALL_R, r.x, r.y, r.w, r.h);
             if (!col) continue;
 
-            // Bounce direction
-            if (col.overlapX < col.overlapY) {
-                vx = -vx;
-                x += vx > 0 ? col.overlapX : -col.overlapX;
+            const { overlapX, overlapY, dx, dy } = col;
+            // Velocity gate: only bounce if ball is actually moving toward the hit face.
+            // Prevents the ball from getting stuck when simultaneously touching a wall
+            // and an indestructible brick (e.g. top wall + row-0 bricks in level 4).
+            if (overlapX < overlapY) {
+                if (dx === 0 || dx * vx < 0) {
+                    vx = -vx;
+                    x += vx > 0 ? overlapX : -overlapX;
+                }
             } else {
-                vy = -vy;
-                y += vy > 0 ? col.overlapY : -col.overlapY;
+                if (dy === 0 || dy * vy < 0) {
+                    vy = -vy;
+                    y += vy > 0 ? overlapY : -overlapY;
+                }
             }
 
             if (b.type === 'indestructible') continue;

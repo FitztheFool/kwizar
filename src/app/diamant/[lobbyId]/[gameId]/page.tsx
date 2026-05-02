@@ -1,7 +1,6 @@
 // src/app/diamant/[lobbyId]/page.tsx
 'use client';
 
-import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useDiamant, Card, PlayerInfo } from '@/hooks/useDiamant';
 import { useGamePage } from '@/hooks/useGamePage';
@@ -10,6 +9,8 @@ import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import { SparklesIcon } from '@heroicons/react/24/solid'
+import { LockClosedIcon } from '@heroicons/react/24/solid'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -156,7 +157,7 @@ function PlayerRow({ player, isMe, inactivityEndsAt }: { player: PlayerInfo; isM
             {/* Hand rubies (only for me) */}
             {isMe && player.inCave && (
                 <div className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 font-bold">
-                    <span>💎</span>
+                    <SparklesIcon className="w-4 h-4" />
                     <span>{player.handRubies}</span>
                 </div>
             )}
@@ -164,9 +165,10 @@ function PlayerRow({ player, isMe, inactivityEndsAt }: { player: PlayerInfo; isM
             {/* Safe total (only for me) */}
             {isMe && (
                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                    <span>🔒</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">
-                        💎{player.safeRubies}
+                    <LockClosedIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-bold">
+                        <SparklesIcon className="w-3.5 h-3.5" />
+                        {player.safeRubies}
                     </span>
                     {player.relicPoints > 0 && (
                         <span className="text-emerald-600 dark:text-emerald-400 font-bold">
@@ -224,7 +226,10 @@ export default function DiamantPage() {
                 right={<>
                     {me && (
                         <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-2 sm:px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap">
-                            <span className="text-amber-600 dark:text-amber-400 font-bold">💎{me.safeRubies}</span>
+                            <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-bold">
+                                <SparklesIcon className="w-3.5 h-3.5" />
+                                {me.safeRubies}
+                            </span>
                             <span className="hidden sm:inline text-gray-400 dark:text-gray-600">+</span>
                             <span className="hidden sm:inline text-emerald-600 dark:text-emerald-400 font-bold">🏺{me.relicPoints}</span>
                             <span className="text-gray-400 dark:text-gray-600">=</span>
@@ -238,7 +243,7 @@ export default function DiamantPage() {
 
             {/* Timer bar */}
             {state.phase === 'playing' && state.decisionPhase && (
-                <TimerBar endsAt={state.decisionEndsAt} duration={state.decisionDuration} label="Temps pour décider" />
+                <TimerBar endsAt={state.decisionEndsAt} duration={state.decisionDuration} />
             )}
 
             {/* Error toast */}
@@ -326,7 +331,9 @@ export default function DiamantPage() {
                                     ${state.lastCard.type === 'relic' ? 'bg-emerald-100 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300' : ''}
                                 `}>
                                     {state.lastCard.type === 'treasure' && (
-                                        <span>💎 Trésor de <strong>{state.lastCard.value}</strong> rubis —
+                                        <span className="flex items-center gap-1 flex-wrap">
+                                            <SparklesIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                            Trésor de <strong>{state.lastCard.value}</strong> rubis —
                                             chaque explorateur reçoit <strong>{state.lastSharePerPlayer ?? 0}</strong> rubis
                                             {(state.rubisOnCards[state.lastCardIndex!] ?? 0) > 0 &&
                                                 ` (${state.rubisOnCards[state.lastCardIndex!]} restant sur la carte)`

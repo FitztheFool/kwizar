@@ -257,7 +257,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                 points={currentQuestion?.points ?? 0}
             />
 
-            <TimerBar endsAt={timerEndsAt} duration={timerDuration} label="Temps restant" />
+            <TimerBar endsAt={timerEndsAt} duration={timerDuration} />
 
             <main className="flex-1 flex flex-col items-center px-4 py-8">
                 <div className="max-w-2xl w-full flex flex-col gap-5">

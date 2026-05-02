@@ -55,6 +55,8 @@ MCQ_UNIQUE :
 TRUE_FALSE :
 - Exactement 2 réponses dans l'ordre : "Vrai", "Faux"
 - Exactement une seule correcte
+- Réservé aux affirmations factuelles qui sont vraies ou fausses (ex: "La Terre est plate" → Faux)
+- INTERDIT pour les questions "A ou B ?", "ceci ou cela ?", "solo ou en groupe ?" → utiliser MCQ_UNIQUE à la place
 
 TEXT :
 - Exactement 1 réponse avec isCorrect: true

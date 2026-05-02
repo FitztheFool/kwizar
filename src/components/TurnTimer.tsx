@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 type Props = { endsAt: number; duration: number; label?: string; paused?: boolean; };
 
-export default function TurnTimer({ endsAt, duration, paused }: Props) {
+export default function TurnTimer({ endsAt, duration, label, paused }: Props) {
     const [secs, setSecs] = useState(() => Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)));
     const barRef = useRef<HTMLDivElement>(null);
     const prevSecsRef = useRef(secs);
@@ -55,6 +55,7 @@ export default function TurnTimer({ endsAt, duration, paused }: Props) {
                     style={{ width: `${pct}%` }}
                 />
             </div>
+            {label && <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 truncate max-w-32">{label}</span>}
         </div>
     );
 }

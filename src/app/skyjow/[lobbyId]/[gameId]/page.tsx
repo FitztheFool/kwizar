@@ -349,10 +349,10 @@ export default function skyjowGamePage() {
 
             {/* ── Timer header ── */}
             {phase === 'flip2' && (
-                <TimerBar endsAt={flip2EndsAt} duration={flip2Duration} label="Temps pour retourner vos cartes" />
+                <TimerBar endsAt={flip2EndsAt} duration={flip2Duration} />
             )}
             {isPlayingPhase(phase) && (
-                <TimerBar endsAt={turnStartedAt !== null ? turnStartedAt + turnDuration * 1000 : null} duration={turnDuration} label="Temps restant" />
+                <TimerBar endsAt={turnStartedAt !== null ? turnStartedAt + turnDuration * 1000 : null} duration={turnDuration} />
             )}
 
             {/* ── Corps principal ── */}

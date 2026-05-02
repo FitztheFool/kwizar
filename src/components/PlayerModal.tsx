@@ -30,6 +30,19 @@ interface PlayerModalProps {
 export default function PlayerModal({ gameId, players, onClose }: PlayerModalProps) {
     const { data: session } = useSession();
 
+    // Recalcule les placements côté client en gérant les ex-æquo
+    // Règle : même score = même rang, le rang suivant est sauté (1, 1, 3...)
+    const activePlayers = players.filter(x => !x.abandon && !x.afk && x.placement != null);
+
+    const playersWithRank = players.map((p) => {
+        if (p.abandon || p.afk || p.placement == null) return p;
+
+        // Rang = nombre de joueurs actifs avec un score strictement supérieur + 1
+        const rank = activePlayers.filter(x => x.score > p.score).length + 1;
+
+        return { ...p, placement: rank };
+    });
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-80 max-w-full" onClick={e => e.stopPropagation()}>
@@ -43,7 +56,7 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
                     </button>
                 </div>
                 <div className="space-y-2">
-                    {players.map((p, i) => (
+                    {playersWithRank.map((p, i) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2">
                             <div className="flex items-center gap-2">
                                 <span className="flex items-center">
@@ -51,15 +64,16 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
                                         ? <NoSymbolIcon className="w-4 h-4 text-gray-400" />
                                         : p.afk
                                             ? <ClockIcon className="w-4 h-4 text-gray-400" />
-                                            : p.isBot
-                                                ? <CpuChipIcon className="w-4 h-4 text-gray-400" />
-                                                : p.placement != null
-                                                    ? <RankBadge placement={p.placement} />
-                                                    : null
+                                            : p.placement != null
+                                                ? <RankBadge placement={p.placement} />
+                                                : null
                                     }
                                 </span>
                                 {p.isBot ? (
-                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{p.username}</span>
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                        {p.username}
+                                        <CpuChipIcon className="w-3 h-3 text-gray-400" />
+                                    </span>
                                 ) : (
                                     <Link
                                         href={session?.user?.username === p.username ? '/dashboard' : `/user/${p.username}`}

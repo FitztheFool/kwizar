@@ -122,7 +122,7 @@ export default function BattleshipPage() {
 
             {/* Timer bar */}
             {state.phase === 'placement' && (
-                <TimerBar endsAt={state.placementEndsAt} duration={options.placementDuration ?? 60} label="Placez vos navires" />
+                <TimerBar endsAt={state.placementEndsAt} duration={options.placementDuration ?? 60} />
             )}
             {state.phase === 'playing' && (
                 <TimerBar

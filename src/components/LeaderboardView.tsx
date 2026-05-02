@@ -186,7 +186,7 @@ export default function LeaderboardView({ game }: Props) {
                         <div className="text-right">
                             <p className="text-2xl font-bold text-blue-700">{myEntry.score}</p>
                             <p className="text-xs text-gray-400">
-                                {scoreLabel}{myEntry.bestLevel != null ? ` · niv. ${myEntry.bestLevel}` : ''}
+                                {scoreLabel}{myEntry.bestLevel ? ` · niv. ${myEntry.bestLevel}` : ''}
                             </p>
                         </div>
                     </div>
@@ -244,7 +244,7 @@ export default function LeaderboardView({ game }: Props) {
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                                                         {entry.score}
                                                     </span>
-                                                    {entry.bestLevel != null && (
+                                                    {!!entry.bestLevel && (
                                                         <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
                                                     )}
                                                 </td>
