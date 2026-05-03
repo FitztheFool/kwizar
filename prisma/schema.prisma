@@ -129,6 +129,7 @@ model Quiz {
   description        String?  @db.Text
   randomizeQuestions Boolean  @default(false)
   isPublic           Boolean  @default(true)
+  imageUrl           String?
   categoryId         String
   category           Category @relation(fields: [categoryId], references: [id])
   createdAt          DateTime @default(now())
@@ -153,6 +154,7 @@ model Question {
   points      Int          @default(1)
   strictOrder Boolean      @default(false)
   createdAt   DateTime     @default(now())
+  imageUrl    String?
   updatedAt   DateTime     @updatedAt
 
   quizId  String
