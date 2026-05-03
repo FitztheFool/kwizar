@@ -1,153 +1,241 @@
-// src/app/api/quiz/route.ts
+// src/app/api/quiz/[id]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { requireRegistered } from '@/lib/authGuard';
 
-export async function GET(request: Request) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: quizId } = await params;
     const session = await getServerSession(authOptions);
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const categoryId = searchParams.get('categoryId') || '';
-    const creatorId = searchParams.get('creatorId') || '';
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = Math.min(50, Math.max(1, parseInt(searchParams.get('pageSize') || '6')));
 
-    const where = {
-      AND: [
-        search ? { title: { contains: search, mode: 'insensitive' as const } } : {},
-        categoryId ? { categoryId } : {},
-        creatorId
-          ? { creatorId }
-          : {
-            OR: [
-              { isPublic: true },
-              { creatorId: session?.user?.id ?? '' },
-            ],
+    const authHeader = request.headers.get('authorization');
+    const internalKey = process.env.INTERNAL_API_KEY;
+    const isInternalRequest = !!(internalKey && authHeader === `Bearer ${internalKey}`);
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        category: { select: { id: true, name: true } },
+        creator: { select: { id: true, username: true, email: true } },
+        questions: {
+          include: {
+            answers: {
+              select: { id: true, content: true, isCorrect: true },
+            },
           },
-      ],
+          orderBy: { createdAt: 'asc' },
+        },
+        attempts: {
+          select: { score: true },
+          orderBy: { score: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!quiz) {
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
+    }
+
+    if (!quiz.isPublic && quiz.creatorId !== session?.user?.id && !isInternalRequest) {
+      return NextResponse.json({ error: "Vous n'avez pas accès à ce quiz privé" }, { status: 403 });
+    }
+
+    const isOwner = session?.user?.id === quiz.creatorId;
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const revealAnswers = isInternalRequest || isOwner || isAdmin;
+
+    const formattedQuiz = {
+      id: quiz.id,
+      title: quiz.title,
+      imageUrl: quiz.imageUrl ?? null,
+      category: quiz.category ?? null,
+      description: quiz.description || '',
+      isPublic: quiz.isPublic,
+      randomizeQuestions: quiz.randomizeQuestions,
+      creatorId: quiz.creatorId,
+      creator: {
+        id: quiz.creator.id,
+        name: quiz.creator.username || quiz.creator.email?.split('@')[0] || 'Utilisateur anonyme',
+      },
+      questions: quiz.questions.map((q) => {
+        if (q.type === 'TEXT') {
+          return {
+            id: q.id,
+            text: q.content,
+            type: q.type,
+            points: q.points,
+            imageUrl: q.imageUrl ?? null,
+            strictOrder: false,
+            answers: revealAnswers
+              ? [{ id: q.answers[0]?.id, text: q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content, isCorrect: true }]
+              : [{ id: q.answers[0]?.id }],
+          };
+        }
+
+        if (q.type === 'MULTI_TEXT') {
+          const correctAnswers = q.answers.filter(a => a.isCorrect);
+          return {
+            id: q.id,
+            text: q.content,
+            type: q.type,
+            points: q.points,
+            imageUrl: q.imageUrl ?? null,
+            strictOrder: (q as any).strictOrder ?? false,
+            answers: revealAnswers
+              ? correctAnswers.map((a) => ({ id: a.id, text: a.content, isCorrect: true }))
+              : correctAnswers.map((a) => ({ id: a.id })),
+          };
+        }
+
+        return {
+          id: q.id,
+          text: q.content,
+          type: q.type,
+          points: q.points,
+          imageUrl: q.imageUrl ?? null,
+          strictOrder: (q as any).strictOrder ?? false,
+          answers: q.answers.map((a) => ({
+            id: a.id,
+            text: a.content,
+            ...(revealAnswers ? { isCorrect: a.isCorrect } : {}),
+          })),
+        };
+      }),
+      bestScore: quiz.attempts[0]?.score ?? null,
     };
 
-    const [quizzes, total] = await Promise.all([
-      prisma.quiz.findMany({
-        where,
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          isPublic: true,
-          creatorId: true,
-          creator: { select: { id: true, username: true } },
-          category: { select: { name: true } },
-          _count: { select: { questions: true } },
-          createdAt: true,
-          questions: { select: { points: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.quiz.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      quizzes,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
-    });
+    return NextResponse.json(formattedQuiz, { status: 200 });
   } catch (error) {
-    console.error('Erreur lors de la récupération des quiz:', error instanceof Error ? error.message : String(error));
+    console.error('Erreur lors de la récupération du quiz:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { session, error } = await requireRegistered();
-    if (error) return error;
+    const session = await getServerSession(authOptions);
 
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
 
+    const { id } = await params;
     const body = await request.json();
-    if (!Array.isArray(body.questions) || body.questions.length === 0 || body.questions.length > 15) {
-      return NextResponse.json(
-        { error: 'Un quiz doit contenir entre 1 et 15 questions.' },
-        { status: 400 }
-      );
-    }
-    const { title, description, isPublic, randomizeQuestions, categoryId, questions, creatorRole } = body;
 
-    if (!title || typeof title !== 'string' || title.trim().length === 0 || title.length > 200) {
-      return NextResponse.json({ error: 'Le titre est requis (200 caractères max).' }, { status: 400 });
-    }
-    if (description && (typeof description !== 'string' || description.length > 1000)) {
-      return NextResponse.json({ error: 'La description ne peut pas dépasser 1000 caractères.' }, { status: 400 });
-    }
-    for (const q of questions) {
-      if (!q.text || typeof q.text !== 'string' || q.text.trim().length === 0 || q.text.length > 500) {
-        return NextResponse.json({ error: 'Chaque question doit avoir un texte (500 caractères max).' }, { status: 400 });
-      }
-      if (!Array.isArray(q.answers) || q.answers.length === 0) {
-        return NextResponse.json({ error: 'Chaque question doit avoir au moins une réponse.' }, { status: 400 });
-      }
-      for (const a of q.answers) {
-        if (!a.content || typeof a.content !== 'string' || a.content.length > 300) {
-          return NextResponse.json({ error: 'Chaque réponse doit avoir un contenu (300 caractères max).' }, { status: 400 });
-        }
-      }
+    if (!Array.isArray(body.questions) || body.questions.length > 15) {
+      return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
     }
 
-    if (!categoryId) {
-      return NextResponse.json({ error: 'La catégorie est obligatoire.' }, { status: 400 });
+    const { title, description, isPublic, randomizeQuestions, questions } = body;
+
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { id },
+      select: { creatorId: true },
+    });
+
+    if (!existingQuiz) {
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
-    // Vérifier que l'utilisateur existe en base
-    const userExists = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true } });
-    if (!userExists) {
-      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 401 });
+    if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
-    // Si creatorRole === 'RANDOM', on utilise l'utilisateur système RANDOM
-    let creatorId = session.user.id;
-    if (creatorRole === 'RANDOM') {
-      const randomUser = await prisma.user.findFirst({ where: { role: 'RANDOM' } });
-      if (randomUser) creatorId = randomUser.id;
-    }
+    await prisma.$transaction(async (tx) => {
+      await tx.quiz.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          isPublic,
+          randomizeQuestions: randomizeQuestions ?? false,
+          imageUrl: body.imageUrl ?? null,
+        },
+      });
 
-    const quiz = await prisma.quiz.create({
-      data: {
-        title,
-        description: description || '',
-        isPublic: isPublic ?? true,
-        randomizeQuestions: randomizeQuestions ?? false,
-        categoryId,
-        creatorId,
-        questions: {
-          create: questions.map((q: any) => ({
+      await tx.answer.deleteMany({
+        where: { question: { quizId: id } },
+      });
+
+      await tx.question.deleteMany({
+        where: { quizId: id },
+      });
+
+      for (const q of questions) {
+        await tx.question.create({
+          data: {
             content: q.text,
             type: q.type,
             points: q.points,
             strictOrder: q.strictOrder ?? false,
+            imageUrl: q.imageUrl ?? null,
+            quizId: id,
             answers: {
               create: q.answers.map((a: any) => ({
                 content: a.content,
                 isCorrect: a.isCorrect,
               })),
             },
-          })),
-        },
-      },
+          },
+        });
+      }
+    });
+
+    const fullQuiz = await prisma.quiz.findUnique({
+      where: { id },
       include: {
+        creator: { select: { id: true, username: true } },
         questions: { include: { answers: true } },
       },
     });
 
-    return NextResponse.json(quiz, { status: 201 });
+    return NextResponse.json(fullQuiz);
   } catch (error) {
-    console.error('Erreur POST quiz:', error instanceof Error ? error.message : String(error));
+    console.error('Erreur PUT quiz:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { id },
+      select: { creatorId: true },
+    });
+
+    if (!existingQuiz) {
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
+    }
+
+    if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+    }
+
+    await prisma.quiz.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Erreur DELETE quiz:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

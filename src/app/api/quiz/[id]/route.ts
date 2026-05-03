@@ -11,10 +11,8 @@ export async function GET(
 ) {
   try {
     const { id: quizId } = await params;
-
     const session = await getServerSession(authOptions);
 
-    // Bypass pour les appels serveur-à-serveur (quiz-server)
     const authHeader = request.headers.get('authorization');
     const internalKey = process.env.INTERNAL_API_KEY;
     const isInternalRequest = !!(internalKey && authHeader === `Bearer ${internalKey}`);
@@ -23,26 +21,14 @@ export async function GET(
       where: { id: quizId },
       include: {
         category: { select: { id: true, name: true } },
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
+        creator: { select: { id: true, username: true, email: true } },
         questions: {
           include: {
             answers: {
-              select: {
-                id: true,
-                content: true,
-                isCorrect: true, // toujours récupéré en BDD, mais filtré selon le contexte
-              },
+              select: { id: true, content: true, isCorrect: true },
             },
           },
-          orderBy: {
-            createdAt: 'asc',
-          },
+          orderBy: { createdAt: 'asc' },
         },
         attempts: {
           select: { score: true },
@@ -56,16 +42,10 @@ export async function GET(
       return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
-    // Quiz privé : seul le créateur peut y accéder (ou appel interne)
     if (!quiz.isPublic && quiz.creatorId !== session?.user?.id && !isInternalRequest) {
-      return NextResponse.json(
-        { error: "Vous n'avez pas accès à ce quiz privé" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Vous n'avez pas accès à ce quiz privé" }, { status: 403 });
     }
 
-    // isCorrect n'est exposé qu'aux appels internes (quiz-server)
-    // Les clients ne reçoivent jamais les bonnes réponses
     const isOwner = session?.user?.id === quiz.creatorId;
     const isAdmin = session?.user?.role === 'ADMIN';
     const revealAnswers = isInternalRequest || isOwner || isAdmin;
@@ -73,6 +53,7 @@ export async function GET(
     const formattedQuiz = {
       id: quiz.id,
       title: quiz.title,
+      imageUrl: quiz.imageUrl ?? null,
       category: quiz.category ?? null,
       description: quiz.description || '',
       isPublic: quiz.isPublic,
@@ -89,9 +70,8 @@ export async function GET(
             text: q.content,
             type: q.type,
             points: q.points,
+            imageUrl: q.imageUrl ?? null,
             strictOrder: false,
-            // Le client reçoit juste un champ vide pour pouvoir afficher N champs
-            // La correction se fait côté serveur (quiz-server)
             answers: revealAnswers
               ? [{ id: q.answers[0]?.id, text: q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content, isCorrect: true }]
               : [{ id: q.answers[0]?.id }],
@@ -105,20 +85,20 @@ export async function GET(
             text: q.content,
             type: q.type,
             points: q.points,
+            imageUrl: q.imageUrl ?? null,
             strictOrder: (q as any).strictOrder ?? false,
-            // Le client reçoit uniquement le nombre de champs attendus (pour afficher N inputs)
             answers: revealAnswers
               ? correctAnswers.map((a) => ({ id: a.id, text: a.content, isCorrect: true }))
               : correctAnswers.map((a) => ({ id: a.id })),
           };
         }
 
-        // TRUE_FALSE / MCQ : le client reçoit les options mais pas isCorrect
         return {
           id: q.id,
           text: q.content,
           type: q.type,
           points: q.points,
+          imageUrl: q.imageUrl ?? null,
           strictOrder: (q as any).strictOrder ?? false,
           answers: q.answers.map((a) => ({
             id: a.id,
@@ -145,20 +125,16 @@ export async function PUT(
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const { id } = await params;
     const body = await request.json();
+
     if (!Array.isArray(body.questions) || body.questions.length > 15) {
-      return NextResponse.json(
-        { error: 'Un quiz ne peut pas dépasser 15 questions.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
     }
+
     const { title, description, isPublic, randomizeQuestions, questions } = body;
 
     const existingQuiz = await prisma.quiz.findUnique({
@@ -167,22 +143,23 @@ export async function PUT(
     });
 
     if (!existingQuiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
     if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Non autorisé' },
-        { status: 403 })
-        ;
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
     await prisma.$transaction(async (tx) => {
       await tx.quiz.update({
         where: { id },
-        data: { title, description, isPublic, randomizeQuestions: randomizeQuestions ?? false },
+        data: {
+          title,
+          description,
+          isPublic,
+          randomizeQuestions: randomizeQuestions ?? false,
+          imageUrl: body.imageUrl ?? null,
+        },
       });
 
       await tx.answer.deleteMany({
@@ -200,6 +177,7 @@ export async function PUT(
             type: q.type,
             points: q.points,
             strictOrder: q.strictOrder ?? false,
+            imageUrl: q.imageUrl ?? null,
             quizId: id,
             answers: {
               create: q.answers.map((a: any) => ({
@@ -235,10 +213,7 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -249,17 +224,11 @@ export async function DELETE(
     });
 
     if (!existingQuiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
     if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
     await prisma.quiz.delete({ where: { id } });
