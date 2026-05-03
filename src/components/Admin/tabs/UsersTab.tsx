@@ -10,8 +10,8 @@ const ROLES = ['GUEST', 'USER', 'RANDOM', 'ADMIN'] as const;
 
 const PROVIDER_LABELS: Record<string, { label: string; className: string }> = {
     credentials: { label: 'Email', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700' },
-    google:      { label: 'Google', className: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' },
-    discord:     { label: 'Discord', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' },
+    google: { label: 'Google', className: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' },
+    discord: { label: 'Discord', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' },
 };
 
 function ProviderBadge({ provider }: { provider: string }) {
@@ -103,7 +103,7 @@ export default function UsersTab({
                     <table className="w-full text-sm">
                         <thead className="bg-white dark:bg-gray-900">
                             <tr className="text-left">
-                                {['', 'Utilisateur', 'Email', 'Provider', 'Inscrit le', 'Vu le'].map(h => (
+                                {['', 'Utilisateur', 'Email', 'Provider', 'Inscrit le', 'Vu le', 'Modifié le'].map(h => (
                                     <th key={h} className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
                                 ))}
                                 <th className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
@@ -125,7 +125,7 @@ export default function UsersTab({
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                             {users.length === 0 ? (
-                                <tr><td colSpan={9} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">Aucun utilisateur trouvé</td></tr>
+                                <tr><td colSpan={10} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">Aucun utilisateur trouvé</td></tr>
                             ) : users.map(user => (
                                 <tr key={user.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
 
@@ -155,11 +155,16 @@ export default function UsersTab({
                                     </td>
 
                                     {/* Inscrit le */}
-                                    <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString('fr-FR')}</td>
+                                    <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{new Date(user.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
 
                                     {/* Vu le */}
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                         {user.lastSeen ? new Date(user.lastSeen).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                                    </td>
+
+                                    {/* Modifié le */}
+                                    <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                        {user.updatedAt ? new Date(user.updatedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                     </td>
 
                                     {/* Statut */}

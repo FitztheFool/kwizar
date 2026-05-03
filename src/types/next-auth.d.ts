@@ -1,8 +1,10 @@
 // src/types/next-auth.d.ts
-import { DefaultSession } from 'next-auth';
+import 'next-auth';
+import 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
+    error?: string;
     user: {
       id: string;
       username: string;
@@ -25,5 +27,6 @@ declare module 'next-auth/jwt' {
     username: string;
     role: string;
     isAnonymous?: boolean;
+    error?: string;
   }
 }

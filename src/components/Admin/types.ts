@@ -9,6 +9,7 @@ export interface AdminUser {
     role: string;
     createdAt: string;
     lastSeen: string | null;
+    updatedAt: string | Date;
     deactivatedAt: string | null;
     bannedAt: string | null;
     image: string | null;

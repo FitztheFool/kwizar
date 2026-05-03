@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
                 lastSeen: true,
                 bannedAt: true,
                 deactivatedAt: true,
+                updatedAt: true,
                 _count: { select: { createdQuizzes: true } },
                 attempts: { select: { gameType: true } },
                 accounts: { select: { provider: true } },

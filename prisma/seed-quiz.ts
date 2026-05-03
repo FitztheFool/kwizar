@@ -31,10 +31,11 @@ export async function seedQuizzes(
         popCulture: { id: string };
         musique: { id: string };
         videogames: { id: string };
+        litterature: { id: string }
         other: { id: string };
     }
 ) {
-    const { cultureGenerale, sciences, sports, artsCulture, technologie, popCulture, musique, videogames, other } = categories;
+    const { cultureGenerale, sciences, sports, artsCulture, technologie, popCulture, musique, videogames, litterature, other } = categories;
 
     const quizData: QuizData[] = [
         // ── Jeu Vidéo ──────────────────────────────────────────────────────────
@@ -473,6 +474,91 @@ export async function seedQuizzes(
                 { content: "Quentin Tarantino est connu pour ses dialogues et sa violence stylisée", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
                 { content: "Dans quel film la réplique 'May the Force be with you' est-elle célèbre ?", type: "TEXT", points: 1, answers: [{ content: "star wars", isCorrect: true }] },
                 { content: "Quel acteur joue le rôle de Jack Dawson dans Titanic ?", type: "MCQ_UNIQUE", points: 1, answers: [{ content: "Brad Pitt", isCorrect: false }, { content: "Leonardo DiCaprio", isCorrect: true }, { content: "Tom Hanks", isCorrect: false }, { content: "Matt Damon", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Classiques de la littérature française",
+            description: "Des chefs-d'œuvre incontournables de la littérature française.",
+            categoryId: litterature.id,
+            isPublic: true,
+            randomizeQuestions: true,
+            questions: [
+                { content: "Qui a écrit 'Les Misérables' ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Honoré de Balzac", isCorrect: false }, { content: "Victor Hugo", isCorrect: true }, { content: "Gustave Flaubert", isCorrect: false }, { content: "Émile Zola", isCorrect: false }] },
+                { content: "Madame Bovary est un roman de Gustave Flaubert", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel roman de Zola décrit la vie des mineurs du Nord ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "L'Assommoir", isCorrect: false }, { content: "Nana", isCorrect: false }, { content: "Germinal", isCorrect: true }, { content: "La Bête humaine", isCorrect: false }] },
+                { content: "Le personnage de Rastignac apparaît dans quelle œuvre de Balzac ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Illusions perdues", isCorrect: false }, { content: "La Cousine Bette", isCorrect: false }, { content: "Le Père Goriot", isCorrect: true }, { content: "Eugénie Grandet", isCorrect: false }] },
+                { content: "Quel est le prénom du héros de 'L'Étranger' de Camus ?", type: "TEXT", points: 3, answers: [{ content: "Meursault", isCorrect: true }] },
+                { content: "Stendhal et Balzac sont contemporains", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quels auteurs appartiennent au mouvement naturaliste ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Hugo et Lamartine", isCorrect: false }, { content: "Zola et Maupassant", isCorrect: true }, { content: "Baudelaire et Verlaine", isCorrect: false }, { content: "Camus et Sartre", isCorrect: false }] },
+                { content: "Quel auteur a écrit 'À la recherche du temps perdu' ?", type: "TEXT", points: 3, answers: [{ content: "Proust", isCorrect: true }] },
+            ]
+        },
+        {
+            title: "Littérature mondiale : grands auteurs",
+            description: "Tour du monde des plumes qui ont marqué l'histoire.",
+            categoryId: litterature.id,
+            isPublic: true,
+            randomizeQuestions: true,
+            questions: [
+                { content: "William Shakespeare est d'origine anglaise", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel auteur russe a écrit 'Crime et Châtiment' ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Léon Tolstoï", isCorrect: false }, { content: "Anton Tchekhov", isCorrect: false }, { content: "Fiodor Dostoïevski", isCorrect: true }, { content: "Ivan Tourgueniev", isCorrect: false }] },
+                { content: "Franz Kafka est né à Prague", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel roman de Gabriel García Márquez est le chef-d'œuvre du réalisme magique ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "L'Amour aux temps du choléra", isCorrect: false }, { content: "Cent ans de solitude", isCorrect: true }, { content: "Le Colonel n'a personne à qui écrire", isCorrect: false }, { content: "Chronique d'une mort annoncée", isCorrect: false }] },
+                { content: "Quel auteur américain a écrit 'Moby Dick' ?", type: "TEXT", points: 3, answers: [{ content: "Melville", isCorrect: true }] },
+                { content: "Dans quel pays est né Jorge Luis Borges ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Chili", isCorrect: false }, { content: "Mexique", isCorrect: false }, { content: "Argentine", isCorrect: true }, { content: "Uruguay", isCorrect: false }] },
+                { content: "Quel auteur japonais a écrit 'La Montagne enneigée' (Nobel 1968) ?", type: "TEXT", points: 3, answers: [{ content: "Kawabata", isCorrect: true }] },
+                { content: "George Orwell est le pseudonyme d'Eric Arthur Blair", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Poésie et mouvements littéraires",
+            description: "Romantisme, symbolisme, surréalisme... testez vos connaissances.",
+            categoryId: litterature.id,
+            isPublic: true,
+            randomizeQuestions: true,
+            questions: [
+                { content: "Quel poète a écrit 'Les Fleurs du Mal' ?", type: "TEXT", points: 3, answers: [{ content: "Baudelaire", isCorrect: true }] },
+                { content: "Le surréalisme est un mouvement littéraire du XIXe siècle", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: false }, { content: "Faux", isCorrect: true }] },
+                { content: "Quel poète symboliste a écrit 'Le Bateau ivre' ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Paul Verlaine", isCorrect: false }, { content: "Stéphane Mallarmé", isCorrect: false }, { content: "Arthur Rimbaud", isCorrect: true }, { content: "Paul Valéry", isCorrect: false }] },
+                { content: "André Breton est le fondateur du mouvement surréaliste", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel mouvement littéraire Lamartine représente-t-il ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Classicisme", isCorrect: false }, { content: "Romantisme", isCorrect: true }, { content: "Réalisme", isCorrect: false }, { content: "Symbolisme", isCorrect: false }] },
+                { content: "Quel auteur a écrit 'Alcools', recueil poétique majeur du XXe siècle ?", type: "TEXT", points: 3, answers: [{ content: "Apollinaire", isCorrect: true }] },
+                { content: "Le Parnasse est un mouvement poétique français du XIXe siècle", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel poète a écrit 'Illuminations' ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Paul Verlaine", isCorrect: false }, { content: "Arthur Rimbaud", isCorrect: true }, { content: "Charles Baudelaire", isCorrect: false }, { content: "Stéphane Mallarmé", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Romans et personnages célèbres",
+            description: "Connaissez-vous vraiment ces héros de papier ?",
+            categoryId: litterature.id,
+            isPublic: true,
+            randomizeQuestions: true,
+            questions: [
+                { content: "Dans quel roman apparaît le personnage de Julien Sorel ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Le Rouge et le Noir", isCorrect: true }, { content: "La Chartreuse de Parme", isCorrect: false }, { content: "Lucien Leuwen", isCorrect: false }, { content: "Armance", isCorrect: false }] },
+                { content: "Hermione Granger est un personnage de la saga Harry Potter", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel auteur a créé le personnage de Sherlock Holmes ?", type: "TEXT", points: 3, answers: [{ content: "Conan Doyle", isCorrect: true }] },
+                { content: "Don Quichotte est l'œuvre de quel auteur espagnol ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Lope de Vega", isCorrect: false }, { content: "Calderón de la Barca", isCorrect: false }, { content: "Miguel de Cervantes", isCorrect: true }, { content: "Francisco de Quevedo", isCorrect: false }] },
+                { content: "Le comte de Monte-Cristo est écrit par Alexandre Dumas", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel est le nom du narrateur de 'La Recherche du temps perdu' ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Charles", isCorrect: false }, { content: "Marcel", isCorrect: true }, { content: "Swann", isCorrect: false }, { content: "Albertine", isCorrect: false }] },
+                { content: "Dans quel roman de Dostoïevski les frères Karamazov sont-ils les héros ?", type: "TEXT", points: 3, answers: [{ content: "Les Frères Karamazov", isCorrect: true }] },
+                { content: "Dracula est un roman gothique de Bram Stoker", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+            ]
+        },
+        {
+            title: "Prix Nobel et prix littéraires",
+            description: "Les grandes distinctions du monde des lettres.",
+            categoryId: litterature.id,
+            isPublic: true,
+            randomizeQuestions: true,
+            questions: [
+                { content: "Albert Camus a reçu le Prix Nobel de littérature", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel auteur français a refusé le Prix Nobel de littérature en 1964 ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Albert Camus", isCorrect: false }, { content: "Simone de Beauvoir", isCorrect: false }, { content: "Jean-Paul Sartre", isCorrect: true }, { content: "André Malraux", isCorrect: false }] },
+                { content: "Le Prix Goncourt est décerné chaque année en France", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Toni Morrison est la première femme noire à recevoir le Nobel de littérature", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel auteur africain a reçu le Prix Nobel de littérature en 1986 ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Chinua Achebe", isCorrect: false }, { content: "Wole Soyinka", isCorrect: true }, { content: "Ngugi wa Thiong'o", isCorrect: false }, { content: "J.M. Coetzee", isCorrect: false }] },
+                { content: "Quel auteur a reçu le Prix Nobel de littérature en 2022 ?", type: "TEXT", points: 3, answers: [{ content: "Ernaux", isCorrect: true }] },
+                { content: "Le Booker Prize est un prix littéraire britannique", type: "TRUE_FALSE", points: 1, answers: [{ content: "Vrai", isCorrect: true }, { content: "Faux", isCorrect: false }] },
+                { content: "Quel romancier péruvien a obtenu le Prix Nobel de littérature en 2010 ?", type: "MCQ_UNIQUE", points: 2, answers: [{ content: "Pablo Neruda", isCorrect: false }, { content: "Octavio Paz", isCorrect: false }, { content: "Mario Vargas Llosa", isCorrect: true }, { content: "Jorge Amado", isCorrect: false }] },
             ]
         },
     ];

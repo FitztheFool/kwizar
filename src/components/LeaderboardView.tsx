@@ -153,7 +153,7 @@ export default function LeaderboardView({ game }: Props) {
                 <div className="mb-6 space-y-2">
                     {(config?.description ?? GAME_CONFIG[game].description) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</p>
+                            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</h2>
                             <p className="text-sm text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: config?.description ?? GAME_CONFIG[game].description }} />
                         </div>
                     )}

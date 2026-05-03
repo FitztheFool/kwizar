@@ -1,3 +1,5 @@
+// prisma/seed-attempts.ts
+
 import crypto from 'node:crypto';
 import { PrismaClient } from '../src/generated/prisma/client';
 

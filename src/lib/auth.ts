@@ -160,7 +160,7 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user, trigger }) {
+        async jwt({ token, user, trigger, account }) {  // ✅ account ajouté
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
@@ -182,8 +182,12 @@ export const authOptions: NextAuthOptions = {
                     token.isAnonymous = dbUser.isAnonymous;
                 }
             }
-            return token;
+            if (account?.error === 'RefreshAccessTokenError') {  // ✅
+                token.error = 'RefreshAccessTokenError';
+            }
+            return token;  // ✅ un seul return
         },
+
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.id as string;
@@ -192,6 +196,9 @@ export const authOptions: NextAuthOptions = {
                 session.user.image = (token.image as string) ?? null;
                 session.user.email = (token.email as string) ?? null;
                 session.user.isAnonymous = (token.isAnonymous as boolean) ?? false;
+            }
+            if (token.error) {
+                session.error = token.error;
             }
             return session;
         },
