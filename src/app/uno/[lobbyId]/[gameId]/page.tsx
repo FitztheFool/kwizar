@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
+import TimerBar from '@/components/TimerBar';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
@@ -46,6 +47,8 @@ type GameState = {
     options: UnoOptions;
     isMyTurn: boolean;
     spectator: boolean;
+    turnEndsAt: number | null;
+    turnDuration: number;
 };
 
 type LobbyState = {
@@ -334,6 +337,12 @@ export default function UnoPage() {
                     {!gameState.spectator && <SurrenderButton onSurrender={() => socket?.emit('uno:surrender')} />}
                 </div>
             </div>
+
+            <TimerBar
+                endsAt={gameState.turnEndsAt}
+                duration={gameState.turnDuration}
+                label={gameState.isMyTurn ? 'Ton tour' : `Tour de ${currentPlayer?.username}`}
+            />
 
             {/* Joueurs */}
             <div className="flex justify-center gap-4 px-4 py-3 flex-wrap">
