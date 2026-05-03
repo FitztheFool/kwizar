@@ -9,6 +9,7 @@ interface QuizCardProps {
     description: string | null;
     isPublic: boolean;
     createdAt?: string;
+    imageUrl?: string | null;
     _count: {
       questions: number;
     };
@@ -63,8 +64,18 @@ export default function QuizCard({
       className={`bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
         ? 'border-gray-200 dark:border-gray-700 opacity-70'
         : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl'
-        }`}
-    >
+        }`}>
+
+      {quiz.imageUrl && (
+        <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-4 rounded-t-xl overflow-hidden">
+          <img
+            src={quiz.imageUrl}
+            alt={quiz.title}
+            className="w-full h-32 object-cover"
+          />
+        </div>
+      )}
+
       {/* Badges */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
         {isMyQuiz && (

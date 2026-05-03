@@ -189,8 +189,8 @@ function MultiTextInput({ values, count, onChange, disabled, feedback, showFeedb
                     <div key={i} className="flex items-center gap-2">
                         <span className={`shrink-0 w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center
                             ${isFieldCorrect ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                            : isFieldWrong ? 'bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                : isFieldWrong ? 'bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                             {isFieldCorrect ? <CheckIcon className="w-4 h-4" /> : isFieldWrong ? <XMarkIcon className="w-4 h-4" /> : i + 1}
                         </span>
                         <input
@@ -201,8 +201,8 @@ function MultiTextInput({ values, count, onChange, disabled, feedback, showFeedb
                             placeholder={`Réponse ${i + 1}…`}
                             className={`flex-1 px-4 py-3 rounded-xl border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors disabled:opacity-60
                                 ${isFieldCorrect ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                : isFieldWrong ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
-                                : 'border-gray-200 dark:border-gray-700'}`}
+                                    : isFieldWrong ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
+                                        : 'border-gray-200 dark:border-gray-700'}`}
                         />
                     </div>
                 );
@@ -283,6 +283,13 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                                 <p className="text-lg font-semibold text-gray-800 dark:text-gray-100 leading-snug">
                                     {currentQuestion.text}
                                 </p>
+                                {currentQuestion.imageUrl && (
+                                    <img
+                                        src={currentQuestion.imageUrl}
+                                        alt="Illustration de la question"
+                                        className="mt-4 w-full max-h-64 object-contain rounded-xl border border-gray-100 dark:border-gray-800"
+                                    />
+                                )}
                                 {currentQuestion.type === 'MCQ' && (
                                     <p className="mt-2 text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
                                         Plusieurs réponses possibles
