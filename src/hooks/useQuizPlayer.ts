@@ -17,6 +17,7 @@ export type Question = {
     text: string;
     type: QuestionType;
     points: number;
+    imageUrl?: string | null;
     answers?: Answer[];
     strictOrder?: boolean;
 };
@@ -240,7 +241,7 @@ export function useQuizPlayer({ quizId, lobbyId, resultUrl, timeMode: timeModePr
                     totalAnswers: quiz.questions.length,
                     isOwnQuiz: quiz.creatorId === session?.user?.id,
                 }),
-            }).catch(() => {});
+            }).catch(() => { });
             router.push(resultUrl);
         }
     }, [quizId, lobbyId, resultUrl, session, socket, router]);
@@ -321,7 +322,7 @@ export function useQuizPlayer({ quizId, lobbyId, resultUrl, timeMode: timeModePr
     }, [isLastQuestion, submitQuiz]);
 
     // Auto-advance / submit on timer expiry
-    const handleTimerExpireRef = useRef<() => void>(() => {});
+    const handleTimerExpireRef = useRef<() => void>(() => { });
 
     const handleTimerExpire = useCallback(() => {
         if (!feedback && currentQuestion) {
