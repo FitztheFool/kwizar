@@ -38,8 +38,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         ) : (
           <button key={page} onClick={() => onPageChange(page)}
             className={`w-10 h-10 rounded-lg font-semibold transition-colors ${page === currentPage
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
               }`}>
             {page}
           </button>

@@ -9,8 +9,9 @@ const nextConfig = {
     domains: [],
     remotePatterns: [
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
-      { protocol: 'https', hostname: 'cdn.discordapp.com' }, // Discord tant qu'on y est
-      { protocol: 'https', hostname: 'res.cloudinary.com' },  // Cloudinary si pas déjà là
+      { protocol: 'https', hostname: 'cdn.discordapp.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
   async headers() {
@@ -29,10 +30,9 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.discordapp.com https://lh3.googleusercontent.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.discordapp.com https://lh3.googleusercontent.com https://images.unsplash.com",  // ✅ une seule ligne, Unsplash ajouté
               "font-src 'self'",
               "connect-src 'self' wss: ws: https://*.onrender.com http://localhost:10000 ws://localhost:10000 https://api.cloudinary.com",
-              ,
               "frame-ancestors 'none'",
             ].join('; '),
           },

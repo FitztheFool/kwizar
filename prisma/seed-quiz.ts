@@ -19,6 +19,69 @@ interface QuizData {
     questions: QuizQuestion[];
 }
 
+async function fetchCoverImage(query: string): Promise<string | null> {
+    const key = process.env.UNSPLASH_ACCESS_KEY;
+    if (!key) return null;
+    try {
+        const res = await fetch(
+            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+            { headers: { Authorization: `Client-ID ${key}` } }
+        );
+        const data = await res.json();
+        return data.results?.[0]?.urls?.regular ?? null;
+    } catch {
+        return null;
+    }
+}
+
+const QUIZ_IMAGE_QUERIES: Record<string, string> = {
+    "RPG & Aventure": "fantasy sword magic quest",
+    "FPS & Action": "military shooter action game",
+    "Consoles & Histoire du Jeu Vidéo": "retro video game console",
+    "Jeux de Sport & Course": "racing game stadium sport",
+    "Jeux Indépendants & Pixel Art": "pixel art indie game colorful",
+    "Gastronomie & Cuisine du Monde": "world cuisine food gourmet",
+    "Langues & Linguistique": "language books letters alphabet",
+    "Astronomie & Espace": "galaxy space stars cosmos",
+    "Psychologie & Comportement": "human mind psychology brain",
+    "Économie & Finance": "finance economy stock market",
+    "Culture Générale - Niveau Débutant": "world map culture general knowledge",
+    "Le Système Solaire": "solar system planets space",
+    "Football - Les Bases": "football soccer stadium",
+    "Peinture et Sculpture": "painting sculpture art museum",
+    "Histoire de l'Informatique": "computer history technology vintage",
+    "Géographie Mondiale": "world map geography globe",
+    "Chimie et Physique": "chemistry physics laboratory science",
+    "Jeux Olympiques": "olympic games stadium rings",
+    "Musique à travers les Âges": "classical music orchestra concert",
+    "Internet et Réseaux Sociaux": "social media internet network",
+    "Histoire de France": "france history paris revolution",
+    "Biologie et Animaux": "biology animals nature wildlife",
+    "Tennis et Sports de Raquette": "tennis court racket wimbledon",
+    "Cinéma et Littérature": "cinema film books literature",
+    "Programmation et Systèmes": "programming code computer screen",
+    "Mythologie Grecque": "greek mythology olympus gods",
+    "Inventions et Découvertes": "invention discovery science laboratory",
+    "Sports Collectifs": "team sports basketball rugby",
+    "Architecture et Monuments": "architecture monuments landmarks",
+    "Intelligence Artificielle et Cybersécurité": "artificial intelligence cybersecurity digital",
+    "Seconde Guerre Mondiale": "world war history memorial",
+    "Écologie et Environnement": "ecology environment nature green",
+    "Culture Musicale": "music concert stage microphone",
+    "Instruments de Musique": "musical instruments orchestra violin",
+    "Harry Potter": "magic castle hogwarts fantasy",
+    "Séries TV Célèbres": "television series drama screen",
+    "Mangas & Anime": "anime manga japanese art",
+    "Super-Héros & Comics": "superhero comics marvel dc",
+    "Jeux Vidéo Pop Culture": "video game characters iconic",
+    "Cinéma Pop Culture": "blockbuster cinema popcorn movies",
+    "Classiques de la littérature française": "french literature classic books paris",
+    "Littérature mondiale : grands auteurs": "world literature authors books library",
+    "Poésie et mouvements littéraires": "poetry books romantic art literature",
+    "Romans et personnages célèbres": "novel characters fiction books",
+    "Prix Nobel et prix littéraires": "nobel prize literature ceremony award",
+};
+
 export async function seedQuizzes(
     prisma: PrismaClient,
     creatorId: string,
@@ -568,6 +631,10 @@ export async function seedQuizzes(
 
     for (const quiz of quizData) {
         try {
+            const imageQuery = QUIZ_IMAGE_QUERIES[quiz.title];
+            const imageUrl = imageQuery ? await fetchCoverImage(imageQuery) : null;
+            if (imageUrl) console.log(`  🖼️  Image trouvée pour "${quiz.title}"`);
+
             await prisma.quiz.create({
                 data: {
                     title: quiz.title,
@@ -576,6 +643,7 @@ export async function seedQuizzes(
                     isPublic: quiz.isPublic,
                     randomizeQuestions: quiz.randomizeQuestions,
                     creatorId,
+                    imageUrl: imageUrl ?? null,   // ← ajout
                     questions: {
                         create: quiz.questions.map((q) => ({
                             content: q.content,
