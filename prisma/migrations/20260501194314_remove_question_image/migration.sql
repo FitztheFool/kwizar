@@ -1,1 +1,1 @@
--- remove_question_image: intentionally empty, columns retained
+-- ghost migration: placeholder only
