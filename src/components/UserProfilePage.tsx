@@ -142,7 +142,7 @@ function ClaimAccountBlock({ currentUsername, isPendingVerification = false }: {
                             type="button"
                             onClick={handleResend}
                             disabled={resendLoading}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 underline hover:no-underline disabled:opacity-50"
+                            className="flex items-center gap-1.5 text-s font-semibold text-blue-600 dark:text-blue-400 underline hover:no-underline disabled:opacity-50"
                         >
                             <EnvelopeIcon className="w-3.5 h-3.5" />
                             {resendLoading ? 'Envoi…' : 'Renvoyer le mail'}
@@ -254,7 +254,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                 {isOwnProfile && <MembersOnlyBanner isPending={session?.user?.role !== 'GUEST' && session?.user?.status === 'PENDING'} />}
 
                 {/* ── Bloc finaliser le compte (invité) ── */}
-                {isOwnProfile && session?.user?.role === 'GUEST' && (
+                {isOwnProfile && (session?.user?.role === 'GUEST' || (!session?.user?.isAnonymous && session?.user?.status === 'PENDING')) && (
                     <ClaimAccountBlock currentUsername={username} isPendingVerification={!session?.user?.isAnonymous && session?.user?.status === 'PENDING'} />
                 )}
 

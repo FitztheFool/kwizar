@@ -1,13 +1,14 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type React from 'react';
 import Image from 'next/image';
 import { StarIcon, TrophyIcon, HeartIcon, CubeIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
 import { useBreakout } from '@/hooks/useBreakout';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import { W, H } from '@/lib/breakout/constants';
+import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
+import StatCell from '@/components/SoloGame/StatCell';
+import AdminDebugControl from '@/components/SoloGame/AdminDebugControl';
 
 const POWER_LEGEND = [
     { bonus: true,  src: '/breakout/bonus/WI.png', label: 'Palette large',   desc: '+50% largeur' },
@@ -73,35 +74,19 @@ export default function BreakoutPage() {
         <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <div className="w-full max-w-[440px] md:max-w-[620px] flex items-center justify-between mb-5">
-                <Link
-                    href="/"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-all"
+            <SoloGameHeader leaderboardHref="/leaderboard/breakout" maxWidthClass="max-w-[440px] md:max-w-[620px]">
+                <span className="text-cyan-600/40 text-xs">▸▸</span>
+                <span
+                    className="text-cyan-600 dark:text-cyan-400 font-black text-xl tracking-[0.12em] uppercase"
+                    style={{
+                        fontFamily: '"Press Start 2P", "Courier New", monospace',
+                        textShadow: '0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.2)',
+                    }}
                 >
-                    ← Accueil
-                </Link>
-
-                <div className="flex items-center gap-2 select-none">
-                    <span className="text-cyan-600/40 text-xs">▸▸</span>
-                    <span
-                        className="text-cyan-600 dark:text-cyan-400 font-black text-xl tracking-[0.12em] uppercase"
-                        style={{
-                            fontFamily: '"Press Start 2P", "Courier New", monospace',
-                            textShadow: '0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.2)',
-                        }}
-                    >
-                        BREAKOUT
-                    </span>
-                    <span className="text-cyan-600/40 text-xs">◂◂</span>
-                </div>
-
-                <Link
-                    href="/leaderboard/breakout"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-all"
-                >
-                    <TrophyIcon className="w-4 h-4" /><span className="hidden sm:inline">Classement</span>
-                </Link>
-            </div>
+                    BREAKOUT
+                </span>
+                <span className="text-cyan-600/40 text-xs">◂◂</span>
+            </SoloGameHeader>
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] md:max-w-[620px] mb-4 grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
@@ -151,14 +136,7 @@ export default function BreakoutPage() {
                 {/* Bouton JOUER */}
                 {phase === 'idle' && (
                     <div className="flex flex-col items-center gap-3">
-                        {isAdmin && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs font-mono">
-                                <span className="opacity-60">🔧 Niveau</span>
-                                <button onClick={() => setDebugLevel(l => Math.max(1, l - 1))} className="w-5 h-5 rounded hover:bg-orange-500/20 font-bold">−</button>
-                                <span className="w-5 text-center font-bold">{debugLevel}</span>
-                                <button onClick={() => setDebugLevel(l => l + 1)} className="w-5 h-5 rounded hover:bg-orange-500/20 font-bold">+</button>
-                            </div>
-                        )}
+                        {isAdmin && <AdminDebugControl value={debugLevel} onChange={setDebugLevel} />}
                         <button
                             onClick={() => startGame(debugLevel)}
                             className="flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
@@ -187,18 +165,6 @@ export default function BreakoutPage() {
                     <PowerLegend />
                 </div>
             </div>
-        </div>
-    );
-}
-
-function StatCell({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
-    return (
-        <div className="flex flex-col items-center px-2 py-3 bg-white dark:bg-[#07070f]">
-            <div className="flex items-center gap-1 text-[9px] text-gray-400 dark:text-white/30 uppercase tracking-widest mb-1.5">
-                <span>{icon}</span>
-                <span>{label}</span>
-            </div>
-            <div className={`text-xl font-black tabular-nums ${color}`}>{value}</div>
         </div>
     );
 }

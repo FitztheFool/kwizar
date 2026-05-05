@@ -60,6 +60,7 @@ export async function PATCH(req: NextRequest) {
             passwordHash,
             status: 'PENDING',
             isAnonymous: false,
+            role: 'USER',
             ...(username ? { username } : {}),
         },
     });

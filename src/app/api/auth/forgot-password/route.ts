@@ -13,13 +13,19 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const { email } = await req.json();
-    if (!email) return NextResponse.json({ error: 'Email requis' }, { status: 400 });
+    const { login } = await req.json();
+    if (!login) return NextResponse.json({ error: 'Email ou pseudo requis' }, { status: 400 });
 
-    // Réponse identique que l'email existe ou non (évite l'énumération)
-    const user = await prisma.user.findUnique({ where: { email }, select: { id: true, status: true } });
+    // Réponse identique que le compte existe ou non (évite l'énumération)
+    const isEmail = login.includes('@');
+    const user = await prisma.user.findFirst({
+        where: isEmail ? { email: login } : { username: login },
+        select: { id: true, email: true, status: true },
+    });
 
-    if (user && user.status !== 'BANNED') {
+    const email = user?.email;
+
+    if (user && email && user.status !== 'BANNED') {
         // Supprimer les anciens tokens pour cet email
         await prisma.verificationToken.deleteMany({ where: { identifier: email } });
 

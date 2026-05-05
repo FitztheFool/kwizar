@@ -30,7 +30,7 @@ export default function Header() {
             <UserIcon className="w-4 h-4 inline mr-1" />
             {isBlue
               ? "Vérifiez votre boîte mail pour activer votre compte"
-              : "Les comptes invités sont supprimés quotidiennement"}
+              : "Les comptes invités sont supprimés tous les jours à 7h."}
           </span>
           <Link href="/dashboard" className={"font-semibold underline underline-offset-2 transition-colors " + linkColor}>
             {isBlue ? "Renvoyer le mail →" : "Finaliser l'inscription →"}

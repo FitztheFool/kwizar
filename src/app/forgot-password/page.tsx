@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 export default function ForgotPasswordPage() {
-    const [email, setEmail] = useState('');
+    const [login, setLogin] = useState('');
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState('');
@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
             const res = await fetch('/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ login: login.trim() }),
             });
             const data = await res.json();
             if (!res.ok) { setError(data.error ?? 'Erreur'); return; }
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
                             </div>
                             <p className="text-gray-700 dark:text-gray-300 font-medium">Email envoyé !</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Si un compte existe pour <strong>{email}</strong>, vous recevrez un lien valable 1 heure.
+                                Si un compte existe pour <strong>{login}</strong>, vous recevrez un lien valable 1 heure.
                             </p>
                             <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                 Retour à la connexion
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
                     ) : (
                         <>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                                Entrez votre adresse email ou votre pseudo et nous vous enverrons un lien pour réinitialiser votre mot de passe.
                             </p>
 
                             {error && (
@@ -71,16 +71,16 @@ export default function ForgotPasswordPage() {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Adresse email
+                                    <label htmlFor="login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Email ou pseudo
                                     </label>
                                     <input
-                                        id="email"
-                                        type="email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
+                                        id="login"
+                                        type="text"
+                                        value={login}
+                                        onChange={e => setLogin(e.target.value)}
                                         className="input-field"
-                                        placeholder="vous@exemple.com"
+                                        placeholder="vous@exemple.com ou votre pseudo"
                                         required
                                         autoFocus
                                     />

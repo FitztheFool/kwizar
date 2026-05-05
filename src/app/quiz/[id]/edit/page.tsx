@@ -29,12 +29,14 @@ export default async function EditQuizPage({ params }: Props) {
         isPublic: data.isPublic,
         randomizeQuestions: data.randomizeQuestions ?? true,
         categoryId: data.category?.id ?? '',
+        imageUrl: data.imageUrl ?? undefined,
         questions: data.questions.map(q => ({
             id: q.id,
             text: q.content,           // QuestionForm uses `text`, not `content`
             type: q.type,
             points: q.points,
             strictOrder: q.strictOrder ?? false,
+            imageUrl: q.imageUrl ?? undefined,
             answers: q.answers.map(a => ({
                 id: a.id,
                 text: a.content ?? '', // AnswerForm uses `text`, not `content`

@@ -11,7 +11,7 @@ export async function seedShared(prisma: PrismaClient, randomUserId: string) {
     const technologie = await prisma.category.create({ data: { name: 'Technologie', slug: 'technologie' } });
     const popCulture = await prisma.category.create({ data: { name: 'Pop culture', slug: 'pop-culture' } });
     const musique = await prisma.category.create({ data: { name: 'Musique', slug: 'musique' } });
-    const videogames = await prisma.category.create({ data: { name: 'Jeu Vidéo', slug: 'jeu-video' } });
+    const videogames = await prisma.category.create({ data: { name: 'Jeux Vidéos', slug: 'jeux-video' } });
     const litterature = await prisma.category.create({ data: { name: 'Littérature', slug: 'litterature' } });
     const other = await prisma.category.create({ data: { name: 'Autre', slug: 'autre' } });
     console.log('✅ Catégories créées');

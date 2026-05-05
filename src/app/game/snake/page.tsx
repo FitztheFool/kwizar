@@ -1,13 +1,13 @@
 'use client';
 
 import { useRef } from 'react';
-import type React from 'react';
 import { StarIcon, TrophyIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
 import { useSnake } from '@/hooks/useSnake';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import { ColorPicker } from '@/components/Snake/ColorPicker';
 import { COLS, ROWS, CELL } from '@/lib/snake/constants';
+import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
+import StatCell from '@/components/SoloGame/StatCell';
 
 export default function SnakePage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,39 +27,23 @@ export default function SnakePage() {
         <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <div className="w-full max-w-[440px] flex items-center justify-between mb-5">
-                <Link
-                    href="/"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-all"
+            <SoloGameHeader leaderboardHref="/leaderboard/snake">
+                <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
+                <span
+                    className="text-green-600 dark:text-green-400 font-black text-2xl tracking-[0.15em] uppercase"
+                    style={{
+                        fontFamily: '"Press Start 2P", "Courier New", monospace',
+                        textShadow: '0 0 20px rgba(34,197,94,0.5), 0 0 40px rgba(34,197,94,0.2)',
+                    }}
                 >
-                    ← Accueil
-                </Link>
-
-                <div className="flex items-center gap-2 select-none">
-                    <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
-                    <span
-                        className="text-green-600 dark:text-green-400 font-black text-2xl tracking-[0.15em] uppercase"
-                        style={{
-                            fontFamily: '"Press Start 2P", "Courier New", monospace',
-                            textShadow: '0 0 20px rgba(34,197,94,0.5), 0 0 40px rgba(34,197,94,0.2)',
-                        }}
-                    >
-                        SNAKE
-                    </span>
-                    <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
-                </div>
-
-                <Link
-                    href="/leaderboard/snake"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-all"
-                >
-                    <TrophyIcon className="w-4 h-4" /><span className="hidden sm:inline">Classement</span>
-                </Link>
-            </div>
+                    SNAKE
+                </span>
+                <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
+            </SoloGameHeader>
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] mb-4 grid grid-cols-2 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
-                <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" />
+                <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />}   label="SCORE"    value={displayScore}                      color="text-gray-900 dark:text-white" align="left" />
                 <StatCell icon={<TrophyIcon className="w-3 h-3 text-yellow-500" />} label="MEILLEUR" value={Math.max(bestScore, displayScore)} color="text-yellow-500 dark:text-yellow-400" align="right" />
             </div>
 
@@ -120,20 +104,6 @@ export default function SnakePage() {
                     <span className="text-[11px] text-gray-400 dark:text-white/15">Glissez ici ou n'importe où</span>
                 </div>
             )}
-        </div>
-    );
-}
-
-function StatCell({ icon, label, value, color, align = 'left' }: {
-    icon: React.ReactNode; label: string; value: number; color: string; align?: 'left' | 'right';
-}) {
-    return (
-        <div className={`flex flex-col px-5 py-3 bg-white dark:bg-[#07070f] ${align === 'right' ? 'items-end' : 'items-start'}`}>
-            <div className="flex items-center gap-1 text-[9px] text-gray-400 dark:text-white/30 uppercase tracking-widest mb-1.5">
-                <span>{icon}</span>
-                <span>{label}</span>
-            </div>
-            <div className={`text-xl font-black tabular-nums ${color}`}>{value}</div>
         </div>
     );
 }
