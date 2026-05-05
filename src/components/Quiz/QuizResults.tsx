@@ -102,12 +102,7 @@ export default function QuizResults({
                             )}
 
                             <div className="flex gap-3 justify-center flex-wrap">
-                                {onRestart && (
-                                    <button onClick={onRestart} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                                        Rejouer
-                                    </button>
-                                )}
-                                {extraActions.map((action, i) => (
+{extraActions.map((action, i) => (
                                     <button key={i} onClick={action.onClick}
                                         className={`px-6 py-3 rounded-lg transition-colors font-medium ${action.variant === 'primary' ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-600 text-white hover:bg-gray-700'}`}>
                                         {action.label}

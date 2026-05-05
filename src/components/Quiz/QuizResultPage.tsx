@@ -182,13 +182,7 @@ export default function QuizResultPage() {
                     )}
 
                     <div className="mt-8 flex flex-wrap justify-center gap-3">
-                        <button
-                            onClick={isSolo ? handleRestart : handleRejouer}
-                            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-                        >
-                            Rejouer
-                        </button>
-                        <Link
+<Link
                             href="/dashboard"
                             className="rounded-lg bg-gray-600 px-6 py-3 font-medium text-white transition-colors hover:bg-gray-700"
                         >
