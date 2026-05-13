@@ -24,10 +24,11 @@ export function useServerWarmup(serverUrl: string | undefined): {
         async function poll() {
             // Fast first check — if the server is already up, no delay
             let firstTry = true;
+            const proxied = `/api/warmup?url=${encodeURIComponent(serverUrl!)}`;
             while (Date.now() < deadline) {
                 try {
-                    const res = await fetch(`${serverUrl}/health`, {
-                        signal: AbortSignal.timeout(5_000),
+                    const res = await fetch(proxied, {
+                        signal: AbortSignal.timeout(10_000),
                         cache: 'no-store',
                     });
                     if (!cancelled && res.ok) { setStatus('ready'); return; }

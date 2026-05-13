@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
                 const wins = data.placements.filter(p => p === 1).length;
                 const draws = data.draws;
                 const score = game === 'skyjow' || game === 'just_one' ? avgScore
-                    : game === 'puissance4' || game === 'battleship' ? wins
+                    : game === 'puissance4' || game === 'battleship' || game === 'ludo' ? wins
                     : (game === 'snake' || game === 'tetris' || game === 'pacman' || game === 'breakout') ? Math.max(...data.scores)
                         : totalScore;
                 const totalRounds = roundsByUser.get(userId) ?? 0;

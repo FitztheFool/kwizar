@@ -92,7 +92,7 @@ export async function GET(
                     COUNT(DISTINCT CASE WHEN a.placement = 1 THEN a."gameId" END)::int AS val
                 FROM attempts a
                 WHERE a."userId" = ANY(${eligibleIds})
-                  AND a."gameType"::text = ANY(ARRAY['PUISSANCE4','BATTLESHIP'])
+                  AND a."gameType"::text = ANY(ARRAY['PUISSANCE4','BATTLESHIP','LUDO'])
                 GROUP BY a."userId", a."gameType"
             ),
             ranked AS (
