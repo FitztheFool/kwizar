@@ -12,9 +12,9 @@ import type { AdminUser, UserSort } from '../types';
 const ROLES = ['GUEST', 'USER', 'RANDOM', 'ADMIN'] as const;
 
 const PROVIDER_LABELS: Record<string, { label: string; className: string }> = {
-    credentials: { label: 'Email',   className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700' },
-    google:      { label: 'Google',  className: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' },
-    discord:     { label: 'Discord', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' },
+    credentials: { label: 'Email', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700' },
+    google: { label: 'Google', className: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' },
+    discord: { label: 'Discord', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' },
 };
 
 function ProviderBadge({ provider }: { provider: string }) {
@@ -73,16 +73,16 @@ export default function UsersTab({
                     <option value="username_asc">Username A → Z</option>
                     <option value="username_desc">Username Z → A</option>
                 </select>
-                <select value={userRole || 'ALL'} onChange={e => setUserRole(e.target.value === 'ALL' ? '' : e.target.value)} className={selectCls}>
-                    <option value="ALL">Tous les rôles</option>
-                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
                 <select value={userStatus || 'ALL'} onChange={e => setUserStatus(e.target.value === 'ALL' ? '' : e.target.value)} className={selectCls}>
                     <option value="ALL">Tous les statuts</option>
                     <option value="ACTIVE">Actif</option>
                     <option value="PENDING">En attente</option>
                     <option value="BANNED">Banni</option>
                     <option value="DEACTIVATED">Désactivé</option>
+                </select>
+                <select value={userRole || 'ALL'} onChange={e => setUserRole(e.target.value === 'ALL' ? '' : e.target.value)} className={selectCls}>
+                    <option value="ALL">Tous les rôles</option>
+                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
                 {session?.user?.role === 'ADMIN' && (
                     <button
@@ -146,7 +146,15 @@ export default function UsersTab({
                                         {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                     </td>
                                     <td className="px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap tabular-nums">
-                                        {user.lastSeen ? new Date(user.lastSeen).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
+                                        {user.lastSeen ? (
+                                            <>
+                                                {new Date(user.lastSeen).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                <br />
+                                                <span className="text-gray-400 dark:text-gray-500">
+                                                    à {new Date(user.lastSeen).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </>
+                                        ) : '—'}
                                     </td>
                                     <td className="px-4 py-2.5">
                                         {user.status === 'BANNED' ? (
@@ -168,11 +176,10 @@ export default function UsersTab({
                                             <select
                                                 value={user.role}
                                                 onChange={e => onRoleChange(user.id, e.target.value)}
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                                    user.role === 'RANDOM' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800'
+                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${user.role === 'RANDOM' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800'
                                                     : user.role === 'GUEST' ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'
-                                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
-                                                }`}
+                                                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                                                    }`}
                                             >
                                                 {ROLES.map(r => (
                                                     <option key={r} value={r} className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-normal">{r}</option>
@@ -185,11 +192,10 @@ export default function UsersTab({
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => onToggleBan(user.id, user.status === 'BANNED')}
-                                                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 border rounded-lg transition-colors ${
-                                                        user.status === 'BANNED'
-                                                            ? 'text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/20'
-                                                            : 'text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20'
-                                                    }`}
+                                                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 border rounded-lg transition-colors ${user.status === 'BANNED'
+                                                        ? 'text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/20'
+                                                        : 'text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                                                        }`}
                                                 >
                                                     {user.status === 'BANNED'
                                                         ? <><ShieldCheckIcon className="w-3 h-3" />Débannir</>

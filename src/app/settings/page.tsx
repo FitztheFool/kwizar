@@ -331,8 +331,11 @@ export default function SettingsPage() {
                         {/* Email */}
                         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Adresse email</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Email utilisé pour la connexion</p>
-
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Email utilisé pour la connexion</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+                                <ExclamationTriangleIcon className="inline-block w-3.5 h-3.5 text-amber-500 align-text-bottom mr-1" />
+                                Cela vous <span className="font-medium">déconnectera</span>. Et vous devrez <span className="font-medium">valider</span> le mail pour vous reconnecter.
+                            </p>
                             {emailStatus && (
                                 <div className={`mb-4 p-3 rounded-lg text-sm border ${emailStatus.type === 'success'
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
