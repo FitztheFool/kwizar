@@ -17,14 +17,14 @@ export default function QuizHeader({ title, progress, currentIndex, total, point
             </div>
             <div className="flex-1 flex flex-col justify-center items-center gap-1">
                 <div className="w-full max-w-xs bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                    <div className="bg-blue-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                    <div className="bg-primary-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                 </div>
                 <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
                     {currentIndex + 1} / {total}
                 </span>
             </div>
             <div className="shrink-0 flex justify-end">
-                <span className="text-xs font-bold bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-2 sm:px-3 py-1.5 rounded-full whitespace-nowrap">
+                <span className="text-xs font-bold bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 text-primary-600 dark:text-primary-400 px-2 sm:px-3 py-1.5 rounded-full whitespace-nowrap">
                     {points} pt{points > 1 ? 's' : ''}
                 </span>
             </div>

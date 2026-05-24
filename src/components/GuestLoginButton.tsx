@@ -58,7 +58,7 @@ export default function GuestLoginButton({ callbackUrl = '/dashboard' }: GuestLo
             <button
                 type="button"
                 onClick={openModal}
-                className="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-all text-sm"
+                className="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-all text-sm"
             >
                 <PlayIcon className="w-4 h-4 inline mr-1" />Jouer sans compte
             </button>

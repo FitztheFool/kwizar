@@ -180,7 +180,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                         <button
                             onClick={handleValidateAnswer}
                             disabled={!canProceed || isValidating}
-                            className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-500 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-sm"
+                            className="w-full py-3.5 rounded-xl bg-primary-500 hover:bg-primary-400 active:bg-primary-600 text-stone-950 disabled:bg-stone-300 dark:disabled:bg-stone-700 disabled:text-stone-500 dark:disabled:text-stone-500 font-bold transition-all duration-150 disabled:cursor-not-allowed shadow-lg shadow-black/20"
                         >
                             {isValidating ? 'Vérification...' : 'Valider ma réponse'}
                         </button>
@@ -188,7 +188,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                         <button
                             onClick={handleNextQuestion}
                             disabled={isSubmitting}
-                            className="w-full py-3.5 rounded-xl bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-sm"
+                            className="w-full py-3.5 rounded-xl bg-felt-600 hover:bg-felt-500 active:bg-felt-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-lg shadow-black/20"
                         >
                             {isSubmitting ? 'Envoi en cours...' : isLastQuestion ? 'Voir mes résultats' : 'Question suivante →'}
                         </button>

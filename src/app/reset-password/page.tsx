@@ -20,7 +20,7 @@ function ResetPasswordForm() {
         return (
             <div className="text-center py-4 space-y-3">
                 <p className="text-red-600 dark:text-red-400 font-medium">Lien invalide.</p>
-                <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                <Link href="/forgot-password" className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
                     Demander un nouveau lien
                 </Link>
             </div>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
             <div className="max-w-md w-full">
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex flex-col items-center gap-2 text-gray-900 dark:text-white">
-                        <LockClosedIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <LockClosedIcon className="w-10 h-10 text-primary-600 dark:text-primary-400" />
                         <span className="text-3xl font-bold">Kwizar</span>
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Réinitialisation du mot de passe</p>

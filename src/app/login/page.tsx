@@ -166,7 +166,7 @@ function LoginForm() {
             <div className="max-w-md w-full">
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex flex-col items-center gap-2 text-gray-900 dark:text-white">
-                        <LockClosedIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <LockClosedIcon className="w-10 h-10 text-primary-600 dark:text-primary-400" />
                         <span className="text-3xl font-bold">Kwizar</span>
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Connectez-vous pour continuer</p>
@@ -176,7 +176,7 @@ function LoginForm() {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Connexion</h2>
 
                     {callbackUrl !== '/dashboard' && (
-                        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-lg">
+                        <div className="mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-300 rounded-lg">
                             <p className="text-sm flex items-center gap-1.5"><LockClosedIcon className="w-4 h-4" />Vous devez être connecté pour accéder à cette page</p>
                         </div>
                     )}
@@ -195,14 +195,14 @@ function LoginForm() {
                         </div>
                     )}
                     {emailChanged && (
-                        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                        <div className="mb-4 p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg text-sm text-primary-700 dark:text-primary-300">
                             <p className="font-semibold flex items-center gap-1.5"><EnvelopeIcon className="w-4 h-4" />Adresse email modifiée</p>
                             <p className="mt-1">Un lien de validation a été envoyé à votre nouvelle adresse. Cliquez dessus avant de vous reconnecter.</p>
                         </div>
                     )}
 
                     {registered && !error && (
-                        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                        <div className="mb-4 p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg text-sm text-primary-700 dark:text-primary-300">
                             <p className="font-semibold flex items-center gap-1.5"><EnvelopeIcon className="w-4 h-4" />Vérifiez votre boîte mail</p>
                             <p className="mt-1">Un lien d'activation a été envoyé à votre adresse email. Cliquez dessus pour activer votre compte.</p>
                             {resendCooldown > 0 ? (
@@ -271,7 +271,7 @@ function LoginForm() {
                                 required
                             />
                             <div className="mt-1 text-right">
-                                <Link href="/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                                <Link href="/forgot-password" className="text-xs text-primary-600 dark:text-primary-400 hover:underline">
                                     Mot de passe oublié ?
                                 </Link>
                             </div>

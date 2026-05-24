@@ -12,14 +12,14 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Unauthenticated players can play public quizzes (scores just aren't saved),
+        // so checking an answer must work without a session.
         const session = await auth();
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-        }
+        const userId = session?.user?.id ?? null;
 
         const { id: quizId } = await params;
         const ip = getIp(request);
-        const rl = checkRateLimit(`quiz-check:${session.user.id}:${ip}:${quizId}`, 120, 60_000);
+        const rl = checkRateLimit(`quiz-check:${userId ?? 'anon'}:${ip}:${quizId}`, 120, 60_000);
         if (!rl.allowed) {
             return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 });
         }
@@ -39,7 +39,7 @@ export async function POST(
             return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
         }
 
-        if (!quiz.isPublic && quiz.creatorId !== session.user.id) {
+        if (!quiz.isPublic && quiz.creatorId !== userId) {
             return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
         }
 

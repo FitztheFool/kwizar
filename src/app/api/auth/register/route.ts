@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (typeof password !== 'string' || password.length < 8 || password.length > 200) {
+    if (typeof password !== 'string' || password.length < 6 || password.length > 200) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 8 caractères' },
+        { error: 'Le mot de passe doit contenir au moins 6 caractères' },
         { status: 400 }
       );
     }

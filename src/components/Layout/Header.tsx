@@ -51,13 +51,13 @@ export default function Header() {
               <div className="h-10 w-32 sm:w-48 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
             ) : session ? (
               <div className="flex items-center gap-2 sm:gap-4 ml-auto min-w-0">
-                <Link href="/dashboard" className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-all min-w-0">
+                <Link href="/dashboard" className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all min-w-0">
                   <span className="hidden sm:inline text-sm">{isAnonymous ? <UserIcon className="w-4 h-4 inline" /> : 'Bonjour,'}</span>
                   <span className={"truncate max-w-[80px] sm:max-w-[140px] " + (session.user.role === 'ADMIN'
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded text-xs font-semibold'
                     : isAnonymous
                       ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-blue-600 dark:text-blue-400')}>
+                      : 'text-primary-700 dark:text-primary-400')}>
                     {session.user.username ?? session.user.email}
                   </span>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 opacity-50 shrink-0">

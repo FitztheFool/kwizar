@@ -98,7 +98,7 @@ function LobbiesPageInner() {
                             Filtres et Tri
                         </h2>
                         <div className="text-right">
-                            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredLobbies.length}</span>
+                            <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">{filteredLobbies.length}</span>
                             <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">lobbies trouvés</span>
                         </div>
                     </div>
@@ -108,7 +108,7 @@ function LobbiesPageInner() {
                             <select
                                 value={selectedGameType}
                                 onChange={(e) => setSelectedGameType(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                             >
                                 {gameTypes.map(type => (
                                     <option key={type} value={type} className="bg-white dark:bg-gray-700">
@@ -122,7 +122,7 @@ function LobbiesPageInner() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                             >
                                 <option value="newest" className="bg-white dark:bg-gray-700">Plus récent</option>
                                 <option value="players" className="bg-white dark:bg-gray-700">Nombre de joueurs</option>
@@ -134,7 +134,7 @@ function LobbiesPageInner() {
                             <div className="grid grid-cols-2 gap-3">
                                 <label className="flex items-center cursor-pointer">
                                     <input type="checkbox" checked={showFull} onChange={(e) => setShowFull(e.target.checked)}
-                                        className="mr-3 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                                        className="mr-3 w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1"><FlagIcon className="w-4 h-4" />Lobbies complets</span>
                                 </label>
                             </div>
@@ -177,7 +177,7 @@ function LobbiesPageInner() {
                                     setShowFull(false);
                                     setSortBy('newest');
                                 }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
                             >
                                 Réinitialiser les filtres
                             </button>

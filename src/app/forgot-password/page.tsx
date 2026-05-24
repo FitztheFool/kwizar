@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
             <div className="max-w-md w-full">
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex flex-col items-center gap-2 text-gray-900 dark:text-white">
-                        <EnvelopeIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <EnvelopeIcon className="w-10 h-10 text-primary-600 dark:text-primary-400" />
                         <span className="text-3xl font-bold">Kwizar</span>
                     </Link>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">Récupération de mot de passe</p>
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Si un compte existe pour <strong>{login}</strong>, vous recevrez un lien valable 1 heure.
                             </p>
-                            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            <Link href="/login" className="inline-block mt-2 text-sm text-primary-600 dark:text-primary-400 hover:underline">
                                 Retour à la connexion
                             </Link>
                         </div>
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
                             </form>
 
                             <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
+                                <Link href="/login" className="text-primary-600 dark:text-primary-400 hover:underline">
                                     Retour à la connexion
                                 </Link>
                             </p>

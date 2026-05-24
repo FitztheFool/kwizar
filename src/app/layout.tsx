@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
-import { Barlow, DM_Sans } from 'next/font/google';
+import { Fraunces, DM_Sans } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
 import Header from '@/components/Layout/Header';
@@ -11,10 +11,11 @@ import { CommandPaletteProvider } from '@/context/CommandPaletteContext';
 import CommandPalette from '@/components/CommandPalette';
 import FloatingChat from '@/components/Chat/FloatingChat';
 
-const barlow = Barlow({
+const fraunces = Fraunces({
     subsets: ['latin'],
     variable: '--font-heading',
-    weight: ['600', '700', '800'],
+    weight: ['500', '600', '700', '900'],
+    style: ['normal', 'italic'],
     display: 'swap',
 });
 
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="fr" suppressHydrationWarning className={`${barlow.variable} ${dmSans.variable}`}>
+        <html lang="fr" suppressHydrationWarning className={`${fraunces.variable} ${dmSans.variable}`}>
             <body className={dmSans.className}>
                 <Providers>
                     <ChatProvider>

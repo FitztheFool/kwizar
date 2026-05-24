@@ -32,8 +32,8 @@ export async function PATCH(req: NextRequest) {
     if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
         return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
     }
-    if (typeof password !== 'string' || password.length < 8 || password.length > 200) {
-        return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 8 caractères' }, { status: 400 });
+    if (typeof password !== 'string' || password.length < 6 || password.length > 200) {
+        return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 6 caractères' }, { status: 400 });
     }
     if (username && !/^[a-zA-Z0-9_]{2,32}$/.test(username)) {
         return NextResponse.json({ error: 'Nom d\'utilisateur invalide (2-32 caractères, lettres/chiffres/underscore uniquement)' }, { status: 400 });

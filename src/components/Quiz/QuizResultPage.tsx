@@ -108,17 +108,17 @@ export default function QuizResultPage() {
                 <div className="mb-8 rounded-xl wood-tile p-8 shadow-2xl">
                     <div className="mb-6 text-center">
                         <div className="mb-3 flex justify-center"><TrophyIcon className="w-16 h-16 text-amber-500" /></div>
-                        <h1 className="mb-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
+                        <h1 className="mb-1 text-3xl font-bold text-stone-900">
                             Classement final
                         </h1>
-                        <p className="mb-4 text-gray-500 dark:text-gray-400">{payload.quizTitle}</p>
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 dark:border-blue-700 dark:bg-blue-900/20">
-                            <span className="font-medium text-gray-600 dark:text-gray-300">
+                        <p className="mb-4 text-stone-700">{payload.quizTitle}</p>
+                        <div className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-800/30 bg-stone-900/10 px-5 py-3">
+                            <span className="font-semibold text-stone-700">
                                 Ton score
                             </span>
-                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            <span className="text-xl font-extrabold text-amber-900">
                                 {payload.score}
-                                <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
+                                <span className="text-sm font-medium text-stone-600">
                                     {' '}/ {payload.totalPoints} pts
                                 </span>
                             </span>
@@ -153,16 +153,16 @@ export default function QuizResultPage() {
                                     {displayLeaderboard.slice(3).map((entry, i) => (
                                         <div
                                             key={entry.userId}
-                                            className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+                                            className="flex items-center gap-4 rounded-xl border border-amber-800/20 bg-stone-900/5 px-4 py-3"
                                         >
-                                            <span className="w-10 text-center font-bold text-gray-500 dark:text-gray-400">
+                                            <span className="w-10 text-center font-bold text-stone-600">
                                                 {i + 4}
                                             </span>
-                                            <span className="flex-1 font-medium text-gray-700 dark:text-gray-200">
+                                            <span className="flex-1 font-medium text-stone-800">
                                                 {entry.username}
                                                 {entry.userId === session?.user?.id && <MeTag />}
                                             </span>
-                                            <span className="font-bold text-gray-600 dark:text-gray-300">
+                                            <span className="font-bold text-stone-700">
                                                 {entry.totalScore} pts
                                             </span>
                                         </div>

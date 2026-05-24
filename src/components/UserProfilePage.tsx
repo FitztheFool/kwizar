@@ -76,10 +76,10 @@ function ClaimAccountBlock({ currentUsername, isPendingVerification = false }: {
     };
 
     const wrapperCls = isPending
-        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700/60'
+        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700/60'
         : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/60';
-    const titleCls = isPending ? 'text-blue-800 dark:text-blue-200' : 'text-amber-800 dark:text-amber-200';
-    const subtitleCls = isPending ? 'text-blue-700 dark:text-blue-300' : 'text-amber-700 dark:text-amber-300';
+    const titleCls = isPending ? 'text-primary-800 dark:text-primary-200' : 'text-amber-800 dark:text-amber-200';
+    const subtitleCls = isPending ? 'text-primary-700 dark:text-primary-300' : 'text-amber-700 dark:text-amber-300';
 
     return (
         <div className={`border rounded-2xl px-5 py-4 ${wrapperCls}`}>
@@ -131,7 +131,7 @@ function ClaimAccountBlock({ currentUsername, isPendingVerification = false }: {
             {isPending && (
                 <div className="mt-3 flex items-center gap-3">
                     {resendCooldown > 0 ? (
-                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                        <p className="text-xs text-primary-600 dark:text-primary-400">
                             {resendRateLimited ? 'Trop de tentatives —' : <>Lien envoyé <CheckIcon className="w-3.5 h-3.5 inline-block text-green-500 align-middle" /> —</>} Renvoi possible dans{' '}
                             <span className="font-semibold">{Math.floor(resendCooldown / 60)}:{String(resendCooldown % 60).padStart(2, '0')}</span>
                         </p>
@@ -140,7 +140,7 @@ function ClaimAccountBlock({ currentUsername, isPendingVerification = false }: {
                             type="button"
                             onClick={handleResend}
                             disabled={resendLoading}
-                            className="flex items-center gap-1.5 text-s font-semibold text-blue-600 dark:text-blue-400 underline hover:no-underline disabled:opacity-50"
+                            className="flex items-center gap-1.5 text-s font-semibold text-primary-600 dark:text-primary-400 underline hover:no-underline disabled:opacity-50"
                         >
                             <EnvelopeIcon className="w-3.5 h-3.5" />
                             {resendLoading ? 'Envoi…' : 'Renvoyer le mail'}
@@ -247,7 +247,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
             <div className="text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Joueur introuvable</p>
                 <p className="text-gray-500 mb-6">Ce profil n'existe pas ou n'est pas accessible.</p>
-                <button onClick={() => router.back()} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold">← Retour</button>
+                <button onClick={() => router.back()} className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold">← Retour</button>
             </div>
         </div>
     );

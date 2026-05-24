@@ -40,15 +40,15 @@ export default function VerifyEmailPage() {
                 {state === 'idle' && (
                     <>
                         <div className="flex justify-center mb-4">
-                            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <EnvelopeIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                            <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                                <EnvelopeIcon className="w-8 h-8 text-primary-600 dark:text-primary-400" />
                             </div>
                         </div>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Confirmer votre adresse email</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Cliquez sur le bouton ci-dessous pour activer votre compte Kwizar.</p>
                         <button
                             onClick={handleConfirm}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                            className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
                         >
                             Confirmer mon compte
                         </button>

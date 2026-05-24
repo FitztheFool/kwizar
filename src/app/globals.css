@@ -4,12 +4,23 @@
 
 @layer base {
   body {
-    @apply min-h-dvh flex flex-col bg-gray-50 text-gray-900 transition-colors duration-200;
+    @apply min-h-dvh flex flex-col text-gray-900 transition-colors duration-200;
+    background-color: #f7f1e6; /* warm cream — "Game Night" base */
   }
 
   .dark body {
-    @apply bg-gray-950 text-gray-100;
+    @apply text-gray-100;
+    background-color: #0c0a09; /* warm espresso (stone-950) */
   }
+}
+
+/* ── Brand "Game Night" hero — subtle felt + wood warmth ── */
+.brand-hero {
+  background-color: #1f6b47;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.10) 0%, transparent 55%),
+    repeating-radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.05) 0, rgba(0, 0, 0, 0.05) 1px, transparent 1px, transparent 4px),
+    linear-gradient(160deg, #2a8054 0%, #19553a 100%);
 }
 
 @layer components {

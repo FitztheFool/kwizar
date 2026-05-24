@@ -482,11 +482,11 @@ export default function LobbyCodePage() {
             {isWarming && (
                 <div className="fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
-                        <div className="mb-4 flex items-center justify-center"><svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg></div>
+                        <div className="mb-4 flex items-center justify-center"><svg className="animate-spin h-10 w-10 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg></div>
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Démarrage du serveur</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Le serveur de jeu se réveille…<br />Environ 45–90 secondes</p>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                            <div className="h-2 bg-blue-500 rounded-full" style={{ width: '0%', animation: 'warmup 90s linear forwards' }} />
+                            <div className="h-2 bg-primary-500 rounded-full" style={{ width: '0%', animation: 'warmup 90s linear forwards' }} />
                         </div>
                         <style>{`@keyframes warmup { from { width: 0% } to { width: 95% } }`}</style>
                     </div>
@@ -496,7 +496,7 @@ export default function LobbyCodePage() {
             {/* Sticky header */}
             <div className="sticky top-0 z-20 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 md:px-6 lg:px-8 py-3">
                 <div className="max-w-6xl mx-auto flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 flex-shrink-0 text-white">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 shadow-lg shadow-primary-500/25 flex-shrink-0 text-white">
                         <GameIcon gameType={selectedGame?.value ?? ''} className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -507,7 +507,7 @@ export default function LobbyCodePage() {
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isHost ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 'bg-gray-200 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400'}`}>
                                 {isHost ? <><StarIcon className="w-3.5 h-3.5 inline mr-0.5" />Hôte</> : <><UserIcon className="w-3.5 h-3.5 inline mr-0.5" />Participant</>}
                             </span>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isPublic ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' : 'bg-gray-200 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400'}`}>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isPublic ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400' : 'bg-gray-200 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400'}`}>
                                 {isPublic ? <><GlobeAltIcon className="w-3.5 h-3.5 inline mr-0.5" />Public</> : <><LockClosedIcon className="w-3.5 h-3.5 inline mr-0.5" />Privé</>}
                             </span>
                         </div>
@@ -531,7 +531,7 @@ export default function LobbyCodePage() {
                                     <input type="text" value={meta?.title ?? ''} maxLength={60}
                                         onChange={e => { setMeta(prev => ({ ...prev, title: e.target.value })); emitTitle(e.target.value.trim()); }}
                                         placeholder="Nom de la partie…"
-                                        className="w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" />
+                                        className="w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all" />
                                 ) : (
                                     <div className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/30 rounded-xl px-4 py-2.5 text-gray-700 dark:text-gray-300 text-sm">{meta?.title || '—'}</div>
                                 )}
@@ -544,7 +544,7 @@ export default function LobbyCodePage() {
                                     <textarea value={meta?.description ?? ''} maxLength={200} rows={2}
                                         onChange={e => { setMeta(prev => ({ ...prev, description: e.target.value })); emitDescription(e.target.value.trim()); }}
                                         placeholder="Décrivez votre partie…"
-                                        className="w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none" />
+                                        className="w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all resize-none" />
                                 ) : (
                                     meta?.description
                                         ? <div className="w-full bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/30 rounded-xl px-4 py-2.5 text-gray-700 dark:text-gray-300 text-sm">{meta.description}</div>
@@ -587,7 +587,7 @@ export default function LobbyCodePage() {
                                             title={title}
                                             className={`relative flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl border-2 font-semibold text-[11px] transition-all
                                                 ${gameType === g.value
-                                                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-300 shadow-sm'
+                                                    ? 'border-primary-500 bg-primary-500/10 text-primary-600 dark:text-primary-300 shadow-sm'
                                                     : disabled
                                                         ? 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30 text-gray-300 dark:text-gray-700 cursor-not-allowed'
                                                         : 'border-gray-100 dark:border-gray-700/60 bg-gray-50 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer'}`}>
@@ -687,7 +687,7 @@ export default function LobbyCodePage() {
                                     <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueurs max</label>
                                     {isHost ? (
                                         <select value={maxPlayers} onChange={e => { setMaxPlayersState(Number(e.target.value)); socket?.emit('lobby:setMeta', { maxPlayers: Number(e.target.value) }); }} disabled={isMaxLocked}
-                                            className="font-sans w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer disabled:opacity-50">
+                                            className="font-sans w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none cursor-pointer disabled:opacity-50">
                                             {MAX_PLAYERS_BY_GAME[gameType].map(n => <option key={n} value={n} className="bg-white dark:bg-gray-800">{n} joueurs</option>)}
                                         </select>
                                     ) : (
@@ -699,7 +699,7 @@ export default function LobbyCodePage() {
                                     {isHost ? (
                                         <div className="flex rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden h-[42px]">
                                             <button onClick={() => { setIsPublicState(true); socket?.emit('lobby:setMeta', { isPublic: true }); }}
-                                                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all ${isPublic ? 'bg-blue-600 text-white' : 'bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+                                                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all ${isPublic ? 'bg-primary-600 text-white' : 'bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
                                                 <GlobeAltIcon className="w-4 h-4" /> Public
                                             </button>
                                             <button onClick={() => { setIsPublicState(false); socket?.emit('lobby:setMeta', { isPublic: false }); }}
@@ -787,7 +787,7 @@ export default function LobbyCodePage() {
                                 </span>
                                 <button
                                     onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/lobby/create/${lobbyId}`); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                                    className="flex-shrink-0 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 whitespace-nowrap">
+                                    className="flex-shrink-0 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 transition-colors px-2 py-1 rounded-lg bg-primary-500/10 hover:bg-primary-500/20 whitespace-nowrap">
                                     {copied ? <><CheckIcon className="w-3.5 h-3.5 inline mr-0.5" />Copié !</> : 'Copier'}
                                 </button>
                             </div>
@@ -801,7 +801,7 @@ export default function LobbyCodePage() {
                                     {isHost && BOT_SUPPORTED_GAMES.has(gameType) && players.length + botCount < maxPlayers && (
                                         <button
                                             onClick={() => socket?.emit('lobby:addBot')}
-                                            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors px-2 py-0.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 whitespace-nowrap">
+                                            className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 transition-colors px-2 py-0.5 rounded-lg bg-primary-500/10 hover:bg-primary-500/20 whitespace-nowrap">
                                             <CpuChipIcon className="w-3.5 h-3.5 inline mr-1" />Ajouter un bot
                                         </button>
                                     )}
@@ -813,7 +813,7 @@ export default function LobbyCodePage() {
 
                             {maxPlayers > 0 && (
                                 <div className="mb-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5">
-                                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500"
+                                    <div className="bg-gradient-to-r from-primary-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500"
                                         style={{ width: `${Math.min(((players.length + botCount) / maxPlayers) * 100, 100)}%` }} />
                                 </div>
                             )}

@@ -17,9 +17,9 @@ function PersonIcon() {
 }
 
 const MODE_STYLES = {
-    solo: { accent: 'border-l-blue-400' },
-    both: { accent: 'border-l-purple-400' },
-    multi: { accent: 'border-l-emerald-400' },
+    solo: { accent: 'border-l-primary-400' },
+    both: { accent: 'border-l-clay-400' },
+    multi: { accent: 'border-l-felt-500' },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
                             Rejoindre
                         </Link>
                         <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`}
-                            className="text-[11px] font-bold px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
+                            className="text-[11px] font-bold px-2.5 py-1 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors">
                             Créer
                         </Link>
                     </div>

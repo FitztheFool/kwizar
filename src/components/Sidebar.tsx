@@ -30,7 +30,7 @@ import { useLobbyCount } from '@/hooks/useLobbyCount';
 type Color = 'blue' | 'green' | 'yellow' | 'red' | 'gray' | 'purple';
 
 const COLOR: Record<Color, { active: string; activeBorder: string; activeDot: string; activeIcon: string }> = {
-    blue: { active: 'text-blue-700 dark:text-blue-300', activeBorder: 'border-l-blue-500', activeDot: 'bg-blue-500', activeIcon: 'text-blue-500' },
+    blue: { active: 'text-primary-700 dark:text-primary-300', activeBorder: 'border-l-primary-500', activeDot: 'bg-primary-500', activeIcon: 'text-primary-500' },
     green: { active: 'text-green-700 dark:text-green-300', activeBorder: 'border-l-green-500', activeDot: 'bg-green-500', activeIcon: 'text-green-500' },
     yellow: { active: 'text-yellow-700 dark:text-yellow-300', activeBorder: 'border-l-yellow-500', activeDot: 'bg-yellow-500', activeIcon: 'text-yellow-500' },
     red: { active: 'text-red-700 dark:text-red-300', activeBorder: 'border-l-red-500', activeDot: 'bg-red-500', activeIcon: 'text-red-500' },
@@ -55,7 +55,7 @@ function NavLink({ href, Icon, label, isActive, collapsed, color, badge }: {
             <span className="relative flex-shrink-0">
                 <Icon className={`w-5 h-5 ${isActive ? c.activeIcon : ''}`} />
                 {badge != null && badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
                         {badge > 99 ? '99+' : badge}
                     </span>
                 )}
@@ -102,7 +102,7 @@ function SectionToggle({ Icon, label, isActive, isOpen, collapsed, color, onClic
             <span className="relative flex-shrink-0">
                 <Icon className={`w-5 h-5 ${isActive ? c.activeIcon : ''}`} />
                 {badge != null && badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
                         {badge > 99 ? '99+' : badge}
                     </span>
                 )}
@@ -199,7 +199,7 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, isAnonymous
                 {!collapsed && (
                     <div className="min-w-0">
                         {isAuthenticated ? (
-                            <Link href="/dashboard" className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            <Link href="/dashboard" className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                                 Dashboard
                             </Link>
                         ) : (
