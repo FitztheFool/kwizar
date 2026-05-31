@@ -68,7 +68,7 @@ export default function GameLog({ entries, title = 'Journal', className = '' }: 
             </button>
             {open && (
                 <div className="mt-1.5 max-h-28 lg:max-h-[70vh] overflow-y-auto space-y-0.5 text-xs leading-snug pr-1">
-                    {entries.length === 0 && <p className="text-gray-500 italic">La partie commence…</p>}
+                    {entries.length === 0 && <p className="text-gray-300/70 italic">La partie commence…</p>}
                     {entries.map(e => (
                         <p key={e.id} className={TONE_STYLE[e.tone] ?? 'text-gray-300'}>
                             {TONE_ICON[e.tone] ?? ''}{e.text}

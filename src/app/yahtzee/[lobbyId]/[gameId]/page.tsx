@@ -216,7 +216,7 @@ export default function YahtzeePage() {
           ${isHovered ? 'bg-blue-50 dark:bg-blue-900/20 !border-blue-300 dark:!border-blue-500/40 scale-[1.01]' : ''}`}>
                 <div>
                     <span className="font-semibold text-sm">{CAT_LABELS[cat]}</span>
-                    <span className="text-xs text-gray-500 ml-2">{CAT_DESC[cat]}</span>
+                    <span className="text-xs text-amber-50/70 ml-2">{CAT_DESC[cat]}</span>
                 </div>
                 <div className="text-right min-w-[40px]">
                     {val !== null ? (
@@ -399,18 +399,18 @@ export default function YahtzeePage() {
                             const bot = isBot(p);
                             return (
                                 <details key={p.userId} className="wood-tile rounded-xl overflow-hidden">
-                                    <summary className="px-5 py-4 cursor-pointer font-semibold text-gray-600 dark:text-gray-300 flex items-center justify-between">
+                                    <summary className="px-5 py-4 cursor-pointer font-semibold text-amber-50 dark:text-amber-50 flex items-center justify-between">
                                         <span className="flex items-center gap-2">
                                             {`Fiche de ${p.username}`}
                                             {bot && <BotBadge />}
                                         </span>
-                                        <span className="text-gray-400 dark:text-gray-500 text-sm">{p.total} pts</span>
+                                        <span className="text-amber-50/80 text-sm">{p.total} pts</span>
                                     </summary>
                                     <div className="px-5 pb-4 space-y-1">
                                         {[...UPPER_CATS, ...LOWER_CATS].map(cat => (
-                                            <div key={cat} className="flex justify-between text-sm py-1 border-b border-gray-100 dark:border-gray-700/50">
-                                                <span className="text-gray-500 dark:text-gray-400">{CAT_LABELS[cat]}</span>
-                                                <span className={p.scoreCard?.[cat as keyof ScoreCard] !== null ? 'font-bold text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-600'}>
+                                            <div key={cat} className="flex justify-between text-sm py-1 border-b border-amber-50/10">
+                                                <span className="text-amber-50/80">{CAT_LABELS[cat]}</span>
+                                                <span className={p.scoreCard?.[cat as keyof ScoreCard] !== null ? 'font-bold text-amber-50' : 'text-amber-50/40'}>
                                                     {p.scoreCard?.[cat as keyof ScoreCard] !== null ? p.scoreCard?.[cat as keyof ScoreCard] as number : '—'}
                                                 </span>
                                             </div>
@@ -431,10 +431,10 @@ export default function YahtzeePage() {
                         })}
 
                         {eliminatedPlayers.filter(p => p.userId !== myId).map(p => (
-                            <details key={p.userId} className="wood-tile rounded-xl overflow-hidden opacity-50">
-                                <summary className="px-5 py-4 cursor-pointer font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                            <details key={p.userId} className="wood-tile rounded-xl overflow-hidden opacity-60">
+                                <summary className="px-5 py-4 cursor-pointer font-semibold text-amber-50/85 flex items-center justify-between">
                                     <span className="flex items-center gap-2"><NoSymbolIcon className="w-4 h-4 flex-shrink-0" /> Fiche de {p.username} <span className="text-xs font-normal">{p.abandon ? '(Abandon)' : '(AFK)'}</span></span>
-                                    <span className="text-gray-400 dark:text-gray-500 text-sm">{p.total} pts</span>
+                                    <span className="text-amber-50/70 text-sm">{p.total} pts</span>
                                 </summary>
                                 <div className="px-5 pb-4 space-y-1">
                                     {[...UPPER_CATS, ...LOWER_CATS].map(cat => (

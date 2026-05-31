@@ -475,6 +475,7 @@ export default function LobbyCodePage() {
 
     if (warmupStatus === 'warming' || warmupStatus === 'checking') return <ServerWarmupLoader />;
     if (warmupStatus === 'error') return <ServerWarmupLoader error />;
+    if (isWarming) return <ServerWarmupLoader />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (status !== 'authenticated' || !session?.user?.id) return null;
 
@@ -517,21 +518,6 @@ export default function LobbyCodePage() {
 
     return (
         <main className="bg-transparent pb-8">
-
-            {/* Server warm-up overlay */}
-            {isWarming && (
-                <div className="fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
-                        <div className="mb-4 flex items-center justify-center"><svg className="animate-spin h-10 w-10 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg></div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Démarrage du serveur</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Le serveur de jeu se réveille…<br />Environ 45–90 secondes</p>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                            <div className="h-2 bg-primary-500 rounded-full" style={{ width: '0%', animation: 'warmup 90s linear forwards' }} />
-                        </div>
-                        <style>{`@keyframes warmup { from { width: 0% } to { width: 95% } }`}</style>
-                    </div>
-                </div>
-            )}
 
             {/* Sticky header */}
             <div className="sticky top-0 z-20 bg-gray-50/90 dark:bg-gray-950/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 md:px-6 lg:px-8 py-3">
