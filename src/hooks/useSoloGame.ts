@@ -61,11 +61,15 @@ export function useSoloGame({
     useEffect(() => {
         if (phase !== 'idle' && phase !== 'over') return;
         const handle = (e: KeyboardEvent) => {
+            if (!starters.has(e.key)) return;
+            // Always swallow the key first so Space/ArrowUp/etc. never scroll the
+            // page — including during the grace period below.
+            e.preventDefault();
             // Grace period after end-of-game so the same Enter/Space that
             // ended the round (or its OS-level auto-repeat) doesn't instantly
             // start a new one before the player can see the result.
             if (phase === 'over' && Date.now() - overSinceRef.current < 700) return;
-            if (starters.has(e.key)) { e.preventDefault(); startGameRef.current(); }
+            startGameRef.current();
         };
         window.addEventListener('keydown', handle);
         return () => window.removeEventListener('keydown', handle);
