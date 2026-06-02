@@ -29,6 +29,11 @@ enum QuestionType {
   MULTI_TEXT
 }
 
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+}
+
 enum GameType {
   QUIZ
   UNO
@@ -119,7 +124,66 @@ model User {
   accounts       Account[]
   sessions       Session[]
 
+  sentFriendRequests     Friendship[] @relation("FriendRequester")
+  receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  sentMessages     DirectMessage[] @relation("DMSender")
+  receivedMessages DirectMessage[] @relation("DMRecipient")
+
+  sentLobbyInvites     LobbyInvite[] @relation("LobbyInviteFrom")
+  receivedLobbyInvites LobbyInvite[] @relation("LobbyInviteTo")
+
   @@map("users")
+}
+
+model Friendship {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  requester User @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
+  @@map("friendships")
+}
+
+model DirectMessage {
+  id          String    @id @default(cuid())
+  senderId    String
+  recipientId String
+  body        String
+  createdAt   DateTime  @default(now())
+  readAt      DateTime?
+
+  sender    User @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("DMRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, senderId, createdAt])
+  @@index([senderId, recipientId, createdAt])
+  @@index([recipientId, readAt])
+  @@map("direct_messages")
+}
+
+model LobbyInvite {
+  id         String   @id @default(cuid())
+  lobbyId    String
+  gameType   String
+  fromUserId String
+  toUserId   String
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("LobbyInviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("LobbyInviteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([toUserId, lobbyId])
+  @@index([toUserId, createdAt])
+  @@map("lobby_invites")
 }
 
 model OauthPending {

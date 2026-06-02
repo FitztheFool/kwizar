@@ -12,6 +12,7 @@ import { useServerWarmup } from '@/hooks/useServerWarmup';
 import { useChat } from '@/context/ChatContext';
 import { Badge } from '@/components/SoloBadge';
 import GameIcon from '@/components/GameIcon';
+import InviteFriendsPanel from '@/components/Lobby/InviteFriendsPanel';
 import { StarIcon, UserIcon, GlobeAltIcon, LockClosedIcon, ArrowsRightLeftIcon, CheckIcon, ExclamationTriangleIcon, CpuChipIcon, XMarkIcon, ShieldCheckIcon, PlayIcon, ClockIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
@@ -839,6 +840,9 @@ export default function LobbyCodePage() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Inviter des amis */}
+                        <InviteFriendsPanel memberIds={players.map(p => p.userId)} lobbyId={lobbyId} gameType={gameType} />
 
                         {/* Participants */}
                         <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">

@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { GAME_URL_SLUGS } from '@/lib/gameConfig';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/lobby', '/game'];
+const PROTECTED_PREFIXES = ['/dashboard', '/lobby', '/game', '/friends', '/messages'];
 
 // Matches /[game]/[lobbyId] only when lobbyId looks like a UUID or cuid (not a filename)
 const GAME_LOBBYID_RE = new RegExp(`^/(${GAME_URL_SLUGS.join('|')})/([a-zA-Z0-9_-]{8,})$`);

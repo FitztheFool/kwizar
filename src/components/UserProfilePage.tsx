@@ -8,6 +8,7 @@ import MyQuizzesPanel from '@/components/Quiz/MyQuizzesPanel';
 import UserStats from '@/components/UserStats';
 import { MembersOnlyBanner } from '@/components/MembersOnlyBanner';
 import UserAvatar from '@/components/UserAvatar';
+import FriendButton from '@/components/Friends/FriendButton';
 import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 // ── Bloc finaliser le compte ───────────────────────────────────────────────────
@@ -305,6 +306,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                     </button>
                                 ))}
                             </div>
+                            <FriendButton username={username} isOwnProfile={isOwnProfile} />
                             {!isOwnProfile && (
                                 <button
                                     onClick={() => router.back()}
@@ -338,6 +340,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                     </button>
                                 ))}
                             </div>
+                            <FriendButton username={username} isOwnProfile={isOwnProfile} className="ml-auto" />
                             {!isOwnProfile && (
                                 <button
                                     onClick={() => router.back()}

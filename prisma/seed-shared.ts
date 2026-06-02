@@ -223,6 +223,9 @@ export async function cleanDatabase(prisma: PrismaClient) {
     await prisma.attempt.deleteMany();
     await prisma.quiz.deleteMany();
     await prisma.category.deleteMany();
+    await prisma.directMessage.deleteMany();
+    await prisma.lobbyInvite.deleteMany();
+    await prisma.friendship.deleteMany();
     await prisma.user.deleteMany();
     await prisma.word.deleteMany();
     await prisma.wordGroup.deleteMany();

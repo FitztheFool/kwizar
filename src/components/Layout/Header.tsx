@@ -2,9 +2,12 @@
 'use client';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { UserIcon, UsersIcon, XMarkIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { useMessages } from '@/context/MessagesContext';
+import NotificationCenter from '@/components/Notifications/NotificationCenter';
 export default function Header() {
   const { data: session, status } = useSession();
+  const { totalUnread, openDock } = useMessages();
   const isLoading = status === 'loading';
   const isAnonymous = session?.user?.isAnonymous ?? false;
   const isGuestRole = session?.user?.role === 'GUEST';
@@ -51,6 +54,24 @@ export default function Header() {
               <div className="h-10 w-32 sm:w-48 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
             ) : session ? (
               <div className="flex items-center gap-2 sm:gap-4 ml-auto min-w-0">
+                {!isAnonymous && !isGuestRole && <NotificationCenter />}
+                {!isAnonymous && !isGuestRole && (
+                  <Link href="/friends" aria-label="Amis" className="shrink-0 flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all">
+                    <UsersIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline text-sm">Amis</span>
+                  </Link>
+                )}
+                {!isAnonymous && !isGuestRole && (
+                  <button onClick={openDock} aria-label="Messages" className="relative shrink-0 flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all">
+                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline text-sm">Messages</span>
+                    {totalUnread > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                        {totalUnread > 9 ? '9+' : totalUnread}
+                      </span>
+                    )}
+                  </button>
+                )}
                 <Link href="/dashboard" className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all min-w-0">
                   <span className="hidden sm:inline text-sm">{isAnonymous ? <UserIcon className="w-4 h-4 inline" /> : 'Bonjour,'}</span>
                   <span className={"truncate max-w-[80px] sm:max-w-[140px] " + (session.user.role === 'ADMIN'

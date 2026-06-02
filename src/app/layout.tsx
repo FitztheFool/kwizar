@@ -7,9 +7,14 @@ import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import AppLayout from '@/components/Layout/AppLayout';
 import { ChatProvider } from '@/context/ChatContext';
+import { FriendsProvider } from '@/context/FriendsContext';
+import { MessagesProvider } from '@/context/MessagesContext';
+import { NotificationsProvider } from '@/context/NotificationsContext';
 import { CommandPaletteProvider } from '@/context/CommandPaletteContext';
 import CommandPalette from '@/components/CommandPalette';
 import FloatingChat from '@/components/Chat/FloatingChat';
+import MessagesDock from '@/components/Messages/MessagesDock';
+import Toasts from '@/components/Notifications/Toasts';
 
 const fraunces = Fraunces({
     subsets: ['latin'],
@@ -43,15 +48,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="fr" suppressHydrationWarning className={`${fraunces.variable} ${dmSans.variable}`}>
             <body className={dmSans.className}>
                 <Providers>
-                    <ChatProvider>
-                        <CommandPaletteProvider>
-                            <Header />
-                            <AppLayout>{children}</AppLayout>
-                            <Footer />
-                            <FloatingChat />
-                            <CommandPalette />
-                        </CommandPaletteProvider>
-                    </ChatProvider>
+                    <FriendsProvider>
+                        <MessagesProvider>
+                            <NotificationsProvider>
+                                <ChatProvider>
+                                    <CommandPaletteProvider>
+                                        <Header />
+                                        <AppLayout>{children}</AppLayout>
+                                        <Footer />
+                                        <FloatingChat />
+                                        <MessagesDock />
+                                        <Toasts />
+                                        <CommandPalette />
+                                    </CommandPaletteProvider>
+                                </ChatProvider>
+                            </NotificationsProvider>
+                        </MessagesProvider>
+                    </FriendsProvider>
                 </Providers>
             </body>
         </html>

@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { formatMessageTime } from '@/lib/time';
 
 type ChatTab = 'lobby' | 'team';
 
@@ -118,9 +119,6 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
         setUnread(0);
     };
 
-    const formatTime = (t: number) =>
-        new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
     return (
         <>
             {isMobile && open && (
@@ -218,7 +216,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                                             <div className="text-xs font-bold mb-1 opacity-70">{m.username}</div>
                                         )}
                                         <div>{m.text}</div>
-                                        <div className="text-[10px] mt-1 opacity-60 text-right">{formatTime(m.sentAt)}</div>
+                                        <div className="text-[10px] mt-1 opacity-60 text-right">{formatMessageTime(m.sentAt)}</div>
                                     </div>
                                 </div>
                             );

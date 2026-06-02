@@ -40,6 +40,32 @@ async function main() {
     const [user1, user2, user3, user4, user5] = numbered;
     console.log('✅ Utilisateurs créés');
 
+    // ── Amitiés de test ──
+    const friendship = (requesterId: string, addresseeId: string, status: 'PENDING' | 'ACCEPTED') =>
+        prisma.friendship.upsert({
+            where: { requesterId_addresseeId: { requesterId, addresseeId } },
+            update: { status },
+            create: { requesterId, addresseeId, status },
+        });
+    await Promise.all([
+        friendship(farosUser.id, user.id, 'ACCEPTED'),   // Faros & User sont amis
+        friendship(user.id, user1.id, 'ACCEPTED'),        // User & User1 sont amis
+        friendship(farosUser.id, user2.id, 'ACCEPTED'),   // Faros & User2 sont amis
+        friendship(user3.id, user.id, 'PENDING'),         // User3 a envoyé une demande à User
+    ]);
+    console.log('✅ Amitiés créées');
+
+    // ── Messages privés de test (entre Faros & User, qui sont amis) ──
+    const now = Date.now();
+    const dm = (senderId: string, recipientId: string, body: string, minsAgo: number, readAt: Date | null) =>
+        prisma.directMessage.create({
+            data: { senderId, recipientId, body, createdAt: new Date(now - minsAgo * 60_000), readAt },
+        });
+    await dm(farosUser.id, user.id, 'Salut ! On fait une partie ?', 60, new Date(now - 58 * 60_000));
+    await dm(user.id, farosUser.id, 'Carrément, je lance un lobby UNO 🎉', 58, new Date(now - 57 * 60_000));
+    await dm(farosUser.id, user.id, 'Go, je te rejoins', 2, null); // non lu côté User
+    console.log('✅ Messages privés créés');
+
     await seedShared(prisma, randomUser.id);
 
     const allPlayers = [farosUser, user, ...numbered];
