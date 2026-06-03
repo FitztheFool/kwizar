@@ -1,9 +1,9 @@
-// app/api/quiz/[id]/route.ts
+// src/app/api/quiz/[id]/route.ts
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -11,82 +11,81 @@ export async function GET(
 ) {
   try {
     const { id: quizId } = await params;
+    const session = await auth();
 
-    // Session optionnelle — nécessaire uniquement pour les quiz privés
-    const session = await getServerSession(authOptions);
+    const authHeader = request.headers.get('authorization') ?? '';
+    const internalKey = process.env.INTERNAL_API_KEY;
+    const expectedKey = `Bearer ${internalKey}`;
+    const isInternalRequest = !!(
+        internalKey &&
+        authHeader.length === expectedKey.length &&
+        timingSafeEqual(Buffer.from(authHeader), Buffer.from(expectedKey))
+    );
 
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
+        category: { select: { id: true, name: true } },
+        creator: { select: { id: true, username: true, email: true } },
         questions: {
           include: {
             answers: {
-              select: {
-                id: true,
-                content: true,
-                isCorrect: true,
-              },
+              select: { id: true, content: true, isCorrect: true },
             },
           },
-          orderBy: {
-            createdAt: 'asc',
-          },
+          orderBy: { createdAt: 'asc' },
         },
         attempts: {
-          select: {
-            score: true,
-          },
-          orderBy: {
-            score: 'desc',
-          },
+          select: { score: true },
+          orderBy: { score: 'desc' },
           take: 1,
         },
       },
     });
 
     if (!quiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
-    // Quiz privé : seul le créateur peut y accéder
-    if (!quiz.isPublic && quiz.creatorId !== session?.user?.id) {
-      return NextResponse.json(
-        { error: "Vous n'avez pas accès à ce quiz privé" },
-        { status: 403 }
-      );
+    // Internal requests may be scoped to a lobby host: a private quiz is only
+    // playable in a lobby if the host owns it (prevents IDOR via lobby:setQuiz).
+    // No hostId param → unchanged full internal access (other internal callers).
+    const requestedHostId = request.nextUrl.searchParams.get('hostId');
+    const internalAllowed = isInternalRequest && (!requestedHostId || quiz.isPublic || quiz.creatorId === requestedHostId);
+
+    if (!quiz.isPublic && quiz.creatorId !== session?.user?.id && !internalAllowed) {
+      return NextResponse.json({ error: "Vous n'avez pas accès à ce quiz privé" }, { status: 403 });
     }
+
+    const isOwner = session?.user?.id === quiz.creatorId;
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const revealAnswers = isInternalRequest || isOwner || isAdmin;
 
     const formattedQuiz = {
       id: quiz.id,
       title: quiz.title,
+      imageUrl: quiz.imageUrl ?? null,
+      category: quiz.category ?? null,
       description: quiz.description || '',
       isPublic: quiz.isPublic,
       randomizeQuestions: quiz.randomizeQuestions,
       creatorId: quiz.creatorId,
       creator: {
         id: quiz.creator.id,
-        name: quiz.creator.username || quiz.creator.email?.split('@')[0] || 'Utilisateur anonyme',
+        username: quiz.creator.username || quiz.creator.email?.split('@')[0] || 'Utilisateur anonyme',
       },
       questions: quiz.questions.map((q) => {
         if (q.type === 'TEXT') {
-          const correctAnswer = q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content;
           return {
             id: q.id,
             text: q.content,
             type: q.type,
             points: q.points,
+            imageUrl: q.imageUrl ?? null,
             strictOrder: false,
-            answers: [{ id: q.answers[0]?.id, text: correctAnswer, isCorrect: true }],
+            answers: revealAnswers
+              ? [{ id: q.answers[0]?.id, text: q.answers.find(a => a.isCorrect)?.content || q.answers[0]?.content, isCorrect: true }]
+              : [{ id: q.answers[0]?.id }],
           };
         }
 
@@ -97,12 +96,11 @@ export async function GET(
             text: q.content,
             type: q.type,
             points: q.points,
+            imageUrl: q.imageUrl ?? null,
             strictOrder: (q as any).strictOrder ?? false,
-            answers: correctAnswers.map((a) => ({
-              id: a.id,
-              text: a.content,
-              isCorrect: true,
-            })),
+            answers: revealAnswers
+              ? correctAnswers.map((a) => ({ id: a.id, text: a.content, isCorrect: true }))
+              : correctAnswers.map((a) => ({ id: a.id })),
           };
         }
 
@@ -111,11 +109,12 @@ export async function GET(
           text: q.content,
           type: q.type,
           points: q.points,
+          imageUrl: q.imageUrl ?? null,
           strictOrder: (q as any).strictOrder ?? false,
           answers: q.answers.map((a) => ({
             id: a.id,
             text: a.content,
-            isCorrect: a.isCorrect,
+            ...(revealAnswers ? { isCorrect: a.isCorrect } : {}),
           })),
         };
       }),
@@ -125,10 +124,7 @@ export async function GET(
     return NextResponse.json(formattedQuiz, { status: 200 });
   } catch (error) {
     console.error('Erreur lors de la récupération du quiz:', error);
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
@@ -137,23 +133,19 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const { id } = await params;
     const body = await request.json();
+
     if (!Array.isArray(body.questions) || body.questions.length > 15) {
-      return NextResponse.json(
-        { error: 'Un quiz ne peut pas dépasser 15 questions.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
     }
+
     const { title, description, isPublic, randomizeQuestions, questions } = body;
 
     const existingQuiz = await prisma.quiz.findUnique({
@@ -162,22 +154,23 @@ export async function PUT(
     });
 
     if (!existingQuiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
     if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Non autorisé' },
-        { status: 403 })
-        ;
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
     await prisma.$transaction(async (tx) => {
       await tx.quiz.update({
         where: { id },
-        data: { title, description, isPublic, randomizeQuestions: randomizeQuestions ?? false },
+        data: {
+          title,
+          description,
+          isPublic,
+          randomizeQuestions: randomizeQuestions ?? false,
+          imageUrl: body.imageUrl || '/quiz/default-cover.svg',
+        },
       });
 
       await tx.answer.deleteMany({
@@ -195,6 +188,7 @@ export async function PUT(
             type: q.type,
             points: q.points,
             strictOrder: q.strictOrder ?? false,
+            imageUrl: q.imageUrl ?? null,
             quizId: id,
             answers: {
               create: q.answers.map((a: any) => ({
@@ -227,13 +221,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -244,17 +235,11 @@ export async function DELETE(
     });
 
     if (!existingQuiz) {
-      return NextResponse.json(
-        { error: 'Quiz non trouvé' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Quiz non trouvé' }, { status: 404 });
     }
 
     if (existingQuiz.creatorId !== session.user.id && session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Non autorisé' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
     await prisma.quiz.delete({ where: { id } });

@@ -1,0 +1,294 @@
+import {
+    getMaze, COLS, ROWS, DELTA, OPP, FRIGHTEN_TICKS, GHOST_SCORE, GHOST_STARTS, GHOST_HOME, TUNNEL_ROW,
+    FRUIT_POS, FRUIT_DOTS_TRIGGERS, FRUIT_DURATION_TICKS, FRUIT_SCORES, levelFruit,
+    type Pos, type Dir, type Tile, type FruitType,
+} from './constants';
+
+export type Ghost = {
+    pos: Pos;
+    dir: Dir;
+    frightened: number;
+    dead: boolean;
+};
+
+export type GameState = {
+    maze: Tile[][];
+    pacPos: Pos;
+    pacDir: Dir;
+    pacNextDir: Dir;
+    ghosts: Ghost[];
+    score: number;
+    lives: number;
+    dotsLeft: number;
+    tick: number;
+    frightenedTicks: number;
+    level: number;
+    fruit: { type: FruitType; ticks: number } | null;
+    dotsEaten: number;
+    fruitSpawned: number;
+};
+
+export function cloneMaze(level = 1): Tile[][] {
+    return getMaze(level);
+}
+
+export function countDots(maze: Tile[][]): number {
+    let n = 0;
+    for (const row of maze) for (const t of row) if (t === 0 || t === 3) n++;
+    return n;
+}
+
+function wrapX(x: number, y: number): number {
+    if (y !== TUNNEL_ROW) return x;
+    if (x < 0) return COLS - 1;
+    if (x >= COLS) return 0;
+    return x;
+}
+
+function canMove(maze: Tile[][], pos: Pos, dir: Dir, isGhost: boolean): boolean {
+    const d = DELTA[dir];
+    const ny = pos.y + d.y;
+    if (ny < 0 || ny >= ROWS) return false;
+    const nx = wrapX(pos.x + d.x, ny);
+    const tile = maze[ny][nx];
+    if (tile === 1) return false;
+    // Ghost-house doors (tile=2) are only traversable by ghosts
+    if (tile === 2 && !isGhost) return false;
+    return true;
+}
+
+function movePos(pos: Pos, dir: Dir): Pos {
+    const d = DELTA[dir];
+    const ny = pos.y + d.y;
+    const nx = wrapX(pos.x + d.x, ny);
+    return { x: nx, y: ny };
+}
+
+function dist(a: Pos, b: Pos): number {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+function ghostDirs(maze: Tile[][], ghost: Ghost): Dir[] {
+    const dirs: Dir[] = ['U', 'D', 'L', 'R'];
+    const forward = dirs.filter(d => {
+        if (d === OPP[ghost.dir] && ghost.dir !== 'N') return false;
+        return canMove(maze, ghost.pos, d, true);
+    });
+    if (forward.length > 0) return forward;
+    return dirs.filter(d => canMove(maze, ghost.pos, d, true));
+}
+
+// ── Ghost chase targets ───────────────────────────────────────────────────────
+//
+// Ghost 0 (Rouge – Blinky) : chasseur pur — cible toujours la case exacte de Pac-Man.
+// Ghost 1 (Rose – Pinky)   : embusqueur — cible 4 cases DEVANT la direction de Pac-Man.
+// Ghost 2 (Cyan – Inky)    : tenaille   — cible le reflet de Blinky par rapport à
+//                             2 cases devant Pac-Man, créant un effet de ciseau.
+
+function chaseTarget(index: number, pacPos: Pos, pacDir: Dir, allGhosts: Ghost[]): Pos {
+    if (index === 0) {
+        return pacPos;
+    }
+    if (index === 1) {
+        const d = DELTA[pacDir !== 'N' ? pacDir : 'R'];
+        return {
+            x: clamp(pacPos.x + d.x * 4, 0, COLS - 1),
+            y: clamp(pacPos.y + d.y * 4, 0, ROWS - 1),
+        };
+    }
+    // Inky: pivot = 2 cases devant Pac-Man, cible = symétrique de Blinky par rapport au pivot
+    const blinky = allGhosts[0]?.pos ?? pacPos;
+    const d = DELTA[pacDir !== 'N' ? pacDir : 'R'];
+    const pivot = { x: pacPos.x + d.x * 2, y: pacPos.y + d.y * 2 };
+    return {
+        x: clamp(pivot.x * 2 - blinky.x, 0, COLS - 1),
+        y: clamp(pivot.y * 2 - blinky.y, 0, ROWS - 1),
+    };
+}
+
+// Taux de mouvement aléatoire par indice (réduit à chaque niveau)
+function randomRate(index: number, level: number): number {
+    const base = index === 0 ? 0 : index === 1 ? 0.28 : 0.18;
+    return Math.max(0, base - (level - 1) * 0.05);
+}
+
+export function stepGhost(
+    maze: Tile[][],
+    ghost: Ghost,
+    pacPos: Pos,
+    pacDir: Dir,
+    index: number,
+    allGhosts: Ghost[],
+    level: number,
+): Ghost {
+    if (ghost.dead) {
+        // Les yeux volent en ligne droite vers le centre de la cage, sans tenir compte des murs
+        if (ghost.pos.x === GHOST_HOME.x && ghost.pos.y === GHOST_HOME.y) {
+            return { ...ghost, dir: 'N', dead: false, frightened: 0 };
+        }
+        const dx = GHOST_HOME.x - ghost.pos.x;
+        const dy = GHOST_HOME.y - ghost.pos.y;
+        let newPos: Pos;
+        let dir: Dir;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            newPos = { x: ghost.pos.x + Math.sign(dx), y: ghost.pos.y };
+            dir = dx > 0 ? 'R' : 'L';
+        } else {
+            newPos = { x: ghost.pos.x, y: ghost.pos.y + Math.sign(dy) };
+            dir = dy > 0 ? 'D' : 'U';
+        }
+        return { ...ghost, pos: newPos, dir, dead: true, frightened: 0 };
+    }
+
+    if (ghost.frightened > 0) {
+        const options = ghostDirs(maze, ghost);
+        if (options.length === 0) return ghost;
+        const chosen = options[Math.floor(Math.random() * options.length)];
+        return { ...ghost, pos: movePos(ghost.pos, chosen), dir: chosen, frightened: ghost.frightened - 1 };
+    }
+
+    const target = chaseTarget(index, pacPos, pacDir, allGhosts);
+    const options = ghostDirs(maze, ghost);
+    if (options.length === 0) return ghost;
+
+    let chosen: Dir;
+    if (Math.random() < randomRate(index, level)) {
+        chosen = options[Math.floor(Math.random() * options.length)];
+    } else {
+        chosen = options.reduce((best, d) => {
+            const np = movePos(ghost.pos, d);
+            return dist(np, target) < dist(movePos(ghost.pos, best), target) ? d : best;
+        }, options[0]);
+    }
+
+    return { ...ghost, pos: movePos(ghost.pos, chosen), dir: chosen };
+}
+
+export function initialGhosts(): Ghost[] {
+    return GHOST_STARTS.map(pos => ({
+        pos: { ...pos },
+        dir: 'N' as Dir,
+        frightened: 0,
+        dead: false,
+    }));
+}
+
+export function stepGame(state: GameState, pendingDir: Dir): { state: GameState; ate: boolean; died: boolean; won: boolean } {
+    const maze = state.maze.map(r => [...r] as Tile[]);
+    let { pacPos, pacDir, pacNextDir, ghosts, score, lives, dotsLeft, tick, frightenedTicks, level,
+          fruit, dotsEaten, fruitSpawned } = state;
+
+    pacNextDir = pendingDir !== 'N' ? pendingDir : pacNextDir;
+
+    let newDir: Dir = 'N';
+    if (pacNextDir !== 'N' && canMove(maze, pacPos, pacNextDir, false)) {
+        newDir = pacNextDir;
+    } else if (pacDir !== 'N' && canMove(maze, pacPos, pacDir, false)) {
+        newDir = pacDir;
+    }
+
+    let newPos = pacPos;
+    if (newDir !== 'N') newPos = movePos(pacPos, newDir);
+    const effectiveDir = newDir !== 'N' ? newDir : pacDir;
+
+    // Frayeur réduite à chaque niveau (minimum 8 ticks)
+    const frightenDuration = Math.max(8, FRIGHTEN_TICKS - (level - 1) * 5);
+
+    let newScore = score;
+    let newDotsLeft = dotsLeft;
+    let newFrighten = frightenedTicks > 0 ? frightenedTicks - 1 : 0;
+    let ateGhost = false;
+    let newDotsEaten = dotsEaten;
+    let newFruitSpawned = fruitSpawned;
+
+    const tile = maze[newPos.y]?.[newPos.x];
+    if (tile === 0) {
+        maze[newPos.y][newPos.x] = 4;
+        newScore += 10;
+        newDotsLeft--;
+        newDotsEaten++;
+    } else if (tile === 3) {
+        maze[newPos.y][newPos.x] = 4;
+        newScore += 50;
+        newDotsLeft--;
+        newDotsEaten++;
+        newFrighten = frightenDuration;
+    }
+
+    // Tick down current fruit; spawn new fruit at 70 and 170 dots
+    let newFruit: typeof fruit = fruit ? { ...fruit, ticks: fruit.ticks - 1 } : null;
+    if (newFruit && newFruit.ticks <= 0) newFruit = null;
+
+    for (let ti = 0; ti < FRUIT_DOTS_TRIGGERS.length; ti++) {
+        if (newFruitSpawned <= ti && newDotsEaten >= FRUIT_DOTS_TRIGGERS[ti]) {
+            newFruit = { type: levelFruit(level), ticks: FRUIT_DURATION_TICKS };
+            newFruitSpawned = ti + 1;
+        }
+    }
+
+    // Pac-Man eats the fruit
+    if (newFruit && newPos.x === FRUIT_POS.x && newPos.y === FRUIT_POS.y) {
+        const base = FRUIT_SCORES[newFruit.type];
+        newScore += newFrighten > 0 ? base * 2 : base;
+        newFruit = null;
+    }
+
+    // Les fantômes vivants bougent tous les ticks à partir du niveau 3, sinon 1 tick sur 2.
+    // Les fantômes morts (yeux) bougent à chaque tick, en vol direct, sans geler les autres.
+    const ghostMoveEvery = level >= 3 ? 1 : 2;
+    const shouldMoveLiving = tick % ghostMoveEvery === 0;
+
+    let newGhosts = ghosts.map((g, i) => {
+        const g2 = { ...g, frightened: newFrighten > 0 ? (g.frightened > 0 ? g.frightened - 1 : newFrighten) : 0 };
+        if (newFrighten > 0 && g.frightened === 0) return { ...g2, frightened: newFrighten };
+        if (g.dead) {
+            return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
+        }
+        if (!shouldMoveLiving) return g2;
+        return stepGhost(maze, g2, newPos, effectiveDir, i, ghosts, level);
+    });
+
+    if (tile === 3) {
+        newGhosts = newGhosts.map(g => ({ ...g, frightened: frightenDuration }));
+    }
+
+    let died = false;
+    for (let i = 0; i < newGhosts.length; i++) {
+        const g = newGhosts[i];
+        if (g.pos.x === newPos.x && g.pos.y === newPos.y) {
+            if (g.frightened > 0 && !g.dead) {
+                newScore += GHOST_SCORE;
+                newGhosts = newGhosts.map((gg, idx) => idx === i ? { ...gg, dead: true, frightened: 0 } : gg);
+                ateGhost = true;
+            } else if (!g.dead) {
+                died = true;
+            }
+        }
+    }
+
+    const won = newDotsLeft <= 0;
+
+    return {
+        state: {
+            maze,
+            pacPos: newPos,
+            pacDir: newDir !== 'N' ? newDir : pacDir,
+            pacNextDir,
+            ghosts: newGhosts,
+            score: newScore,
+            lives: died ? lives - 1 : lives,
+            dotsLeft: newDotsLeft,
+            tick: tick + 1,
+            frightenedTicks: newFrighten,
+            level,
+            fruit: newFruit,
+            dotsEaten: newDotsEaten,
+            fruitSpawned: newFruitSpawned,
+        },
+        ate: ateGhost,
+        died,
+        won,
+    };
+}

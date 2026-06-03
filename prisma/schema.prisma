@@ -1,24 +1,37 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  DEACTIVATED
+  BANNED
 }
 
 enum Role {
+  GUEST
   USER
   RANDOM
   ADMIN
-  ANONYMOUS
 }
 
 enum QuestionType {
   TRUE_FALSE
   MCQ
+  MCQ_UNIQUE
   TEXT
   MULTI_TEXT
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
 }
 
 enum GameType {
@@ -29,6 +42,23 @@ enum GameType {
   YAHTZEE
   PUISSANCE4
   JUST_ONE
+  BATTLESHIP
+  DIAMANT
+  IMPOSTOR
+  SNAKE
+  PACMAN
+  BREAKOUT
+  TETRIS
+  LUDO
+  PERUDO
+  CANT_STOP
+  MILLE_BORNES
+  SUTOM
+  SPACE_INVADERS
+  GAME_2048
+  FLAPPY_BIRD
+  PLUMBER
+  SPYFALL
 }
 
 model Account {
@@ -72,38 +102,112 @@ model VerificationToken {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String?
-  username     String?  @unique
-  email        String   @unique
-  emailVerified DateTime?
-  image        String?
-  passwordHash String?
-  role         Role     @default(USER)
-  isAnonymous  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deactivatedAt  DateTime?
-  deletedAt  DateTime?
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?   @unique
+  email         String    @unique
+  emailVerified DateTime? @map("emailVerifiedAt")
+  image           String?
+  passwordHash    String?
+  role            Role      @default(USER)
+  lastSeen        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isAnonymous     Boolean   @default(false)
+  status          UserStatus @default(PENDING)
+  deactivatedAt   DateTime?
+  bannedAt      DateTime?
+  deletedAt     DateTime?
 
   createdQuizzes Quiz[]
   attempts       Attempt[]
-  accounts Account[]
-  sessions Session[]
+  accounts       Account[]
+  sessions       Session[]
+
+  sentFriendRequests     Friendship[] @relation("FriendRequester")
+  receivedFriendRequests Friendship[] @relation("FriendAddressee")
+
+  sentMessages     DirectMessage[] @relation("DMSender")
+  receivedMessages DirectMessage[] @relation("DMRecipient")
+
+  sentLobbyInvites     LobbyInvite[] @relation("LobbyInviteFrom")
+  receivedLobbyInvites LobbyInvite[] @relation("LobbyInviteTo")
 
   @@map("users")
 }
 
+model Friendship {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  requester User @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
+  @@map("friendships")
+}
+
+model DirectMessage {
+  id          String    @id @default(cuid())
+  senderId    String
+  recipientId String
+  body        String
+  createdAt   DateTime  @default(now())
+  readAt      DateTime?
+
+  sender    User @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("DMRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, senderId, createdAt])
+  @@index([senderId, recipientId, createdAt])
+  @@index([recipientId, readAt])
+  @@map("direct_messages")
+}
+
+model LobbyInvite {
+  id         String   @id @default(cuid())
+  lobbyId    String
+  gameType   String
+  fromUserId String
+  toUserId   String
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("LobbyInviteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("LobbyInviteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([toUserId, lobbyId])
+  @@index([toUserId, createdAt])
+  @@map("lobby_invites")
+}
+
+model OauthPending {
+  token       String   @id
+  userId      String
+  baseName    String
+  suggestions String[]
+  expiresAt   DateTime
+  metadata    Json?
+
+  @@map("oauth_pending")
+}
+
 model Quiz {
-  id                 String    @id @default(cuid())
+  id                 String   @id @default(cuid())
   title              String
-  description        String?   @db.Text
-  randomizeQuestions Boolean   @default(false)
-  isPublic           Boolean   @default(true)
-  categoryId         String?
-  category           Category? @relation(fields: [categoryId], references: [id])
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  description        String?  @db.Text
+  randomizeQuestions Boolean  @default(false)
+  isPublic           Boolean  @default(true)
+  imageUrl           String?
+  categoryId         String
+  category           Category @relation(fields: [categoryId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -124,6 +228,7 @@ model Question {
   points      Int          @default(1)
   strictOrder Boolean      @default(false)
   createdAt   DateTime     @default(now())
+  imageUrl    String?
   updatedAt   DateTime     @updatedAt
 
   quizId  String
@@ -160,14 +265,21 @@ model Category {
 }
 
 model Attempt {
-  id         String   @id @default(cuid())
-  score      Int
-  trapScore  Int      @default(0)   // mots piégés (taboo:fail) — 0 pour les autres jeux
-  rounds     Int      @default(0)   // nombre de manches jouées (Taboo), 0 pour les autres jeux
-  gameType   GameType @default(QUIZ)
-  gameId     String
-  placement  Int?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  score          Int
+  trapScore      Int      @default(0)
+  rounds         Int      @default(0)
+  correctAnswers Int      @default(0)
+  totalAnswers   Int      @default(0)
+  gameType       GameType @default(QUIZ)
+  gameId         String
+  placement      Int?
+  team           Int?
+  abandon        Boolean  @default(false)
+  afk            Boolean  @default(false)
+  vsBot          Boolean  @default(false)
+  botScores      Json?
+  createdAt      DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -175,14 +287,27 @@ model Attempt {
   quizId String?
   quiz   Quiz?   @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, gameId])
   @@index([userId, quizId])
   @@index([userId, gameType])
   @@map("attempts")
 }
 
 model Word {
-  id        String   @id @default(cuid())
-  word      String   @unique
-  description  String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  word        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  wordGroupId String
+  wordGroup   WordGroup @relation(fields: [wordGroupId], references: [id])
+
+  @@map("words")
+}
+
+model WordGroup {
+  id    String @id @default(cuid())
+  theme String @unique
+  words Word[]
+
+  @@map("word_groups")
 }

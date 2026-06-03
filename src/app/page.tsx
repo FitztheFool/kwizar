@@ -1,162 +1,141 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import QuizCard from '@/components/QuizCard';
-import QuizFilters from '@/components/QuizFilters';
-import Pagination from '@/components/Pagination';
-import { GAME_CONFIG } from '@/lib/gameConfig';
-import { generateCode } from '@/lib/utils';
+import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
+import GameCard from '@/components/GameCard';
+import { PlayIcon, PlusIcon } from '@heroicons/react/24/outline';
 
-const PAGE_SIZE = 6;
+type Stats = { parties: number; points: number };
 
-interface Category {
-    id: string;
-    name: string;
+// ── Derived from GAME_CONFIG — single source of truth ────────────────────────
+
+const GAMES_BY_MODE = {
+    solo: Object.entries(GAME_CONFIG).filter(([, g]) => (g.mode as GameMode) === 'solo'),
+    both: Object.entries(GAME_CONFIG).filter(([, g]) => (g.mode as GameMode) === 'both'),
+    multi: Object.entries(GAME_CONFIG).filter(([, g]) => (g.mode as GameMode) === 'multi'),
+} satisfies Record<GameMode, [string, typeof GAME_CONFIG[keyof typeof GAME_CONFIG]][]>;
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function SectionDivider({ label, badge, mode }: { label: string; badge: string; mode: GameMode }) {
+    const colors = {
+        solo: 'bg-primary-500',
+        both: 'bg-clay-500',
+        multi: 'bg-felt-600',
+    };
+    return (
+        <div className="flex items-center gap-3 mb-4">
+            <div className={`w-2 h-2 rounded-full ${colors[mode]}`} />
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</h3>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400">
+                {badge}
+            </span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+        </div>
+    );
 }
 
-interface Quiz {
-    id: string;
-    title: string;
-    description: string | null;
-    isPublic: boolean;
-    creatorId?: string;
-    createdAt?: string;
-    creator: { id: string; username: string };
-    category?: { name: string } | null;
-    _count: { questions: number };
-    questions?: { points: number }[];
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+function fmt(n: number): string {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'k';
+    return n.toString();
 }
-
-const computePoints = (list: Quiz[]) => {
-    const map: Record<string, number> = {};
-    list.forEach(q => {
-        map[q.id] = q.questions?.reduce((sum, qq) => sum + (qq.points || 0), 0) || 0;
-    });
-    return map;
-};
-
-const GAMES = Object.entries(GAME_CONFIG).map(([key, g]) => ({
-    key,
-    label: g.label,
-    icon: g.icon,
-    href: `/leaderboard/${key}`,
-}));
 
 export default function HomePage() {
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const [total, setTotal] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [quizPoints, setQuizPoints] = useState<Record<string, number>>({});
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [categoryId, setCategoryId] = useState('');
-    const [page, setPage] = useState(1);
-    const [code, setCode] = useState<string | null>(null)
+    const [lobbyCode, setCode] = useState('');
+    const [stats, setStats] = useState<Stats | null>(null);
+    const nbJeux = Object.keys(GAME_CONFIG).length;
 
-    const fetchQuizzes = useCallback(async (p = 1, s = '', cat = '') => {
-        const params = new URLSearchParams({ page: String(p), pageSize: String(PAGE_SIZE) });
-        if (s) params.set('search', s);
-        if (cat) params.set('categoryId', cat);
-        const res = await fetch(`/api/quiz?${params}`);
-        if (res.ok) {
-            const data = await res.json();
-            const list = Array.isArray(data) ? data : data.quizzes ?? [];
-            setQuizzes(list);
-            setTotal(Array.isArray(data) ? list.length : data.total ?? 0);
-            setTotalPages(Array.isArray(data) ? Math.ceil(list.length / PAGE_SIZE) : data.totalPages ?? 1);
-            setQuizPoints(prev => ({ ...prev, ...computePoints(list) }));
-        }
+    useEffect(() => { setCode(crypto.randomUUID()); }, []);
+    useEffect(() => {
+        fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => { });
     }, []);
 
-    useEffect(() => {
-        setCode(generateCode(8))
-    }, [])
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            try {
-                const [catRes] = await Promise.all([
-                    fetch('/api/categories'),
-                    fetchQuizzes(1),
-                ]);
-                if (!cancelled && catRes.ok) setCategories(await catRes.json());
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-        return () => { cancelled = true; };
-    }, [fetchQuizzes]);
-
-    const handlePageChange = (p: number) => { setPage(p); fetchQuizzes(p, search, categoryId); };
-    const handleSearchChange = (v: string) => { setSearch(v); setPage(1); fetchQuizzes(1, v, categoryId); };
-
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="min-h-screen">
 
-            {/* ── Hero ─────────────────────────────────────────────── */}
-            <section className="relative overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-                {/* subtle grid background */}
-                <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06]"
-                    style={{ backgroundImage: 'linear-gradient(#000 1px,transparent 1px),linear-gradient(90deg,#000 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
-
-                <div className="relative max-w-5xl mx-auto px-6 py-20 md:py-28">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-10">
-                        <div className="max-w-xl">
-                            <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-blue-600 dark:text-blue-400 mb-5 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                Plateforme multijoueur
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-5">
-                                Jouez. Rivalisez.<br />
-                                <span className="text-blue-600 dark:text-blue-400">Grimpez.</span>
-                            </h1>
-                            <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
-                                Quiz, UNO, Taboo, Yahtzee et plus — testez-vous en solo ou entre amis en temps réel.
+            {/* ── Hero ───────────────────────────────────────────────────────── */}
+            <section className="relative overflow-hidden brand-hero border-b border-felt-900/40">
+                <div className="relative max-w-5xl mx-auto px-6 py-10 md:py-16">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+                        {/* Left: title + CTAs */}
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80 mb-3">
+                                La table de jeu qui ne dort jamais
                             </p>
+                            <h1 className="font-display text-4xl md:text-5xl font-semibold text-amber-50 leading-[1.05] tracking-tight mb-5">
+                                Jouez. Rivalisez.{' '}
+                                <span className="italic text-primary-300">Grimpez.</span>
+                            </h1>
                             <div className="flex flex-wrap gap-3">
                                 <Link href="/lobby/all"
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 hover:-translate-y-px active:translate-y-0">
-                                    🎮 Rejoindre une partie
+                                    className="px-5 py-2.5 bg-primary-500 hover:bg-primary-400 text-stone-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-black/30 hover:-translate-y-px active:translate-y-0">
+                                    <PlayIcon className="w-4 h-4 inline mr-1.5" />Rejoindre une partie
                                 </Link>
-                                <Link href={`/lobby/create/${code}`}
-                                    className="px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm rounded-xl border border-gray-200 dark:border-gray-700 transition-all hover:-translate-y-px active:translate-y-0">
-                                    ✨ Créer un lobby
+                                <Link href={`/lobby/create/${lobbyCode}`}
+                                    className="px-5 py-2.5 bg-amber-50/10 hover:bg-amber-50/20 text-amber-50 font-bold text-sm rounded-xl border border-amber-100/30 backdrop-blur-sm transition-all hover:-translate-y-px active:translate-y-0">
+                                    <PlusIcon className="w-4 h-4 inline mr-1.5" />Créer un lobby
                                 </Link>
                             </div>
                         </div>
-
-                        {/* Stats pill */}
-                        <div className="flex md:flex-col gap-4 flex-wrap">
-                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-5 text-center min-w-[120px]">
-                                <div className="text-3xl font-black text-gray-900 dark:text-white tabular-nums">{total}</div>
-                                <div className="text-xs text-gray-400 mt-1 font-medium">Quiz disponibles</div>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-5 text-center min-w-[120px]">
-                                <div className="text-3xl font-black text-gray-900 dark:text-white">{GAMES.length}</div>
-                                <div className="text-xs text-gray-400 mt-1 font-medium">Jeux</div>
-                            </div>
+                        {/* Right: live stats — wooden score tokens */}
+                        <div className="grid grid-cols-3 gap-2.5 md:shrink-0">
+                            {([
+                                { value: fmt(nbJeux), label: 'jeux' },
+                                { value: stats ? fmt(stats.parties) : null, label: 'parties' },
+                                { value: stats ? fmt(stats.points) : null, label: 'points' },
+                            ] as const).map(({ value, label }) => (
+                                <div key={label} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-amber-100/15 bg-stone-950/25 backdrop-blur-sm px-4 py-3 min-w-[90px] text-center shadow-inner">
+                                    <span className="font-display text-2xl font-bold text-amber-50">
+                                        {value ?? <span className="text-amber-100/30">—</span>}
+                                    </span>
+                                    <span className="text-[10px] font-medium uppercase tracking-wider text-amber-200/60">{label}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
-            </section >
+            </section>
 
-            {/* ── Games strip ──────────────────────────────────────── */}
-            < section className="max-w-5xl mx-auto px-6 py-10" >
-                <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-5">Nos jeux</h2>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                    {GAMES.map(g => (
-                        <Link key={g.key} href={g.href}
-                            className="group flex flex-col items-center gap-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl py-4 px-2 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all">
-                            <span className="text-2xl group-hover:scale-110 transition-transform">{g.icon}</span>
-                            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center leading-tight">{g.label}</span>
-                        </Link>
-                    ))}
+            {/* ── Games by mode ──────────────────────────────────────────────── */}
+            <section className="max-w-5xl mx-auto px-6 py-10">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-8">Nos jeux</h2>
+
+                {/* Solo */}
+                <div className="mt-4">
+                    <SectionDivider label="Solo uniquement" badge="1 joueur" mode="solo" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        {GAMES_BY_MODE.solo.map(([key]) => (
+                            <GameCard key={key} gameKey={key} mode="solo" />
+                        ))}
+                    </div>
                 </div>
-            </section >
-        </div >
+
+                {/* Solo + Multi */}
+                <div className="mt-12">
+                    <SectionDivider label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        {GAMES_BY_MODE.both.map(([key]) => (
+                            <GameCard key={key} gameKey={key} mode="both" />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Multi only */}
+                <div className="mt-12">
+                    <SectionDivider label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        {GAMES_BY_MODE.multi.map(([key]) => (
+                            <GameCard key={key} gameKey={key} mode="multi" />
+                        ))}
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
     );
 }

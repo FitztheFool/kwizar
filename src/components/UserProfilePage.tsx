@@ -1,20 +1,166 @@
+// src/components/UserProfilePage.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import QuizCard from '@/components/QuizCard';
-import Pagination from '@/components/Pagination';
+import MyQuizzesPanel from '@/components/Quiz/MyQuizzesPanel';
 import UserStats from '@/components/UserStats';
+import { MembersOnlyBanner } from '@/components/MembersOnlyBanner';
+import UserAvatar from '@/components/UserAvatar';
+import FriendButton from '@/components/Friends/FriendButton';
+import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon } from '@heroicons/react/24/outline';
 
-const PAGE_SIZE = 6;
+// ── Bloc finaliser le compte ───────────────────────────────────────────────────
+
+function ClaimAccountBlock({ currentUsername, isPendingVerification = false }: { currentUsername: string; isPendingVerification?: boolean }) {
+    const { data: session, update } = useSession();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState(currentUsername);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [isPending, setIsPending] = useState(isPendingVerification);
+    const [pendingEmail, setPendingEmail] = useState(isPendingVerification ? (session?.user?.email ?? '') : '');
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendRateLimited, setResendRateLimited] = useState(false);
+
+    const handleClaim = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/auth/guest/claim', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, username }),
+            });
+            const data = await res.json();
+            if (!res.ok) { setError(data.error ?? 'Erreur'); return; }
+            setPendingEmail(email);
+            setIsPending(true);
+            setResendCooldown(180);
+            await update();
+            const interval = setInterval(() => {
+                setResendCooldown(c => { if (c <= 1) { clearInterval(interval); return 0; } return c - 1; });
+            }, 1000);
+        } catch {
+            setError('Une erreur est survenue');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResend = async () => {
+        if (!pendingEmail || resendCooldown > 0) return;
+        setResendLoading(true);
+        try {
+            const res = await fetch('/api/auth/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: pendingEmail }),
+            });
+            const rateLimited = res.status === 429;
+            setResendRateLimited(rateLimited);
+            const cooldown = rateLimited ? 180 : res.ok ? 180 : 0;
+            if (cooldown > 0) {
+                setResendCooldown(cooldown);
+                const interval = setInterval(() => {
+                    setResendCooldown(c => { if (c <= 1) { clearInterval(interval); return 0; } return c - 1; });
+                }, 1000);
+            }
+        } catch {
+            // silencieux
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
+    const wrapperCls = isPending
+        ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700/60'
+        : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/60';
+    const titleCls = isPending ? 'text-primary-800 dark:text-primary-200' : 'text-amber-800 dark:text-amber-200';
+    const subtitleCls = isPending ? 'text-primary-700 dark:text-primary-300' : 'text-amber-700 dark:text-amber-300';
+
+    return (
+        <div className={`border rounded-2xl px-5 py-4 ${wrapperCls}`}>
+            <h2 className={`text-sm font-bold mb-1 ${titleCls}`}>Finaliser votre inscription</h2>
+            <p className={`text-xs mb-4 ${subtitleCls}`}>
+                {isPending
+                    ? 'Vos parties sont déjà sauvegardées. Validez votre compte via le mail d\'inscription.'
+                    : 'Vos parties sont déjà sauvegardées. Ajoutez un email et un mot de passe pour ne pas perdre votre compte.'}
+            </p>
+            <form onSubmit={handleClaim} className="flex flex-col sm:flex-row gap-2">
+                <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Pseudo"
+                    maxLength={30}
+                    disabled={isPending}
+                    className="input-field text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <input
+                    type="email"
+                    value={isPending ? pendingEmail : email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="Email"
+                    required={!isPending}
+                    disabled={isPending}
+                    className="input-field text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <input
+                    type="password"
+                    value={isPending ? '••••••' : password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Mot de passe (6 car. min.)"
+                    required={!isPending}
+                    minLength={6}
+                    disabled={isPending}
+                    className="input-field text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                {!isPending && (
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary text-sm px-4 py-2 whitespace-nowrap"
+                    >
+                        {loading ? 'Enregistrement...' : 'Valider'}
+                    </button>
+                )}
+            </form>
+            {isPending && (
+                <div className="mt-3 flex items-center gap-3">
+                    {resendCooldown > 0 ? (
+                        <p className="text-xs text-primary-600 dark:text-primary-400">
+                            {resendRateLimited ? 'Trop de tentatives —' : <>Lien envoyé <CheckIcon className="w-3.5 h-3.5 inline-block text-green-500 align-middle" /> —</>} Renvoi possible dans{' '}
+                            <span className="font-semibold">{Math.floor(resendCooldown / 60)}:{String(resendCooldown % 60).padStart(2, '0')}</span>
+                        </p>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleResend}
+                            disabled={resendLoading}
+                            className="flex items-center gap-1.5 text-s font-semibold text-primary-600 dark:text-primary-400 underline hover:no-underline disabled:opacity-50"
+                        >
+                            <EnvelopeIcon className="w-3.5 h-3.5" />
+                            {resendLoading ? 'Envoi…' : 'Renvoyer le mail'}
+                        </button>
+                    )}
+                </div>
+            )}
+            {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+        </div>
+    );
+}
 
 interface Quiz {
     id: string;
     title: string;
     description: string | null;
     isPublic: boolean;
+    imageUrl?: string | null;
     createdAt?: string;
     creatorId?: string;
     creator?: { id: string; username: string } | null;
@@ -34,6 +180,8 @@ interface ProfileData {
 }
 
 type TabType = 'stats' | 'quizzes';
+const VALID_TABS: TabType[] = ['stats', 'quizzes'];
+const isTabType = (v: string): v is TabType => (VALID_TABS as string[]).includes(v);
 
 interface Props {
     username: string;
@@ -46,22 +194,41 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabType>('stats');
-    const [quizPage, setQuizPage] = useState(1);
-    const [quizPoints, setQuizPoints] = useState<Record<string, number>>({});
+    const [activeTab, setActiveTab] = useState<TabType>(() => {
+        if (typeof window === 'undefined') return 'stats';
+        const hash = window.location.hash.replace('#', '');
+        return isTabType(hash) ? hash : 'stats';
+    });
+
+    useEffect(() => {
+        let lastHash = window.location.hash;
+        const sync = () => {
+            if (window.location.hash === lastHash) return;
+            lastHash = window.location.hash;
+            const hash = lastHash.replace('#', '');
+            setActiveTab(isTabType(hash) ? hash : 'stats');
+        };
+        window.addEventListener('hashchange', sync);
+        const interval = setInterval(sync, 150);
+        return () => {
+            window.removeEventListener('hashchange', sync);
+            clearInterval(interval);
+        };
+    }, []);
+
+    const handleTabChange = (tab: TabType) => {
+        setActiveTab(tab);
+        const { pathname, search } = window.location;
+        history.replaceState(null, '', `${pathname}${search}#${tab}`);
+    };
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`/api/profil/${username}`);
+                const res = await fetch(`/api/user/${username}`);
                 if (!res.ok) { setNotFound(true); setLoading(false); return; }
                 const data = await res.json();
                 setProfile(data);
-                const map: Record<string, number> = {};
-                data.quizzes?.forEach((q: any) => {
-                    map[q.id] = q.questions?.reduce((s: number, qq: any) => s + (qq.points || 0), 0) || 0;
-                });
-                setQuizPoints(map);
             } catch {
                 setNotFound(true);
             } finally {
@@ -72,128 +239,144 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     }, [username]);
 
     if (loading) return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-            <LoadingSpinner />
+        <div className="flex-1 flex items-center justify-center p-8">
+            <LoadingSpinner fullScreen={false} message="Chargement du profil..." />
         </div>
     );
 
     if (notFound || !profile) return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
             <div className="text-center">
-                <p className="text-2xl font-bold text-gray-700 mb-2">Joueur introuvable</p>
+                <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Joueur introuvable</p>
                 <p className="text-gray-500 mb-6">Ce profil n'existe pas ou n'est pas accessible.</p>
-                <button onClick={() => router.back()} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold">← Retour</button>
+                <button onClick={() => router.back()} className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold">← Retour</button>
             </div>
         </div>
     );
 
-    const currentUserId = session?.user?.id;
     const displayName = profile.name || username;
-    const quizzes = profile.quizzes ?? [];
-    const quizTotalPages = Math.ceil(quizzes.length / PAGE_SIZE);
-    const paginatedQuizzes = quizzes.slice((quizPage - 1) * PAGE_SIZE, quizPage * PAGE_SIZE);
-
-    const handleEdit = (quizId: string) => router.push(`/quiz/${quizId}/edit`);
-    const handleDelete = async (quizId: string) => {
-        if (!confirm('Supprimer ce quiz ?')) return;
-        const res = await fetch(`/api/quiz/${quizId}`, { method: 'DELETE' });
-        if (res.ok) setProfile(prev => prev ? { ...prev, quizzes: prev.quizzes.filter(q => q.id !== quizId) } : prev);
-    };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
-            <div className="max-w-5xl mx-auto">
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
+        <main className="flex-1 bg-gray-50 dark:bg-gray-950">
+            <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-4">
+                {/* ── Bannière members only ── */}
+                {isOwnProfile && <MembersOnlyBanner isPending={session?.user?.role !== 'GUEST' && session?.user?.status === 'PENDING'} />}
 
-                    {/* Header */}
-                    {!isOwnProfile && (
-                        <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1">
-                            ← Retour
-                        </button>
-                    )}
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
-                            {profile.image ? (
-                                <img src={profile.image} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                                    {displayName.charAt(0).toUpperCase()}
-                                </div>
+                {/* ── Bloc finaliser le compte (invité) ── */}
+                {isOwnProfile && (session?.user?.role === 'GUEST' || (!session?.user?.isAnonymous && session?.user?.status === 'PENDING')) && (
+                    <ClaimAccountBlock currentUsername={username} isPendingVerification={!session?.user?.isAnonymous && session?.user?.status === 'PENDING'} />
+                )}
+
+                {/* ── Header compact ── */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        {/* Avatar */}
+                        <UserAvatar
+                            seed={profile.id}
+                            name={displayName}
+                            image={profile.image}
+                            size="md"
+                            shape="square"
+                        />
+
+                        {/* Nom */}
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-base font-bold text-gray-900 dark:text-white leading-tight truncate">
+                                {displayName}
+                            </h1>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                                Profil joueur
+                            </p>
+                        </div>
+
+                        {/* Action (desktop : même ligne que l'avatar) */}
+                        <div className="hidden sm:flex shrink-0 items-center gap-2">
+                            {/* Tabs */}
+                            <div className="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
+                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => handleTabChange(tab)}
+                                        className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all ${activeTab === tab
+                                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                            }`}
+                                    >
+                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
+                                    </button>
+                                ))}
+                            </div>
+                            <FriendButton username={username} isOwnProfile={isOwnProfile} />
+                            {!isOwnProfile && (
+                                <button
+                                    onClick={() => router.back()}
+                                    className="text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
+                                >
+                                    ← Retour
+                                </button>
+                            )}
+                            {isOwnProfile && (
+                                <a
+                                    href="/settings"
+                                    className="text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
+                                >
+                                    <Cog6ToothIcon className="w-3.5 h-3.5 inline mr-1" />Paramètres
+                                </a>
                             )}
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {isOwnProfile ? `Bonjour, ${displayName} !` : displayName}
-                            </h1>
-                            <p className="text-gray-500 text-sm">{isOwnProfile ? 'Mon dashboard' : 'Profil joueur'}</p>
+                        {/* Tabs + action (mobile : deuxième ligne) */}
+                        <div className="flex sm:hidden w-full items-center gap-2 mt-2">
+                            <div className="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
+                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => handleTabChange(tab)}
+                                        className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all ${activeTab === tab
+                                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                            }`}
+                                    >
+                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
+                                    </button>
+                                ))}
+                            </div>
+                            <FriendButton username={username} isOwnProfile={isOwnProfile} className="ml-auto" />
+                            {!isOwnProfile && (
+                                <button
+                                    onClick={() => router.back()}
+                                    className="ml-auto text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
+                                >
+                                    ← Retour
+                                </button>
+                            )}
                             {isOwnProfile && (
-                                <a href="/settings" className="text-xs text-blue-500 hover:text-blue-700 transition-colors mt-0.5 inline-flex items-center gap-1">
-                                    ⚙️ Paramètres
+                                <a
+                                    href="/settings"
+                                    className="ml-auto text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
+                                >
+                                    <Cog6ToothIcon className="w-3.5 h-3.5 inline mr-1" />Paramètres
                                 </a>
                             )}
                         </div>
                     </div>
-
-                    {/* Tabs */}
-                    <div className="border-b-2 border-gray-200 dark:border-gray-700 mb-6">
-                        <div className="flex gap-6">
-                            {(['stats', 'quizzes'] as TabType[]).map((tab) => (
-                                <button key={tab} onClick={() => setActiveTab(tab)}
-                                    className={`pb-3 px-2 font-semibold text-sm transition-colors border-b-4 -mb-0.5 ${activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                                    {tab === 'stats' ? '📊 Statistiques' : '📝 Quiz créés'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tab Stats */}
-                    {activeTab === 'stats' && (
-                        <UserStats username={username} />
-                    )}
-
-                    {/* Tab Quiz */}
-                    {activeTab === 'quizzes' && (
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                                Quiz créés {isOwnProfile ? 'par vous' : `par ${displayName}`}
-                            </h2>
-                            {isOwnProfile && (
-                                <div className="flex gap-3 mb-6">
-                                    <Link href="/quiz/create" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
-                                        ✏️ Créer un quiz
-                                    </Link>
-                                    <Link href="/quiz/generate" className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors">
-                                        🤖 Générer un quiz
-                                    </Link>
-                                </div>
-                            )}
-                            {quizzes.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-8">Aucun quiz créé pour l'instant.</p>
-                            ) : (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {paginatedQuizzes.map((quiz) => (
-                                            <QuizCard
-                                                key={quiz.id}
-                                                quiz={{ ...quiz, creator: quiz.creator ?? { id: profile.id, username } }}
-                                                currentUserId={currentUserId}
-                                                totalPoints={quizPoints[quiz.id] || 0}
-                                                showActions={isOwnProfile}
-                                                onEdit={() => handleEdit(quiz.id)}
-                                                onDelete={() => handleDelete(quiz.id)}
-                                            />
-                                        ))}
-                                    </div>
-                                    {quizTotalPages > 1 && (
-                                        <Pagination currentPage={quizPage} totalPages={quizTotalPages} onPageChange={setQuizPage} />
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    )}
-
                 </div>
+
+                {/* ── Contenu ── */}
+                {activeTab === 'stats' && <UserStats username={username} />}
+
+                {activeTab === 'quizzes' && (
+                    isOwnProfile ? (
+                        <MyQuizzesPanel />
+                    ) : (
+                        <MyQuizzesPanel
+                            creatorId={profile.id}
+                            title={`Quiz de ${displayName}`}
+                            emptyTitle="Aucun quiz public"
+                            emptySubtitle=""
+                        />
+                    )
+                )}
             </div>
-        </div>
+        </main>
     );
 }

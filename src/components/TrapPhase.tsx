@@ -1,6 +1,8 @@
+// src/components/TrapPhase.tsx
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { CheckIcon, PencilIcon } from '@heroicons/react/24/outline';
 
 /**
  * TrapPhase
@@ -48,20 +50,21 @@ export type TabooState = {
     team1Slots: TrapSlotData[];
     team0Traps: string[];
     team1Traps: string[];
-    // Peut être string[] (ancien serveur) ou { value, updatedAt }[] (nouveau)
     trapsByPlayer: Record<string, (string | RichSlot)[]>;
     players: { userId: string; username: string; team: 0 | 1 | null }[];
     scores: Record<string, number>;
     currentTeam: 0 | 1 | null;
     teams?: Record<string, 0 | 1> | null;
+    wordChangeCount?: { "0": number; "1": number };
+    pendingWordChange?: { team: number; approvals: string[] } | null;
 };
 
 // ── Couleurs coéquipiers ──────────────────────────────────────────────────────
 
 const TEAMMATE_COLORS = [
     { border: 'border-purple-500/40', bg: 'bg-purple-500/10', badge: 'bg-purple-500/20 text-purple-300' },
-    { border: 'border-cyan-500/40',   bg: 'bg-cyan-500/10',   badge: 'bg-cyan-500/20 text-cyan-300'   },
-    { border: 'border-pink-500/40',   bg: 'bg-pink-500/10',   badge: 'bg-pink-500/20 text-pink-300'   },
+    { border: 'border-cyan-500/40', bg: 'bg-cyan-500/10', badge: 'bg-cyan-500/20 text-cyan-300' },
+    { border: 'border-pink-500/40', bg: 'bg-pink-500/10', badge: 'bg-pink-500/20 text-pink-300' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -93,7 +96,6 @@ function buildSlotsFromTrapsByPlayer(
     teamTraps: string[],
     writers: { userId: string; username: string }[],
     trapWordCount: number,
-    myId: string,
     rich: boolean,
 ): TrapSlotData[] {
     return Array.from({ length: trapWordCount }, (_, i) => {
@@ -148,7 +150,7 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
     const serverHasSlots = useMemo(() =>
         [...(game.team0Slots ?? []), ...(game.team1Slots ?? [])]
             .some(s => s.ownerId !== null || s.value !== ''),
-    [game.team0Slots, game.team1Slots]);
+        [game.team0Slots, game.team1Slots]);
 
     const rich = useMemo(() => isRichFormat(game.trapsByPlayer ?? {}), [game.trapsByPlayer]);
 
@@ -173,12 +175,11 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             teamTraps,
             myTeamWriters,
             game.trapWordCount,
-            myId,
             rich,
         );
     }, [serverHasSlots, myTeam, game.team0Slots, game.team1Slots,
         game.team0Traps, game.team1Traps, game.trapsByPlayer,
-        game.trapWordCount, myId, rich]);
+        game.trapWordCount, rich]);
 
     // Vider draft — mode A
     useEffect(() => {
@@ -195,7 +196,7 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             }
             return changed ? next : prev;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game.team0Slots, game.team1Slots]);
 
     // Vider draft — mode B
@@ -211,12 +212,12 @@ function useTrapInputs({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseProp
             }
             return changed ? next : prev;
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game.team0Traps, game.team1Traps]);
 
     const getDisplayValue = useCallback((i: number) =>
         i in localDraft ? localDraft[i] : (mySlots[i]?.value ?? ''),
-    [localDraft, mySlots]);
+        [localDraft, mySlots]);
 
     const getOwnerInfo = useCallback((i: number) => {
         if (i in localDraft && localDraft[i])
@@ -248,55 +249,106 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
 
     const wordToPiege = myTeam === 0 ? game.team1Word : myTeam === 1 ? game.team0Word : null;
 
+    const myTeamKey = myTeam !== null ? String(myTeam) as "0" | "1" : null;
+    const changesLeft = myTeamKey ? 2 - (game.wordChangeCount?.[myTeamKey] ?? 0) : 0;
+    const pending = game.pendingWordChange ?? null;
+    const isPendingForMyTeam = pending && pending.team === myTeam;
+    const iHaveApproved = isPendingForMyTeam && pending.approvals.includes(myId);
+
+    const handleRequestChange = () => {
+        socketRef.current?.emit('taboo:requestWordChange', { lobbyId });
+    };
+
+    const handleApprove = () => {
+        socketRef.current?.emit('taboo:approveWordChange', { lobbyId });
+    };
+
+    const handleCancel = () => {
+        socketRef.current?.emit('taboo:cancelWordChange', { lobbyId });
+    };
+
     const trapPct = game.trapTimeLeft !== null && game.trapDuration > 0
         ? (game.trapTimeLeft / game.trapDuration) * 100 : 100;
     const trapColor = (game.trapTimeLeft ?? 999) <= 10 ? '#ef4444'
         : (game.trapTimeLeft ?? 999) <= 20 ? '#f97316' : '#f59e0b';
 
-    const teamBorder = myTeam === 0 ? 'bg-blue-500/10 border-blue-500/20'
-        : myTeam === 1 ? 'bg-red-500/10 border-red-500/20'
-        : 'bg-white/5 border-white/10';
+    const teamBorder = myTeam === 0 ? 'bg-primary-500/10 border-primary-500/20'
+        : myTeam === 1 ? 'bg-felt-500/10 border-felt-500/20'
+            : 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10';
 
     return (
         <div className={`border rounded-2xl p-6 max-w-md w-full ${teamBorder}`}>
             <div className="flex items-center justify-between mb-2">
                 <p className="text-orange-400 font-bold text-sm">⏳ Phase des pièges</p>
                 {game.trapStarted && game.trapTimeLeft !== null ? (
-                    <span className={`text-sm font-bold tabular-nums ${game.trapTimeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-white/60'}`}>
+                    <span className={`text-sm font-bold tabular-nums ${game.trapTimeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-gray-700 dark:text-white/60'}`}>
                         {game.trapTimeLeft}s
                     </span>
                 ) : (
-                    <span className="text-white/30 text-xs">Démarrage…</span>
+                    <span className="text-gray-400 dark:text-white/30 text-xs">Démarrage…</span>
                 )}
             </div>
 
-            <div className="w-full h-1.5 bg-white/10 rounded-full mb-5 overflow-hidden">
+            <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mb-5 overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-1000"
                     style={{ width: `${trapPct}%`, backgroundColor: trapColor }} />
             </div>
 
             {myTeam !== null && wordToPiege ? (
                 <div className="mb-5 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                    <p className="text-xs text-white/40 uppercase tracking-widest mb-1">
-                        Mot à piéger — équipe {myTeam === 0 ? '🔴 Rouge' : '🔵 Bleue'}
+                    <p className="text-xs text-gray-500 dark:text-white/40 uppercase tracking-widest mb-1">
+                        Mot à piéger — pour l'équipe {myTeam === 0 ? <>verte <span className="inline-block w-2.5 h-2.5 rounded-full bg-felt-600 align-middle" /></> : <>ambre <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary-500 align-middle" /></>}
                     </p>
                     <p style={{ fontFamily: "'Bebas Neue', cursive" }}
-                        className="text-4xl tracking-widest text-yellow-400">
+                        className="text-2xl sm:text-3xl md:text-4xl tracking-wider break-words leading-tight text-yellow-400">
                         {wordToPiege}
                     </p>
                 </div>
             ) : myTeam !== null ? (
-                <div className="mb-5 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-                    <p className="text-white/30 text-sm animate-pulse">Chargement du mot…</p>
+                <div className="mb-5 p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-center">
+                    <p className="text-gray-400 dark:text-white/30 text-sm animate-pulse">Chargement du mot…</p>
                 </div>
             ) : null}
+
+            {/* Bannière vote de changement de mot */}
+            {isPendingForMyTeam && (
+                <div className="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-sm">
+                    <p className="text-orange-400 font-semibold mb-1">Changement de mot demandé.</p>
+                    <p className="text-xs text-white/40 mb-3">
+                        {pending.approvals.length}/{game.players.filter(p => p.team === myTeam).length} approbation(s)
+                    </p>
+                    {iHaveApproved ? (
+                        <p className="text-xs text-green-400"><CheckIcon className="inline-block w-3.5 h-3.5 align-text-bottom mr-1" />Vous avez approuvé — en attente des coéquipiers</p>
+                    ) : (
+                        <button onClick={handleApprove}
+                            className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition-colors">
+                            Approuver
+                        </button>
+                    )}
+                    <button onClick={handleCancel}
+                        className="ml-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-colors">
+                        Annuler
+                    </button>
+                </div>
+            )}
+
+            {/* Bouton changer de mot */}
+            {myTeam !== null && !isPendingForMyTeam && changesLeft > 0 && (
+                <div className="mb-4">
+                    <button
+                        onClick={handleRequestChange}
+                        className="text-xs text-white/30 hover:text-white/60 underline underline-offset-2 transition-colors"
+                    >
+                        Changer de mot ({changesLeft} restant{changesLeft > 1 ? 's' : ''})
+                    </button>
+                </div>
+            )}
 
             {myTeam !== null && (
                 <div className="space-y-2 text-left">
                     <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs text-white/30">
-                            ✏️ Pièges de l'équipe
-                            {!rich && <span className="ml-1 text-white/20">(badges disponibles après mise à jour serveur)</span>}
+                        <p className="text-xs text-gray-400 dark:text-white/30">
+                            <PencilIcon className="inline-block w-3.5 h-3.5 align-text-bottom mr-1" />Pièges de l'équipe
                         </p>
                         {rich && teammates.length > 0 && (
                             <div className="flex gap-1.5">
@@ -325,7 +377,7 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
                 </div>
             )}
 
-            <p className="text-white/20 text-xs mt-4 text-center">
+            <p className="text-gray-400 dark:text-white/20 text-xs mt-4 text-center">
                 La partie démarre automatiquement à la fin du chrono…
             </p>
         </div>
@@ -346,8 +398,8 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
     const borderClass = ownerUsername && colors
         ? `${colors.border} ${colors.bg}`
         : isMe && value
-        ? 'border-orange-500/40 bg-orange-500/5'
-        : 'border-white/10 bg-white/5';
+            ? 'border-orange-500/40 bg-orange-500/5'
+            : 'border-white/10 bg-white/5';
 
     return (
         <div className="relative">
@@ -355,10 +407,10 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
                 value={value}
                 onChange={e => onChange(index, e.target.value)}
                 placeholder={`Mot piégé ${index + 1}`}
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm pr-24
-                    focus:outline-none placeholder:text-white/20 transition-colors duration-150
+                className={`w-full border rounded-lg px-3 py-2.5 text-sm pr-24 font-semibold
+                    focus:outline-none placeholder:text-white/30 placeholder:font-normal transition-colors duration-150
                     ${borderClass}
-                    ${ownerUsername ? 'text-white/50' : 'text-white focus:border-orange-400/70'}`}
+                    ${(ownerUsername || (isMe && value)) ? 'text-white/90' : 'text-white focus:border-orange-400/70'}`}
             />
             {ownerUsername && colors && (
                 <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5
@@ -368,7 +420,7 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
             )}
             {isMe && value && !ownerUsername && (
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5
-                    rounded-full pointer-events-none bg-orange-500/15 text-orange-300/70">
+                    rounded-full pointer-events-none bg-orange-500/15 text-orange-600 dark:text-orange-300/70">
                     moi
                 </span>
             )}

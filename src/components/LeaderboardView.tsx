@@ -1,14 +1,25 @@
+// src/components/LeaderboardView.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { GAME_CONFIG } from '@/lib/gameConfig';
+import { GAME_CONFIG, GameType as Game } from '@/lib/gameConfig';
+import { GAME_COLOR } from '@/lib/gameColor';
 import Pagination from '@/components/Pagination';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import GameIcon from '@/components/GameIcon';
+import { BookOpenIcon, ChartBarIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 
-type Game = 'uno' | 'skyjow' | 'taboo' | 'quiz' | 'yahtzee' | 'puissance4';
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-bold">1</span>;
+    if (rank === 2) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-xs font-bold">2</span>;
+    if (rank === 3) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-700 dark:bg-orange-800 text-orange-50 dark:text-orange-100 text-xs font-bold">3</span>;
+    return <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">#{rank}</span>;
+}
 
 interface LeaderboardEntry {
     rank: number;
@@ -18,6 +29,7 @@ interface LeaderboardEntry {
     gamesPlayed: number;
     wins?: number;
     detail: string;
+    bestLevel?: number;
 }
 
 interface LeaderboardConfig {
@@ -25,6 +37,8 @@ interface LeaderboardConfig {
     higherIsBetter: boolean;
     scoreLabel: string;
     description: string;
+    rules?: string;
+    score?: string;
 }
 
 interface PaginationData {
@@ -34,17 +48,8 @@ interface PaginationData {
     totalPages: number;
 }
 
-const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 const LIMIT = 20;
 
-const GAME_BADGE_ACTIVE: Record<string, string> = {
-    QUIZ: 'bg-blue-600   text-white border-blue-600',
-    UNO: 'bg-orange-500 text-white border-orange-500',
-    TABOO: 'bg-red-600    text-white border-red-600',
-    SKYJOW: 'bg-sky-500    text-white border-sky-500',
-    YAHTZEE: 'bg-purple-600 text-white border-purple-600',
-    PUISSANCE4: 'bg-rose-600   text-white border-rose-600',
-};
 
 interface Props {
     game: Game;
@@ -97,11 +102,12 @@ export default function LeaderboardView({ game }: Props) {
 
     const handleGameChange = (f: GameFilter) => {
         if (f === 'ALL') return;
-        router.push(`/leaderboard/${f.toLowerCase()}`);
+        const key = Object.keys(GAME_CONFIG).find(k => GAME_CONFIG[k as keyof typeof GAME_CONFIG].gameType === f);
+        if (key) router.push(`/leaderboard/${key}`);
     };
 
     const gameType = GAME_CONFIG[game].gameType;
-    const activeClassName = GAME_BADGE_ACTIVE[gameType] ?? 'bg-gray-800 text-white border-gray-800';
+    const activeClassName = GAME_COLOR[gameType]?.badgeActive ?? 'bg-gray-800 text-white border-gray-800';
     const myEntry = leaderboard.find(e => e.userId === session?.user?.id);
     const scoreLabel = config?.scoreLabel ?? GAME_CONFIG[game].scoreLabel;
     const label = config?.label ?? GAME_CONFIG[game].label;
@@ -123,11 +129,11 @@ export default function LeaderboardView({ game }: Props) {
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-3xl flex-shrink-0">
-                        {GAME_CONFIG[game].icon}
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                        <GameIcon gameType={gameType} className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leaderboard {label}</h1>
+                    <div className="flex-1">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Classement {label}</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                             {pagination
                                 ? `${pagination.total} joueur${pagination.total > 1 ? 's' : ''} classé${pagination.total > 1 ? 's' : ''}`
@@ -135,23 +141,47 @@ export default function LeaderboardView({ game }: Props) {
                             }
                         </p>
                     </div>
+                    {GAME_CONFIG[game].mode === 'solo' && (
+                        <Link href={`/game/${game}`}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
+                            Jouer
+                        </Link>
+                    )}
                 </div>
 
-                {/* Description */}
-                <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
-                        📊 Calcul des points
-                    </p>
-                    <p className="text-sm text-gray-700 dark:text-gray-200">
-                        {config?.description ?? GAME_CONFIG[game].description}
-                    </p>
+                {/* Description / Rules / Score */}
+                <div className="mb-6 space-y-2">
+                    {(config?.description ?? GAME_CONFIG[game].description) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</h2>
+                            <p className="text-sm text-gray-700 dark:text-gray-200">
+                                {config?.description ?? GAME_CONFIG[game].description}
+                            </p>
+                        </div>
+                    )}
+                    {(config?.rules ?? GAME_CONFIG[game].rules) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><BookOpenIcon className="w-3.5 h-3.5" /> Règles</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-200">
+                                {config?.rules ?? GAME_CONFIG[game].rules}
+                            </p>
+                        </div>
+                    )}
+                    {(config?.score ?? GAME_CONFIG[game].score) && (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><ChartBarIcon className="w-3.5 h-3.5" /> Calcul des points</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-200">
+                                {config?.score ?? GAME_CONFIG[game].score}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Ma position */}
                 {myEntry && (
                     <div className="mb-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-5 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl">{MEDAL[myEntry.rank] ?? `#${myEntry.rank}`}</span>
+                            <RankBadge rank={myEntry.rank} />
                             <div>
                                 <p className="font-bold text-gray-900 dark:text-white">
                                     {myEntry.username} <span className="text-xs text-gray-400 font-normal">(moi)</span>
@@ -161,36 +191,38 @@ export default function LeaderboardView({ game }: Props) {
                         </div>
                         <div className="text-right">
                             <p className="text-2xl font-bold text-blue-700">{myEntry.score}</p>
-                            <p className="text-xs text-gray-400">{scoreLabel}</p>
+                            <p className="text-xs text-gray-400">
+                                {scoreLabel}{myEntry.bestLevel ? ` · niv. ${myEntry.bestLevel}` : ''}
+                            </p>
                         </div>
                     </div>
                 )}
 
                 {/* Tableau */}
                 {initialLoading ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-400 mb-3" />
-                        <p className="text-sm">Chargement du classement…</p>
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                        <LoadingSpinner fullScreen={false} message="Chargement du classement…" />
                     </div>
                 ) : leaderboard.length === 0 ? (
                     <div className="text-center py-12">
-                        <p className="text-4xl mb-3">🏜️</p>
+                        <RectangleGroupIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                         <p className="text-gray-600 font-semibold">Aucune partie enregistrée</p>
                         <p className="text-gray-400 text-sm mt-1">Soyez le premier à jouer !</p>
                     </div>
                 ) : (
-                    <div className={`relative transition-opacity duration-150 ${refetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                        {refetching && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center">
-                                <div className="w-6 h-6 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-                            </div>
-                        )}
+                    <LoadingOverlay loading={refetching}>
 
                         <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
-                            <table className="min-w-full divide-y divide-gray-100">
+                            <table className="w-full table-fixed divide-y divide-gray-100">
+                                <colgroup>
+                                    <col style={{ width: '72px' }} />
+                                    <col style={{ width: '22%' }} />
+                                    <col style={{ width: '16%' }} />
+                                    <col />
+                                </colgroup>
                                 <thead className="bg-gray-50 dark:bg-gray-800">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">Rang</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
@@ -204,24 +236,24 @@ export default function LeaderboardView({ game }: Props) {
                                             <tr key={entry.userId}
                                                 className={`transition-colors ${isMe ? 'bg-blue-50 dark:bg-blue-900/20 font-semibold' : isPodium ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    {MEDAL[entry.rank]
-                                                        ? <span className="text-xl">{MEDAL[entry.rank]}</span>
-                                                        : <span className="text-sm text-gray-500 dark:text-gray-400 font-semibold">#{entry.rank}</span>
-                                                    }
+                                                    <RankBadge rank={entry.rank} />
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap">
-                                                    <Link href={isMe ? '/dashboard' : `/profil/${entry.username}`}
-                                                        className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400">
+                                                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
+                                                    <Link href={isMe ? '/dashboard' : `/user/${entry.username}`}
+                                                        className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400 truncate block">
                                                         {entry.username}
                                                     </Link>
-                                                    {isMe && <span className="ml-1 text-xs opacity-60">(moi)</span>}
+                                                    {isMe && <span className="text-xs opacity-60">(moi)</span>}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                                                         {entry.score}
                                                     </span>
+                                                    {!!entry.bestLevel && (
+                                                        <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
+                                                    )}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                                                <td className="px-4 py-3 hidden sm:table-cell">
                                                     <span className="text-xs text-gray-700 dark:text-gray-300">{entry.detail}</span>
                                                 </td>
                                             </tr>
@@ -243,7 +275,7 @@ export default function LeaderboardView({ game }: Props) {
                                 />
                             </>
                         )}
-                    </div>
+                    </LoadingOverlay>
                 )}
             </div>
         </div>

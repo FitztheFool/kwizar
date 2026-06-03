@@ -1,3 +1,4 @@
+// src/app/quiz/available/page.tsx
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -5,11 +6,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { plural } from '@/lib/utils';
-import QuizCard from '@/components/QuizCard';
-import QuizFilters from '@/components/QuizFilters';
+import QuizCard from '@/components/Quiz/QuizCard';
+import QuizFilters from '@/components/Quiz/QuizFilters';
 import Pagination from '@/components/Pagination';
 import ScoreList from '@/components/ScoreList';
 import type { TabType } from '@/types/dashboard';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const PAGE_SIZE = 6;
 
@@ -67,6 +70,7 @@ export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState<TabType>(getTabFromHash);
 
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const [quizzesTotal, setQuizzesTotal] = useState(0);
     const [quizzesTotalPages, setQuizzesTotalPages] = useState(0);
     const [search, setSearch] = useState('');
     const [categoryId, setCategoryId] = useState('');
@@ -105,6 +109,7 @@ export default function DashboardPage() {
             const data = await res.json();
             const list = Array.isArray(data) ? data : data.quizzes;
             setQuizzes(list);
+            setQuizzesTotal(Array.isArray(data) ? list.length : data.total);
             setQuizzesTotalPages(Array.isArray(data) ? Math.ceil(list.length / PAGE_SIZE) : data.totalPages);
             setQuizPoints((prev) => ({ ...prev, ...computePoints(list) }));
         },
@@ -178,10 +183,8 @@ export default function DashboardPage() {
 
     if (status === 'loading' || loading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-                <div className="text-center">
-                    <LoadingSpinner />
-                </div>
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <LoadingSpinner fullScreen={false} message="Chargement des quiz..." />
             </div>
         );
     }
@@ -194,7 +197,14 @@ export default function DashboardPage() {
 
             {activeTab === 'available' && (
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Quiz disponibles</h2>
+                    <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {plural(quizzesTotal, 'Quiz disponible', 'Quiz disponibles')}
+                        </h2>
+                        <span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                            {quizzesTotal}
+                        </span>
+                    </div>
                     <div className="mb-6">
                         <QuizFilters
                             search={search}
@@ -304,7 +314,7 @@ export default function DashboardPage() {
                                     <p className="text-xs font-semibold tracking-wide text-emerald-700 uppercase">{plural(myScores.length, 'Quiz complété', 'Quizzes complétés')}</p>
                                     <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{myScores.length}</p>
                                 </div>
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-xl shadow-inner">✅</div>
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 shadow-inner"><CheckCircleIcon className="w-6 h-6 text-green-500" /></div>
                             </div>
                             <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Nombre de quiz terminés avec un score enregistré</p>
                         </div>
@@ -314,7 +324,7 @@ export default function DashboardPage() {
                                     <p className="text-xs font-semibold tracking-wide text-violet-700 uppercase">{plural(myQuizzesTotal, 'Quiz créé', 'Quizzes créés')}</p>
                                     <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{myQuizzesTotal}</p>
                                 </div>
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-xl shadow-inner">✍️</div>
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 shadow-inner"><PencilSquareIcon className="w-6 h-6 text-violet-600" /></div>
                             </div>
                             <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Tes quiz publiés ou conservés dans ton espace</p>
                         </div>

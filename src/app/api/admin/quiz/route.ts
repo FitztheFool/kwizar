@@ -1,3 +1,4 @@
+// src/app/api/admin/quiz/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
@@ -7,11 +8,18 @@ export async function GET(req: NextRequest) {
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('pageSize') || '10');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20', 10) || 20));
+    const q = searchParams.get('q')?.trim() ?? '';
+    const categoryId = searchParams.get('categoryId')?.trim() ?? '';
+    const where: NonNullable<NonNullable<Parameters<typeof prisma.quiz.findMany>[0]>['where']> = {};
+    if (q) where.title = { contains: q, mode: 'insensitive' };
+    if (categoryId === 'none') (where as any).categoryId = null;
+    else if (categoryId) where.categoryId = categoryId;
 
     const [quizzes, total] = await Promise.all([
         prisma.quiz.findMany({
+            where,
             select: {
                 id: true,
                 title: true,
@@ -26,7 +34,7 @@ export async function GET(req: NextRequest) {
             skip: (page - 1) * pageSize,
             take: pageSize,
         }),
-        prisma.quiz.count(),
+        prisma.quiz.count({ where }),
     ]);
 
     return NextResponse.json({ quizzes, total, totalPages: Math.ceil(total / pageSize) });

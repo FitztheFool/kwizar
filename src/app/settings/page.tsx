@@ -1,21 +1,40 @@
+// src/app/settings/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useSession, signOut } from 'next-auth/react';
+import { uploadToCloudinary } from '@/lib/uploadToCloudinary';
 import Link from 'next/link';
+import { UserIcon, LockClosedIcon, SwatchIcon, SunIcon, MoonIcon, ComputerDesktopIcon, Cog6ToothIcon, PencilSquareIcon, CheckIcon, XMarkIcon, ExclamationTriangleIcon, TrashIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 type TabType = 'theme' | 'compte' | 'securite';
 type DeleteType = 'soft' | 'hard';
 
+const TAB_HASHES: Record<TabType, string> = {
+    compte:   '#compte',
+    securite: '#securite',
+    theme:    '#theme',
+};
+const HASH_TO_TAB: Record<string, TabType> = {
+    '#compte':   'compte',
+    '#securite': 'securite',
+    '#theme':    'theme',
+};
+
+function readTabFromHash(): TabType | null {
+    if (typeof window === 'undefined') return null;
+    return HASH_TO_TAB[window.location.hash] ?? null;
+}
+
 export default function SettingsPage() {
-    const router = useRouter();
     const { data: session, update: updateSession } = useSession();
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState<TabType>('theme');
     const [mounted, setMounted] = useState(false);
     const initialized = useRef(false);
+    const isAnonymous = session?.user?.isAnonymous ?? false;
 
     // Password
     const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
@@ -51,21 +70,39 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (!session) return;
-
         if (!initialized.current) {
-            // Premier chargement — initialisation complète
             initialized.current = true;
-            setActiveTab('compte');
+            const fromHash = readTabFromHash();
+            const initial: TabType = fromHash ?? (isAnonymous ? 'theme' : 'compte');
+            setActiveTab(initial);
+            // Make sure the hash reflects the resolved tab (e.g. no-hash → #compte).
+            if (typeof window !== 'undefined' && window.location.hash !== TAB_HASHES[initial]) {
+                history.replaceState(null, '', TAB_HASHES[initial]);
+            }
             setUsernameValue(session.user?.username ?? session.user?.name ?? '');
             setEmailValue(session.user?.email ?? '');
         } else {
-            // Mise à jour de session (ex: updateSession) — ne pas toucher activeTab ni les statuts
             setUsernameValue(session.user?.username ?? session.user?.name ?? '');
-            if (!emailUpdated) {
-                setEmailValue(session.user?.email ?? '');
-            }
+            if (!emailUpdated) setEmailValue(session.user?.email ?? '');
         }
     }, [session]);
+
+    // Sync tab when the URL hash changes (back/forward, manual edit, deep link).
+    useEffect(() => {
+        const onHash = () => {
+            const t = readTabFromHash();
+            if (t) setActiveTab(t);
+        };
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+    }, []);
+
+    const selectTab = (tab: TabType) => {
+        setActiveTab(tab);
+        if (typeof window !== 'undefined' && window.location.hash !== TAB_HASHES[tab]) {
+            history.pushState(null, '', TAB_HASHES[tab]);
+        }
+    };
 
     const u = session?.user?.username ?? '';
 
@@ -78,9 +115,12 @@ export default function SettingsPage() {
         setAvatarPreview(URL.createObjectURL(file));
         setAvatarLoading(true);
         try {
-            const formData = new FormData();
-            formData.append('avatar', file);
-            const res = await fetch(`/api/user/${u}/upload-avatar`, { method: 'POST', body: formData });
+            const cloudinaryUrl = await uploadToCloudinary(file, 'avatars');
+            const res = await fetch(`/api/user/${u}/upload-avatar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl: cloudinaryUrl }),
+            });
             const data = await res.json();
             if (!res.ok) {
                 setAvatarStatus({ type: 'error', msg: data.error ?? 'Erreur upload.' });
@@ -88,9 +128,10 @@ export default function SettingsPage() {
             } else {
                 setAvatarStatus({ type: 'success', msg: 'Avatar mis à jour !' });
                 setAvatarPreview(data.imageUrl);
+                await updateSession();
             }
         } catch {
-            setAvatarStatus({ type: 'error', msg: 'Erreur réseau.' });
+            setAvatarStatus({ type: 'error', msg: 'Erreur upload.' });
             setAvatarPreview(null);
         } finally {
             setAvatarLoading(false);
@@ -112,6 +153,7 @@ export default function SettingsPage() {
             } else {
                 setUsernameStatus({ type: 'success', msg: 'Username mis à jour !' });
                 setUsernameEdit(false);
+                await updateSession();
             }
         } catch {
             setUsernameStatus({ type: 'error', msg: 'Erreur réseau.' });
@@ -133,9 +175,7 @@ export default function SettingsPage() {
             if (!res.ok) {
                 setEmailStatus({ type: 'error', msg: data.error ?? 'Erreur serveur.' });
             } else {
-                setEmailUpdated(true);
-                setEmailEdit(false);
-                setEmailStatus({ type: 'success', msg: 'Email mis à jour !' });
+                await signOut({ callbackUrl: '/login?msg=email-changed' });
             }
         } catch {
             setEmailStatus({ type: 'error', msg: 'Erreur réseau.' });
@@ -203,68 +243,72 @@ export default function SettingsPage() {
         setDeleteStatus(null);
     };
 
-    const TABS: { id: TabType; label: string; icon: string; requireAuth: boolean }[] = [
-        { id: 'compte', label: 'Compte', icon: '👤', requireAuth: true },
-        { id: 'securite', label: 'Sécurité', icon: '🔒', requireAuth: true },
-        { id: 'theme', label: 'Thème', icon: '🎨', requireAuth: false },
+    const TABS: { id: TabType; label: string; icon: React.ReactNode; requireAuth: boolean }[] = [
+        { id: 'compte', label: 'Compte', icon: <UserIcon className="w-4 h-4" />, requireAuth: true },
+        { id: 'securite', label: 'Sécurité', icon: <LockClosedIcon className="w-4 h-4" />, requireAuth: true },
+        { id: 'theme', label: 'Thème', icon: <SwatchIcon className="w-4 h-4" />, requireAuth: false },
     ];
 
     const visibleTabs = TABS.filter(t => !t.requireAuth || !!session);
 
-    const THEMES = [
-        { id: 'light', label: 'Clair', icon: '☀️', desc: 'Interface lumineuse' },
-        { id: 'dark', label: 'Sombre', icon: '🌙', desc: 'Interface sombre' },
-        { id: 'system', label: 'Système', icon: '💻', desc: 'Suit les préférences de votre appareil' },
+    const THEMES: { id: string; label: string; icon: React.ReactNode; desc: string }[] = [
+        { id: 'light', label: 'Clair', icon: <SunIcon className="w-10 h-10" />, desc: 'Interface lumineuse' },
+        { id: 'dark', label: 'Sombre', icon: <MoonIcon className="w-10 h-10" />, desc: 'Interface sombre' },
+        { id: 'system', label: 'Système', icon: <ComputerDesktopIcon className="w-10 h-10" />, desc: "Suit les préférences de votre appareil" },
     ];
 
     const currentAvatar = avatarPreview ?? session?.user?.image ?? null;
     const displayName = session?.user?.username ?? session?.user?.name ?? 'Utilisateur';
     const emailMatch = deleteEmail.trim().toLowerCase() === (emailUpdated ? emailValue : session?.user?.email ?? '').toLowerCase();
 
+
     if (!mounted) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
+        <div className="min-h-screen bg-transparent p-4 md:p-8">
             <div className="max-w-3xl mx-auto">
 
                 {/* Header */}
                 <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mb-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <button
-                            onClick={() => router.back()}
-                            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 inline-flex items-center gap-1 transition-colors"
-                        >
-                            ← Retour
-                        </button>
-                        <Link href="/dashboard" className="text-sm text-blue-500 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
-                            📊 Dashboard
-                        </Link>
-                    </div>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl">⚙️</div>
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"><Cog6ToothIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" /></div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Paramètres</h1>
                             <p className="text-gray-500 dark:text-gray-400 text-sm">Personnalisez votre expérience</p>
                         </div>
                     </div>
+                    {isAnonymous && (
+                        <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                            <p className="text-sm text-amber-700 dark:text-amber-400">
+                                <LockClosedIcon className="w-4 h-4 inline mr-1" />Finalisez votre inscription pour accéder à toutes les options.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Tabs */}
                 <div className="border-b-2 border-gray-200 dark:border-gray-700">
                     <div className="flex gap-2">
-                        {visibleTabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`pb-3 px-4 font-semibold text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                                    }`}
-                            >
-                                <span>{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
+                        {visibleTabs.map((tab) => {
+                            const disabled = isAnonymous && tab.id !== 'theme';
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => !disabled && selectTab(tab.id)}
+                                    disabled={disabled}
+                                    title={disabled ? 'Non disponible pour les invités' : undefined}
+                                    className={`pb-3 px-4 font-semibold text-sm transition-colors border-b-2 flex items-center gap-2 ${disabled
+                                        ? 'border-transparent text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                        : activeTab === tab.id
+                                            ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                        }`}
+                                >
+                                    <span>{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -282,7 +326,7 @@ export default function SettingsPage() {
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {avatarStatus.type === 'success' ? '✅' : '❌'} {avatarStatus.msg}
+                                    {avatarStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{avatarStatus.msg}
                                 </div>
                             )}
 
@@ -326,14 +370,17 @@ export default function SettingsPage() {
                         {/* Email */}
                         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Adresse email</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Email utilisé pour la connexion</p>
-
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Email utilisé pour la connexion</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+                                <ExclamationTriangleIcon className="inline-block w-3.5 h-3.5 text-amber-500 align-text-bottom mr-1" />
+                                Cela vous <span className="font-medium">déconnectera</span>. Et vous devrez <span className="font-medium">valider</span> le mail pour vous reconnecter.
+                            </p>
                             {emailStatus && (
                                 <div className={`mb-4 p-3 rounded-lg text-sm border ${emailStatus.type === 'success'
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {emailStatus.type === 'success' ? '✅' : '❌'} {emailStatus.msg}
+                                    {emailStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{emailStatus.msg}
                                 </div>
                             )}
 
@@ -350,7 +397,7 @@ export default function SettingsPage() {
                                         onClick={() => { setEmailEdit(true); setEmailStatus(null); }}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
-                                        ✏️ Modifier
+                                        <PencilSquareIcon className="w-4 h-4 inline mr-1" />Modifier
                                     </button>
                                 ) : (
                                     <div className="flex gap-2">
@@ -359,7 +406,7 @@ export default function SettingsPage() {
                                             disabled={emailLoading || !emailValue.trim().includes('@')}
                                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
                                         >
-                                            {emailLoading ? '...' : '✓'}
+                                            {emailLoading ? '...' : <CheckIcon className="w-4 h-4" />}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -369,7 +416,7 @@ export default function SettingsPage() {
                                             }}
                                             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
-                                            ✕
+                                            <XMarkIcon className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
@@ -386,7 +433,7 @@ export default function SettingsPage() {
                                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                     : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                     }`}>
-                                    {usernameStatus.type === 'success' ? '✅' : '❌'} {usernameStatus.msg}
+                                    {usernameStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{usernameStatus.msg}
                                 </div>
                             )}
 
@@ -404,7 +451,7 @@ export default function SettingsPage() {
                                         onClick={() => { setUsernameEdit(true); setUsernameStatus(null); }}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                     >
-                                        ✏️ Modifier
+                                        <PencilSquareIcon className="w-4 h-4 inline mr-1" />Modifier
                                     </button>
                                 ) : (
                                     <div className="flex gap-2">
@@ -413,7 +460,7 @@ export default function SettingsPage() {
                                             disabled={usernameLoading || usernameValue.trim().length < 3}
                                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
                                         >
-                                            {usernameLoading ? '...' : '✓'}
+                                            {usernameLoading ? '...' : <CheckIcon className="w-4 h-4" />}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -423,7 +470,7 @@ export default function SettingsPage() {
                                             }}
                                             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                                         >
-                                            ✕
+                                            <XMarkIcon className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
@@ -434,14 +481,13 @@ export default function SettingsPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 border border-red-200 dark:border-red-900">
                             <div className="flex items-center justify-between mb-1">
                                 <h2 className="text-lg font-bold text-red-600 dark:text-red-400">Zone dangereuse</h2>
-                                <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Irréversible</span>
                             </div>
 
                             {!deleteMode && (
                                 <div className="mt-4 space-y-3">
                                     <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800">
                                         <div>
-                                            <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">🔒 Désactiver le compte</p>
+                                            <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 flex items-center gap-1"><LockClosedIcon className="w-4 h-4" />Désactiver le compte</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                 Bloque l'accès sans supprimer vos données. Réactivable à la reconnexion.
                                             </p>
@@ -456,7 +502,7 @@ export default function SettingsPage() {
 
                                     <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
                                         <div>
-                                            <p className="text-sm font-semibold text-red-700 dark:text-red-400">🗑️ Supprimer le compte</p>
+                                            <p className="text-sm font-semibold text-red-700 dark:text-red-400 flex items-center gap-1"><TrashIcon className="w-4 h-4" />Supprimer le compte</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                 Suppression définitive et immédiate de toutes vos données.
                                             </p>
@@ -478,13 +524,13 @@ export default function SettingsPage() {
                                         : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
                                         }`}>
                                         {deleteMode === 'soft'
-                                            ? '⚠️ Votre compte sera désactivé. Vous serez déconnecté immédiatement.'
-                                            : '💀 Toutes vos données seront supprimées définitivement. Cette action est irréversible.'}
+                                            ? <><ExclamationTriangleIcon className="w-4 h-4 inline mr-1" />Votre compte sera désactivé. Vous serez déconnecté immédiatement.</>
+                                            : <><XCircleIcon className="w-4 h-4 inline mr-1" />Toutes vos données seront supprimées définitivement. Cette action est irréversible.</>}
                                     </div>
 
                                     {deleteStatus && (
                                         <div className="p-3 rounded-lg text-sm border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300">
-                                            ❌ {deleteStatus.msg}
+                                            <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />{deleteStatus.msg}
                                         </div>
                                     )}
 
@@ -543,7 +589,7 @@ export default function SettingsPage() {
                                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
                                 : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                                 }`}>
-                                {pwStatus.type === 'success' ? '✅' : '❌'} {pwStatus.msg}
+                                {pwStatus.type === 'success' ? <CheckCircleIcon className="w-4 h-4 inline mr-1 text-green-600" /> : <XCircleIcon className="w-4 h-4 inline mr-1 text-red-600" />}{pwStatus.msg}
                             </div>
                         )}
 
@@ -600,7 +646,7 @@ export default function SettingsPage() {
                                                 </svg>
                                             </div>
                                         )}
-                                        <span className="text-4xl">{t.icon}</span>
+                                        <span className="text-gray-600 dark:text-gray-300">{t.icon}</span>
                                         <div className="text-center">
                                             <div className={`font-semibold text-sm ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
                                                 {t.label}

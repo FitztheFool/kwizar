@@ -1,83 +1,226 @@
+// src/components/GameStatCards.tsx
 'use client';
-import { GAME_EMOJI_MAP } from '@/lib/gameConfig';
+import { useState } from 'react';
+import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { GAME_COLOR } from '@/lib/gameColor';
+import { plural } from '@/lib/utils';
+import GameIcon from '@/components/GameIcon';
 
 interface GameStat {
     count: number;
     points: number;
     wins?: number;
     rounds?: number;
+    correctAnswers?: number;
+    totalAnswers?: number;
+    bestScore?: number;
+    bestLevel?: number;
+}
+
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[9px] font-bold">1</span>;
+    if (rank === 2) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 text-[9px] font-bold">2</span>;
+    if (rank === 3) return <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-700 dark:bg-orange-800 text-orange-50 dark:text-orange-100 text-[9px] font-bold">3</span>;
+    return null;
 }
 
 interface Props {
     gameStats: Record<string, GameStat>;
+    ranks?: Record<string, number>;
     columns?: 4 | 6;
+    hideWinRate?: boolean;
+    defaultExpanded?: boolean;
 }
 
-const GAME_BADGE: Record<string, string> = {
-    QUIZ: 'bg-blue-100   dark:bg-blue-900/40   text-blue-700   dark:text-blue-400',
-    UNO: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400',
-    TABOO: 'bg-red-100    dark:bg-red-900/40    text-red-700    dark:text-red-400',
-    SKYJOW: 'bg-sky-100    dark:bg-sky-900/40    text-sky-700    dark:text-sky-400',
-    YAHTZEE: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400',
-    PUISSANCE4: 'bg-rose-100   dark:bg-rose-900/40   text-rose-700   dark:text-rose-400',
-};
+function fmt(n: number) {
+    if (n >= 10000) {
+        const k = n / 1000;
+        return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+    }
+    return String(n);
+}
 
-export default function GameStatCards({ gameStats, columns = 4 }: Props) {
-    if (Object.keys(gameStats).length === 0) {
-        return <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune statistique disponible.</p>;
+function getSecondaryStat(type: string, stat: GameStat, hideWinRate = false): { value: string | number; label: string } {
+    const { points, count, wins = 0 } = stat;
+    const avg = count > 0 ? Math.round(points / count) : 0;
+
+    switch (type) {
+        case 'SNAKE':
+        case 'TETRIS':
+        case 'SUTOM':
+        case 'SPACE_INVADERS':
+        case 'GAME_2048':
+        case 'FLAPPY_BIRD':
+        case 'PLUMBER':
+            return { value: fmt(stat.bestScore ?? stat.points), label: 'meilleur score' };
+        case 'PACMAN':
+        case 'BREAKOUT':
+            return { value: fmt(stat.bestScore ?? 0), label: 'meilleur score' };
+        case 'SKYJOW':
+            return { value: fmt(avg), label: 'moy/partie' };
+        case 'YAHTZEE':
+        case 'DIAMANT':
+            return { value: fmt(avg), label: 'moy/partie' };
+        case 'JUST_ONE': {
+            const { correctAnswers = 0, count } = stat;
+            const avg = count > 0 ? (correctAnswers / count).toFixed(1) : '0';
+            return { value: `${avg}/13`, label: 'moy. bonnes rép.' };
+        }
+        case 'PUISSANCE4':
+        case 'BATTLESHIP':
+        case 'LUDO':
+        case 'PERUDO':
+        case 'CANT_STOP':
+            if (hideWinRate) return { value: '', label: '' };
+            return { value: wins, label: plural(wins, 'victoire', 'victoires') };
+        case 'QUIZ': {
+            const { correctAnswers = 0, totalAnswers = 0 } = stat;
+            const pct = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+            return { value: `${pct}%`, label: 'bonnes réponses' };
+        }
+        default:
+            return { value: fmt(points), label: 'pts' };
+    }
+}
+
+function getBar(type: string, stat: GameStat): { pct: number; label: string; wins: number | null; color: string } | null {
+    const { count, wins = 0, correctAnswers = 0, totalAnswers = 0 } = stat;
+    if (count === 0) return null;
+
+    if (type === 'QUIZ') {
+        if (totalAnswers === 0) return null;
+        const pct = Math.round((correctAnswers / totalAnswers) * 100);
+        const color = pct >= 70 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+        return { pct, label: '', wins: null, color };
     }
 
-    const pct = columns === 6 ? '16.666%' : '25%';
+    if (type === 'SNAKE' || type === 'TETRIS' || type === 'PACMAN' || type === 'BREAKOUT' || type === 'SUTOM' || type === 'SPACE_INVADERS' || type === 'GAME_2048' || type === 'FLAPPY_BIRD' || type === 'PLUMBER') {
+        return { pct: 0, label: `${fmt(stat.points)} pts`, wins: null, color: 'bg-emerald-500' };
+    }
+
+    const NO_WINRATE = new Set(['JUST_ONE']);
+    if (NO_WINRATE.has(type)) return null;
+
+    const pct = Math.round((wins / count) * 100);
+    const color = pct >= 60 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-rose-500';
+    const NO_WINS_COUNTER = new Set(['PUISSANCE4', 'BATTLESHIP', 'LUDO', 'PERUDO', 'CANT_STOP', 'TETRIS']);
+    return { pct, label: `${pct}% vict.`, wins: NO_WINS_COUNTER.has(type) ? null : wins, color };
+}
+
+const PAGE = 4;
+
+export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = false, defaultExpanded = false }: Props) {
+    const [visibleCount, setVisibleCount] = useState(() => defaultExpanded ? Infinity : PAGE);
+
+    if (Object.keys(gameStats).length === 0) {
+        return <p className="text-gray-400 dark:text-gray-500 text-sm">Aucune statistique disponible.</p>;
+    }
+
+    const sorted = Object.entries(gameStats).sort((a, b) => b[1].count - a[1].count);
+    const visible = sorted.slice(0, visibleCount === Infinity ? sorted.length : visibleCount);
 
     return (
-        <div className="flex flex-wrap justify-center gap-3">
-            {Object.entries(gameStats)
-                .sort((a, b) => b[1].count - a[1].count)
-                .map(([type, { count, points, wins, rounds }]) => (
-                    <div
-                        key={type}
-                        className={`${GAME_BADGE[type] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'} border rounded-xl p-3.5 flex items-center gap-3.5`}
-                        style={{ width: `calc(${pct} - 10px)`, minWidth: 180 }}
-                    >
-                        <div className="text-2xl flex-shrink-0">{GAME_EMOJI_MAP[type] ?? '🎮'}</div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-[11px] font-bold uppercase tracking-widest opacity-70 mb-1.5">{type}</div>
-                            <div className="flex items-center gap-3">
+        <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {visible.map(([type, stat]) => {
+                    const c = GAME_COLOR[type]?.card ?? {
+                        border: 'border-gray-200 dark:border-gray-700',
+                        bg: 'bg-gray-50 dark:bg-gray-800/50',
+                        label: 'text-gray-600 dark:text-gray-400',
+                    };
+                    const secondary = getSecondaryStat(type, stat, hideWinRate);
+                    const bar = hideWinRate ? null : getBar(type, stat);
 
-                                {/* Colonne gauche : parties + manches pour Taboo */}
-                                <div>
-                                    <div className="text-lg font-bold tabular-nums leading-none">{count.toLocaleString()}</div>
-                                    <div className="text-[11px] opacity-60 mt-0.5">parties</div>
-                                    {type === 'TABOO' && rounds !== undefined && rounds > 0 && (
-                                        <>
-                                            <div className="text-lg font-bold tabular-nums leading-none mt-1">{rounds.toLocaleString()}</div>
-                                            <div className="text-[11px] opacity-60 mt-0.5">manches</div>
-                                        </>
-                                    )}
+                    const rankVal = ranks[type];
+                    return (
+                        <div key={type} className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
+                            {/* Header */}
+                            <div className="flex items-center justify-between gap-1 mb-2">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0" />
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${c.label}`}>
+                                        {GAME_LABEL_MAP[type] ?? type}
+                                    </span>
+                                    {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
                                 </div>
+                                {bar && (
+                                    <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>
+                                )}
+                            </div>
 
-                                <div className="w-px self-stretch opacity-20 bg-current" />
-
-                                {/* Colonne droite : points + % victoires */}
-                                <div>
-                                    <div className="text-lg font-bold tabular-nums leading-none">{points.toLocaleString()}</div>
-                                    <div className="text-[11px] opacity-60 mt-0.5">points</div>
-                                    {wins !== undefined && count > 0 && (
-                                        <div className={`text-xs font-bold mt-1 ${wins / count >= 0.6
-                                            ? 'text-green-400'
-                                            : wins / count >= 0.4
-                                                ? 'text-yellow-400'
-                                                : 'text-red-400'
-                                            }`}>
-                                            {Math.round((wins / count) * 100)}% victoires
+                            {/* Stats */}
+                            {(type === 'PACMAN' || type === 'BREAKOUT') ? (
+                                <div className="flex items-end justify-between gap-3">
+                                    <div className="flex items-end gap-3">
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{stat.count}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">partie{stat.count > 1 ? 's' : ''}</div>
+                                        </div>
+                                        <div className="w-px self-stretch bg-gray-200 dark:bg-gray-700" />
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{fmt(stat.bestScore ?? 0)}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">meilleur score</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{stat.bestLevel || 1}</div>
+                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">niveau max</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-end justify-between gap-3">
+                                    <div className="flex items-end gap-3">
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{stat.count}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                                {type === 'TABOO' && stat.rounds && stat.rounds > 0
+                                                    ? `parties · ${stat.rounds}m`
+                                                    : `partie${stat.count > 1 ? 's' : ''}`}
+                                            </div>
+                                        </div>
+                                        <div className="w-px self-stretch bg-gray-200 dark:bg-gray-700" />
+                                        <div>
+                                            <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{secondary.value}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{secondary.label}</div>
+                                        </div>
+                                    </div>
+                                    {bar?.wins !== null && bar?.wins !== undefined && (
+                                        <div className="text-right">
+                                            <div className="text-sm font-bold text-gray-900 dark:text-white leading-none">{bar.wins}</div>
+                                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{plural(bar.wins, 'victoire', 'victoires')}</div>
                                         </div>
                                     )}
                                 </div>
+                            )}
 
-                            </div>
+                            {/* Bar */}
+                            {bar && bar.pct > 0 && (
+                                <div className="mt-2.5 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${bar.color} transition-all`} style={{ width: `${bar.pct}%` }} />
+                                </div>
+                            )}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
+            </div>
+            <div className="flex gap-4">
+                {!defaultExpanded && visibleCount < sorted.length && (
+                    <button
+                        onClick={() => setVisibleCount(v => v + PAGE)}
+                        className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                        Afficher plus ({visibleCount}/{sorted.length}) ↓
+                    </button>
+                )}
+                {!defaultExpanded && visibleCount > PAGE && (
+                    <button
+                        onClick={() => setVisibleCount(v => v - PAGE)}
+                        className="text-xs text-gray-400 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                        Afficher moins ↑
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

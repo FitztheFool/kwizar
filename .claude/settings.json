@@ -1,0 +1,85 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(done)",
+      "Read(//home/faros/**)",
+      "Bash(npm run:*)",
+      "Bash(ls -la /home/faros/dev-launcher/*/src)",
+      "Bash(grep -n \"timeLeft\\\\|timer\\\\|Timer\\\\|countdown\" /home/faros/quiz/src/app/taboo/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"timeLeft\\\\|timer\\\\|Timer\\\\|countdown\" /home/faros/quiz/src/app/skyjow/[lobbyId]/page.tsx)",
+      "Bash(grep \"^import.*TurnTimer\\\\|^import.*useState\" /home/faros/quiz/src/app/battleship/[lobbyId]/page.tsx)",
+      "Bash(grep \"^import.*TurnTimer\\\\|^import.*useState\" /home/faros/quiz/src/app/diamant/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"timerSeconds\\\\|timerMax\\\\|timerRef\\\\|startTimer\\\\|stopTimer\\\\|<Timer \" /home/faros/quiz/src/app/just-one/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"setTimer\\\\b\\\\|maxTimer\\\\|timerRef\\\\|startTimer\\\\|<Timer \" /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"inactivitySeconds\\\\|inactivityIntervalRef\\\\|TimerBadge\\\\|timeLeft\\\\|yahtzee:timer\" /home/faros/quiz/src/app/skyjow/[lobbyId]/page.tsx /home/faros/quiz/src/app/yahtzee/[lobbyId]/page.tsx)",
+      "Bash(head -20 /home/faros/quiz/src/components/Battleship/*.tsx)",
+      "Bash(ls /home/faros/quiz/src/app/quiz/[id]/)",
+      "Bash(grep -n \"^import\" /home/faros/quiz/src/app/quiz/[id]/page.tsx)",
+      "Bash(grep -n \"notFound\\\\|useSearchParams\\\\|useMemo\\\\|useCallback\\\\|useRef\\\\|Link\\\\b\" /home/faros/quiz/src/app/quiz/[id]/page.tsx)",
+      "Bash(grep -n \"notFound\\\\b\\\\|<Link\" /home/faros/quiz/src/app/quiz/[id]/page.tsx)",
+      "Bash(grep -n \"amber-300\\\\|amber-50\\\\|amber-600\\\\|amber-400\\\\|amber-700\" /home/faros/quiz/src/app/lobby/create/[code]/page.tsx)",
+      "Bash(grep -r \"useParams\\\\|useRouter\\\\|useSession\\\\|getSocket\\\\|GameWaitingScreen\\\\|GameOverModal\" /home/faros/quiz/src/app/*/[lobbyId]/page.tsx)",
+      "Bash(for game:*)",
+      "Bash(do file=\"$game/[lobbyId]/page.tsx\" echo \"=== $game ===\" head -15 \"$file\")",
+      "Bash(ls -la /home/faros/dev-launcher/*/src/)",
+      "Bash(ls /home/faros/quiz/src/app/api/user/[username]/)",
+      "Bash(sed -n '528,545p' /home/faros/dev-launcher/diamant-server/src/index.ts)",
+      "Bash(sed -n '555,562p' /home/faros/dev-launcher/diamant-server/src/index.ts)",
+      "Bash(sed -n '484,492p' /home/faros/dev-launcher/diamant-server/src/index.ts)",
+      "Bash(sed -n '355,362p' /home/faros/dev-launcher/impostor-server/src/index.ts)",
+      "Bash(sed -n '290,298p' /home/faros/dev-launcher/just-one-server/src/index.ts)",
+      "Bash(grep -n \"flex-1 overflow\\\\|flex-1 flex\" /home/faros/quiz/src/app/skyjow/[lobbyId]/page.tsx)",
+      "Bash(head -10 grep -n \"flex-1 overflow\\\\|flex-1 flex\" /home/faros/quiz/src/app/puissance4/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"overflow-hidden\" /home/faros/quiz/src/app/uno/[lobbyId]/page.tsx /home/faros/quiz/src/app/yahtzee/[lobbyId]/page.tsx /home/faros/quiz/src/app/puissance4/[lobbyId]/page.tsx /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx /home/faros/quiz/src/app/just-one/[lobbyId]/page.tsx /home/faros/quiz/src/app/taboo/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"h-screen.*overflow-hidden\\\\|h-\\\\[calc\" /home/faros/quiz/src/app/uno/[lobbyId]/page.tsx /home/faros/quiz/src/app/yahtzee/[lobbyId]/page.tsx /home/faros/quiz/src/app/puissance4/[lobbyId]/page.tsx /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx /home/faros/quiz/src/app/just-one/[lobbyId]/page.tsx /home/faros/quiz/src/app/taboo/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"h-screen\\\\|flex-1 overflow-auto\\\\|flex-1 overflow-y\" /home/faros/quiz/src/app/uno/[lobbyId]/page.tsx /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx /home/faros/quiz/src/app/just-one/[lobbyId]/page.tsx /home/faros/quiz/src/app/puissance4/[lobbyId]/page.tsx /home/faros/quiz/src/app/diamant/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"flex-1 overflow-auto\\\\|flex-1 overflow-y\" /home/faros/quiz/src/app/puissance4/[lobbyId]/page.tsx /home/faros/quiz/src/app/diamant/[lobbyId]/page.tsx)",
+      "Bash(grep -n \"IMPOSTOR_GUESS\\\\|guessPhase\\\\|impostorGuessName\\\\|guessInput\\\\|guessSubmitted\" /home/faros/quiz/src/app/impostor/[lobbyId]/page.tsx)",
+      "Bash(git -C /home/faros/quiz show 1bc3d7a --stat)",
+      "Bash(git -C /home/faros/quiz show 1bc3d7a -- src/app/lobby/create/\\\\[code\\\\]/page.tsx)",
+      "Bash(git -C /home/faros/quiz diff src/lib/socket.ts)",
+      "Bash(git -C /home/faros/quiz diff HEAD src/lib/socket.ts)",
+      "Bash(git -C /home/faros/quiz status --short)",
+      "Bash(git -C /home/faros/quiz show HEAD:src/middleware.ts)",
+      "Bash(git -C /home/faros/quiz diff HEAD -- src/lib/gameConfig.ts src/app/lobby/create/\\\\[code\\\\]/page.tsx)",
+      "Bash(git -C /home/faros/quiz diff HEAD -- src/app/login/page.tsx)",
+      "Bash(git -C /home/faros/quiz diff HEAD -- package.json tsconfig.json)",
+      "Bash(npx tsc *)",
+      "Bash(python3)",
+      "Bash(npm view *)",
+      "Bash(npm pack *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('main:', d.get\\('main'\\)\\); print\\('exports:', d.get\\('exports'\\)\\); print\\('files:', d.get\\('files'\\)\\)\")",
+      "Bash([ -f \"$dir/package.json\" ])",
+      "Bash(npx prisma *)"
+    ],
+    "additionalDirectories": [
+      "/home/faros/dev-launcher/impostor-server/src",
+      "/home/faros/dev-launcher/diamant-server/src",
+      "/home/faros/dev-launcher/yahtzee-server/src",
+      "/home/faros/dev-launcher/just-one-server/src",
+      "/home/faros/dev-launcher/taboo-server/src",
+      "/home/faros/dev-launcher/puissance4-server/src",
+      "/home/faros/quiz/src/app/user",
+      "/home/faros/dev-launcher/skyjow-server/src",
+      "/home/faros/dev-launcher/battleship-server/src",
+      "/home/faros/quiz/src/app/uno/[lobbyId]",
+      "/home/faros/quiz/src/app/impostor/[lobbyId]",
+      "/home/faros/dev-launcher/lobby-server/src",
+      "/home/faros/quiz/src/app/api/admin",
+      "/home/faros/kwizar/src/app/api/quiz/[id]"
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "andrej-karpathy-skills@karpathy-skills": true,
+    "caveman@caveman": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "juliusbrussee/caveman"
+      }
+    }
+  }
+}

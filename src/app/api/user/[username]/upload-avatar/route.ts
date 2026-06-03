@@ -1,51 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { requireRegistered } from '@/lib/authGuard';
 
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
+    const { session, error } = await requireRegistered();
+    if (error) return error;
 
     const { username } = await params;
     if (session.user.username !== username)
         return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 });
 
-    const formData = await req.formData();
-    const file = formData.get('avatar') as File | null;
-    if (!file) return NextResponse.json({ error: 'Aucun fichier fourni.' }, { status: 400 });
+    const { imageUrl } = await req.json();
+    if (!imageUrl || typeof imageUrl !== 'string')
+        return NextResponse.json({ error: 'URL image manquante.' }, { status: 400 });
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/tiff'];
-    if (!allowedTypes.includes(file.type))
-        return NextResponse.json({ error: 'Format non supporté. (jpg, png, webp, gif, tiff)' }, { status: 400 });
-
-    if (file.size > 50 * 1024 * 1024)
-        return NextResponse.json({ error: 'Fichier trop lourd (max 50 Mo).' }, { status: 400 });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
-
-    const result = await cloudinary.uploader.upload(base64, {
-        folder: 'avatars',
-        public_id: `user_${session.user.id}`,
-        overwrite: true,
-        transformation: [{ width: 256, height: 256, crop: 'fill', gravity: 'face' }],
-    });
+    let parsedUrl: URL;
+    try { parsedUrl = new URL(imageUrl); } catch {
+        return NextResponse.json({ error: 'URL invalide.' }, { status: 400 });
+    }
+    if (parsedUrl.protocol !== 'https:') {
+        return NextResponse.json({ error: 'URL invalide.' }, { status: 400 });
+    }
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const expectedHost = cloudName ? 'res.cloudinary.com' : null;
+    const expectedPathPrefix = cloudName ? `/${cloudName}/image/upload/` : null;
+    if (
+        !expectedHost ||
+        !expectedPathPrefix ||
+        parsedUrl.hostname !== expectedHost ||
+        !parsedUrl.pathname.startsWith(expectedPathPrefix)
+    ) {
+        return NextResponse.json({ error: 'URL image non autorisée.' }, { status: 400 });
+    }
+    // Vérifie que l'image appartient au dossier avatar du user (signé via upload/sign).
+    if (!parsedUrl.pathname.includes(`/avatar/${session.user.id}/`)) {
+        return NextResponse.json({ error: 'URL image non autorisée.' }, { status: 400 });
+    }
 
     await prisma.user.update({
         where: { id: session.user.id },
-        data: { image: result.secure_url },
+        data: { image: imageUrl },
     });
 
-    return NextResponse.json({ imageUrl: `${result.secure_url}?t=${Date.now()}` });
+    return NextResponse.json({ imageUrl: `${imageUrl}?t=${Date.now()}` });
 }

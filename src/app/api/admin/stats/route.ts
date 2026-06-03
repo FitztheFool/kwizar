@@ -1,3 +1,4 @@
+// src/app/api/admin/stats/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
 import { GAME_CONFIG } from '@/lib/gameConfig';
@@ -49,7 +50,12 @@ export async function GET(req: NextRequest) {
         score: true,
         gameType: true,
         placement: true,
+        team: true,
         gameId: true,
+        abandon: true,
+        afk: true,
+        vsBot: true,
+        botScores: true,
         quiz: { select: { id: true, title: true } },
         user: { select: { username: true } },
     } as const;
@@ -73,8 +79,8 @@ export async function GET(req: NextRequest) {
         totalQuizzes,
         gameStatsByType,
         distinctGamesByType,
-        // rounds Taboo : 1 attempt par partie (dédupliqué par gameId) pour ne pas multiplier par le nb de joueurs
         tabooRoundsPerGame,
+        justOneStatsPerGame,
         topQuizzesAllTime,
         totalPointsAllTime,
         allPlayersForPage,
@@ -82,21 +88,38 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
         prisma.user.count(),
         prisma.quiz.count(),
-        prisma.attempt.groupBy({
-            by: ['gameType'],
-            _sum: { score: true },
-        }),
+        prisma.$queryRaw<{ gameType: string; total_score: number; total_correct: number; total_answers: number }[]>`
+            SELECT
+                "gameType",
+                SUM(score)::int as total_score,
+                SUM("correctAnswers")::int as total_correct,
+                SUM("totalAnswers")::int as total_answers
+            FROM attempts
+            GROUP BY "gameType"
+        `,
         prisma.attempt.findMany({
             select: { gameType: true, gameId: true },
             distinct: ['gameId', 'gameType'],
         }),
-        // 1 ligne par partie Taboo — raw SQL pour garantir la déduplication
+        // Taboo : 1 ligne par partie pour ne pas multiplier par le nb de joueurs
         prisma.$queryRaw<{ total_rounds: number }[]>`
             SELECT SUM(rounds)::int as total_rounds
             FROM (
                 SELECT DISTINCT "gameId", rounds
                 FROM attempts
                 WHERE "gameType" = 'TABOO'
+            ) sub
+        `,
+        // Just One : dédupliqué par gameId pour ne pas multiplier par le nb de joueurs
+        prisma.$queryRaw<{ total_correct: number; total_answers: number }[]>`
+            SELECT
+                SUM("correctAnswers")::int as total_correct,
+                SUM("totalAnswers")::int as total_answers
+            FROM (
+                SELECT DISTINCT ON ("gameId") "correctAnswers", "totalAnswers"
+                FROM attempts
+                WHERE "gameType" = 'JUST_ONE'
+                ORDER BY "gameId", "createdAt" ASC
             ) sub
         `,
         prisma.quiz.findMany({
@@ -123,8 +146,9 @@ export async function GET(req: NextRequest) {
         }),
     ]);
 
-    // Somme des rounds Taboo dédupliqués par partie
     const totalTabooRounds = tabooRoundsPerGame[0]?.total_rounds ?? 0;
+    const totalJustOneCorrect = justOneStatsPerGame[0]?.total_correct ?? 0;
+    const totalJustOneAnswers = justOneStatsPerGame[0]?.total_answers ?? 0;
 
     const filteredGameIndex = new Map<string, {
         createdAt: Date;
@@ -132,7 +156,20 @@ export async function GET(req: NextRequest) {
         gameId: string;
         quiz: { id: string; title: string } | null;
     }>();
+
     for (const a of filteredAttemptsForPage) {
+        const key = a.gameId ?? `solo-${a.user.username}-${a.createdAt.getTime()}`;
+        const existing = filteredGameIndex.get(key);
+        if (existing) {
+            existing.createdAt = a.createdAt;
+            existing.gameType = a.gameType;
+            if (!existing.quiz && a.quiz) {
+                existing.quiz = { id: a.quiz.id, title: a.quiz.title };
+            }
+        }
+    }
+
+    for (const a of allPlayersForPage) {
         const key = a.gameId ?? `solo-${a.user.username}-${a.createdAt.getTime()}`;
         if (!filteredGameIndex.has(key)) {
             filteredGameIndex.set(key, {
@@ -144,12 +181,17 @@ export async function GET(req: NextRequest) {
         }
     }
 
+    const vsBotByGame = new Map<string, boolean>();
+    for (const a of allPlayersForPage) {
+        if (a.vsBot) vsBotByGame.set(a.gameId ?? '', true);
+    }
+
     const gameMap = new Map<string, {
         createdAt: Date;
         gameType: string;
         gameId: string;
         quiz: { id: string; title: string } | null;
-        players: { username: string; score: number; placement: number | null }[];
+        players: { username: string; score: number; placement: number | null; team?: number | null; abandon?: boolean; afk?: boolean; isBot?: boolean }[];
     }>();
 
     for (const gameId of pageGameIds) {
@@ -167,7 +209,36 @@ export async function GET(req: NextRequest) {
                 username: a.user.username ?? 'Anonyme',
                 score: a.score,
                 placement: a.placement,
+                team: a.team,
+                abandon: a.abandon ?? false,
+                afk: a.afk ?? false,
             });
+        }
+    }
+
+    const botScoresByGame = new Map<string, { username: string; score: number; placement: number; team?: number | null }[]>();
+    for (const a of allPlayersForPage) {
+        if (!a.vsBot || !a.botScores || !a.gameId) continue;
+        const bots = a.botScores as { username: string; score: number; placement: number; team?: number | null }[];
+        if (Array.isArray(bots) && bots.length > 0 && !botScoresByGame.has(a.gameId)) {
+            botScoresByGame.set(a.gameId, bots);
+        }
+    }
+
+    for (const [gameId, isVsBot] of vsBotByGame) {
+        if (!isVsBot) continue;
+        const game = gameMap.get(gameId);
+        if (!game) continue;
+        const storedBots = botScoresByGame.get(gameId);
+        if (storedBots && storedBots.length > 0) {
+            for (const bot of storedBots) {
+                game.players.push({ username: bot.username, score: bot.score, placement: bot.placement, team: bot.team ?? null, abandon: false, afk: false, isBot: true });
+            }
+        } else {
+            const usedPlacements = new Set(game.players.map(p => p.placement).filter(p => p != null));
+            let botPlacement = 1;
+            while (usedPlacements.has(botPlacement)) botPlacement++;
+            game.players.push({ username: 'Bot 1', score: 0, placement: botPlacement, abandon: false, afk: false, isBot: true });
         }
     }
 
@@ -176,6 +247,7 @@ export async function GET(req: NextRequest) {
         gameType: g.gameType,
         gameId: g.gameId,
         quiz: g.quiz,
+        vsBot: vsBotByGame.get(g.gameId) ?? false,
         playerCount: g.players.length,
         players: g.players.sort((a, b) => {
             if (a.placement != null && b.placement != null) return a.placement - b.placement;
@@ -185,18 +257,33 @@ export async function GET(req: NextRequest) {
         }),
     }));
 
-    const gameStats: Record<string, { count: number; points: number; rounds: number }> = {};
+    const gameStats: Record<string, { count: number; points: number; rounds: number; correctAnswers: number; totalAnswers: number }> = {};
 
-    for (const row of gameStatsByType) {
-        gameStats[row.gameType] = {
-            count: 0,
-            points: row._sum.score ?? 0,
-            rounds: row.gameType === 'TABOO' ? totalTabooRounds : 0,
-        };
+    for (const g of Object.values(GAME_CONFIG)) {
+        gameStats[g.gameType] = { count: 0, points: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
     }
 
+    for (const row of gameStatsByType) {
+        if (!gameStats[row.gameType]) continue;
+        gameStats[row.gameType].points = Number(row.total_score) ?? 0;
+        gameStats[row.gameType].rounds = row.gameType === 'TABOO' ? totalTabooRounds : 0;
+        // Just One : on écrase après avec les valeurs dédupliquées
+        if (row.gameType !== 'JUST_ONE') {
+            gameStats[row.gameType].correctAnswers = Number(row.total_correct) ?? 0;
+            gameStats[row.gameType].totalAnswers = Number(row.total_answers) ?? 0;
+        }
+    }
+
+    // Just One : valeurs dédupliquées par gameId
+    gameStats['JUST_ONE'].correctAnswers = totalJustOneCorrect;
+    gameStats['JUST_ONE'].totalAnswers = totalJustOneAnswers;
+
+    // Taboo : rounds dédupliqués par gameId
+    if (gameStats['TABOO']) gameStats['TABOO'].rounds = totalTabooRounds;
+
+    // ← boucle unique, plus de doublon
     for (const g of distinctGamesByType) {
-        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, rounds: 0 };
+        if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0 };
         gameStats[g.gameType].count++;
     }
 

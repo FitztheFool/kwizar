@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
+import { requireRegistered } from '@/lib/authGuard';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,8 +13,8 @@ export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
+    const { session, error } = await requireRegistered();
+    if (error) return error;
 
     const { username } = await params;
     if (session.user.username !== username)
@@ -30,15 +29,13 @@ export async function DELETE(
         return NextResponse.json({ error: 'Type invalide.' }, { status: 400 });
 
     if (type === 'soft') {
-        // Désactivation — bloque la connexion, réactivable
         await prisma.user.update({
             where: { id: session.user.id },
-            data: { deactivatedAt: new Date() },
+            data: { status: 'DEACTIVATED', deactivatedAt: new Date() },
         });
         return NextResponse.json({ success: true, type: 'soft' });
     }
 
-    // Hard delete — suppression totale
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { image: true },

@@ -1,7 +1,8 @@
+// src/app/api/leaderboard/games/route.ts
 // app/api/leaderboard/games/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { GameType } from '@prisma/client';
+import { GameType } from '@/generated/prisma/client';
 import { GAME_CONFIG } from '@/lib/gameConfig';
 
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
         const config = GAME_CONFIG[game];
 
         const eligibleUsers = await prisma.user.findMany({
-            where: { role: { notIn: ['ADMIN', 'RANDOM'] } },
+            where: { role: { notIn: ['RANDOM'] } },
             select: { id: true, username: true },
         });
         const eligibleUserIds = eligibleUsers.map(u => u.id);
@@ -68,31 +69,33 @@ export async function GET(req: NextRequest) {
         // UNO, SKYJOW, TABOO, PUISSANCE4, ...
         const attempts = await prisma.attempt.findMany({
             where: { userId: { in: eligibleUserIds }, gameType: config.gameType as GameType },
-            select: { userId: true, score: true, trapScore: true, placement: true, gameId: true },
+            select: { userId: true, score: true, trapScore: true, placement: true, gameId: true, rounds: true },
         });
 
-        // Pour Taboo : rounds dédupliqués par (userId, gameId) via raw SQL
-        // → 1 valeur de rounds par partie par joueur, pas de multiplication
-        const tabooRoundsByUser = game === 'taboo'
-            ? await prisma.$queryRaw<{ userId: string; total_rounds: number }[]>`
-                SELECT "userId", SUM(rounds)::int as total_rounds
-                FROM (
-                    SELECT DISTINCT "userId", "gameId", rounds
-                    FROM attempts
-                    WHERE "gameType" = 'TABOO'
-                      AND "userId" = ANY(${eligibleUserIds})
-                ) sub
-                GROUP BY "userId"
-            `
-            : [];
+        // Pour Taboo : 1 valeur de rounds par partie (distinct sur userId+gameId), puis somme par userId
+        const tabooRoundsByUser: { userId: string; total_rounds: number }[] = [];
+        if (game === 'taboo') {
+            const tabooAttempts = await prisma.attempt.findMany({
+                where: { gameType: 'TABOO', userId: { in: eligibleUserIds } },
+                select: { userId: true, gameId: true, rounds: true },
+                distinct: ['userId', 'gameId'],
+            });
+            const sumByUser = new Map<string, number>();
+            for (const a of tabooAttempts) {
+                sumByUser.set(a.userId, (sumByUser.get(a.userId) ?? 0) + (a.rounds ?? 0));
+            }
+            for (const [userId, total_rounds] of sumByUser) {
+                tabooRoundsByUser.push({ userId, total_rounds });
+            }
+        }
 
         const roundsByUser = new Map<string, number>(
             tabooRoundsByUser.map(r => [r.userId, r.total_rounds])
         );
 
-        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; draws: number }>();
+        const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; draws: number; gameIds: Set<string>; rounds: number[] }>();
         for (const a of attempts) {
-            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], draws: 0 });
+            if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], draws: 0, gameIds: new Set(), rounds: [] });
             const u = byUser.get(a.userId)!;
             u.scores.push(a.score);
             u.trapScores.push(a.trapScore ?? 0);
@@ -101,18 +104,27 @@ export async function GET(req: NextRequest) {
             } else {
                 u.placements.push(a.placement);
             }
+            if (a.gameId) u.gameIds.add(a.gameId);
+            if (a.rounds != null) u.rounds.push(a.rounds);
         }
 
         const sorted = Array.from(byUser.entries())
             .map(([userId, data]) => {
                 const gamesPlayed = data.scores.length;
+
                 const totalScore = data.scores.reduce((s, v) => s + v, 0);
                 const totalTrapScore = data.trapScores.reduce((s, v) => s + v, 0);
                 const avgScore = gamesPlayed > 0 ? Math.round(totalScore / gamesPlayed) : 0;
                 const wins = data.placements.filter(p => p === 1).length;
                 const draws = data.draws;
-                const score = game === 'skyjow' ? avgScore : totalScore;
+                const score = game === 'skyjow' || game === 'just_one' ? avgScore
+                    : game === 'puissance4' || game === 'battleship' || game === 'ludo' ? wins
+                    : (game === 'snake' || game === 'tetris' || game === 'pacman' || game === 'breakout' || game === 'sutom' || game === 'space_invaders' || game === '2048' || game === 'flappy_bird' || game === 'plumber') ? Math.max(...data.scores)
+                        : totalScore;
                 const totalRounds = roundsByUser.get(userId) ?? 0;
+                const bestLevel = (game === 'pacman' || game === 'breakout') && data.rounds.length > 0
+                    ? Math.max(...data.rounds)
+                    : undefined;
 
                 let detail: string;
                 switch (game) {
@@ -120,7 +132,7 @@ export async function GET(req: NextRequest) {
                         detail = `Moy. ${avgScore} pts · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                         break;
                     case 'taboo':
-                        detail = `${totalScore} devinés · ${totalTrapScore} piégés · ${totalRounds} manche${totalRounds > 1 ? 's' : ''}`;
+                        detail = `${totalScore - totalTrapScore} trouvé${totalScore - totalTrapScore > 1 ? 's' : ''} · ${totalTrapScore} piégé${totalTrapScore > 1 ? 's' : ''} · ${totalRounds} manche${totalRounds > 1 ? 's' : ''}`;
                         break;
                     case 'yahtzee':
                         detail = `Moy. ${avgScore} pts · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
@@ -128,6 +140,30 @@ export async function GET(req: NextRequest) {
                     case 'puissance4':
                         detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${draws} nul${draws > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                         break;
+                    case 'just_one':
+                        detail = `Score moyen ${avgScore}/13 · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'battleship':
+                        detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'impostor':
+                    case 'spyfall':
+                        detail = `${totalScore} pt${totalScore > 1 ? 's' : ''} · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'tetris':
+                    case 'snake':
+                    case 'sutom':
+                    case 'space_invaders':
+                    case '2048':
+                    case 'flappy_bird':
+                    case 'plumber':
+                        detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                        break;
+                    case 'pacman':
+                    case 'breakout': {
+                        detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}${bestLevel != null ? ` · meilleur niv. ${bestLevel}` : ''}`;
+                        break;
+                    }
                     default:
                         detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                 }
@@ -139,6 +175,7 @@ export async function GET(req: NextRequest) {
                     gamesPlayed,
                     wins,
                     detail,
+                    bestLevel,
                 };
             })
             .sort((a, b) => config.higherIsBetter ? b.score - a.score : a.score - b.score);
