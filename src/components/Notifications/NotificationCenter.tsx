@@ -125,7 +125,7 @@ export default function NotificationCenter() {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[90vw] max-h-[70vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-2xl z-[70]">
+                <div className="fixed inset-x-2 top-16 w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 max-h-[70vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-2xl z-[70]">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900">
                         <span className="font-bold text-gray-900 dark:text-white">Notifications</span>
                         {total > 0 && <span className="text-xs text-gray-400">{total}</span>}

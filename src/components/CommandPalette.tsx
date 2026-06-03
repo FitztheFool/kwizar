@@ -17,6 +17,9 @@ import {
     ArrowRightStartOnRectangleIcon,
     BookmarkIcon,
     ListBulletIcon,
+    UsersIcon,
+    UserPlusIcon,
+    ClockIcon,
 } from '@heroicons/react/24/outline';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -64,6 +67,11 @@ export default function CommandPalette() {
         if (isAuth) {
             all.push({ id: 'dashboard', label: 'Dashboard', hint: 'COMPTE', Icon: Squares2X2Icon, onSelect: goto('/dashboard') });
         }
+        if (isAuth && !isGuest) {
+            all.push({ id: 'friends', label: 'Amis', hint: 'SOCIAL', Icon: UsersIcon, keywords: 'amis friends social', onSelect: goto('/friends#amis') });
+            all.push({ id: 'friends-requests', label: "Demandes d'ami", hint: 'SOCIAL', Icon: ClockIcon, keywords: 'demandes requests invitations amis pending', onSelect: goto('/friends#demandes') });
+            all.push({ id: 'friends-add', label: 'Ajouter un ami', hint: 'SOCIAL', Icon: UserPlusIcon, keywords: 'ajouter add rechercher chercher ami nouvel', onSelect: goto('/friends#ajouter') });
+        }
         all.push({ id: 'settings', label: 'Paramètres', hint: 'COMPTE', Icon: Cog6ToothIcon, keywords: 'settings preferences', onSelect: goto('/settings') });
         if (isAuth && isAdmin) {
             all.push({ id: 'admin', label: 'Admin', hint: 'COMPTE', Icon: ShieldCheckIcon, onSelect: goto('/admin') });
@@ -83,7 +91,7 @@ export default function CommandPalette() {
             all.push({ id: 'signout', label: 'Déconnexion', hint: 'COMPTE', Icon: ArrowRightStartOnRectangleIcon, keywords: 'logout', onSelect: () => { close(); signOut({ callbackUrl: '/' }); } });
         }
         return all;
-    }, [isAuth, isAdmin, canCreateQuiz, pinned, router, close]);
+    }, [isAuth, isAdmin, isGuest, canCreateQuiz, pinned, router, close]);
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();

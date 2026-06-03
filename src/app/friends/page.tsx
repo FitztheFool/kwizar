@@ -57,10 +57,31 @@ function PersonRow({
     );
 }
 
+const TAB_HASH: Record<Tab, string> = { friends: 'amis', requests: 'demandes', add: 'ajouter' };
+const HASH_TAB: Record<string, Tab> = { amis: 'friends', demandes: 'requests', ajouter: 'add' };
+
 export default function FriendsPage() {
     const { refresh: refreshBadge } = useFriends();
     const { openThread } = useMessages();
-    const [tab, setTab] = useState<Tab>('friends');
+    const [tab, setTabState] = useState<Tab>(() =>
+        typeof window === 'undefined' ? 'friends' : HASH_TAB[window.location.hash.replace('#', '')] ?? 'friends',
+    );
+    // Keep the URL hash in sync so the 3 tabs are deep-linkable (#amis/#demandes/#ajouter).
+    const setTab = (t: Tab) => {
+        setTabState(t);
+        if (typeof window !== 'undefined') {
+            const { pathname, search } = window.location;
+            history.replaceState(null, '', `${pathname}${search}#${TAB_HASH[t]}`);
+        }
+    };
+    useEffect(() => {
+        const sync = () => {
+            const t = HASH_TAB[window.location.hash.replace('#', '')];
+            if (t) setTabState(t);
+        };
+        window.addEventListener('hashchange', sync);
+        return () => window.removeEventListener('hashchange', sync);
+    }, []);
     const [friends, setFriends] = useState<Friend[]>([]);
     const [incoming, setIncoming] = useState<RequestItem[]>([]);
     const [outgoing, setOutgoing] = useState<RequestItem[]>([]);

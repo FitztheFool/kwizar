@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
-import { PlayIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlayIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 type Stats = { parties: number; points: number };
 
@@ -18,20 +18,48 @@ const GAMES_BY_MODE = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SectionDivider({ label, badge, mode }: { label: string; badge: string; mode: GameMode }) {
-    const colors = {
-        solo: 'bg-primary-500',
-        both: 'bg-clay-500',
-        multi: 'bg-felt-600',
-    };
+const MODE_DOT: Record<GameMode, string> = {
+    solo: 'bg-primary-500',
+    both: 'bg-clay-500',
+    multi: 'bg-felt-600',
+};
+
+function GameSection({
+    label,
+    badge,
+    mode,
+    games,
+}: {
+    label: string;
+    badge: string;
+    mode: GameMode;
+    games: [string, unknown][];
+}) {
+    const [open, setOpen] = useState(true);
     return (
-        <div className="flex items-center gap-3 mb-4">
-            <div className={`w-2 h-2 rounded-full ${colors[mode]}`} />
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</h3>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400">
-                {badge}
-            </span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+        <div>
+            <button
+                onClick={() => setOpen(o => !o)}
+                aria-expanded={open}
+                className="w-full flex items-center gap-3 mb-4 group text-left"
+            >
+                <div className={`w-2 h-2 rounded-full ${MODE_DOT[mode]}`} />
+                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                    {label}
+                </h3>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400">
+                    {badge}
+                </span>
+                <ChevronDownIcon className={`w-4 h-4 shrink-0 text-gray-500 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-white transition-transform ${open ? '' : '-rotate-90'}`} />
+                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+            </button>
+            {open && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    {games.map(([key]) => (
+                        <GameCard key={key} gameKey={key} mode={mode} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -106,32 +134,17 @@ export default function HomePage() {
 
                 {/* Solo */}
                 <div className="mt-4">
-                    <SectionDivider label="Solo uniquement" badge="1 joueur" mode="solo" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                        {GAMES_BY_MODE.solo.map(([key]) => (
-                            <GameCard key={key} gameKey={key} mode="solo" />
-                        ))}
-                    </div>
+                    <GameSection label="Solo uniquement" badge="1 joueur" mode="solo" games={GAMES_BY_MODE.solo} />
                 </div>
 
                 {/* Solo + Multi */}
                 <div className="mt-12">
-                    <SectionDivider label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                        {GAMES_BY_MODE.both.map(([key]) => (
-                            <GameCard key={key} gameKey={key} mode="both" />
-                        ))}
-                    </div>
+                    <GameSection label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" games={GAMES_BY_MODE.both} />
                 </div>
 
                 {/* Multi only */}
                 <div className="mt-12">
-                    <SectionDivider label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                        {GAMES_BY_MODE.multi.map(([key]) => (
-                            <GameCard key={key} gameKey={key} mode="multi" />
-                        ))}
-                    </div>
+                    <GameSection label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" games={GAMES_BY_MODE.multi} />
                 </div>
 
             </section>

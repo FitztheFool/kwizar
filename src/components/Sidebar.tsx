@@ -140,7 +140,7 @@ interface SidebarProps {
     isAnonymous?: boolean;
 }
 
-export default function Sidebar({ isOpen, isAuthenticated, userRole, isAnonymous }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, isAnonymous }: SidebarProps) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(true);
     const [hydrated, setHydrated] = useState(false);
@@ -192,7 +192,9 @@ export default function Sidebar({ isOpen, isAuthenticated, userRole, isAnonymous
     };
 
     return (
-        <aside className={`
+        <aside
+            onClick={(e) => { if ((e.target as HTMLElement).closest('a')) onClose?.(); }}
+            className={`
             fixed top-0 left-0 h-full bg-white dark:bg-gray-900 shadow-xl z-30 flex flex-col
             transition-all duration-300
             ${collapsed ? 'w-16' : 'w-64'}
