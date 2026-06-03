@@ -15,7 +15,8 @@
     "postinstall": "prisma generate",
     "kill:port": "fuser -k 3000/tcp",
     "build": "prisma generate && prisma migrate deploy && next build",
-    "build:local": "prisma generate && next build"
+    "build:local": "prisma generate && next build",
+    "db:seed-local-user": "tsx prisma/seed-local-user.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
