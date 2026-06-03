@@ -9,7 +9,7 @@ import UserStats from '@/components/UserStats';
 import { MembersOnlyBanner } from '@/components/MembersOnlyBanner';
 import UserAvatar from '@/components/UserAvatar';
 import FriendButton from '@/components/Friends/FriendButton';
-import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon, PlayIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 // ── Bloc finaliser le compte ───────────────────────────────────────────────────
 
@@ -245,7 +245,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     );
 
     if (notFound || !profile) return (
-        <div className="min-h-screen bg-[#F7F1E7] dark:bg-gray-950 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
             <div className="text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Joueur introuvable</p>
                 <p className="text-gray-500 mb-6">Ce profil n'existe pas ou n'est pas accessible.</p>
@@ -257,7 +257,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     const displayName = profile.name || username;
 
     return (
-        <main className="flex-1 bg-[#F7F1E7] dark:bg-gray-950">
+        <main className="flex-1 bg-[#F7F1E7] text-[#251C15]">
             <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-4">
                 {/* ── Bannière members only ── */}
                 {isOwnProfile && <MembersOnlyBanner isPending={session?.user?.role !== 'GUEST' && session?.user?.status === 'PENDING'} />}
@@ -267,57 +267,86 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                     <ClaimAccountBlock currentUsername={username} isPendingVerification={!session?.user?.isAnonymous && session?.user?.status === 'PENDING'} />
                 )}
 
-                {/* ── Header compact ── */}
-                <div className="rounded-[28px] border border-[#E2D3BE] bg-[#FFFCF5] px-5 py-4 shadow-[0_12px_40px_rgba(37,28,21,0.06)] dark:border-gray-800 dark:bg-gray-900">
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Avatar */}
-                        <UserAvatar
-                            seed={profile.id}
-                            name={displayName}
-                            image={profile.image}
-                            size="md"
-                            shape="square"
-                        />
-
-                        {/* Nom */}
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-base font-bold text-[#251C15] dark:text-white leading-tight truncate">
-                                {displayName}
-                            </h1>
-                            <p className="text-xs text-[#766A5D] dark:text-gray-500">
-                                Profil joueur
-                            </p>
+                {/* ── Header joueur : action directe ── */}
+                <section className="rounded-[28px] border border-[#E2D3BE] bg-[#FFFCF5] shadow-[0_18px_45px_rgba(37,28,21,0.06)] overflow-hidden">
+                    <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr] items-stretch">
+                        <div className="px-5 py-5 md:px-7 md:py-6">
+                            <div className="inline-flex items-center rounded-full border border-[#D8C6AC] bg-[#F7F1E7] px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-[#8A6A37] mb-3">
+                                Espace joueur
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                                <div>
+                                    <h1 className="font-display text-4xl md:text-5xl font-black tracking-tight text-[#251C15] leading-none">
+                                        Jouez !
+                                    </h1>
+                                    <p className="mt-2 max-w-xl text-sm md:text-base text-[#766A5D]">
+                                        Accède directement aux tables ouvertes, puis retrouve tes statistiques et tes quiz ici.
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap gap-2 shrink-0">
+                                    <a
+                                        href="/lobby/all"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1F5B45] px-5 py-2.5 text-sm font-black text-[#FFF8E8] shadow-[0_10px_22px_rgba(31,91,69,0.18)] transition hover:bg-[#174735]"
+                                    >
+                                        <PlayIcon className="w-4 h-4" />
+                                        JOUER
+                                    </a>
+                                    <a
+                                        href="/lobby/create"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8C6AC] bg-[#FFFCF5] px-5 py-2.5 text-sm font-bold text-[#251C15] transition hover:border-[#C58B2B] hover:bg-[#FFF8E8]"
+                                    >
+                                        <PlusIcon className="w-4 h-4" />
+                                        Créer une table
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Action (desktop : même ligne que l'avatar) */}
-                        <div className="hidden sm:flex shrink-0 items-center gap-2">
-                            <a
-                                href="/lobby/all"
-                                className="inline-flex items-center gap-1.5 rounded-full bg-[#1F5B45] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#FFF8E8] shadow-[0_10px_24px_rgba(31,91,69,0.22)] transition hover:bg-[#174735]"
-                            >
-                                <PlayIcon className="w-3.5 h-3.5" />
-                                Jouer
-                            </a>
-                            {/* Tabs */}
-                            <div className="flex gap-0.5 bg-[#F2E8D8] dark:bg-gray-800 rounded-full p-1">
-                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => handleTabChange(tab)}
-                                        className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all ${activeTab === tab
-                                            ? 'bg-[#1F5B45] text-[#FFF8E8] shadow-sm'
-                                            : 'text-[#5D5146] dark:text-gray-400 hover:text-[#1F5B45] dark:hover:text-gray-200'
-                                            }`}
-                                    >
-                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
-                                    </button>
-                                ))}
+                        <div className="border-t lg:border-t-0 lg:border-l border-[#E2D3BE] bg-[#F4E8D8]/70 px-5 py-5 md:px-6 md:py-6 flex items-center">
+                            <div className="w-full flex items-center gap-3">
+                                <UserAvatar
+                                    seed={profile.id}
+                                    name={displayName}
+                                    image={profile.image}
+                                    size="md"
+                                    shape="square"
+                                />
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8A6A37]">
+                                        Profil joueur
+                                    </p>
+                                    <h2 className="text-lg font-black text-[#251C15] truncate">
+                                        {displayName}
+                                    </h2>
+                                </div>
                             </div>
-                            <FriendButton username={username} isOwnProfile={isOwnProfile} />
+                        </div>
+                    </div>
+                </section>
+
+                {/* ── Navigation profil ── */}
+                <div className="rounded-2xl border border-[#E2D3BE] bg-[#FFFCF5] px-4 py-3 shadow-[0_10px_30px_rgba(37,28,21,0.04)]">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex gap-1 rounded-full border border-[#D8C6AC] bg-[#F7F1E7] p-1">
+                            {(['stats', 'quizzes'] as TabType[]).map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => handleTabChange(tab)}
+                                    className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-black transition-all ${activeTab === tab
+                                        ? 'bg-[#1F5B45] text-[#FFF8E8] shadow-sm'
+                                        : 'text-[#766A5D] hover:text-[#251C15]'
+                                        }`}
+                                >
+                                    {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 mr-1.5" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 mr-1.5" />Quiz</>}
+                                </button>
+                            ))}
+                        </div>
+                        <FriendButton username={username} isOwnProfile={isOwnProfile} />
+                        <div className="ml-auto flex items-center gap-2">
                             {!isOwnProfile && (
                                 <button
                                     onClick={() => router.back()}
-                                    className="text-xs text-[#5D5146] dark:text-gray-400 border border-[#D8C6AC] dark:border-gray-700 rounded-full px-3 py-1.5 hover:bg-[#F2E8D8] dark:hover:bg-gray-800 transition shrink-0"
+                                    className="rounded-full border border-[#D8C6AC] bg-[#FFFCF5] px-4 py-2 text-xs font-bold text-[#766A5D] transition hover:border-[#C58B2B] hover:text-[#251C15]"
                                 >
                                     ← Retour
                                 </button>
@@ -325,48 +354,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                             {isOwnProfile && (
                                 <a
                                     href="/settings"
-                                    className="text-xs text-[#5D5146] dark:text-gray-400 border border-[#D8C6AC] dark:border-gray-700 rounded-full px-3 py-1.5 hover:bg-[#F2E8D8] dark:hover:bg-gray-800 transition shrink-0"
-                                >
-                                    <Cog6ToothIcon className="w-3.5 h-3.5 inline mr-1" />Paramètres
-                                </a>
-                            )}
-                        </div>
-                        {/* Tabs + action (mobile : deuxième ligne) */}
-                        <div className="flex sm:hidden w-full items-center gap-2 mt-2">
-                            <a
-                                href="/lobby/all"
-                                className="inline-flex items-center gap-1.5 rounded-full bg-[#1F5B45] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#FFF8E8] shadow-[0_10px_24px_rgba(31,91,69,0.18)] transition hover:bg-[#174735]"
-                            >
-                                <PlayIcon className="w-3.5 h-3.5" />
-                                Jouer
-                            </a>
-                            <div className="flex gap-0.5 bg-[#F2E8D8] dark:bg-gray-800 rounded-full p-1">
-                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => handleTabChange(tab)}
-                                        className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all ${activeTab === tab
-                                            ? 'bg-[#1F5B45] text-[#FFF8E8] shadow-sm'
-                                            : 'text-[#5D5146] dark:text-gray-400 hover:text-[#1F5B45] dark:hover:text-gray-200'
-                                            }`}
-                                    >
-                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
-                                    </button>
-                                ))}
-                            </div>
-                            <FriendButton username={username} isOwnProfile={isOwnProfile} className="ml-auto" />
-                            {!isOwnProfile && (
-                                <button
-                                    onClick={() => router.back()}
-                                    className="ml-auto text-xs text-[#5D5146] dark:text-gray-400 border border-[#D8C6AC] dark:border-gray-700 rounded-full px-3 py-1.5 hover:bg-[#F2E8D8] dark:hover:bg-gray-800 transition shrink-0"
-                                >
-                                    ← Retour
-                                </button>
-                            )}
-                            {isOwnProfile && (
-                                <a
-                                    href="/settings"
-                                    className="ml-auto text-xs text-[#5D5146] dark:text-gray-400 border border-[#D8C6AC] dark:border-gray-700 rounded-full px-3 py-1.5 hover:bg-[#F2E8D8] dark:hover:bg-gray-800 transition shrink-0"
+                                    className="rounded-full border border-[#D8C6AC] bg-[#FFFCF5] px-4 py-2 text-xs font-bold text-[#766A5D] transition hover:border-[#C58B2B] hover:text-[#251C15]"
                                 >
                                     <Cog6ToothIcon className="w-3.5 h-3.5 inline mr-1" />Paramètres
                                 </a>
@@ -374,25 +362,6 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                         </div>
                     </div>
                 </div>
-
-                {isOwnProfile && (
-                    <div className="rounded-[24px] border border-[#E2D3BE] bg-[#FFFCF5] px-5 py-4 shadow-[0_10px_30px_rgba(37,28,21,0.04)] dark:border-gray-800 dark:bg-gray-900">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                            <div>
-                                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#C58B2B]">Table ouverte</p>
-                                <h2 className="mt-1 text-lg font-black text-[#251C15] dark:text-white">Lance une partie sans passer par le menu.</h2>
-                                <p className="mt-1 text-sm text-[#766A5D] dark:text-gray-400">Accès direct aux lobbies multijoueurs disponibles.</p>
-                            </div>
-                            <a
-                                href="/lobby/all"
-                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1F5B45] px-6 py-3 text-sm font-black uppercase tracking-[0.16em] text-[#FFF8E8] shadow-[0_12px_28px_rgba(31,91,69,0.22)] transition hover:bg-[#174735]"
-                            >
-                                <PlayIcon className="h-4 w-4" />
-                                Jouer
-                            </a>
-                        </div>
-                    </div>
-                )}
 
                 {/* ── Contenu ── */}
                 {activeTab === 'stats' && <UserStats username={username} />}
