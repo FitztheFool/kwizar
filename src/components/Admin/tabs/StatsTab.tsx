@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { GAME_CONFIG } from '@/lib/gameConfig';
 import {
     MagnifyingGlassIcon,
     UsersIcon,
@@ -63,7 +64,7 @@ export default function StatsTab({
         quizzes: stats.totals.quizzes,
         games: totalGames,
         points: stats.totals.pointsScored,
-        gameTypes: Object.values(stats.totals.gameStats).filter(v => v.count > 0).length,
+        gameTypes: Object.keys(GAME_CONFIG).length,
     };
 
     return (
