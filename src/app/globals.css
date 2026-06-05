@@ -12,6 +12,12 @@
     @apply text-gray-100;
     background-color: #0c0a09; /* warm espresso (stone-950) */
   }
+
+  /* Visible keyboard-focus indicator across the app (mouse clicks unaffected). */
+  :focus-visible {
+    outline: 2px solid #f59e0b; /* amber-500 — brand accent, visible on both themes */
+    outline-offset: 2px;
+  }
 }
 
 /* ── Brand "Kwizar" hero — subtle felt + wood warmth ── */
