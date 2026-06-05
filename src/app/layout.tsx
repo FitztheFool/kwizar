@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
+import { buildMetadata, SITE_URL } from '@/lib/seo';
 import { Fraunces, DM_Sans } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
@@ -32,8 +33,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-    title: 'Kwizar',
-    description: 'Application de jeux solo et multijoueurs',
+    metadataBase: new URL(SITE_URL),
+    ...buildMetadata(),
     icons: {
         icon: [
             { url: '/logo/favicon.ico', sizes: 'any' },
