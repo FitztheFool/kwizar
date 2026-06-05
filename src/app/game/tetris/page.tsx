@@ -1,12 +1,13 @@
 'use client';
 
 import { useRef } from 'react';
-import { StarIcon, TrophyIcon } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { useTetris } from '@/hooks/useTetris';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import { W, H } from '@/lib/tetris/constants';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
+import BestScores from '@/components/SoloGame/BestScores';
 
 export default function TetrisPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,6 +17,7 @@ export default function TetrisPage() {
         displayLevel,
         displayLines,
         bestScore,
+        globalBest,
         isNewBest,
         submitState,
         startGame,
@@ -41,11 +43,11 @@ export default function TetrisPage() {
             </SoloGameHeader>
 
             {/* ── Stats bar ── */}
-            <div className="w-full max-w-[440px] mb-4 grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
+            <div className="w-full max-w-[440px] mb-4 grid grid-cols-5 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />}   label="SCORE"    value={displayScore}                       color="text-gray-900 dark:text-white" />
                 <StatCell icon={<TetrominoIcon />}                                  label="NIVEAU"   value={displayLevel}                       color="text-purple-600 dark:text-purple-400" />
                 <StatCell icon={<LinesIcon />}                                      label="LIGNES"   value={displayLines}                       color="text-cyan-600 dark:text-cyan-400" />
-                <StatCell icon={<TrophyIcon className="w-3 h-3 text-yellow-500" />} label="MEILLEUR" value={Math.max(bestScore, displayScore)}  color="text-yellow-500 dark:text-yellow-400" />
+                <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
             {/* ── Canvas ── */}

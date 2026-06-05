@@ -11,7 +11,7 @@ export type KeyName = 'left' | 'right' | 'jump' | 'fire';
 export function usePlumber(canvasRef: React.RefObject<HTMLCanvasElement | null>, defaultLevel = 1) {
     const {
         session, phase, phaseRef, startGameRef,
-        displayScore, setDisplayScore, bestScore, isNewBest, submitState,
+        displayScore, setDisplayScore, bestScore, globalBest, isNewBest, submitState,
         endGame: soloEndGame, resetForStart,
     } = useSoloGame({
         gameKey: 'plumber',
@@ -143,7 +143,7 @@ export function usePlumber(canvasRef: React.RefObject<HTMLCanvasElement | null>,
     useEffect(() => () => stopLoop(), [stopLoop]);
 
     return {
-        session, phase, displayScore, bestScore, isNewBest, submitState,
+        session, phase, displayScore, bestScore, globalBest, isNewBest, submitState,
         powerUp, distanceM, startGame, setKey,
         canvasSize: { width: WIDTH, height: HEIGHT },
     };

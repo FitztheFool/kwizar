@@ -34,7 +34,7 @@ function buildAliens(level: number): Alien[] {
 export function useSpaceInvaders(canvasRef: React.RefObject<HTMLCanvasElement | null>, defaultLevel = 1) {
     const {
         session, phase, phaseRef, startGameRef,
-        displayScore, setDisplayScore, bestScore, isNewBest, submitState,
+        displayScore, setDisplayScore, bestScore, globalBest, isNewBest, submitState,
         endGame: soloEndGame, resetForStart,
     } = useSoloGame({
         gameKey: 'space_invaders',
@@ -340,7 +340,7 @@ export function useSpaceInvaders(canvasRef: React.RefObject<HTMLCanvasElement | 
     }, [canvasRef, phaseRef, startGameRef]);
 
     return {
-        session, phase, displayScore, bestScore, isNewBest, submitState,
+        session, phase, displayScore, bestScore, globalBest, isNewBest, submitState,
         lives, wave, startGame,
         canvasSize: { width: WIDTH, height: HEIGHT },
     };

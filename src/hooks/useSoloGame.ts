@@ -36,21 +36,23 @@ export function useSoloGame({
     const [phase, setPhase]             = useState<Phase>('idle');
     const [displayScore, setDisplayScore] = useState(0);
     const [bestScore, setBestScore]     = useState(0);
+    const [globalBest, setGlobalBest]   = useState(0);
     const [isNewBest, setIsNewBest]     = useState(false);
     const [submitState, setSubmitState] = useState<SubmitState>('idle');
 
-    // Best score: localStorage first, then server
+    // Personal best: localStorage first, then server. Global best (leaderboard
+    // top) is fetched from the same endpoint and shown to everyone, even guests.
     useEffect(() => {
         const local = parseInt(localStorage.getItem(localStorageKey) ?? '0');
         if (!isNaN(local)) setBestScore(local);
     }, [localStorageKey]);
 
     useEffect(() => {
-        if (!session?.user) return;
         fetch(`/api/solo/${gameKey}/best`)
             .then(r => r.json())
-            .then(({ best }: { best: number }) => {
+            .then(({ best, global }: { best?: number; global?: number }) => {
                 if (typeof best === 'number' && best > 0) setBestScore(prev => Math.max(prev, best));
+                if (typeof global === 'number') setGlobalBest(global);
             })
             .catch(() => {});
     }, [session, gameKey]);
@@ -159,6 +161,7 @@ export function useSoloGame({
         displayScore,
         setDisplayScore,
         bestScore,
+        globalBest,
         isNewBest,
         submitState,
         endGame,

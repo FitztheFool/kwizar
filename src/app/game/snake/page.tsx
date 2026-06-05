@@ -1,13 +1,14 @@
 'use client';
 
 import { useRef } from 'react';
-import { StarIcon, TrophyIcon } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { useSnake } from '@/hooks/useSnake';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import { ColorPicker } from '@/components/Snake/ColorPicker';
 import { COLS, ROWS, CELL } from '@/lib/snake/constants';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
+import BestScores from '@/components/SoloGame/BestScores';
 
 export default function SnakePage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,6 +16,7 @@ export default function SnakePage() {
         phase,
         displayScore,
         bestScore,
+        globalBest,
         isNewBest,
         submitState,
         colorIndex,
@@ -42,9 +44,9 @@ export default function SnakePage() {
             </SoloGameHeader>
 
             {/* ── Stats bar ── */}
-            <div className="w-full max-w-[440px] mb-4 grid grid-cols-2 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
+            <div className="w-full max-w-[440px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />}   label="SCORE"    value={displayScore}                      color="text-gray-900 dark:text-white" align="left" />
-                <StatCell icon={<TrophyIcon className="w-3 h-3 text-yellow-500" />} label="MEILLEUR" value={Math.max(bestScore, displayScore)} color="text-yellow-500 dark:text-yellow-400" align="right" />
+                <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
             {/* ── Canvas ── */}

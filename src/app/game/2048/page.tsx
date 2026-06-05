@@ -1,11 +1,12 @@
 'use client';
 
 import { useRef } from 'react';
-import { StarIcon, TrophyIcon } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { useTwenty48 } from '@/hooks/useTwenty48';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
+import BestScores from '@/components/SoloGame/BestScores';
 import type { Direction } from '@/lib/twenty48/engine';
 
 const TILE_STYLE: Record<number, { bg: string; text: string }> = {
@@ -32,7 +33,7 @@ function tileFontSize(v: number) {
 }
 
 export default function Twenty48Page() {
-    const { board, phase, displayScore, bestScore, isNewBest, submitState, session, startGame, press } = useTwenty48();
+    const { board, phase, displayScore, bestScore, globalBest, isNewBest, submitState, session, startGame, press } = useTwenty48();
     const touch = useRef<{ x: number; y: number } | null>(null);
 
     const onTouchStart = (e: React.TouchEvent) => {
@@ -62,9 +63,9 @@ export default function Twenty48Page() {
                 <span className="text-amber-500/40 text-xs tracking-widest">▮▮</span>
             </SoloGameHeader>
 
-            <div className="w-full max-w-[420px] mb-4 grid grid-cols-2 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
+            <div className="w-full max-w-[420px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" align="left" />
-                <StatCell icon={<TrophyIcon className="w-3 h-3 text-yellow-500" />} label="MEILLEUR" value={Math.max(bestScore, displayScore)} color="text-yellow-500 dark:text-yellow-400" align="right" />
+                <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
             <div className="relative w-full max-w-[420px]" style={{ touchAction: 'none' }}

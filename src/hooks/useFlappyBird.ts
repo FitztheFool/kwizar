@@ -31,7 +31,7 @@ interface Pipe { x: number; gapY: number; scored: boolean }
 export function useFlappyBird(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
     const {
         session, phase, phaseRef, startGameRef,
-        displayScore, setDisplayScore, bestScore, isNewBest, submitState,
+        displayScore, setDisplayScore, bestScore, globalBest, isNewBest, submitState,
         endGame: soloEndGame, resetForStart,
     } = useSoloGame({
         gameKey: 'flappy_bird',
@@ -246,7 +246,7 @@ export function useFlappyBird(canvasRef: React.RefObject<HTMLCanvasElement | nul
     useEffect(() => () => stopLoop(), [stopLoop]);
 
     return {
-        session, phase, displayScore, bestScore, isNewBest, submitState,
+        session, phase, displayScore, bestScore, globalBest, isNewBest, submitState,
         startGame, flap,
         canvasSize: { width: WIDTH, height: HEIGHT },
     };

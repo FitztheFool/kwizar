@@ -1,18 +1,19 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { StarIcon, TrophyIcon, HeartIcon, FireIcon } from '@heroicons/react/24/solid';
+import { StarIcon, HeartIcon, FireIcon } from '@heroicons/react/24/solid';
 import { usePlumber } from '@/hooks/usePlumber';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
+import BestScores from '@/components/SoloGame/BestScores';
 import AdminDebugControl from '@/components/SoloGame/AdminDebugControl';
 
 export default function PlumberPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [debugLevel, setDebugLevel] = useState(1);
     const {
-        phase, displayScore, bestScore, isNewBest, submitState, session,
+        phase, displayScore, bestScore, globalBest, isNewBest, submitState, session,
         powerUp, distanceM, startGame, setKey, canvasSize,
     } = usePlumber(canvasRef, debugLevel);
 
@@ -37,9 +38,9 @@ export default function PlumberPage() {
                 <span className="text-rose-500/40 text-xs tracking-widest">★★★</span>
             </SoloGameHeader>
 
-            <div className="w-full max-w-[480px] mb-2 grid grid-cols-2 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
+            <div className="w-full max-w-[480px] mb-2 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" align="left" />
-                <StatCell icon={<TrophyIcon className="w-3 h-3 text-yellow-500" />} label="MEILLEUR" value={Math.max(bestScore, displayScore)} color="text-yellow-500 dark:text-yellow-400" align="right" />
+                <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
             <div className="w-full max-w-[480px] mb-3 flex items-center justify-between text-xs text-gray-500 dark:text-white/40">
