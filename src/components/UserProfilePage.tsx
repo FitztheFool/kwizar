@@ -2,6 +2,8 @@
 'use client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import MyQuizzesPanel from '@/components/Quiz/MyQuizzesPanel';
@@ -191,9 +193,7 @@ interface Props {
 export default function UserProfilePage({ username, isOwnProfile = false }: Props) {
     const router = useRouter();
     const { data: session } = useSession();
-    const [profile, setProfile] = useState<ProfileData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [notFound, setNotFound] = useState(false);
+    const { data: profile, error: profileError, isLoading } = useSWR<ProfileData>(`/api/user/${username}`, fetcher);
     const [activeTab, setActiveTab] = useState<TabType>(() => {
         if (typeof window === 'undefined') return 'stats';
         const hash = window.location.hash.replace('#', '');
@@ -222,29 +222,13 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
         history.replaceState(null, '', `${pathname}${search}#${tab}`);
     };
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await fetch(`/api/user/${username}`);
-                if (!res.ok) { setNotFound(true); setLoading(false); return; }
-                const data = await res.json();
-                setProfile(data);
-            } catch {
-                setNotFound(true);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [username]);
-
-    if (loading) return (
+    if (isLoading) return (
         <div className="flex-1 flex items-center justify-center p-8">
             <LoadingSpinner fullScreen={false} message="Chargement du profil..." />
         </div>
     );
 
-    if (notFound || !profile) return (
+    if (profileError || !profile) return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
             <div className="text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Joueur introuvable</p>

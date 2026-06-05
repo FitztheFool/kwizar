@@ -1,5 +1,6 @@
 // src/components/QuizCard.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 interface QuizCardProps {
@@ -67,11 +68,13 @@ export default function QuizCard({
         }`}
     >
       {quiz.imageUrl && (
-        <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-4 rounded-t-xl overflow-hidden">
-          <img
+        <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-4 h-32 rounded-t-xl overflow-hidden">
+          <Image
             src={quiz.imageUrl}
             alt={quiz.title}
-            className="w-full h-32 object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, 400px"
+            className="object-cover"
           />
         </div>
       )}

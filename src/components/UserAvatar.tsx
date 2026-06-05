@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { userInitials } from '@/lib/userColor';
 
 // Single brand gradient used everywhere a user is rendered without a picture
@@ -49,8 +50,7 @@ export default function UserAvatar({
     return (
         <div className={`relative ${sizeCls} shrink-0 ${className}`}>
             {image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={image} alt={name} className={`w-full h-full object-cover ${radius}`} />
+                <Image src={image} alt={name} fill sizes="80px" className={`object-cover ${radius}`} />
             ) : (
                 <div className={`w-full h-full bg-gradient-to-br ${AVATAR_GRADIENT} flex items-center justify-center text-white font-black ${radius} shadow-sm`}>
                     {userInitials(name)}

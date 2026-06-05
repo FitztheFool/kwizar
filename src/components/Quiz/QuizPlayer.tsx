@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import TimerBar from '@/components/TimerBar';
 import { useQuizPlayer } from '@/hooks/useQuizPlayer';
@@ -11,6 +12,7 @@ import TextInput from '@/components/Quiz/parts/TextInput';
 import MultiTextInput from '@/components/Quiz/parts/MultiTextInput';
 import FeedbackBanner from '@/components/Quiz/parts/FeedbackBanner';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -85,16 +87,20 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                                     {currentQuestion.text}
                                 </p>
                                 {currentQuestion.imageUrl && (
-                                    <img
+                                    <Image
                                         src={currentQuestion.imageUrl}
                                         alt="Illustration de la question"
-                                        className="mt-4 w-full max-h-64 object-contain rounded-xl border border-gray-100 dark:border-gray-800"
+                                        width={0}
+                                        height={0}
+                                        sizes="(max-width: 768px) 100vw, 640px"
+                                        className="mt-4 w-full h-auto max-h-64 object-contain rounded-xl border border-gray-100 dark:border-gray-800"
                                     />
                                 )}
                                 {currentQuestion.type === 'MCQ' && (
-                                    <p className="mt-2 text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+                                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500/40 px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                                        <CheckCircleIcon className="w-4 h-4" />
                                         Plusieurs réponses possibles
-                                    </p>
+                                    </span>
                                 )}
                             </div>
 

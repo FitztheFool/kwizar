@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
@@ -74,13 +76,10 @@ function fmt(n: number): string {
 
 export default function HomePage() {
     const [lobbyCode, setCode] = useState('');
-    const [stats, setStats] = useState<Stats | null>(null);
+    const { data: stats } = useSWR<Stats>('/api/stats', fetcher);
     const nbJeux = Object.keys(GAME_CONFIG).length;
 
     useEffect(() => { setCode(crypto.randomUUID()); }, []);
-    useEffect(() => {
-        fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => { });
-    }, []);
 
     return (
         <div className="min-h-screen">
