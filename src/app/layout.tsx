@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
 import { buildMetadata, SITE_URL } from '@/lib/seo';
-import { Fraunces, DM_Sans } from 'next/font/google';
+import { Space_Grotesk, DM_Sans } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
 import Header from '@/components/Layout/Header';
@@ -17,11 +17,10 @@ import FloatingChat from '@/components/Chat/FloatingChat';
 import MessagesDock from '@/components/Messages/MessagesDock';
 import Toasts from '@/components/Notifications/Toasts';
 
-const fraunces = Fraunces({
+const spaceGrotesk = Space_Grotesk({
     subsets: ['latin'],
     variable: '--font-heading',
-    weight: ['500', '600', '700', '900'],
-    style: ['normal', 'italic'],
+    weight: ['400', '500', '600', '700'],
     display: 'swap',
 });
 
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="fr" suppressHydrationWarning className={`${fraunces.variable} ${dmSans.variable}`}>
+        <html lang="fr" suppressHydrationWarning className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
             <body className={dmSans.className}>
                 <Providers>
                     <FriendsProvider>

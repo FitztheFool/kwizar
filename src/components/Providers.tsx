@@ -7,7 +7,7 @@ import { SessionGuard } from '@/components/SessionGuard';
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <SessionGuard />
         {children}
       </ThemeProvider>
