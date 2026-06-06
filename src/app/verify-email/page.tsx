@@ -36,7 +36,7 @@ export default function VerifyEmailPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+            <div className="glass rounded-2xl p-8 max-w-md w-full text-center">
                 {state === 'idle' && (
                     <>
                         <div className="flex justify-center mb-4">

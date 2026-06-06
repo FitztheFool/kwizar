@@ -269,7 +269,7 @@ export default function SettingsPage() {
             <div className="max-w-3xl mx-auto">
 
                 {/* Header */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mb-6">
+                <div className="glass rounded-2xl p-6 md:p-8 mb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"><Cog6ToothIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" /></div>
                         <div>
@@ -317,7 +317,7 @@ export default function SettingsPage() {
                     <div className="space-y-4 mt-6">
 
                         {/* Avatar */}
-                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
+                        <div className="glass rounded-2xl p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Avatar</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">JPG, PNG, WEBP, TIFF — max 50 Mo</p>
 
@@ -368,7 +368,7 @@ export default function SettingsPage() {
                         </div>
 
                         {/* Email */}
-                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
+                        <div className="glass rounded-2xl p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Adresse email</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Email utilisé pour la connexion</p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
@@ -424,7 +424,7 @@ export default function SettingsPage() {
                         </div>
 
                         {/* Username */}
-                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8">
+                        <div className="glass rounded-2xl p-6 md:p-8">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{"Nom d'utilisateur"}</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">3–20 caractères, lettres/chiffres/_ et -</p>
 
@@ -478,7 +478,7 @@ export default function SettingsPage() {
                         </div>
 
                         {/* Danger zone */}
-                        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 border border-red-200 dark:border-red-900">
+                        <div className="glass rounded-2xl p-6 md:p-8 border border-red-200 dark:border-red-900">
                             <div className="flex items-center justify-between mb-1">
                                 <h2 className="text-lg font-bold text-red-600 dark:text-red-400">Zone dangereuse</h2>
                             </div>
@@ -580,7 +580,7 @@ export default function SettingsPage() {
 
                 {/* Tab: Sécurité */}
                 {activeTab === 'securite' && session && (
-                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mt-6">
+                    <div className="glass rounded-2xl p-6 md:p-8 mt-6">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Sécurité</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Modifier votre mot de passe</p>
 
@@ -624,7 +624,7 @@ export default function SettingsPage() {
 
                 {/* Tab: Thème */}
                 {activeTab === 'theme' && (
-                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 md:p-8 mt-6">
+                    <div className="glass rounded-2xl p-6 md:p-8 mt-6">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Apparence</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{"Choisissez le thème de l'interface"}</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

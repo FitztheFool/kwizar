@@ -90,7 +90,7 @@ export default function UserStats({ username }: Props) {
                 />
 
                 {stats.totalGames > 0 && (
-                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                    <div className="glass rounded-xl px-4 py-3">
                         <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">Classement</div>
                         {Object.keys(ranks).length > 0 ? (
                             <div className="space-y-1.5 mt-1">
@@ -118,7 +118,7 @@ export default function UserStats({ username }: Props) {
                 )}
 
                 {lastActivity ? (
-                    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                    <div className="glass rounded-xl px-4 py-3">
                         <div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Dernière partie</div>
                         <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
                             <GameIcon gameType={lastActivity.gameType} className="w-4 h-4" />
@@ -133,7 +133,7 @@ export default function UserStats({ username }: Props) {
 
             {/* ── Statistiques par jeu ── */}
             {Object.keys(activeGameStats).length > 0 && (
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+                <div className="glass rounded-2xl p-4">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white mb-3">
                         Statistiques par jeu
                     </h2>
@@ -142,7 +142,7 @@ export default function UserStats({ username }: Props) {
             )}
 
             {/* ── Activité récente ── */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+            <div className="glass rounded-2xl p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white">
                         Activité récente

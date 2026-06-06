@@ -252,7 +252,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                 )}
 
                 {/* ── Header compact ── */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+                <div className="glass rounded-2xl px-4 py-3">
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Avatar */}
                         <UserAvatar

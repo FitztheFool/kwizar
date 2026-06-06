@@ -91,7 +91,7 @@ function LobbiesPageInner() {
                 </div>
 
                 {/* Filters */}
-                <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div className="mb-8 glass rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                             <MagnifyingGlassIcon className="w-5 h-5" />

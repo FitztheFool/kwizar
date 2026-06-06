@@ -60,7 +60,7 @@ export default function InviteFriendsPanel({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+        <div className="glass rounded-2xl p-5">
             <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                 <UsersIcon className="w-3.5 h-3.5" />
                 Inviter des amis

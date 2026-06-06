@@ -560,7 +560,7 @@ export default function LobbyCodePage() {
                     <div className="space-y-4">
 
                         {/* Titre + Description */}
-                        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5 space-y-4">
+                        <div className="glass rounded-2xl p-5 space-y-4">
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Titre du lobby</label>
                                 {isHost ? (
@@ -590,7 +590,7 @@ export default function LobbyCodePage() {
                         </div>
 
                         {/* Sélecteur de jeu */}
-                        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+                        <div className="glass rounded-2xl p-5">
                             <div className="flex items-center gap-2 mb-3">
                                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jeu</label>
                                 {(() => {
@@ -723,13 +723,13 @@ export default function LobbyCodePage() {
                         )}
 
                         {NO_OPTIONS_GAMES[gameType] && (
-                            <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-4 text-center">
+                            <div className="glass rounded-2xl p-4 text-center">
                                 <p className="text-xs text-gray-400 dark:text-gray-500 italic">{NO_OPTIONS_GAMES[gameType]}</p>
                             </div>
                         )}
 
                         {/* Joueurs max + Visibilité */}
-                        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+                        <div className="glass rounded-2xl p-5">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueurs max</label>
@@ -764,7 +764,7 @@ export default function LobbyCodePage() {
 
                         {/* Équipes */}
                         {(gameType === 'taboo' || (gameType === 'uno' && unoTeamMode === '2v2') || (gameType === 'ludo' && ludoTeamMode === '2v2') || (gameType === 'mille_bornes' && mbTeamMode === '2v2')) && (
-                            <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+                            <div className="glass rounded-2xl p-5">
                                 <div className="flex items-center justify-between mb-3">
                                     <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Équipes</h2>
                                     {isHost && (
@@ -827,7 +827,7 @@ export default function LobbyCodePage() {
                     <div className="space-y-4 lg:sticky lg:top-[76px]">
 
                         {/* Lien d'invitation */}
-                        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+                        <div className="glass rounded-2xl p-5">
                             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Lien d'invitation</label>
                             <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-3 py-2">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 flex-1 truncate font-mono">
@@ -845,7 +845,7 @@ export default function LobbyCodePage() {
                         <InviteFriendsPanel memberIds={players.map(p => p.userId)} lobbyId={lobbyId} gameType={gameType} />
 
                         {/* Participants */}
-                        <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl p-5">
+                        <div className="glass rounded-2xl p-5">
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Participants</h2>
                                 <div className="flex items-center gap-2">

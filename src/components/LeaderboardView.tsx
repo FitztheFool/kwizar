@@ -114,7 +114,7 @@ export default function LeaderboardView({ game }: Props) {
 
     return (
         <div className="mx-auto max-w-7xl min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
+            <div className="glass rounded-2xl p-6 md:p-8">
 
 
                 {/* Tabs → GameFilterPills */}

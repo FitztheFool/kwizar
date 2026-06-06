@@ -196,7 +196,7 @@ export default function DashboardPage() {
         <main className="flex-1 p-4 md:p-8">
 
             {activeTab === 'available' && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
+                <div className="glass rounded-2xl p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-4">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {plural(quizzesTotal, 'Quiz disponible', 'Quiz disponibles')}
@@ -248,7 +248,7 @@ export default function DashboardPage() {
             {activeTab === 'admin' && session?.user?.role === 'ADMIN'}
 
             {activeTab === 'my-quizzes' && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
+                <div className="glass rounded-2xl p-6 md:p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             Mes quizzes
@@ -295,7 +295,7 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'quiz-score' && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
+                <div className="glass rounded-2xl p-6 md:p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Mes scores Quiz</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         <div className="rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
