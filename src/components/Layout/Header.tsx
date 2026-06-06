@@ -40,7 +40,7 @@ export default function Header() {
           </Link>
         </div>
       )}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <header className="sticky top-0 z-40 glass border-b border-black/5 dark:border-white/10">
         <div className="w-full px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 shrink-0">
@@ -48,7 +48,7 @@ export default function Header() {
                 className="rounded-lg block dark:hidden" />
               <img src="/logo/icon-dark.svg" alt="Kwizar" width={36} height={36}
                 className="rounded-lg hidden dark:block" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Kwizar</span>
+              <span className="text-xl font-bold bg-accent-gradient bg-clip-text text-transparent">Kwizar</span>
             </Link>
             {isLoading ? (
               <div className="h-10 w-32 sm:w-48 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />

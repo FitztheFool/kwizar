@@ -84,42 +84,46 @@ export default function HomePage() {
     return (
         <div className="min-h-screen">
 
-            {/* ── Hero ───────────────────────────────────────────────────────── */}
-            <section className="relative overflow-hidden brand-hero border-b border-felt-900/40">
-                <div className="relative max-w-5xl mx-auto px-6 py-10 md:py-16">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+            {/* ── Hero (modern dark / glassy) ──────────────────────────────────── */}
+            <section className="relative overflow-hidden border-b border-white/5">
+                {/* Dark base + accent glows */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-br from-felt-900 via-stone-950 to-stone-950" />
+                <div className="absolute -left-24 -top-24 -z-10 h-96 w-96 rounded-full bg-felt-500/20 blur-3xl" />
+                <div className="absolute -top-10 right-0 -z-10 h-80 w-80 rounded-full bg-primary-500/20 blur-3xl" />
+                <div className="relative mx-auto max-w-5xl px-6 py-12 md:py-20">
+                    <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
                         {/* Left: title + CTAs */}
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80 mb-3">
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary-300/80">
                                 La table de jeu qui ne dort jamais
                             </p>
-                            <h1 className="font-display text-4xl md:text-5xl font-semibold text-amber-50 leading-[1.05] tracking-tight mb-5">
+                            <h1 className="mb-5 font-display text-4xl font-bold leading-[1.02] tracking-tight text-white md:text-6xl">
                                 Jouez. Rivalisez.{' '}
-                                <span className="italic text-primary-300">Grimpez.</span>
+                                <span className="bg-accent-gradient bg-clip-text text-transparent">Grimpez.</span>
                             </h1>
                             <div className="flex flex-wrap gap-3">
                                 <Link href="/lobby/all"
-                                    className="px-5 py-2.5 bg-primary-500 hover:bg-primary-400 text-stone-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-black/30 hover:-translate-y-px active:translate-y-0">
-                                    <PlayIcon className="w-4 h-4 inline mr-1.5" />Rejoindre une partie
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent-gradient px-5 py-2.5 text-sm font-bold text-white shadow-glow transition hover:brightness-110 active:scale-[0.98]">
+                                    <PlayIcon className="h-4 w-4" />Rejoindre une partie
                                 </Link>
                                 <Link href={`/lobby/create/${lobbyCode}`}
-                                    className="px-5 py-2.5 bg-amber-50/10 hover:bg-amber-50/20 text-amber-50 font-bold text-sm rounded-xl border border-amber-100/30 backdrop-blur-sm transition-all hover:-translate-y-px active:translate-y-0">
-                                    <PlusIcon className="w-4 h-4 inline mr-1.5" />Créer un lobby
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.06] px-5 py-2.5 text-sm font-bold text-white backdrop-blur-xl transition hover:bg-white/[0.1] active:scale-[0.98]">
+                                    <PlusIcon className="h-4 w-4" />Créer un lobby
                                 </Link>
                             </div>
                         </div>
-                        {/* Right: live stats — wooden score tokens */}
+                        {/* Right: live stats — glass tokens */}
                         <div className="grid grid-cols-3 gap-2.5 md:shrink-0">
                             {([
                                 { value: fmt(nbJeux), label: 'jeux' },
                                 { value: stats ? fmt(stats.parties) : null, label: 'parties' },
                                 { value: stats ? fmt(stats.points) : null, label: 'points' },
                             ] as const).map(({ value, label }) => (
-                                <div key={label} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-amber-100/15 bg-stone-950/25 backdrop-blur-sm px-4 py-3 min-w-[90px] text-center shadow-inner">
-                                    <span className="font-display text-2xl font-bold text-amber-50">
-                                        {value ?? <span className="text-amber-100/30">—</span>}
+                                <div key={label} className="flex min-w-[90px] flex-col items-center justify-center gap-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-center shadow-glass backdrop-blur-xl">
+                                    <span className="font-display text-2xl font-bold text-white">
+                                        {value ?? <span className="text-white/30">—</span>}
                                     </span>
-                                    <span className="text-[10px] font-medium uppercase tracking-wider text-amber-200/60">{label}</span>
+                                    <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">{label}</span>
                                 </div>
                             ))}
                         </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameIcon from '@/components/GameIcon';
+import { cn } from '@/lib/cn';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -16,11 +17,21 @@ function PersonIcon() {
     );
 }
 
-const MODE_STYLES = {
-    solo: { accent: 'border-l-primary-400' },
-    both: { accent: 'border-l-clay-400' },
-    multi: { accent: 'border-l-felt-500' },
+const MODE_GLOW: Record<GameMode, string> = {
+    solo: 'hover:shadow-glow',
+    both: 'hover:shadow-[0_8px_30px_-8px_rgba(180,84,65,0.45)]',
+    multi: 'hover:shadow-glow-felt',
 };
+const MODE_ICON: Record<GameMode, string> = {
+    solo: 'text-primary-400',
+    both: 'text-clay-400',
+    multi: 'text-felt-400',
+};
+
+const ACTION_PRIMARY =
+    'rounded-lg px-2.5 py-1 text-[11px] font-bold text-white bg-accent-gradient hover:brightness-110 transition active:scale-95';
+const ACTION_GHOST =
+    'rounded-lg px-2.5 py-1 text-[11px] font-bold glass text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-white/[0.08] transition active:scale-95';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -31,42 +42,36 @@ interface GameCardProps {
 
 export default function GameCard({ gameKey, mode }: GameCardProps) {
     const g = GAME_CONFIG[gameKey as keyof typeof GAME_CONFIG];
-    const { accent } = MODE_STYLES[mode];
     const [lobbyCode] = useState(() => crypto.randomUUID());
 
     return (
-        <div className={`
-            flex flex-col
-            bg-white dark:bg-gray-900
-            border border-gray-100 dark:border-gray-800 border-l-2 ${accent}
-            rounded-xl p-4
-            hover:border-gray-200 dark:hover:border-gray-700 hover:-translate-y-0.5
-            transition-all duration-150
-        `}>
-            <Link href={`/leaderboard/${gameKey}`} className="flex-1 min-w-0 block">
-                <span className="text-gray-700 dark:text-gray-300 mb-2 block">
-                    <GameIcon gameType={g.gameType} className="w-8 h-8" />
+        <div
+            className={cn(
+                'glass flex flex-col rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5',
+                MODE_GLOW[mode],
+            )}
+        >
+            <Link href={`/leaderboard/${gameKey}`} className="block min-w-0 flex-1">
+                <span className={cn('mb-2 block', MODE_ICON[mode])}>
+                    <GameIcon gameType={g.gameType} className="h-8 w-8" />
                 </span>
-                <h4 className="font-bold text-sm text-gray-900 dark:text-gray-100 mb-1">{g.label}</h4>
-                <div className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{g.description}</div>
+                <h4 className="mb-1 text-sm font-bold text-gray-900 dark:text-white">{g.label}</h4>
+                <div className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{g.description}</div>
             </Link>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <div className="mt-3 flex items-center justify-between border-t border-black/5 pt-3 dark:border-white/10">
                 <span className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500">
                     <PersonIcon /> {g.players}
                 </span>
                 {mode === 'solo' ? (
-                    <Link href={`/game/${gameKey}`}
-                        className="text-[11px] font-bold px-2.5 py-1 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors">
+                    <Link href={`/game/${gameKey}`} className={ACTION_PRIMARY}>
                         Jouer
                     </Link>
                 ) : (
                     <div className="flex gap-1.5">
-                        <Link href={`/lobby/all?game=${gameKey}`}
-                            className="text-[11px] font-bold px-2.5 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                        <Link href={`/lobby/all?game=${gameKey}`} className={ACTION_GHOST}>
                             Rejoindre
                         </Link>
-                        <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`}
-                            className="text-[11px] font-bold px-2.5 py-1 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors">
+                        <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`} className={ACTION_PRIMARY}>
                             Créer
                         </Link>
                     </div>

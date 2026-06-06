@@ -33,7 +33,7 @@ export default function SoloGameOverlay({
     session,
     leaderboardHref,
     onReplay,
-    bgClassName = 'bg-black/75',
+    bgClassName = 'bg-black/70 backdrop-blur-md',
     title,
     titleClassName = 'text-yellow-400',
     scoreClassName = 'text-white',

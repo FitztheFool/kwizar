@@ -195,15 +195,15 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
         <aside
             onClick={(e) => { if ((e.target as HTMLElement).closest('a')) onClose?.(); }}
             className={`
-            fixed top-0 left-0 h-full bg-white dark:bg-gray-900 shadow-xl z-30 flex flex-col
+            fixed top-0 left-0 h-full bg-white/90 dark:bg-stone-950/85 backdrop-blur-xl shadow-xl z-30 flex flex-col
             transition-all duration-300
             ${collapsed ? 'w-16' : 'w-64'}
             ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-            md:translate-x-0 md:sticky md:top-0 md:h-screen md:shadow-none md:border-r md:border-gray-200 dark:border-gray-700
+            md:translate-x-0 md:sticky md:top-0 md:h-screen md:shadow-none md:border-r md:border-black/5 dark:md:border-white/10
         `}>
 
             {/* Header */}
-            <div className="px-3 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+            <div className="px-3 py-5 border-b border-black/5 dark:border-white/10 flex items-center justify-between flex-shrink-0">
                 {!collapsed && (
                     <div className="min-w-0">
                         {isAuthenticated ? (
