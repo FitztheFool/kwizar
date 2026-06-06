@@ -67,7 +67,7 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-80 max-w-full" onClick={e => e.stopPropagation()}>
+            <div className="glass-strong rounded-2xl p-6 w-80 max-w-full animate-scale-in" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <UsersIcon className="w-4 h-4" />

@@ -35,7 +35,7 @@ export default function GameOverModal({
             role={asModal ? 'dialog' : undefined}
             aria-modal={asModal ? true : undefined}
             aria-label={title}
-            className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 max-w-md w-full mx-4 text-center shadow-2xl space-y-4"
+            className="relative glass-strong rounded-2xl p-8 max-w-md w-full mx-4 text-center space-y-4 animate-scale-in"
         >
             {onClose && (
                 <button
