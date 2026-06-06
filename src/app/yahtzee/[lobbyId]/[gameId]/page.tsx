@@ -141,7 +141,7 @@ export default function YahtzeePage() {
                         const isFirst = !disq && rankIdx === 0;
                         const rank = disq ? null : rankIdx++;
                         return (
-                            <div key={p.userId} className={`rounded-xl border px-4 py-3 ${isFirst ? 'bg-amber-400/20 border-amber-400/50' : disq ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                            <div key={p.userId} className={`rounded-xl border px-4 py-3 ${isFirst ? 'bg-amber-400/20 border-amber-400/50' : disq ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60' : 'bg-white/70 dark:bg-white/[0.04] border-black/5 dark:border-white/10'}`}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl flex items-center">{disq ? <NoSymbolIcon className="w-6 h-6 text-gray-400" /> : (MEDAL[rank!] ?? `${rank! + 1}.`)}</span>

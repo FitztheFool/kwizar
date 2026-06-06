@@ -189,7 +189,7 @@ export default function skyjowGamePage() {
                             ?? roundEndData?.players.find(p => p.userId === s.userId)?.cards
                             ?? surrenderedPlayers.find(p => p.userId === s.userId)?.cards;
                         return (
-                            <div key={s.userId} className={`rounded-xl border px-4 py-3 ${i === 0 && !disq ? 'bg-amber-400/20 border-amber-400/50' : disq ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                            <div key={s.userId} className={`rounded-xl border px-4 py-3 ${i === 0 && !disq ? 'bg-amber-400/20 border-amber-400/50' : disq ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60' : 'bg-white/70 dark:bg-white/[0.04] border-black/5 dark:border-white/10'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
                                         <span className="text-xl">{disq ? (isAfk ? <ClockIcon className="w-5 h-5 text-gray-400" /> : <NoSymbolIcon className="w-5 h-5 text-gray-400" />) : (MEDAL[i] ?? `${i + 1}.`)}</span>
@@ -493,7 +493,7 @@ export default function skyjowGamePage() {
 
                     {/* ── Mon plateau ── */}
                     {!iSurrendered && (
-                        <div className={`rounded-2xl p-5 border-2 transition-all ${isCurrent ? 'border-green-500 dark:border-green-600 bg-white dark:bg-gray-900 shadow-xl shadow-green-900/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'}`}>
+                        <div className={`rounded-2xl p-5 border-2 transition-all ${isCurrent ? 'border-green-500 dark:border-green-600 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl shadow-xl shadow-green-900/10' : 'border-gray-200 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl'}`}>
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                     {isCurrent && <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}

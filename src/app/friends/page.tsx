@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import UserAvatar from '@/components/UserAvatar';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { Button, EmptyState } from '@/components/ui';
 import { useFriends } from '@/context/FriendsContext';
 import { useMessages } from '@/context/MessagesContext';
 
@@ -248,9 +249,17 @@ export default function FriendsPage() {
                     {tab === 'friends' && (
                         <div className="space-y-2">
                             {friends.length === 0 ? (
-                                <p className="text-center text-gray-400 py-10">
-                                    Pas encore d&apos;amis. Va dans l&apos;onglet « Ajouter » !
-                                </p>
+                                <EmptyState
+                                    icon={<UsersIcon className="w-6 h-6" />}
+                                    title="Pas encore d'amis"
+                                    description="Ajoute des joueurs pour les retrouver ici et les inviter à jouer."
+                                    action={
+                                        <Button size="sm" onClick={() => setTab('add')}>
+                                            <UserPlusIcon className="w-4 h-4" />
+                                            Ajouter un ami
+                                        </Button>
+                                    }
+                                />
                             ) : (
                                 friends.map(f => (
                                     <PersonRow key={f.friendshipId} user={f}>
