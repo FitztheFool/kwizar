@@ -130,7 +130,7 @@ export default function SpyfallPage() {
     // ─── Board (candidate locations) ──────────────────────────────────────────
 
     const boardCard = (clickable: boolean) => (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+        <div className="glass rounded-xl p-4">
             <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
                 Lieux possibles{clickable ? ' — choisissez le bon' : ''}
             </h3>
@@ -171,7 +171,7 @@ export default function SpyfallPage() {
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
 
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                        <div className="glass rounded-xl p-6">
                             <div className="text-center">
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">C'est au tour de</p>
                                 <p className={`text-xl font-bold ${isMyTurn ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
@@ -207,7 +207,7 @@ export default function SpyfallPage() {
 
                         {boardCard(false)}
 
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-3">
+                        <div className="glass rounded-xl p-4 space-y-3">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Passer au vote</p>
@@ -251,7 +251,7 @@ export default function SpyfallPage() {
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-5">
+                        <div className="glass rounded-xl p-6 space-y-5">
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <h2 className="font-bold text-gray-900 dark:text-white">Qui est l'espion ?</h2>
@@ -306,7 +306,7 @@ export default function SpyfallPage() {
                 {timerBar}
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
                     <div className="w-full max-w-lg space-y-4">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 text-center space-y-3">
+                        <div className="glass rounded-xl p-6 text-center space-y-3">
                             <MagnifyingGlassIcon className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" />
                             <h2 className="font-bold text-gray-900 dark:text-white text-lg">
                                 {isSpy ? 'À vous de deviner le lieu !' : `${spyName || "L'espion"} tente de deviner le lieu…`}

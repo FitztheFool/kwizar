@@ -291,7 +291,7 @@ export default function UnoPage() {
                         role="dialog"
                         aria-modal="true"
                         aria-label="Choisir une couleur"
-                        className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-xl"
+                        className="glass rounded-2xl p-6 text-center"
                     >
                         <h2 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">Choisir une couleur</h2>
                         <div className="grid grid-cols-2 gap-3">

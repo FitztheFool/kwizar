@@ -217,7 +217,7 @@ export default function ImpostorPage() {
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
 
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                        <div className="glass rounded-xl p-6">
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="font-bold text-gray-900 dark:text-white">Round {currentRound}/{totalRounds}</h2>
                                 <span className="text-xs text-gray-400">{submittedCount}/{speakingOrder.length} joué</span>
@@ -256,7 +256,7 @@ export default function ImpostorPage() {
                             )}
                         </div>
 
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <div className="glass rounded-xl p-4">
                             <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Ordre de passage</h3>
                             <div className="flex flex-col gap-2">
                                 {speakingOrder.map((id, i) => {
@@ -289,7 +289,7 @@ export default function ImpostorPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <div className="glass rounded-xl p-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Démasquer l'imposteur</p>
@@ -327,7 +327,7 @@ export default function ImpostorPage() {
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                        <div className="glass rounded-xl p-6">
                             <h2 className="font-bold text-gray-900 dark:text-white mb-4">Indices du round {currentRound}/{totalRounds}</h2>
                             <div className="flex flex-col gap-2">
                                 {revealedClues.map(c => (
@@ -358,7 +358,7 @@ export default function ImpostorPage() {
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
                     <div className="w-full max-w-lg space-y-4">
                         {roleBanner}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-5">
+                        <div className="glass rounded-xl p-6 space-y-5">
                             {/* Vote impostor */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
@@ -451,7 +451,7 @@ export default function ImpostorPage() {
                 {timerBar}
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
                     <div className="w-full max-w-lg">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 text-center space-y-4">
+                        <div className="glass rounded-xl p-6 text-center space-y-4">
                             <MagnifyingGlassIcon className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" />
                             <h2 className="font-bold text-gray-900 dark:text-white text-lg">
                                 {isImpostor ? 'Vous avez été démasqué !' : `${impostorGuessName} a été démasqué !`}

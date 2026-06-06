@@ -287,7 +287,7 @@ export default function MilleBornesPage() {
             {/* Coup fourré modal */}
             {coupFourreForMe && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+                    <div className="glass rounded-2xl max-w-sm w-full p-6 text-center">
                         <BoltIcon className="w-10 h-10 text-purple-500 mx-auto mb-3" />
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">Coup Fourré !</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">

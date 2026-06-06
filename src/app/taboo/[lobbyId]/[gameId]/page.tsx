@@ -171,7 +171,7 @@ export default function TabooGamePage() {
                 />
                 <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 lg:items-start justify-center">
                     <div className="w-full lg:flex-1 flex justify-center py-4">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
+                    <div className="glass rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Fin du tour</p>
                         <p className={`text-2xl font-bold text-center ${teamColor}`}>{teamLabel}</p>
                         <p className={`text-xl font-bold text-center ${resultColor}`}>{resultLabel}</p>
@@ -252,7 +252,7 @@ export default function TabooGamePage() {
                 />
                 <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 lg:items-start justify-center">
                     <div className="w-full lg:flex-1 flex justify-center py-4">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 max-w-sm w-full space-y-4">
+                    <div className="glass rounded-xl p-6 max-w-sm w-full space-y-4">
                         <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest text-center">Prochain tour</p>
                         <p className={`text-2xl font-bold text-center ${teamColor}`}>{teamLabel}</p>
 
@@ -411,7 +411,7 @@ export default function TabooGamePage() {
 
                 {isOrator && (
                     <div className="w-full max-w-sm space-y-3">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <div className="glass rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-green-500/30 bg-green-50 dark:bg-green-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2">Mot à faire deviner</p>
                                 <p className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-green-700 dark:text-green-300">
@@ -419,7 +419,7 @@ export default function TabooGamePage() {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
+                        <div className="glass rounded-xl p-3">
                             <p className="text-xs text-gray-400 dark:text-white/30 mb-2 uppercase tracking-widest">
                                 Tentatives {game.attempts.length}/{game.maxAttempts}
                             </p>
@@ -453,7 +453,7 @@ export default function TabooGamePage() {
                                     className="px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors text-gray-700 dark:text-white">↵</button>
                             </div>
                         )}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
+                        <div className="glass rounded-xl p-3">
                             <p className="text-xs text-gray-400 dark:text-white/30 mb-2 uppercase tracking-widest">
                                 Tentatives {game.attempts.length}/{game.maxAttempts}
                             </p>
@@ -468,7 +468,7 @@ export default function TabooGamePage() {
 
                 {isAdversary && !isOrator && (
                     <div className="w-full max-w-sm space-y-3">
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                        <div className="glass rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-6 text-center">
                                 <p className="text-xs text-gray-400 dark:text-white/30 uppercase tracking-widest mb-2 inline-flex items-center justify-center gap-1.5">Mot mystère <EyeIcon className="w-3.5 h-3.5" /></p>
                                 <p className="text-3xl sm:text-4xl md:text-5xl tracking-wider break-words leading-tight text-yellow-600 dark:text-yellow-300">
@@ -477,7 +477,7 @@ export default function TabooGamePage() {
                             </div>
                         </div>
                         {game.currentTraps.length > 0 && (
-                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+                            <div className="glass rounded-xl p-4">
                                 <div className="p-5 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-center">
                                     <p className="text-xs text-gray-400 dark:text-white/40 uppercase tracking-widest mb-3 flex items-center gap-1 justify-center"><NoSymbolIcon className="w-3 h-3" /> Vos mots piégés</p>
                                     <div className="flex flex-wrap gap-2 justify-center">
@@ -490,7 +490,7 @@ export default function TabooGamePage() {
                                 </div>
                             </div>
                         )}
-                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
+                        <div className="glass rounded-xl p-3">
                             <p className="text-xs text-gray-400 dark:text-white/30 mb-2 uppercase tracking-widest">
                                 Tentatives {game.attempts.length}/{game.maxAttempts}
                             </p>

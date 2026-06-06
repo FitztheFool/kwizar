@@ -382,7 +382,7 @@ export default function JustOnePage() {
 
             <main className="flex-1 p-4 flex flex-col lg:flex-row items-start justify-center gap-4">
                 <div className="w-full max-w-lg space-y-4">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="glass rounded-xl p-6">
                         {renderPhase()}
                     </div>
 

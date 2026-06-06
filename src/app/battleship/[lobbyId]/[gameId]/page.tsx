@@ -74,7 +74,7 @@ export default function BattleshipPage() {
                     <span className="ml-2 text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">Spectateur</span>
                 </header>
                 <main className="flex-1 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 flex flex-col items-center gap-4 text-center max-w-sm w-full">
+                    <div className="glass rounded-2xl p-8 flex flex-col items-center gap-4 text-center max-w-sm w-full">
                         <EyeIcon className="w-10 h-10 text-gray-500" />
                         <p className="font-semibold text-gray-700 dark:text-gray-200">
                             {p0?.username ?? '?'} <span className="text-gray-400">vs</span> {p1?.username ?? '?'}
