@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChatBubbleLeftRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { formatMessageTime } from '@/lib/time';
 
-type ChatTab = 'lobby' | 'team';
+type ChatTab = 'lobby' | 'team' | 'dm';
 
 type ChatMessage = {
     userId: string;
@@ -17,12 +17,19 @@ type ChatMessage = {
 interface ChatProps {
     messages: ChatMessage[];
     teamMessages?: ChatMessage[];
-    onSend: (text: string, tab: ChatTab) => void;
+    onSend: (text: string, tab: 'lobby' | 'team') => void;
     currentUserId?: string;
     teamColor?: 0 | 1;
+    /** Optional private-messages (DM) tab. When provided, a "Messages" tab is shown. */
+    dmSlot?: React.ReactNode;
+    dmUnread?: number;
+    /** External signal (dock open) to pop the window open on the DM tab. */
+    dmRequestOpen?: boolean;
+    /** When a DM thread is targeted externally, focus the DM tab. */
+    dmActiveUserId?: string | null;
 }
 
-export default function Chat({ messages, teamMessages, onSend, currentUserId, teamColor }: ChatProps) {
+export default function Chat({ messages, teamMessages, onSend, currentUserId, teamColor, dmSlot, dmUnread = 0, dmRequestOpen, dmActiveUserId }: ChatProps) {
     const [open, setOpen] = useState(false);
     const [chatText, setChatText] = useState('');
     const [activeTab, setActiveTab] = useState<ChatTab>('lobby');
@@ -71,6 +78,8 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
     const prevTeamMessagesLength = useRef(0);
     const prevMessagesLength = useRef(0);
 
+    const showDm = dmSlot != null;
+    const showTabs = teamColor !== undefined || showDm;
     const currentMessages = activeTab === 'team' ? (teamMessages ?? []) : messages;
 
     const isNearBottom = () => {
@@ -107,7 +116,18 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
         else setUnreadTeam(0);
     }, [activeTab]);
 
+    // External triggers (header "Messages" button, friend "Message" button,
+    // notification click) pop the window open focused on the DM tab.
+    useEffect(() => {
+        if (dmRequestOpen && showDm) { setOpen(true); setActiveTab('dm'); }
+    }, [dmRequestOpen, showDm]);
+
+    useEffect(() => {
+        if (dmActiveUserId && showDm) { setOpen(true); setActiveTab('dm'); }
+    }, [dmActiveUserId, showDm]);
+
     const sendChat = () => {
+        if (activeTab === 'dm') return; // the DM tab has its own composer
         const text = chatText.trim();
         if (!text) return;
         onSend(text, activeTab);
@@ -141,9 +161,9 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                 <button onClick={toggle}
                     className="relative bg-primary-600 dark:bg-slate-700 hover:bg-primary-500 dark:hover:bg-slate-600 text-white px-4 py-3 rounded-full shadow-xl">
                     <ChatBubbleLeftRightIcon className="w-5 h-5" />
-                    {unread > 0 && (
+                    {unread + dmUnread > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-xs px-2 py-0.5 rounded-full">
-                            {unread}
+                            {unread + dmUnread > 9 ? '9+' : unread + dmUnread}
                         </span>
                     )}
                 </button>
@@ -163,7 +183,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                             <div className="text-lg">—</div>
                         </div>
 
-                        {teamColor !== undefined && (
+                        {showTabs && (
                             <div className="flex border-t border-white/10 dark:border-slate-700">
                                 <button
                                     onClick={() => setActiveTab('lobby')}
@@ -172,33 +192,55 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                                             ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400'
                                             : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
                                         }`}>
-                                    <ChatBubbleLeftRightIcon className="w-3.5 h-3.5 inline mr-1" />Lobby
+                                    <ChatBubbleLeftRightIcon className="w-3.5 h-3.5 inline mr-1" />{teamColor !== undefined ? 'Lobby' : 'Salon'}
                                     {unreadLobby > 0 && (
                                         <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
                                             {unreadLobby}
                                         </span>
                                     )}
                                 </button>
-                                <button
-                                    onClick={() => setActiveTab('team')}
-                                    className={`flex-1 py-2 text-xs font-semibold relative transition-all
+                                {teamColor !== undefined && (
+                                    <button
+                                        onClick={() => setActiveTab('team')}
+                                        className={`flex-1 py-2 text-xs font-semibold relative transition-all
                     ${activeTab === 'team'
-                                            ? teamColor === 0
+                                                ? teamColor === 0
+                                                    ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400'
+                                                    : 'bg-white dark:bg-slate-900 text-felt-700 dark:text-felt-400'
+                                                : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
+                                            }`}>
+                                        <span className={`inline-block w-2 h-2 rounded-full mr-1 ${teamColor === 0 ? 'bg-primary-500' : 'bg-felt-600'}`} />{teamColor === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
+                                        {unreadTeam > 0 && (
+                                            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
+                                                {unreadTeam}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
+                                {showDm && (
+                                    <button
+                                        onClick={() => setActiveTab('dm')}
+                                        className={`flex-1 py-2 text-xs font-semibold relative transition-all
+                    ${activeTab === 'dm'
                                                 ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400'
-                                                : 'bg-white dark:bg-slate-900 text-felt-700 dark:text-felt-400'
-                                            : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
-                                        }`}>
-                                    <span className={`inline-block w-2 h-2 rounded-full mr-1 ${teamColor === 0 ? 'bg-primary-500' : 'bg-felt-600'}`} />{teamColor === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
-                                    {unreadTeam > 0 && (
-                                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
-                                            {unreadTeam}
-                                        </span>
-                                    )}
-                                </button>
+                                                : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
+                                            }`}>
+                                        <ChatBubbleLeftRightIcon className="w-3.5 h-3.5 inline mr-1" />Messages
+                                        {dmUnread > 0 && (
+                                            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
+                                                {dmUnread > 9 ? '9+' : dmUnread}
+                                            </span>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
 
+                    {activeTab === 'dm' ? (
+                        dmSlot
+                    ) : (
+                    <>
                     {/* MESSAGES */}
                     <div ref={containerRef}
                         className="flex-1 overflow-auto p-3 space-y-2 bg-gray-50 dark:bg-slate-800">
@@ -243,6 +285,8 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                             <PaperAirplaneIcon className="w-4 h-4" />
                         </button>
                     </div>
+                    </>
+                    )}
 
                 </div>
             )}

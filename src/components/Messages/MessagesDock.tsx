@@ -23,9 +23,11 @@ export default function MessagesDock() {
     if (!session?.user?.id || isGuest) return null;
     if (!dockOpen) return null;
     if (pathname?.startsWith('/messages')) return null;
+    // In a lobby the unified FloatingChat panel hosts DMs (its "Messages" tab),
+    // so the standalone dock stays out of the way.
+    if (lobbyId) return null;
 
-    // The lobby chat owns the bottom-right corner; shift the dock to the left to coexist.
-    const sideClass = lobbyId ? 'left-4' : 'right-4';
+    const sideClass = 'right-4';
 
     const partner = activeUserId
         ? threads[activeUserId]?.partner ?? conversations.find(c => c.user.id === activeUserId)?.user ?? null
