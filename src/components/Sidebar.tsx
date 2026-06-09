@@ -20,11 +20,15 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
     ChevronDownIcon,
+    UsersIcon,
+    ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import SidebarUser from '@/components/Sidebar/SidebarUser';
 import SidebarSearch from '@/components/Sidebar/SidebarSearch';
 import PinnedQuizzes from '@/components/Sidebar/PinnedQuizzes';
 import { useLobbyCount } from '@/hooks/useLobbyCount';
+import { useMessages } from '@/context/MessagesContext';
+import { useFriends } from '@/context/FriendsContext';
 
 // ─── Color system ─────────────────────────────────────────────────────────────
 type Color = 'blue' | 'green' | 'yellow' | 'red' | 'gray' | 'purple';
@@ -69,6 +73,29 @@ function NavLink({ href, Icon, label, isActive, collapsed, color, badge }: {
                 </>
             )}
         </Link>
+    );
+}
+
+// ─── NavButton (action, e.g. opens a panel instead of navigating) ──────────────
+function NavButton({ onClick, Icon, label, collapsed, badge }: {
+    onClick: () => void; Icon: IconComponent; label: string;
+    collapsed: boolean; badge?: number;
+}) {
+    return (
+        <button onClick={onClick} title={label}
+            aria-label={collapsed ? label : undefined}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left border-l-2 border-l-transparent ${INACTIVE}`}
+        >
+            <span className="relative flex-shrink-0">
+                <Icon className="w-5 h-5" />
+                {badge != null && badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
+                        {badge > 99 ? '99+' : badge}
+                    </span>
+                )}
+            </span>
+            {!collapsed && <span className="flex-1 truncate">{label}</span>}
+        </button>
     );
 }
 
@@ -149,6 +176,8 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
     const [lobbyCode, setLobbyCode] = useState('');
 
     const lobbyCount = useLobbyCount();
+    const { totalUnread, openDock } = useMessages();
+    const { pendingCount } = useFriends();
 
     useEffect(() => { setLobbyCode(crypto.randomUUID()); }, []);
 
@@ -158,6 +187,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
     const isAdmin = userRole === 'ADMIN';
     const isGuest = userRole === 'GUEST' || isAnonymous;
     const canCreateQuiz = isAuthenticated && !isGuest;
+    const showSocial = isAuthenticated && !isGuest;
 
     useEffect(() => {
         if (quizSectionActive) setQuizMenuOpen(true);
@@ -280,6 +310,15 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 )}
 
                 <PinnedQuizzes collapsed={collapsed} />
+
+                {/* ── SOCIAL ── */}
+                {showSocial && (
+                    <>
+                        <SectionHeader label="Social" collapsed={collapsed} />
+                        <NavLink href="/friends" Icon={UsersIcon} label="Amis" isActive={pathname.startsWith('/friends')} collapsed={collapsed} color="gray" badge={pendingCount} />
+                        <NavButton onClick={openDock} Icon={ChatBubbleLeftRightIcon} label="Messages" collapsed={collapsed} badge={totalUnread} />
+                    </>
+                )}
 
                 {/* ── COMPTE ── */}
                 {(isAuthenticated || isAdmin) && <SectionHeader label="Compte" collapsed={collapsed} />}

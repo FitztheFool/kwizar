@@ -1,13 +1,12 @@
 // src/components/Header.tsx
 'use client';
 import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
-import { UserIcon, UsersIcon, XMarkIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
-import { useMessages } from '@/context/MessagesContext';
+import { useSession } from 'next-auth/react';
+import { UserIcon } from '@heroicons/react/24/outline';
 import NotificationCenter from '@/components/Notifications/NotificationCenter';
+import UserMenu from '@/components/Layout/UserMenu';
 export default function Header() {
   const { data: session, status } = useSession();
-  const { totalUnread, openDock } = useMessages();
   const isLoading = status === 'loading';
   const isAnonymous = session?.user?.isAnonymous ?? false;
   const isGuestRole = session?.user?.role === 'GUEST';
@@ -53,45 +52,9 @@ export default function Header() {
             {isLoading ? (
               <div className="h-10 w-32 sm:w-48 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
             ) : session ? (
-              <div className="flex items-center gap-2 sm:gap-4 ml-auto min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 ml-auto min-w-0">
                 {!isAnonymous && !isGuestRole && <NotificationCenter />}
-                {!isAnonymous && !isGuestRole && (
-                  <Link href="/friends" aria-label="Amis" className="shrink-0 flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all">
-                    <UsersIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm">Amis</span>
-                  </Link>
-                )}
-                {!isAnonymous && !isGuestRole && (
-                  <button onClick={openDock} aria-label="Messages" className="relative shrink-0 flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all">
-                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm">Messages</span>
-                    {totalUnread > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-                        {totalUnread > 9 ? '9+' : totalUnread}
-                      </span>
-                    )}
-                  </button>
-                )}
-                <Link href="/dashboard" className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-400 font-semibold transition-all min-w-0">
-                  <span className="hidden sm:inline text-sm">{isAnonymous ? <UserIcon className="w-4 h-4 inline" /> : 'Bonjour,'}</span>
-                  <span className={"truncate max-w-[80px] sm:max-w-[140px] " + (session.user.role === 'ADMIN'
-                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded text-xs font-semibold'
-                    : isAnonymous
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-primary-700 dark:text-primary-400')}>
-                    {session.user.username ?? session.user.email}
-                  </span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 opacity-50 shrink-0">
-                    <path fillRule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 0 0-1.06Z" clipRule="evenodd" />
-                  </svg>
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="shrink-0 px-2 sm:px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md font-medium transition-all shadow-sm hover:shadow"
-                >
-                  <span className="hidden sm:inline">Se déconnecter</span>
-                  <span className="sm:hidden"><XMarkIcon className="w-4 h-4" /></span>
-                </button>
+                <UserMenu />
               </div>
             ) : (
               <div className="flex items-center gap-2 ml-auto shrink-0">
