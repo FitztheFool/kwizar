@@ -40,6 +40,15 @@ async function main() {
     const [user1, user2, user3, user4, user5] = numbered;
     console.log('✅ Utilisateurs créés');
 
+    // ── Pool social : UNIQUEMENT des joueurs ACTIFS ──
+    // Les amitiés, demandes d'amis et messages ne concernent QUE des comptes ACTIVE.
+    // (Bot🤖 et les comptes PENDING — User6..10 — sont volontairement exclus ; Admin est inclus.)
+    const socialUsers = [adminUser, farosUser, user, user1, user2, user3, user4, user5];
+    const nonActive = socialUsers.filter(u => u.status !== 'ACTIVE');
+    if (nonActive.length > 0) {
+        throw new Error(`Seed: joueurs non-ACTIF interdits dans le social → ${nonActive.map(u => u.username).join(', ')}`);
+    }
+
     // ── Amitiés de test ──
     const friendship = (requesterId: string, addresseeId: string, status: 'PENDING' | 'ACCEPTED') =>
         prisma.friendship.upsert({
@@ -48,23 +57,88 @@ async function main() {
             create: { requesterId, addresseeId, status },
         });
     await Promise.all([
-        friendship(farosUser.id, user.id, 'ACCEPTED'),   // Faros & User sont amis
-        friendship(user.id, user1.id, 'ACCEPTED'),        // User & User1 sont amis
-        friendship(farosUser.id, user2.id, 'ACCEPTED'),   // Faros & User2 sont amis
-        friendship(user3.id, user.id, 'PENDING'),         // User3 a envoyé une demande à User
-    ]);
-    console.log('✅ Amitiés créées');
+        // — Amis (ACCEPTED) —
+        friendship(farosUser.id, user.id, 'ACCEPTED'),
+        friendship(farosUser.id, user1.id, 'ACCEPTED'),
+        friendship(farosUser.id, user2.id, 'ACCEPTED'),
+        friendship(user.id, user1.id, 'ACCEPTED'),
+        friendship(user1.id, user2.id, 'ACCEPTED'),
+        friendship(user1.id, user3.id, 'ACCEPTED'),
+        friendship(user2.id, user4.id, 'ACCEPTED'),
+        friendship(user2.id, user5.id, 'ACCEPTED'),
+        friendship(adminUser.id, farosUser.id, 'ACCEPTED'),
+        friendship(adminUser.id, user1.id, 'ACCEPTED'),
+        friendship(adminUser.id, user2.id, 'ACCEPTED'),
+        friendship(adminUser.id, user3.id, 'ACCEPTED'),
 
-    // ── Messages privés de test (entre Faros & User, qui sont amis) ──
+        // — Demandes reçues par Faros (incoming → badge "Amis") —
+        friendship(user3.id, farosUser.id, 'PENDING'),
+        friendship(user4.id, farosUser.id, 'PENDING'),
+        friendship(user5.id, farosUser.id, 'PENDING'),
+
+        // — Demandes reçues par User —
+        friendship(user3.id, user.id, 'PENDING'),
+        friendship(user4.id, user.id, 'PENDING'),
+        friendship(adminUser.id, user.id, 'PENDING'),
+
+        // — Demandes reçues par Admin (incoming → badge "Amis") —
+        friendship(user5.id, adminUser.id, 'PENDING'),
+        friendship(user4.id, adminUser.id, 'PENDING'),
+
+        // — Demandes envoyées par User (outgoing, en attente) —
+        friendship(user.id, user2.id, 'PENDING'),
+        friendship(user.id, user5.id, 'PENDING'),
+    ]);
+    console.log('✅ Amitiés créées (12 acceptées, 10 en attente)');
+
+    // ── Messages privés de test (entre joueurs ACTIFS, surtout des amis) ──
     const now = Date.now();
-    const dm = (senderId: string, recipientId: string, body: string, minsAgo: number, readAt: Date | null) =>
+    const dm = (senderId: string, recipientId: string, body: string, minsAgo: number, read: boolean) =>
         prisma.directMessage.create({
-            data: { senderId, recipientId, body, createdAt: new Date(now - minsAgo * 60_000), readAt },
+            data: {
+                senderId, recipientId, body,
+                createdAt: new Date(now - minsAgo * 60_000),
+                readAt: read ? new Date(now - (minsAgo - 1) * 60_000) : null,
+            },
         });
-    await dm(farosUser.id, user.id, 'Salut ! On fait une partie ?', 60, new Date(now - 58 * 60_000));
-    await dm(user.id, farosUser.id, 'Carrément, je lance un lobby UNO 🎉', 58, new Date(now - 57 * 60_000));
-    await dm(farosUser.id, user.id, 'Go, je te rejoins', 2, null); // non lu côté User
-    console.log('✅ Messages privés créés');
+
+    // Faros ↔ User
+    await dm(farosUser.id, user.id, 'Salut ! On fait une partie ?', 120, true);
+    await dm(user.id, farosUser.id, 'Carrément, je lance un lobby UNO 🎉', 118, true);
+    await dm(farosUser.id, user.id, 'Go, je te rejoins', 115, true);
+    await dm(user.id, farosUser.id, 'GG pour la dernière 😄', 30, true);
+    await dm(farosUser.id, user.id, 'Revanche ce soir ?', 5, false); // non lu côté User
+
+    // Faros ↔ User1
+    await dm(user1.id, farosUser.id, 'Hey, tu joues au Skyjo ?', 200, true);
+    await dm(farosUser.id, user1.id, 'Toujours partant !', 198, true);
+    await dm(user1.id, farosUser.id, "Je t'ai envoyé une invitation", 10, false); // non lu côté Faros
+
+    // Faros ↔ User2
+    await dm(farosUser.id, user2.id, 'Bien joué au Yahtzee 🎲', 300, true);
+    await dm(user2.id, farosUser.id, 'Merci ! la chance 😅', 295, true);
+    await dm(user2.id, farosUser.id, 'On remet ça ?', 3, false); // non lu côté Faros
+
+    // Admin ↔ Faros
+    await dm(adminUser.id, farosUser.id, 'Bienvenue sur Kwizar ! 👋', 400, true);
+    await dm(farosUser.id, adminUser.id, 'Merci 🙌', 398, true);
+    await dm(adminUser.id, farosUser.id, "N'hésite pas si tu as des retours", 8, false); // non lu côté Faros
+
+    // Admin ↔ User1
+    await dm(adminUser.id, user1.id, 'Tu valides la nouvelle catégorie de quiz ?', 150, true);
+    await dm(user1.id, adminUser.id, 'Oui nickel 👌', 148, true);
+    await dm(user1.id, adminUser.id, 'Par contre il y a un bug sur le classement', 6, false); // non lu côté Admin
+
+    // Admin ↔ User2
+    await dm(user2.id, adminUser.id, 'Salut Admin, possible de reset mon score ?', 50, true);
+    await dm(adminUser.id, user2.id, "C'est fait 👍", 48, true);
+    await dm(user2.id, adminUser.id, 'Merci beaucoup 🙏', 4, false); // non lu côté Admin
+
+    // User ↔ User1
+    await dm(user.id, user1.id, 'Dispo pour un Puissance 4 ?', 90, true);
+    await dm(user1.id, user.id, 'Oui go 🔴🟡', 88, true);
+
+    console.log('✅ Messages privés créés (7 conversations)');
 
     await seedShared(prisma, randomUser.id);
 
