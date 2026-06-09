@@ -32,7 +32,7 @@ const GAME_SERVER_URL_BY_TYPE: Partial<Record<GameType, string | undefined>> = {
     taboo:      process.env.NEXT_PUBLIC_TABOO_SERVER_URL,
     skyjow:     process.env.NEXT_PUBLIC_SKYJOW_SERVER_URL,
     yahtzee:    process.env.NEXT_PUBLIC_YAHTZEE_SERVER_URL,
-    puissance4: process.env.NEXT_PUBLIC_P4_SERVER_URL,
+    puissance4: process.env.NEXT_PUBLIC_PUISSANCE4_SERVER_URL,
     just_one:   process.env.NEXT_PUBLIC_JUSTONE_SERVER_URL,
     battleship: process.env.NEXT_PUBLIC_BATTLESHIP_SERVER_URL,
     diamant:    process.env.NEXT_PUBLIC_DIAMANT_SERVER_URL,

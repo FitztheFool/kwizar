@@ -110,7 +110,7 @@ export function getYahtzeeSocket(): Socket | null {
 
 export function getPuissance4Socket(): Socket | null {
     if (typeof window === "undefined") return null;
-    if (!puissance4Socket) puissance4Socket = createSocket(process.env.NEXT_PUBLIC_P4_SERVER_URL ?? "http://localhost:10006", "Puissance 4 Socket");
+    if (!puissance4Socket) puissance4Socket = createSocket(process.env.NEXT_PUBLIC_PUISSANCE4_SERVER_URL ?? "http://localhost:10006", "Puissance 4 Socket");
     connectIfAuth(puissance4Socket);
     return puissance4Socket;
 }
