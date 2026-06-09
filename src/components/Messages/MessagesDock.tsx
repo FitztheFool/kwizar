@@ -35,7 +35,7 @@ export default function MessagesDock() {
     const partnerName = partner?.username ?? 'Conversation';
 
     return (
-        <div className={`fixed ${sideClass} bottom-4 z-50 w-80 max-w-[calc(100vw-2rem)] h-[460px] max-h-[calc(100vh-2rem)] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4`}>
+        <div className={`glass-strong fixed ${sideClass} bottom-4 z-50 w-80 max-w-[calc(100vw-2rem)] h-[460px] max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4`}>
             {/* Header */}
             <div className="flex items-center gap-2 px-3 py-2.5 bg-primary-600 dark:bg-gray-800 text-white">
                 {activeUserId ? (

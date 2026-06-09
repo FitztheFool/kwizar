@@ -139,7 +139,7 @@ export default function CommandPalette() {
     return (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] px-4" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={close} />
-            <div className="relative w-full max-w-xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="glass-strong relative w-full max-w-xl rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                     <input

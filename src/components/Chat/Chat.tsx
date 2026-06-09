@@ -172,8 +172,8 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
             {/* FENÊTRE CHAT */}
             {open && (
                 <div className={isMobile
-                    ? 'w-full h-[80vh] bg-white dark:bg-slate-900 flex flex-col rounded-t-2xl'
-                    : 'w-80 sm:w-96 max-w-[calc(100vw-2rem)] h-[500px] bg-white dark:bg-slate-900 border dark:border-slate-700 shadow-2xl rounded-2xl flex flex-col animate-in fade-in slide-in-from-bottom-4'
+                    ? 'w-full h-[80vh] glass-strong flex flex-col rounded-t-2xl'
+                    : 'w-80 sm:w-96 max-w-[calc(100vw-2rem)] h-[500px] glass-strong rounded-2xl flex flex-col animate-in fade-in slide-in-from-bottom-4'
                 }>
 
                     {/* HEADER */}
@@ -243,7 +243,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                     <>
                     {/* MESSAGES */}
                     <div ref={containerRef}
-                        className="flex-1 overflow-auto p-3 space-y-2 bg-gray-50 dark:bg-slate-800">
+                        className="flex-1 overflow-auto p-3 space-y-2">
 
                         {currentMessages.map((m, i) => {
                             const mine = m.userId === currentUserId;
@@ -272,7 +272,7 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                     </div>
 
                     {/* INPUT */}
-                    <div className="p-3 border-t dark:border-slate-700 bg-white dark:bg-slate-900 flex gap-2">
+                    <div className="p-3 border-t border-black/5 dark:border-white/10 flex gap-2">
                         <input
                             value={chatText}
                             onChange={e => setChatText(e.target.value)}
