@@ -12,9 +12,8 @@ import {
 import UserAvatar from '@/components/UserAvatar';
 
 /**
- * Compact account menu for the top navbar.
- * Mirrors SidebarUser's items (Profil / Paramètres / Déconnexion) so the two
- * account entry points stay consistent, but renders as a top-right dropdown.
+ * Compact account menu for the top navbar — the single account entry point
+ * (avatar + name → dropdown: Profil / Paramètres / Déconnexion).
  */
 export default function UserMenu() {
     const { data: session } = useSession();

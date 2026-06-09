@@ -23,7 +23,6 @@ import {
     UsersIcon,
     ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
-import SidebarUser from '@/components/Sidebar/SidebarUser';
 import SidebarSearch from '@/components/Sidebar/SidebarSearch';
 import PinnedQuizzes from '@/components/Sidebar/PinnedQuizzes';
 import { useLobbyCount } from '@/hooks/useLobbyCount';
@@ -233,7 +232,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
         `}>
 
             {/* Header */}
-            <div className="px-3 py-5 border-b border-black/5 dark:border-white/10 flex items-center justify-between flex-shrink-0">
+            <div className={`px-3 py-5 border-b border-black/5 dark:border-white/10 flex items-center flex-shrink-0 ${collapsed ? 'justify-center' : 'justify-between'}`}>
                 {!collapsed && (
                     <div className="min-w-0">
                         {isAuthenticated ? (
@@ -247,12 +246,12 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 )}
                 <button
                     onClick={toggleCollapsed}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 dark:text-gray-500 flex-shrink-0"
+                    className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex-shrink-0"
                     title={collapsed ? 'Ouvrir' : 'Réduire'}
                     aria-label={collapsed ? 'Ouvrir la barre latérale' : 'Réduire la barre latérale'}
                     aria-expanded={!collapsed}
                 >
-                    {collapsed ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
+                    {collapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
                 </button>
             </div>
 
@@ -334,13 +333,6 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                     <NavLink href="/login" Icon={LockClosedIcon} label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} color="blue" />
                 )}
             </nav>
-
-            {/* User profile + logout — back at the bottom */}
-            {isAuthenticated && (
-                <div className="flex-shrink-0 border-t border-gray-100 dark:border-gray-700">
-                    <SidebarUser collapsed={collapsed} />
-                </div>
-            )}
         </aside>
     );
 }
