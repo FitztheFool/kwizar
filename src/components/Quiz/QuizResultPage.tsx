@@ -10,6 +10,8 @@ import { useQuizResult, type LeaderboardEntry } from '@/hooks/useQuizResult';
 import { getQuizSocket } from '@/lib/socket';
 import RankBadge from '@/components/shared/RankBadge';
 import MeTag from '@/components/shared/MeTag';
+import EloDeltaBadge from '@/components/shared/EloDeltaBadge';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import LobbyWaitingRoom from '@/components/Quiz/LobbyWaitingRoom';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 
@@ -59,6 +61,7 @@ export default function QuizResultPage() {
     } = useQuizResult();
 
     const socket = useMemo(() => (lobbyCode ? getQuizSocket() : null), [lobbyCode]);
+    const myElo = useEloUpdate('quiz', session?.user?.id);
     const mode = !lobbyCode ? 'solo' : !allFinished ? 'waiting' : 'podium';
 
     const handleRejouer = () => {
@@ -123,6 +126,11 @@ export default function QuizResultPage() {
                                 </span>
                             </span>
                         </div>
+                        {myElo && (
+                            <div className="mt-3 flex justify-center">
+                                <EloDeltaBadge elo={myElo} />
+                            </div>
+                        )}
                     </div>
 
                     {displayLeaderboard.length > 0 && (

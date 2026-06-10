@@ -26,6 +26,13 @@ export async function GET(req: NextRequest) {
         });
         const eligibleUserIds = eligibleUsers.map(u => u.id);
 
+        // Note ELO par joueur pour ce jeu (vide si le jeu n'est pas noté à l'ELO).
+        const eloRatings = await prisma.gameRating.findMany({
+            where: { gameType: config.gameType as GameType, userId: { in: eligibleUserIds } },
+            select: { userId: true, rating: true },
+        });
+        const eloByUser = new Map(eloRatings.map(r => [r.userId, r.rating]));
+
         if (game === 'quiz') {
             const allAttempts = await prisma.attempt.findMany({
                 where: { userId: { in: eligibleUserIds }, gameType: 'QUIZ' },
@@ -50,6 +57,7 @@ export async function GET(req: NextRequest) {
                         score: total,
                         gamesPlayed: quizCount,
                         detail: `${quizCount} quiz complété${quizCount > 1 ? 's' : ''}`,
+                        elo: eloByUser.get(userId) ?? null,
                     };
                 })
                 .sort((a, b) => b.score - a.score);
@@ -176,6 +184,7 @@ export async function GET(req: NextRequest) {
                     wins,
                     detail,
                     bestLevel,
+                    elo: eloByUser.get(userId) ?? null,
                 };
             })
             .sort((a, b) => config.higherIsBetter ? b.score - a.score : a.score - b.score);

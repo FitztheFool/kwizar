@@ -30,6 +30,7 @@ interface LeaderboardEntry {
     wins?: number;
     detail: string;
     bestLevel?: number;
+    elo?: number | null;
 }
 
 interface LeaderboardConfig {
@@ -111,6 +112,7 @@ export default function LeaderboardView({ game }: Props) {
     const myEntry = leaderboard.find(e => e.userId === session?.user?.id);
     const scoreLabel = config?.scoreLabel ?? GAME_CONFIG[game].scoreLabel;
     const label = config?.label ?? GAME_CONFIG[game].label;
+    const showElo = leaderboard.some(e => e.elo != null);
 
     return (
         <div className="mx-auto max-w-7xl min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
@@ -194,6 +196,9 @@ export default function LeaderboardView({ game }: Props) {
                             <p className="text-xs text-gray-400">
                                 {scoreLabel}{myEntry.bestLevel ? ` · niv. ${myEntry.bestLevel}` : ''}
                             </p>
+                            {myEntry.elo != null && (
+                                <p className="text-xs font-bold text-indigo-500 dark:text-indigo-300 mt-0.5">ELO {myEntry.elo}</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -218,6 +223,7 @@ export default function LeaderboardView({ game }: Props) {
                                     <col style={{ width: '72px' }} />
                                     <col style={{ width: '22%' }} />
                                     <col style={{ width: '16%' }} />
+                                    {showElo && <col style={{ width: '88px' }} />}
                                     <col />
                                 </colgroup>
                                 <thead className="bg-gray-50 dark:bg-gray-800">
@@ -225,6 +231,7 @@ export default function LeaderboardView({ game }: Props) {
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
+                                        {showElo && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ELO</th>}
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
                                     </tr>
                                 </thead>
@@ -253,6 +260,13 @@ export default function LeaderboardView({ game }: Props) {
                                                         <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
                                                     )}
                                                 </td>
+                                                {showElo && (
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        {entry.elo != null
+                                                            ? <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300">{entry.elo}</span>
+                                                            : <span className="text-xs text-gray-300 dark:text-gray-600">—</span>}
+                                                    </td>
+                                                )}
                                                 <td className="px-4 py-3 hidden sm:table-cell">
                                                     <span className="text-xs text-gray-700 dark:text-gray-300">{entry.detail}</span>
                                                 </td>
