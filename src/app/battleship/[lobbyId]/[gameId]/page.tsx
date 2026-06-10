@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useBattleship } from '@/hooks/useBattleship';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import PlacementPhase from '@/components/Battleship/PlacementPhase';
 import BattleshipBoard from '@/components/Battleship/BattleshipBoard';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -46,6 +47,7 @@ export default function BattleshipPage() {
     });
 
     const [lastShot, setLastShot] = useState<string | null>(null);
+    const myElo = useEloUpdate('battleship', meInfo.userId);
 
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (gameNotFound) notFound();
@@ -216,6 +218,7 @@ export default function BattleshipPage() {
                 );
                 return (
                     <GameOverModal
+                        elo={myElo}
                         icon={won ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                         title={won ? 'Victoire !' : 'Défaite'}
                         subtitle={reasonLabel[state.gameOverReason ?? ''] ?? ''}

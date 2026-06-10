@@ -2,6 +2,7 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useCantStop, isBot } from '@/hooks/useCantStop';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
@@ -20,6 +21,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@
 
 export default function CantStopPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const myElo = useEloUpdate('cant-stop', me.userId);
 
     const { state, me: myPlayer, isMyTurn, vsBot, bustedFlash, pickSplit, roll, stop, surrender } = useCantStop({
         lobbyId,
@@ -146,6 +148,7 @@ export default function CantStopPage() {
 
             {state.phase === 'ended' && winner && !modalDismissed && (
                 <GameOverModal
+                    elo={myElo}
                     icon={isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : isBot(winner) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                             : <XCircleIcon className="w-8 h-8 text-red-400" />

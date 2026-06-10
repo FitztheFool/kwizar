@@ -2,6 +2,7 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { usePerudo, isBot } from '@/hooks/usePerudo';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
@@ -23,6 +24,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@
 
 export default function PerudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const myElo = useEloUpdate('perudo', me.userId);
 
     const {
         state, finished, me: myPlayer, isMyTurn, vsBot,
@@ -248,6 +250,7 @@ export default function PerudoPage() {
 
             {finished && (
                 <GameOverModal
+                    elo={myElo}
                     icon={
                         isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : isBot(winnerEntry) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />

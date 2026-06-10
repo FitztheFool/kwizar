@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { usePuissance4, isBot, PlayerInfo, Cell } from '@/hooks/usePuissance4';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
@@ -49,6 +50,7 @@ function P4PlayerLabel({ player, active, inactivityEndsAt }: { player: PlayerInf
 
 export default function Puissance4Page() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const myElo = useEloUpdate('puissance4', me.userId);
 
     const { players, gameState, myColorIndex, isMyTurn, vsBot, winSet, inactivityUserId, inactivityEndsAt, drop, surrender } = usePuissance4({
         lobbyId,
@@ -191,6 +193,7 @@ export default function Puissance4Page() {
 
                 {gameState.status === 'finished' && !modalDismissed && (
                     <GameOverModal
+                        elo={myElo}
                         icon={gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                         title={
                             gameState.winner === 'draw'

@@ -121,6 +121,7 @@ model User {
 
   createdQuizzes Quiz[]
   attempts       Attempt[]
+  ratings        GameRating[]
   accounts       Account[]
   sessions       Session[]
 
@@ -279,6 +280,9 @@ model Attempt {
   afk            Boolean  @default(false)
   vsBot          Boolean  @default(false)
   botScores      Json?
+  eloBefore      Int?
+  eloAfter       Int?
+  eloDelta       Int?
   createdAt      DateTime @default(now())
 
   userId String
@@ -291,6 +295,23 @@ model Attempt {
   @@index([userId, quizId])
   @@index([userId, gameType])
   @@map("attempts")
+}
+
+model GameRating {
+  id        String   @id @default(cuid())
+  userId    String
+  gameType  GameType
+  rating    Int      @default(1000)
+  games     Int      @default(0)
+  wins      Int      @default(0)
+  peak      Int      @default(1000)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameType])
+  @@index([gameType, rating])
+  @@map("game_ratings")
 }
 
 model Word {

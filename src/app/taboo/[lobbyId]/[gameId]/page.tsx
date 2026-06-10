@@ -10,6 +10,7 @@ import TimerBar from '@/components/TimerBar';
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useTaboo } from '@/hooks/useTaboo';
 import { TrapPhase } from '@/components/TrapPhase';
 import { NoSymbolIcon, FlagIcon, EyeIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
@@ -36,6 +37,7 @@ export default function TabooGamePage() {
 
     const myId = session?.user?.id ?? '';
     const username = session?.user?.username ?? session?.user?.email ?? 'User';
+    const myElo = useEloUpdate('taboo', myId);
 
     const { socketRef, game, kickedPlayers } = useTaboo({
         lobbyId,
@@ -523,6 +525,7 @@ export default function TabooGamePage() {
                 const winner = scores[0];
                 return (
                     <GameOverModal
+                        elo={myElo}
                         title="Fin de partie !"
                         subtitle={isDraw ? 'Égalité !' : `Victoire de l'équipe ${winner[0] === '0' ? 'Ambre' : 'Verte'} !`}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

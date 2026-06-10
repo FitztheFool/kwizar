@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { GameType } from '@/generated/prisma/client';
 import { timingSafeEqual } from 'crypto';
+import { computeElo, isEloGame, DEFAULT_RATING, BOT_RATING, EloParticipant } from '@/lib/elo';
 
 interface ScoreEntry {
     userId: string;
@@ -100,53 +101,127 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const botScoresJson: any = bots && bots.length > 0 ? bots : null;
 
-        await Promise.all(
-            validScores.map((s, i) => {
+        // Pré-calcul des champs nettoyés, réutilisés pour l'upsert et l'ELO.
+        const prepared = validScores.map(s => ({
+            userId: s.userId,
+            score: clampInt(s.score, 0, MAX_SCORE),
+            placement: s.placement == null ? null : clampInt(s.placement, 1, MAX_PLACEMENT, 1),
+            team: s.team === 0 || s.team === 1 ? s.team : null,
+            trapScore: clampInt(s.trapScore, 0, MAX_SCORE),
+            rounds: clampInt(s.rounds, 0, MAX_ROUNDS),
+            correctAnswers: clampInt(s.correctAnswers, 0, MAX_ROUNDS),
+            totalAnswers: clampInt(s.totalAnswers, 0, MAX_ROUNDS),
+            abandon: !!s.abandon,
+            afk: !!s.afk,
+        }));
+
+        const eloResults = await prisma.$transaction(async (tx) => {
+            // Garde d'idempotence : si des attempts existent déjà pour ce gameId, c'est une
+            // resoumission → on met à jour les stats mais on ne ré-applique pas l'ELO.
+            const existing = await tx.attempt.findMany({ where: { gameId }, select: { userId: true } });
+            const isFirstSave = existing.length === 0;
+            const applyElo = isFirstSave && isEloGame(gameType as GameType);
+
+            // Notes actuelles + nouvelles notes calculées (uniquement à la 1ʳᵉ sauvegarde).
+            const outcomeByUser = new Map<string, { before: number; after: number; delta: number }>();
+            const peakByUser = new Map<string, number>();
+            if (applyElo) {
+                const userIds = prepared.map(p => p.userId);
+                const ratings = await tx.gameRating.findMany({
+                    where: { userId: { in: userIds }, gameType: gameType as GameType },
+                });
+                const ratingByUser = new Map(ratings.map(r => [r.userId, r]));
+                for (const r of ratings) peakByUser.set(r.userId, r.peak);
+
+                const humanIds = new Set(userIds);
+                const humanParts: EloParticipant[] = prepared.map(p => ({
+                    key: p.userId,
+                    placement: p.placement,
+                    rating: ratingByUser.get(p.userId)?.rating ?? DEFAULT_RATING,
+                }));
+                const botParts: EloParticipant[] = (bots ?? []).map((b, i) => ({
+                    key: `bot-${i}`,
+                    placement: b.placement ?? null,
+                    rating: BOT_RATING,
+                    isBot: true,
+                }));
+                for (const o of computeElo([...humanParts, ...botParts])) {
+                    if (humanIds.has(o.key)) outcomeByUser.set(o.key, o);
+                }
+            }
+
+            for (let i = 0; i < prepared.length; i++) {
+                const p = prepared[i];
                 const botScores = i === 0 ? botScoresJson : null;
-                const score = clampInt(s.score, 0, MAX_SCORE);
-                const placement = s.placement == null ? null : clampInt(s.placement, 1, MAX_PLACEMENT, 1);
-                const team = s.team === 0 || s.team === 1 ? s.team : null;
-                const trapScore = clampInt(s.trapScore, 0, MAX_SCORE);
-                const rounds = clampInt(s.rounds, 0, MAX_ROUNDS);
-                const correctAnswers = clampInt(s.correctAnswers, 0, MAX_ROUNDS);
-                const totalAnswers = clampInt(s.totalAnswers, 0, MAX_ROUNDS);
-                return prisma.attempt.upsert({
-                    where: { userId_gameId: { userId: s.userId, gameId } },
+                const o = outcomeByUser.get(p.userId);
+                const eloFields = o
+                    ? { eloBefore: o.before, eloAfter: o.after, eloDelta: o.delta }
+                    : {};
+                await tx.attempt.upsert({
+                    where: { userId_gameId: { userId: p.userId, gameId } },
                     update: {
-                        score,
-                        placement,
-                        team,
-                        trapScore,
-                        rounds,
-                        correctAnswers,
-                        totalAnswers,
-                        abandon: !!s.abandon,
-                        afk: !!s.afk,
+                        score: p.score,
+                        placement: p.placement,
+                        team: p.team,
+                        trapScore: p.trapScore,
+                        rounds: p.rounds,
+                        correctAnswers: p.correctAnswers,
+                        totalAnswers: p.totalAnswers,
+                        abandon: p.abandon,
+                        afk: p.afk,
                         vsBot: !!vsBot,
                         ...(botScores !== null ? { botScores } : {}),
+                        ...eloFields,
                     },
                     create: {
-                        userId: s.userId,
+                        userId: p.userId,
                         gameType: gameType as GameType,
                         gameId,
                         quizId: quizId ?? null,
-                        score,
-                        placement,
-                        team,
-                        trapScore,
-                        rounds,
-                        correctAnswers,
-                        totalAnswers,
-                        abandon: !!s.abandon,
-                        afk: !!s.afk,
+                        score: p.score,
+                        placement: p.placement,
+                        team: p.team,
+                        trapScore: p.trapScore,
+                        rounds: p.rounds,
+                        correctAnswers: p.correctAnswers,
+                        totalAnswers: p.totalAnswers,
+                        abandon: p.abandon,
+                        afk: p.afk,
                         vsBot: !!vsBot,
                         botScores,
+                        ...eloFields,
                     },
                 });
-            })
-        );
 
-        return NextResponse.json({ ok: true, saved: validScores.length });
+                if (o) {
+                    const isWin = p.placement === 1;
+                    const peak = Math.max(peakByUser.get(p.userId) ?? DEFAULT_RATING, o.after);
+                    await tx.gameRating.upsert({
+                        where: { userId_gameType: { userId: p.userId, gameType: gameType as GameType } },
+                        update: {
+                            rating: o.after,
+                            games: { increment: 1 },
+                            wins: { increment: isWin ? 1 : 0 },
+                            peak,
+                        },
+                        create: {
+                            userId: p.userId,
+                            gameType: gameType as GameType,
+                            rating: o.after,
+                            games: 1,
+                            wins: isWin ? 1 : 0,
+                            peak,
+                        },
+                    });
+                }
+            }
+
+            return [...outcomeByUser.entries()].map(([userId, o]) => ({
+                userId, before: o.before, after: o.after, delta: o.delta,
+            }));
+        });
+
+        return NextResponse.json({ ok: true, saved: validScores.length, elo: eloResults });
     } catch (error) {
         console.error('[POST /api/attempts]', error);
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

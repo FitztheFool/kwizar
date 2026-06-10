@@ -3,6 +3,7 @@
 // no extra react hooks needed
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useLudo, isBot } from '@/hooks/useLudo';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
@@ -21,6 +22,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outlin
 
 export default function LudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const myElo = useEloUpdate('ludo', me.userId);
 
     const {
         state, myColorIndex, currentPlayer, isMyTurn, canRoll, canMove,
@@ -149,6 +151,7 @@ export default function LudoPage() {
 
             {state.phase === 'finished' && winnerLabel && !modalDismissed && (
                 <GameOverModal
+                    elo={myElo}
                     icon={
                         winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : (typeof state.winner === 'number' && isBot(state.players[state.winner])) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />

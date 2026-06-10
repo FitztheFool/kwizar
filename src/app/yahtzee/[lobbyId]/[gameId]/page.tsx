@@ -12,6 +12,7 @@ import AfkCountdown from '@/components/AfkCountdown';
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useYahtzee, isBot, ScoreCard } from '@/hooks/useYahtzee';
 import SharedDie from '@/components/Dice/Die';
 import BotBadge from '@/components/shared/BotBadge';
@@ -92,6 +93,7 @@ export default function YahtzeePage() {
 
     const myId = session?.user?.id ?? meInfo.userId;
     const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
+    const myElo = useEloUpdate('yahtzee', myId);
 
     const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, inactivityUserId, inactivityEndsAt, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
         lobbyId,
@@ -129,6 +131,7 @@ export default function YahtzeePage() {
         let rankIdx = 0;
         return (
             <GameOverModal
+                elo={myElo}
                 title="Partie terminée !"
                 subtitle={hasForfeits ? `${sorted.find(p => !p.abandon && !p.afk)?.username ?? '?'} remporte la victoire !` : 'Classement final'}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

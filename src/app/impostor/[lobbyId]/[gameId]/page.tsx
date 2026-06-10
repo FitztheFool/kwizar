@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useImpostor } from '@/hooks/useImpostor';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
@@ -19,6 +20,7 @@ import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, ShieldExclamat
 
 export default function ImpostorPage() {
     const { session, status, me, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const myElo = useEloUpdate('impostor', me.userId);
 
     const {
         players,
@@ -86,6 +88,7 @@ export default function ImpostorPage() {
             .map(([id, pts]) => ({ id, pts, name: players.find(p => p.id === id)?.name ?? id }));
         return (
             <GameOverModal
+                elo={myElo}
                 icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <FaceFrownIcon className="w-8 h-8 text-gray-400" />}
                 title={gameEnd.winner === 'players' ? 'Les joueurs ont gagné !' : "L'imposteur a gagné !"}
                 subtitle={`Mot secret : "${gameEnd.word}" — Imposteur : ${gameEnd.impostorName}`}

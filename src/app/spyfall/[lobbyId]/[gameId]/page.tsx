@@ -3,6 +3,7 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useSpyfall } from '@/hooks/useSpyfall';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
@@ -17,6 +18,7 @@ import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, EyeSlashIcon, 
 
 export default function SpyfallPage() {
     const { session, status, me, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const myElo = useEloUpdate('spyfall', me.userId);
 
     const {
         players, role, location, yourRole, board, roundState,
@@ -47,6 +49,7 @@ export default function SpyfallPage() {
             .map(([id, pts]) => ({ id, pts, name: players.find(p => p.id === id)?.name ?? id }));
         return (
             <GameOverModal
+                elo={myElo}
                 icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <FaceFrownIcon className="w-8 h-8 text-gray-400" />}
                 title={gameEnd.winner === 'civilians' ? 'Les civils ont gagné !' : "L'espion a gagné !"}
                 subtitle={`Lieu : "${gameEnd.location}" — Espion : ${gameEnd.spyName ?? '?'}`}

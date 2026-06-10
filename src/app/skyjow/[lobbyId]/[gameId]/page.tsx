@@ -11,6 +11,7 @@ import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useSkyjow } from '@/hooks/useSkyjow';
 
 import type { CardState, Phase } from '@/hooks/useSkyjow';
@@ -29,6 +30,7 @@ export default function skyjowGamePage() {
 
     const userId = meInfo.userId;
     const username = meInfo.username ?? '';
+    const myElo = useEloUpdate('skyjow', userId);
 
     const {
         myCards,
@@ -176,6 +178,7 @@ export default function skyjowGamePage() {
         const MEDAL: Record<number, string> = { 0: '1', 1: '2', 2: '3' };
         return (
             <GameOverModal
+                elo={myElo}
                 title="Fin de partie !"
                 subtitle={`${gameEndData.winnerUsername} remporte la victoire !`}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

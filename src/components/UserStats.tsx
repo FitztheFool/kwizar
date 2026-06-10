@@ -15,7 +15,7 @@ import ActivityTable, { type ActivityRow } from '@/components/ActivityTable';
 
 interface Stats {
     user: { id: string; username: string; image: string | null };
-    gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number }>;
+    gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number; elo?: number | null; eloGames?: number; eloPeak?: number }>;
     totalGames: number;
     recentActivity: ActivityRow[];
     pagination: { page: number; pageSize: number; totalGames: number; totalPages: number };

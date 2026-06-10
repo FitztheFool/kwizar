@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useMilleBornes, isBot } from '@/hooks/useMilleBornes';
 import GameOverModal from '@/components/GameOverModal';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -20,6 +21,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon } from '@heroicons/react
 
 export default function MilleBornesPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const myElo = useEloUpdate('mille-bornes', me.userId);
 
     const {
         state, finished, me: myPlayer, isMyTurn, vsBot, coupFourreForMe, coupFlash,
@@ -317,6 +319,7 @@ export default function MilleBornesPage() {
 
             {finished && (
                 <GameOverModal
+                    elo={myElo}
                     icon={
                         isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : (!is2v2 && isBot(winnerScore)) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />

@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import { useDiamant, Card, PlayerInfo } from '@/hooks/useDiamant';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
@@ -194,6 +195,7 @@ export default function DiamantPage() {
         userId: meInfo.userId,
         username: meInfo.username,
     });
+    const myElo = useEloUpdate('diamant', meInfo.userId);
 
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (gameNotFound) notFound();
@@ -404,6 +406,7 @@ export default function DiamantPage() {
             {/* Game over */}
             {state.phase === 'finished' && (
                 <GameOverModal
+                    elo={myElo}
                     icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <TrophyIcon className="w-8 h-8 text-gray-400" />}
                     title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"

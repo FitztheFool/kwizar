@@ -15,6 +15,9 @@ interface GameStat {
     totalAnswers?: number;
     bestScore?: number;
     bestLevel?: number;
+    elo?: number | null;
+    eloGames?: number;
+    eloPeak?: number;
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -142,6 +145,14 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                                         {GAME_LABEL_MAP[type] ?? type}
                                     </span>
                                     {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
+                                    {stat.elo != null && (stat.eloGames ?? 0) > 0 && (
+                                        <span
+                                            title={`ELO${stat.eloPeak ? ` · record ${stat.eloPeak}` : ''}`}
+                                            className="shrink-0 text-[9px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-1 py-px rounded"
+                                        >
+                                            {stat.elo}
+                                        </span>
+                                    )}
                                 </div>
                                 {bar && (
                                     <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>

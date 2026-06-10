@@ -25,10 +25,12 @@ export async function GET(
             return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
         }
 
-        const gameStats: Record<string, { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number }> = {};
+        type GameStat = { count: number; points: number; wins: number; rounds: number; correctAnswers: number; totalAnswers: number; bestScore: number; bestLevel: number; elo: number | null; eloGames: number; eloPeak: number };
+        const emptyStat = (): GameStat => ({ count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0, elo: null, eloGames: 0, eloPeak: 0 });
+        const gameStats: Record<string, GameStat> = {};
         for (const key of Object.keys(GAME_CONFIG)) {
             const type = GAME_CONFIG[key as keyof typeof GAME_CONFIG].gameType;
-            gameStats[type] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
+            gameStats[type] = emptyStat();
         }
 
         // Points + rounds par gameType
@@ -58,7 +60,7 @@ export async function GET(
         const tabooRounds = tabooRoundsResult[0]?.total_rounds ?? 0;
 
         for (const row of attemptSumsByType) {
-            if (!gameStats[row.gameType]) gameStats[row.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
+            if (!gameStats[row.gameType]) gameStats[row.gameType] = emptyStat();
             gameStats[row.gameType].points = row._sum.score ?? 0;
             gameStats[row.gameType].rounds = row.gameType === 'TABOO' ? tabooRounds : 0;
             gameStats[row.gameType].correctAnswers = row._sum.correctAnswers ?? 0;
@@ -66,7 +68,7 @@ export async function GET(
         }
 
         for (const g of distinctGamesByType) {
-            if (!gameStats[g.gameType]) gameStats[g.gameType] = { count: 0, points: 0, wins: 0, rounds: 0, correctAnswers: 0, totalAnswers: 0, bestScore: 0, bestLevel: 0 };
+            if (!gameStats[g.gameType]) gameStats[g.gameType] = emptyStat();
             gameStats[g.gameType].count++;
             if (g.placement === 1) gameStats[g.gameType].wins++;
         }
@@ -86,6 +88,18 @@ export async function GET(
             if ((a.gameType === 'PACMAN' || a.gameType === 'BREAKOUT') && a.rounds > gameStats[a.gameType].bestLevel) {
                 gameStats[a.gameType].bestLevel = a.rounds;
             }
+        }
+
+        // Notes ELO par jeu
+        const ratings = await prisma.gameRating.findMany({
+            where: { userId: user.id },
+            select: { gameType: true, rating: true, games: true, peak: true },
+        });
+        for (const r of ratings) {
+            if (!gameStats[r.gameType]) gameStats[r.gameType] = emptyStat();
+            gameStats[r.gameType].elo = r.rating;
+            gameStats[r.gameType].eloGames = r.games;
+            gameStats[r.gameType].eloPeak = r.peak;
         }
 
         // Activité récente

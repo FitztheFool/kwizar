@@ -126,12 +126,28 @@ export async function GET(
             SELECT "gameType", rnk::int FROM ranked WHERE "userId" = ${user.id}
         `;
 
+        // ── 5. Classement ELO par jeu (note de niveau) ───────────────────────────────
+        const eloRankRows = await prisma.$queryRaw<RankRow[]>`
+            WITH ranked AS (
+                SELECT "userId", "gameType"::text,
+                    RANK() OVER (PARTITION BY "gameType" ORDER BY rating DESC) AS rnk
+                FROM game_ratings
+                WHERE "userId" = ANY(${eligibleIds})
+            )
+            SELECT "gameType", rnk::int FROM ranked WHERE "userId" = ${user.id}
+        `;
+
         const ranks: Record<string, number> = {};
         for (const row of [...sumRanks, ...snakeRanks, ...avgRanks, ...winRanks, ...quizRanks]) {
             ranks[row.gameType] = Number(row.rnk);
         }
 
-        return NextResponse.json({ ranks });
+        const eloRanks: Record<string, number> = {};
+        for (const row of eloRankRows) {
+            eloRanks[row.gameType] = Number(row.rnk);
+        }
+
+        return NextResponse.json({ ranks, eloRanks });
     } catch (err) {
         console.error('[ranks] error:', err);
         return NextResponse.json({ error: String(err) }, { status: 500 });

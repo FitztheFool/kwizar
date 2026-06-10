@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
+import EloDeltaBadge from '@/components/shared/EloDeltaBadge';
 import TimerBar from '@/components/TimerBar';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
@@ -93,6 +95,7 @@ export default function UnoPage() {
         userId: session?.user?.id ?? '',
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
     }), [session]);
+    const myElo = useEloUpdate('uno', me.userId);
 
     useEffect(() => {
         if (!socket) return;
@@ -206,6 +209,11 @@ export default function UnoPage() {
                     <p className="text-emerald-200 dark:text-emerald-300 text-sm mb-6">
                         {gameState.spectator ? 'Vous avez observé cette partie' : 'Classement final'}
                     </p>
+                    {!gameState.spectator && myElo && (
+                        <div className="flex justify-center mb-4">
+                            <EloDeltaBadge elo={myElo} />
+                        </div>
+                    )}
 
                     <div className="space-y-2 text-left">
                         {scores.map(s => (
