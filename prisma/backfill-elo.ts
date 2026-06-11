@@ -2,17 +2,11 @@
 // Rejoue toutes les attempts des jeux notés (ordre chronologique) à travers le moteur
 // ELO et remplit game_ratings + eloBefore/After/Delta. Idempotent (reset puis recalcul).
 //
-//   npm run db:backfill-elo
+// Appelé en fin de seed (prisma/seed.ts) et lançable seul :  npm run db:backfill-elo
 //
 // (Logique ELO identique à src/lib/elo.ts — inlinée pour éviter l'alias @/ sous tsx.)
 
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { PrismaClient } from '../src/generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
 const ELO_GAME_TYPES = new Set<string>([
     'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE', 'PUISSANCE4', 'BATTLESHIP',
@@ -47,9 +41,11 @@ function computeElo(participants: Participant[]): Outcome[] {
 
 type BotScore = { username?: string; score?: number; placement?: number | null; team?: number | null };
 
-async function main() {
-    console.log('🔄 Backfill ELO — début');
-
+/**
+ * Recalcule l'ELO de toutes les parties notées et écrit game_ratings + les deltas
+ * sur les attempts. Idempotent : reset complet puis recalcul.
+ */
+export async function backfillElo(prisma: PrismaClient): Promise<void> {
     // 1. Reset
     await prisma.gameRating.deleteMany({});
     await prisma.attempt.updateMany({
@@ -75,7 +71,7 @@ async function main() {
     );
 
     // 4. État courant par user×jeu
-    const ratingMap = new Map<string, number>();          // key `${gameType}:${userId}` -> rating
+    const ratingMap = new Map<string, number>();
     const stats = new Map<string, { games: number; wins: number; peak: number; userId: string; gameType: string }>();
     const attemptUpdates: { id: string; before: number; after: number; delta: number }[] = [];
     const key = (gt: string, uid: string) => `${gt}:${uid}`;
@@ -91,7 +87,6 @@ async function main() {
             rating: ratingMap.get(key(gameType, a.userId)) ?? DEFAULT_RATING,
         }));
 
-        // Bots : stockés en JSON sur la première attempt humaine de la partie
         const botJson = group.find(a => a.botScores != null)?.botScores as BotScore[] | null;
         const bots: Participant[] = Array.isArray(botJson)
             ? botJson.map((b, i) => ({ key: `bot-${i}`, placement: b.placement ?? null, rating: BOT_RATING, isBot: true }))
@@ -99,7 +94,7 @@ async function main() {
 
         const humanKeys = new Set(humans.map(h => h.key));
         const outcomes = computeElo([...humans, ...bots]);
-        if (outcomes.length === 0) continue; // < 2 participants → pas de partie notée
+        if (outcomes.length === 0) continue;
 
         ratedGames++;
         for (const h of humans) {
@@ -139,9 +134,21 @@ async function main() {
         ));
     }
 
-    console.log(`✅ Backfill ELO terminé — ${ratedGames} parties notées, ${ratingRows.length} lignes game_ratings, ${attemptUpdates.length} attempts mises à jour`);
+    console.log(`✅ Backfill ELO — ${ratedGames} parties notées, ${ratingRows.length} lignes game_ratings, ${attemptUpdates.length} attempts mises à jour`);
 }
 
-main()
-    .catch(e => { console.error('❌ Backfill ELO échec', e); process.exit(1); })
-    .finally(() => prisma.$disconnect());
+// ── CLI : npm run db:backfill-elo (ne s'exécute pas lors d'un import) ────────────
+async function runCli() {
+    const dotenv = await import('dotenv');
+    dotenv.config();
+    const { PrismaPg } = await import('@prisma/adapter-pg');
+    const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
+    console.log('🔄 Backfill ELO — début');
+    await backfillElo(prisma)
+        .catch(e => { console.error('❌ Backfill ELO échec', e); process.exit(1); })
+        .finally(() => prisma.$disconnect());
+}
+
+if (process.argv[1] && process.argv[1].includes('backfill-elo')) {
+    runCli();
+}

@@ -78,8 +78,7 @@ export default function VerifyEmailPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{errorMsg}</p>
                         <button
                             onClick={() => router.push('/login')}
-                            className="w-full py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-xl transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-                        >
+                            className="w-full py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-xl transition-colors hover:bg-gray-200 dark:hover:bg-gray-700">
                             Retour à la connexion
                         </button>
                     </>

@@ -15,6 +15,7 @@ import {
     seedTetrisAttempts, seedLudoAttempts, seedPerudoAttempts,
     seedCantStopAttempts, seedMilleBornesAttempts,
 } from './seed-attempts';
+import { backfillElo } from './backfill-elo';
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -161,6 +162,9 @@ async function main() {
     await seedPerudoAttempts(prisma, allPlayers);
     await seedCantStopAttempts(prisma, allPlayers);
     await seedMilleBornesAttempts(prisma, allPlayers);
+
+    // Calcul des notes ELO à partir des parties seedées
+    await backfillElo(prisma);
 
     console.log('\n✅ Seed dev terminé !');
 }
