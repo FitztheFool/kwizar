@@ -9,6 +9,7 @@ import GameIcon from '@/components/GameIcon';
 import PlayerModal from '@/components/PlayerModal';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import GameStatCards from '@/components/GameStatCards';
+import EloOverview from '@/components/EloOverview';
 import StatChip from '@/components/StatChip';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import ActivityTable, { type ActivityRow } from '@/components/ActivityTable';
@@ -28,6 +29,7 @@ interface Props {
 export default function UserStats({ username }: Props) {
     const [stats, setStats] = useState<Stats | null>(null);
     const [ranks, setRanks] = useState<Record<string, number>>({});
+    const [eloRanks, setEloRanks] = useState<Record<string, number>>({});
     const [initialLoading, setInitialLoading] = useState(true);
     const [refetching, setRefetching] = useState(false);
     const [page, setPage] = useState(1);
@@ -56,7 +58,10 @@ export default function UserStats({ username }: Props) {
     useEffect(() => {
         fetch(`/api/user/${username}/ranks`)
             .then(r => r.ok ? r.json() : null)
-            .then(data => { if (data?.ranks) setRanks(data.ranks); });
+            .then(data => {
+                if (data?.ranks) setRanks(data.ranks);
+                if (data?.eloRanks) setEloRanks(data.eloRanks);
+            });
     }, [username]);
 
     const handlePageChange = (p: number) => { setPage(p); fetchStats(p, gameFilter); };
@@ -75,6 +80,9 @@ export default function UserStats({ username }: Props) {
 
     return (
         <div className="space-y-4">
+
+            {/* ── Panneau ELO ── */}
+            <EloOverview gameStats={stats.gameStats} eloRanks={eloRanks} />
 
             {/* ── Chips d'aperçu ── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
