@@ -223,15 +223,15 @@ export default function LeaderboardView({ game }: Props) {
                 ) : (
                     <LoadingOverlay loading={refetching}>
 
-                        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+                        <div className="w-fit max-w-full mx-auto overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                             <table className="w-full divide-y divide-gray-100">
                                 <thead className="bg-gray-50 dark:bg-gray-800">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
-                                        <th className="w-full sm:w-auto px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
                                         {showElo && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ELO</th>}
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
-                                        <th className="w-full px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
@@ -244,9 +244,9 @@ export default function LeaderboardView({ game }: Props) {
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <RankBadge rank={entry.rank} />
                                                 </td>
-                                                <td className="w-full sm:w-auto max-w-0 sm:max-w-none px-4 py-3 whitespace-nowrap overflow-hidden">
+                                                <td className="px-4 py-3 whitespace-nowrap">
                                                     <Link href={isMe ? '/dashboard' : `/user/${entry.username}`}
-                                                        className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400 truncate block">
+                                                        className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400 truncate block max-w-[200px]">
                                                         {entry.username}
                                                     </Link>
                                                     {isMe && <span className="text-xs opacity-60">(moi)</span>}
@@ -266,7 +266,7 @@ export default function LeaderboardView({ game }: Props) {
                                                         <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
                                                     )}
                                                 </td>
-                                                <td className="w-full px-4 py-3 hidden sm:table-cell">
+                                                <td className="px-4 py-3 hidden sm:table-cell">
                                                     <span className="text-xs text-gray-700 dark:text-gray-300">{entry.detail}</span>
                                                 </td>
                                             </tr>

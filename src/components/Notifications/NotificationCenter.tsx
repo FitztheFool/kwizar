@@ -125,8 +125,8 @@ export default function NotificationCenter() {
             </button>
 
             {open && (
-                <div role="dialog" aria-label="Notifications" className="glass-strong fixed inset-x-2 top-16 w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 max-h-[70vh] overflow-y-auto rounded-2xl z-[70]">
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white/60 dark:bg-gray-900/40 backdrop-blur-md">
+                <div role="dialog" aria-label="Notifications" className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl fixed inset-x-2 top-16 w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 max-h-[70vh] overflow-y-auto rounded-2xl z-[70]">
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900">
                         <span className="font-bold text-gray-900 dark:text-white">Notifications</span>
                         {total > 0 && <span className="text-xs text-gray-400">{total}</span>}
                     </div>
