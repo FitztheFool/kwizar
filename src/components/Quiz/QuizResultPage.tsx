@@ -10,7 +10,7 @@ import { useQuizResult, type LeaderboardEntry } from '@/hooks/useQuizResult';
 import { getQuizSocket } from '@/lib/socket';
 import RankBadge from '@/components/shared/RankBadge';
 import MeTag from '@/components/shared/MeTag';
-import EloDeltaBadge from '@/components/shared/EloDeltaBadge';
+import EloDeltaList from '@/components/shared/EloDeltaList';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import LobbyWaitingRoom from '@/components/Quiz/LobbyWaitingRoom';
 import { TrophyIcon } from '@heroicons/react/24/outline';
@@ -126,11 +126,7 @@ export default function QuizResultPage() {
                                 </span>
                             </span>
                         </div>
-                        {myElo && (
-                            <div className="mt-3 flex justify-center">
-                                <EloDeltaBadge elo={myElo} />
-                            </div>
-                        )}
+                        <EloDeltaList elo={myElo} />
                     </div>
 
                     {displayLeaderboard.length > 0 && (

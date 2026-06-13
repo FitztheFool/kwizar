@@ -4,7 +4,7 @@
 import React from 'react';
 import { TrophyIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import EloDeltaBadge from '@/components/shared/EloDeltaBadge';
+import EloDeltaList from '@/components/shared/EloDeltaList';
 
 interface GameOverModalProps {
     icon?: React.ReactNode;
@@ -16,7 +16,7 @@ interface GameOverModalProps {
     onClose?: () => void;
     lobbyLabel?: string;
     asModal?: boolean;
-    elo?: { delta: number; after: number } | null;
+    elo?: { userId: string; username?: string | null; after: number; delta: number }[] | null;
 }
 
 export default function GameOverModal({
@@ -57,11 +57,7 @@ export default function GameOverModal({
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
                 {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{subtitle}</p>}
-                {elo && (
-                    <div className="flex justify-center mt-3">
-                        <EloDeltaBadge elo={elo} />
-                    </div>
-                )}
+                <EloDeltaList elo={elo} />
             </div>
             {children && <div className="text-left w-full">{children}</div>}
             <div className="flex gap-3 pt-2">

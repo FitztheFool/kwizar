@@ -8,9 +8,11 @@ export async function POST() {
     if (!session?.user?.id) {
         return NextResponse.json({ ok: false }, { status: 401 });
     }
-    await prisma.user.update({
+    // updateMany ne lève pas si l'utilisateur n'existe plus (ex. session périmée
+    // après un reseed) — la présence est best-effort, pas de 500.
+    const res = await prisma.user.updateMany({
         where: { id: session.user.id },
         data: { lastSeen: new Date() },
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: res.count > 0 });
 }

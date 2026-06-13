@@ -79,7 +79,10 @@ export default function EloOverview({ gameStats, eloRanks = {} }: Props) {
                             </div>
                             <div className="flex items-end justify-between gap-2">
                                 <div className="min-w-0">
-                                    <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">{r.elo}</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{r.elo}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300">ELO</span>
+                                    </div>
                                     <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 truncate">
                                         record {r.peak} · {r.games} partie{r.games > 1 ? 's' : ''}
                                     </div>

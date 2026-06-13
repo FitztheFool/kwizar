@@ -138,7 +138,7 @@ export default function LeaderboardView({ game }: Props) {
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Classement {label}</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                             {pagination
-                                ? `${pagination.total} joueur${pagination.total > 1 ? 's' : ''} classé${pagination.total > 1 ? 's' : ''}`
+                                ? `${pagination.total} joueur${pagination.total > 1 ? 's' : ''} classé${pagination.total > 1 ? 's' : ''}${showElo ? ' · triés par ELO' : ''}`
                                 : 'Chargement…'
                             }
                         </p>
@@ -192,12 +192,18 @@ export default function LeaderboardView({ game }: Props) {
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-700">{myEntry.score}</p>
-                            <p className="text-xs text-gray-400">
-                                {scoreLabel}{myEntry.bestLevel ? ` · niv. ${myEntry.bestLevel}` : ''}
-                            </p>
-                            {myEntry.elo != null && (
-                                <p className="text-xs font-bold text-indigo-500 dark:text-indigo-300 mt-0.5">ELO {myEntry.elo}</p>
+                            {myEntry.elo != null ? (
+                                <>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{myEntry.elo}</p>
+                                    <p className="text-xs text-gray-400">ELO · {myEntry.score} {scoreLabel.toLowerCase()}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-2xl font-bold text-blue-700">{myEntry.score}</p>
+                                    <p className="text-xs text-gray-400">
+                                        {scoreLabel}{myEntry.bestLevel ? ` · niv. ${myEntry.bestLevel}` : ''}
+                                    </p>
+                                </>
                             )}
                         </div>
                     </div>
@@ -218,21 +224,14 @@ export default function LeaderboardView({ game }: Props) {
                     <LoadingOverlay loading={refetching}>
 
                         <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
-                            <table className="w-full table-fixed divide-y divide-gray-100">
-                                <colgroup>
-                                    <col style={{ width: '72px' }} />
-                                    <col style={{ width: '22%' }} />
-                                    <col style={{ width: '16%' }} />
-                                    {showElo && <col style={{ width: '88px' }} />}
-                                    <col />
-                                </colgroup>
+                            <table className="w-full divide-y divide-gray-100">
                                 <thead className="bg-gray-50 dark:bg-gray-800">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
+                                        <th className="w-full sm:w-auto px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
                                         {showElo && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ELO</th>}
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{scoreLabel}</th>
+                                        <th className="w-full px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
@@ -245,29 +244,29 @@ export default function LeaderboardView({ game }: Props) {
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <RankBadge rank={entry.rank} />
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap overflow-hidden">
+                                                <td className="w-full sm:w-auto max-w-0 sm:max-w-none px-4 py-3 whitespace-nowrap overflow-hidden">
                                                     <Link href={isMe ? '/dashboard' : `/user/${entry.username}`}
                                                         className="text-sm font-medium hover:underline text-blue-600 dark:text-blue-400 truncate block">
                                                         {entry.username}
                                                     </Link>
                                                     {isMe && <span className="text-xs opacity-60">(moi)</span>}
                                                 </td>
+                                                {showElo && (
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        {entry.elo != null
+                                                            ? <span className="text-sm font-bold text-gray-900 dark:text-white">{entry.elo}</span>
+                                                            : <span className="text-xs text-gray-300 dark:text-gray-600">—</span>}
+                                                    </td>
+                                                )}
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                                    <span className={showElo ? 'text-sm font-medium text-gray-600 dark:text-gray-300' : 'text-sm font-bold text-gray-900 dark:text-white'}>
                                                         {entry.score}
                                                     </span>
                                                     {!!entry.bestLevel && (
                                                         <span className="ml-1.5 text-[10px] text-gray-400 dark:text-gray-500">niv.{entry.bestLevel}</span>
                                                     )}
                                                 </td>
-                                                {showElo && (
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        {entry.elo != null
-                                                            ? <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300">{entry.elo}</span>
-                                                            : <span className="text-xs text-gray-300 dark:text-gray-600">—</span>}
-                                                    </td>
-                                                )}
-                                                <td className="px-4 py-3 hidden sm:table-cell">
+                                                <td className="w-full px-4 py-3 hidden sm:table-cell">
                                                     <span className="text-xs text-gray-700 dark:text-gray-300">{entry.detail}</span>
                                                 </td>
                                             </tr>

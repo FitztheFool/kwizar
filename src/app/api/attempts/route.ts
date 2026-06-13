@@ -86,9 +86,10 @@ export async function POST(req: NextRequest) {
         // Vérifier que les userId existent en BDD
         const existingUsers = await prisma.user.findMany({
             where: { id: { in: scores.map(s => s.userId) } },
-            select: { id: true },
+            select: { id: true, username: true },
         });
         const validUserIds = new Set(existingUsers.map(u => u.id));
+        const usernameById = new Map(existingUsers.map(u => [u.id, u.username]));
         const validScores = scores.filter(s => validUserIds.has(s.userId));
 
         if (validScores.length === 0) {
@@ -217,7 +218,7 @@ export async function POST(req: NextRequest) {
             }
 
             return [...outcomeByUser.entries()].map(([userId, o]) => ({
-                userId, before: o.before, after: o.after, delta: o.delta,
+                userId, username: usernameById.get(userId) ?? null, before: o.before, after: o.after, delta: o.delta,
             }));
         });
 

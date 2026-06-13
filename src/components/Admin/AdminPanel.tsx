@@ -258,6 +258,12 @@ export default function AdminPanel() {
                             gameFilter={gameFilter} setGameFilter={setGameFilter}
                             activityUserQuery={activityUserQuery} setActivityUserQuery={setActivityUserQuery}
                             onPlayerClick={row => setPlayerModal({ gameId: row.gameId, players: row.players })}
+                            onDeleteGame={async row => {
+                                if (!confirm('Supprimer cette partie (tous les joueurs) ? L\'ELO sera recalculé.')) return;
+                                const res = await fetch(`/api/admin/attempts?gameId=${encodeURIComponent(row.gameId)}`, { method: 'DELETE' });
+                                if (res.ok) refreshActivity(activityPeriod, activityPage, userQueryRef.current, gameFilterRef.current);
+                                else alert('Échec de la suppression');
+                            }}
                         />
                     )}
 
@@ -364,7 +370,7 @@ export default function AdminPanel() {
                 </div>
             </div>
 
-            {playerModal && <PlayerModal gameId={playerModal.gameId} players={playerModal.players} onClose={() => setPlayerModal(null)} />}
+            {playerModal && <PlayerModal gameId={playerModal.gameId} players={playerModal.players} onClose={() => setPlayerModal(null)} onDeleted={() => refreshActivity(activityPeriod, activityPage, userQueryRef.current, gameFilterRef.current)} />}
         </div>
     );
 }

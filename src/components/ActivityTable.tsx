@@ -6,7 +6,7 @@ import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { GAME_COLOR } from '@/lib/gameColor';
 import PlayerButton from '@/components/PlayerButton';
 import GameIcon from '@/components/GameIcon';
-import { NoSymbolIcon, ClockIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { NoSymbolIcon, ClockIcon, UsersIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -59,6 +59,8 @@ interface ActivityTableProps {
     emptyLabel?: string;
     /** Afficher la colonne Quiz (défaut: true) */
     showQuiz?: boolean;
+    /** Si fourni (admin), affiche une corbeille par ligne pour supprimer la partie. */
+    onDelete?: (row: ActivityRow) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -69,6 +71,7 @@ export default function ActivityTable({
     onPlayerClick,
     emptyLabel = 'Aucune activité pour cette période.',
     showQuiz = true,
+    onDelete,
 }: ActivityTableProps) {
     const isUser = variant === 'user';
 
@@ -169,19 +172,30 @@ export default function ActivityTable({
 
                                 {/* Joueurs */}
                                 <td className="px-3 py-2">
-                                    <PlayerButton
-                                        players={row.players}
-                                        onClick={() => onPlayerClick(row)}
-                                    />
-                                    {/* Admin variant: show pre-computed count if players array is empty */}
-                                    {!isUser && row.players.length === 0 && row.playerCount != null && (
-                                        <button
+                                    <div className="flex items-center gap-2">
+                                        <PlayerButton
+                                            players={row.players}
                                             onClick={() => onPlayerClick(row)}
-                                            className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                        >
-                                            <UsersIcon className="w-3.5 h-3.5 inline mr-0.5" />{row.playerCount}
-                                        </button>
-                                    )}
+                                        />
+                                        {/* Admin variant: show pre-computed count if players array is empty */}
+                                        {!isUser && row.players.length === 0 && row.playerCount != null && (
+                                            <button
+                                                onClick={() => onPlayerClick(row)}
+                                                className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                            >
+                                                <UsersIcon className="w-3.5 h-3.5 inline mr-0.5" />{row.playerCount}
+                                            </button>
+                                        )}
+                                        {onDelete && (
+                                            <button
+                                                onClick={() => onDelete(row)}
+                                                title="Supprimer cette partie (admin)"
+                                                className="shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                                            >
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
 
                                 {/* Date */}

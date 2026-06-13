@@ -34,6 +34,7 @@ interface Props {
     activityUserQuery: string;
     setActivityUserQuery: (q: string) => void;
     onPlayerClick: (row: any) => void;
+    onDeleteGame?: (row: any) => void;
 }
 
 const STAT_CARDS: { key: string; label: (n: number) => string; icon: React.FC<{ className?: string }>; color: string; bg: string }[] = [
@@ -50,7 +51,7 @@ export default function StatsTab({
     activityPage, onActivityPageChange,
     gameFilter, setGameFilter,
     activityUserQuery, setActivityUserQuery,
-    onPlayerClick,
+    onPlayerClick, onDeleteGame,
 }: Props) {
     if (loadingStats && !stats) {
         return <div className="flex items-center justify-center py-20"><LoadingSpinner fullScreen={false} message="Chargement..." /></div>;
@@ -179,7 +180,7 @@ export default function StatsTab({
                         />
                     </div>
 
-                    <ActivityTable rows={stats.recentActivity} variant="admin" onPlayerClick={onPlayerClick} />
+                    <ActivityTable rows={stats.recentActivity} variant="admin" onPlayerClick={onPlayerClick} onDelete={onDeleteGame} />
 
                     {stats.activityMeta?.totalPages > 1 && (
                         <Pagination currentPage={activityPage} totalPages={stats.activityMeta.totalPages} onPageChange={onActivityPageChange} />

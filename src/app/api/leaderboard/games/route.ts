@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { GameType } from '@/generated/prisma/client';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import { ELO_GAME_TYPES } from '@/lib/elo';
 
 
 export async function GET(req: NextRequest) {
@@ -32,6 +33,8 @@ export async function GET(req: NextRequest) {
             select: { userId: true, rating: true },
         });
         const eloByUser = new Map(eloRatings.map(r => [r.userId, r.rating]));
+        // Jeux notés (hors quiz, géré à part) → classés par ELO, score en secondaire.
+        const isEloGame = game !== 'quiz' && ELO_GAME_TYPES.has(config.gameType as GameType);
 
         if (game === 'quiz') {
             const allAttempts = await prisma.attempt.findMany({
@@ -187,7 +190,13 @@ export async function GET(req: NextRequest) {
                     elo: eloByUser.get(userId) ?? null,
                 };
             })
-            .sort((a, b) => config.higherIsBetter ? b.score - a.score : a.score - b.score);
+            .sort((a, b) => {
+                const scoreCmp = config.higherIsBetter ? b.score - a.score : a.score - b.score;
+                if (!isEloGame) return scoreCmp;
+                // Classement par ELO (note de niveau) ; les non-notés (null) en bas ; score en départage.
+                const ea = a.elo ?? -Infinity, eb = b.elo ?? -Infinity;
+                return eb - ea || scoreCmp;
+            });
 
         const total = sorted.length;
         const leaderboard = sorted

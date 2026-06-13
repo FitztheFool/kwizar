@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Pagination from '@/components/Pagination';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
@@ -35,6 +36,15 @@ export default function UserStats({ username }: Props) {
     const [page, setPage] = useState(1);
     const [gameFilter, setGameFilter] = useState<GameFilter>('ALL');
     const [modalGame, setModalGame] = useState<ActivityRow | null>(null);
+    const { data: session } = useSession();
+    const isAdmin = session?.user?.role === 'ADMIN';
+
+    const handleDeleteGame = async (row: ActivityRow) => {
+        if (!confirm('Supprimer cette partie (tous les joueurs) ? L\'ELO sera recalculé.')) return;
+        const res = await fetch(`/api/admin/attempts?gameId=${encodeURIComponent(row.gameId)}`, { method: 'DELETE' });
+        if (res.ok) fetchStats(page, gameFilter);
+        else alert('Échec de la suppression');
+    };
 
     const fetchStats = useCallback(
         async (p: number, filter: GameFilter, isInitial = false) => {
@@ -178,6 +188,7 @@ export default function UserStats({ username }: Props) {
                                 onPlayerClick={(row) => setModalGame(row)}
                                 emptyLabel="Aucune partie jouée pour l'instant."
                                 showQuiz={gameFilter === 'ALL' || gameFilter === 'QUIZ'}
+                                onDelete={isAdmin ? handleDeleteGame : undefined}
                             />
                             {(stats.pagination?.totalPages ?? 0) > 1 && (
                                 <Pagination
@@ -196,6 +207,7 @@ export default function UserStats({ username }: Props) {
                     gameId={modalGame.gameId}
                     players={modalGame.players}
                     onClose={() => setModalGame(null)}
+                    onDeleted={() => { setModalGame(null); fetchStats(page, gameFilter); }}
                 />
             )}
         </div>

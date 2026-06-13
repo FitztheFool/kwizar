@@ -9,10 +9,12 @@ import {
     getUnoSocket, getQuizSocket, getTabooSocket, getSkyjowSocket, getYahtzeeSocket,
     getPuissance4Socket, getBattleshipSocket, getDiamantSocket, getImpostorSocket,
     getSpyfallSocket, getLudoSocket, getPerudoSocket, getCantStopSocket, getMilleBornesSocket,
+    getAtlantideSocket,
 } from '@/lib/socket';
 
 export interface EloResult {
     userId: string;
+    username?: string | null;
     before: number;
     after: number;
     delta: number;
@@ -33,6 +35,7 @@ const SOCKET_GETTERS: Record<string, () => Socket | null> = {
     perudo: getPerudoSocket,
     'cant-stop': getCantStopSocket,
     'mille-bornes': getMilleBornesSocket,
+    atlantide: getAtlantideSocket,
 };
 
 /**
@@ -40,16 +43,16 @@ const SOCKET_GETTERS: Record<string, () => Socket | null> = {
  * @param userId  id du joueur courant
  * @returns la variation d'ELO du joueur courant, ou null tant qu'elle n'est pas reçue
  */
-export function useEloUpdate(game: string, userId: string | undefined): EloResult | null {
-    const [elo, setElo] = useState<EloResult | null>(null);
+/** Renvoie les variations d'ELO de **tous** les joueurs de la partie (vide tant que rien reçu). */
+export function useEloUpdate(game: string, userId: string | undefined): EloResult[] {
+    const [elo, setElo] = useState<EloResult[]>([]);
 
     useEffect(() => {
         const socket = SOCKET_GETTERS[game]?.() ?? null;
         if (!socket || !userId) return;
 
         const handler = (payload: { gameType?: string; elo?: EloResult[] }) => {
-            const mine = payload?.elo?.find(e => e.userId === userId);
-            if (mine) setElo(mine);
+            if (Array.isArray(payload?.elo)) setElo(payload.elo);
         };
         socket.on('elo:update', handler);
         return () => { socket.off('elo:update', handler); };

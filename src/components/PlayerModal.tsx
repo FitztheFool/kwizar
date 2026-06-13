@@ -1,9 +1,10 @@
 // src/components/PlayerModal.tsx
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { UsersIcon, XMarkIcon, NoSymbolIcon, ClockIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, XMarkIcon, NoSymbolIcon, ClockIcon, CpuChipIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 function RankBadge({ placement }: { placement: number }) {
     if (placement === 1) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-bold">1</span>;
@@ -37,10 +38,27 @@ interface PlayerModalProps {
     gameId: string;
     players: Player[];
     onClose: () => void;
+    /** Appelé après une suppression admin réussie (pour rafraîchir la liste parente). */
+    onDeleted?: () => void;
 }
 
-export default function PlayerModal({ gameId, players, onClose }: PlayerModalProps) {
+export default function PlayerModal({ gameId, players, onClose, onDeleted }: PlayerModalProps) {
     const { data: session } = useSession();
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!confirm('Supprimer définitivement cette partie (tous les joueurs) ? L\'ELO sera recalculé.')) return;
+        setDeleting(true);
+        try {
+            const res = await fetch(`/api/admin/attempts?gameId=${encodeURIComponent(gameId)}`, { method: 'DELETE' });
+            if (!res.ok) { alert('Échec de la suppression'); return; }
+            onDeleted?.();
+            onClose();
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     // Recalcule les placements côté client en gérant les ex-æquo
     // Règle : même score = même rang, le rang suivant est sauté (1, 1, 3...)
@@ -113,6 +131,17 @@ export default function PlayerModal({ gameId, players, onClose }: PlayerModalPro
                         </div>
                     ))}
                 </div>
+
+                {isAdmin && (
+                    <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                        {deleting ? 'Suppression…' : 'Supprimer cette partie (admin)'}
+                    </button>
+                )}
             </div>
         </div>
     );
