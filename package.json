@@ -15,7 +15,7 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "kill:port": "fuser -k 3000/tcp",
-    "db:deploy": "DATABASE_URL=\"$(node -e \"require('dotenv').config(); console.log((process.env.DATABASE_URL||'').replace('-pooler',''))\")\" prisma migrate deploy",
+    "db:deploy": "DATABASE_URL=\"$(node -e \"console.log((process.env.DATABASE_URL||'').replace('-pooler',''))\")\" prisma migrate deploy",
     "build": "prisma generate && npm run db:deploy && next build"
   },
   "prisma": {
