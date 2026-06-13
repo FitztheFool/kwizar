@@ -80,6 +80,26 @@ export const CREATURE_EMOJI: Record<string, string> = {
     serpent: '🐍',
 };
 
+// ── Sprites (planche atlantide_sprites.svg, découpée dans public/atlantide/sprites/) ──
+const SPRITE_BASE = '/atlantide/sprites';
+
+/** Sprites des créatures marines, posés sur le plateau (fallback emoji si absent). */
+export const CREATURE_SPRITE: Record<string, string> = {
+    shark: `${SPRITE_BASE}/creature-shark.svg`,
+    whale: `${SPRITE_BASE}/creature-whale.svg`,
+    serpent: `${SPRITE_BASE}/creature-serpent.svg`,
+};
+
+/** Décor superposé au fond coloré de la tuile (palmier, sapin, sommet…). */
+export const LEVEL_SPRITE: Record<string, string> = {
+    beach: `${SPRITE_BASE}/tile-beach.svg`,
+    forest: `${SPRITE_BASE}/tile-forest.svg`,
+    mountain: `${SPRITE_BASE}/tile-mountain.svg`,
+};
+
+export const BOAT_SPRITE = `${SPRITE_BASE}/boat-voilier.svg`;
+export const REFUGE_SPRITE = `${SPRITE_BASE}/tile-refuge.svg`;
+
 export const CREATURE_LABELS: Record<string, string> = {
     shark: 'Requin',
     whale: 'Baleine',

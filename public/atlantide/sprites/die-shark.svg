@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Dé requin">
+<rect x="12" y="12" width="48" height="48" rx="8" fill="#2a2a3e" stroke="#555" stroke-width="1.5"/>
+  <path d="M28 44 Q36 28 44 44" fill="#5a7a9a"/>
+  <path d="M36 28 L33 44 L39 44 Z" fill="#4a6a8a"/>
+</svg>

@@ -161,9 +161,15 @@ export default function AtlantidePage() {
                         {(['beach', 'forest', 'mountain'] as const).map(level => (
                             <div key={level}>{LEVEL_LABELS[level]} : {tilesLeft(level)} tuile{tilesLeft(level) > 1 ? 's' : ''}</div>
                         ))}
-                        {state.players.find(p => p.userId === me.userId)?.score !== null && state.phase !== 'finished' && (
-                            <div className="mt-1 text-emerald-200">Mes points à l&apos;abri : {state.players.find(p => p.userId === me.userId)?.score ?? 0}</div>
-                        )}
+                        {(() => {
+                            const mine = state.players.find(p => p.userId === me.userId);
+                            if (!mine || mine.score === null || state.phase === 'finished') return null;
+                            return (
+                                <div className="mt-1 text-emerald-200">
+                                    Mes pions à l&apos;abri : {mine.saved}/6 · {mine.score} pt{mine.score > 1 ? 's' : ''}
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 

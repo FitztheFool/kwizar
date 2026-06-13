@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { StarIcon } from '@heroicons/react/24/solid';
 import type {
     AtlantideHex,
     AtlantideLegalMove,
@@ -11,11 +10,14 @@ import {
     BOARD_H,
     BOARD_HEXES,
     BOARD_W,
+    BOAT_SPRITE,
     COLOR_CLASSES,
-    CREATURE_EMOJI,
+    CREATURE_SPRITE,
     HEX_CLIP,
     HEX_H,
     LEVEL_CLASSES,
+    LEVEL_SPRITE,
+    REFUGE_SPRITE,
     hexOrigin,
     isRefuge,
 } from './boardLayout';
@@ -135,6 +137,7 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                     let bg = 'bg-sky-300/30 dark:bg-sky-400/15'; // mer
                     if (refuge) bg = 'bg-emerald-300 dark:bg-emerald-600';
                     else if (tile && !tile.removed) bg = LEVEL_CLASSES[tile.level];
+                    const isLand = refuge || (!!tile && !tile.removed);
 
                     return (
                         <button
@@ -143,6 +146,7 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                             onClick={() => handleHexClick(q, r)}
                             disabled={!isTarget}
                             className={`absolute flex items-center justify-center transition-all ${bg}
+                                ${isLand ? 'drop-shadow-[0_3px_2px_rgba(0,0,0,0.45)]' : ''}
                                 ${isTarget ? 'cursor-pointer ring-0 brightness-110 animate-pulse z-10' : ''}`}
                             style={{
                                 left: `calc(${x} * ${cell})`,
@@ -154,7 +158,15 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                             }}
                             title={refuge ? 'Refuge' : tile && !tile.removed ? tile.level : 'Mer'}
                         >
-                            {refuge && <StarIcon className="w-1/3 h-1/3 text-white/80 pointer-events-none" />}
+                            {/* Relief : biseau haut-clair / bas-sombre (clippé par la forme du bouton) */}
+                            {isLand && (
+                                <span className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/35 via-white/5 to-black/30" />
+                            )}
+                            {refuge ? (
+                                <img src={REFUGE_SPRITE} alt="Refuge" className="w-2/3 h-2/3 pointer-events-none select-none" draggable={false} />
+                            ) : tile && !tile.removed && LEVEL_SPRITE[tile.level] ? (
+                                <img src={LEVEL_SPRITE[tile.level]} alt={tile.level} className="w-3/4 h-3/4 pointer-events-none select-none" draggable={false} />
+                            ) : null}
                         </button>
                     );
                 })}
@@ -182,7 +194,12 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                             }}
                             title={c.type}
                         >
-                            {CREATURE_EMOJI[c.type]}
+                            <img
+                                src={CREATURE_SPRITE[c.type]}
+                                alt={c.type}
+                                className="w-4/5 h-4/5 object-contain pointer-events-none select-none drop-shadow"
+                                draggable={false}
+                            />
                         </button>
                     );
                 })}
@@ -211,10 +228,10 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                 className={`select-none leading-none transition-transform
                                     ${selectable ? 'cursor-pointer hover:scale-125 animate-pulse pointer-events-auto' : ''}
                                     ${isSel ? 'scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]' : ''}`}
-                                style={{ fontSize: `calc(0.5 * ${cell})` }}
+                                style={{ width: `calc(0.7 * ${cell})`, height: `calc(0.7 * ${cell})` }}
                                 title="Bateau"
                             >
-                                ⛵
+                                <img src={BOAT_SPRITE} alt="Bateau" className="w-full h-full object-contain pointer-events-none select-none drop-shadow" draggable={false} />
                             </button>
                             {passengers.length > 0 && (
                                 <div className="flex gap-px pointer-events-auto">
@@ -257,6 +274,8 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                     value={m.value}
                                     sizeRatio={group.length > 2 ? 0.3 : 0.42}
                                     swimming={m.state === 'sea'}
+                                    safe={m.state === 'safe'}
+                                    mine={state.players[m.playerIdx]?.userId === myUserId}
                                     selectable={selectableMeeples.has(m.meepleId) && state.players[m.playerIdx]?.userId === myUserId}
                                     selected={selected?.kind === 'meeple' && selected.id === m.meepleId && state.players[m.playerIdx]?.userId === myUserId}
                                     onClick={() => setSelected(prev => prev?.kind === 'meeple' && prev.id === m.meepleId ? null : { kind: 'meeple', id: m.meepleId })}
@@ -270,23 +289,27 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
     );
 }
 
-function MeepleDot({ playerIdx, value, sizeRatio, swimming = false, selectable, selected, onClick }: {
+function MeepleDot({ playerIdx, value, sizeRatio, swimming = false, safe = false, mine = false, selectable, selected, onClick }: {
     playerIdx: number;
     value: number | null;
     sizeRatio: number;
     swimming?: boolean;
+    safe?: boolean;
+    mine?: boolean;
     selectable: boolean;
     selected: boolean;
     onClick: () => void;
 }) {
     const color = COLOR_CLASSES[playerIdx] ?? COLOR_CLASSES[0];
+    const myShelter = safe && mine; // mes pions à l'abri : mis en évidence
     return (
         <button
             type="button"
             disabled={!selectable}
             onClick={onClick}
-            className={`rounded-full ${color.bg} flex items-center justify-center text-white font-bold shadow-md transition-all
+            className={`relative rounded-full ${color.bg} flex items-center justify-center text-white font-bold shadow-md transition-all
                 ${swimming ? 'border-2 border-sky-200' : 'border-2 border-white'}
+                ${myShelter ? 'ring-2 ring-emerald-300 ring-offset-1 ring-offset-emerald-900' : ''}
                 ${selectable ? 'cursor-pointer hover:scale-125 animate-pulse pointer-events-auto' : ''}
                 ${selected ? 'scale-125 ring-2 ring-white ring-offset-1' : ''}`}
             style={{
@@ -294,9 +317,18 @@ function MeepleDot({ playerIdx, value, sizeRatio, swimming = false, selectable, 
                 height: `calc(var(--atl-cell) * ${sizeRatio})`,
                 fontSize: `calc(var(--atl-cell) * ${sizeRatio * 0.55})`,
             }}
-            title={value !== null ? `Valeur ${value}` : undefined}
+            title={[myShelter ? 'À l’abri' : null, value !== null ? `Valeur ${value}` : null].filter(Boolean).join(' · ') || undefined}
         >
             {value !== null ? value : ''}
+            {myShelter && (
+                <span
+                    className="absolute -top-1 -right-1 flex items-center justify-center rounded-full bg-emerald-400 text-emerald-950 leading-none shadow"
+                    style={{ width: '0.7em', height: '0.7em', fontSize: '0.6em' }}
+                    aria-hidden
+                >
+                    ✓
+                </span>
+            )}
         </button>
     );
 }

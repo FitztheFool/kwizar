@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Naufrage">
+<path d="M14 30 Q36 24 58 30 L54 40 L18 40 Z" fill="#7a3810" opacity="0.7"/>
+  <rect x="33" y="38" width="3" height="18" fill="#6a2808" opacity="0.5"/>
+  <path d="M8 44 Q20 38 32 44 Q44 50 56 44 Q64 38 70 44" fill="none" stroke="#4aaad8" stroke-width="2"/>
+  <path d="M8 54 Q20 48 32 54 Q44 60 56 54 Q64 48 70 54" fill="none" stroke="#3a8ac8" stroke-width="2"/>
+  <line x1="28" y1="16" x2="44" y2="28" stroke="#e04040" stroke-width="2.5"/>
+  <line x1="44" y1="16" x2="28" y2="28" stroke="#e04040" stroke-width="2.5"/>
+</svg>

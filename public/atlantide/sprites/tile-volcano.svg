@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Volcan">
+  <!-- cône -->
+  <polygon points="36,12 8,62 64,62" fill="#5a3026"/>
+  <polygon points="36,12 36,62 12,62" fill="#46241c" opacity="0.5"/>
+  <!-- cratère -->
+  <polygon points="36,12 27,28 45,28" fill="#2a120e"/>
+  <!-- coulées de lave -->
+  <path d="M30 28 Q26 40 22 58 Q27 56 30 46 Q32 56 36 60 Q40 56 42 46 Q45 56 50 58 Q46 40 42 28 Z" fill="#e0410e"/>
+  <path d="M31 28 Q29 38 27 50 Q31 48 33 40 Q35 50 36 56 Q37 50 39 40 Q41 48 45 50 Q43 38 41 28 Z" fill="#f5821f"/>
+  <path d="M34 30 Q33 42 36 54 Q39 42 38 30 Z" fill="#ffce2b"/>
+  <!-- projections -->
+  <circle cx="30" cy="14" r="2" fill="#ff8a2a"/>
+  <circle cx="44" cy="12" r="2.4" fill="#ffb33a"/>
+  <circle cx="37" cy="7" r="1.6" fill="#ffd95e"/>
+  <!-- fumée -->
+  <circle cx="33" cy="9" r="5" fill="#6b6b6b" opacity="0.55"/>
+  <circle cx="41" cy="6" r="6" fill="#585858" opacity="0.5"/>
+</svg>

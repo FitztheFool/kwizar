@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Bateau chargé">
+<path d="M14 50 Q36 56 58 50 L54 38 L18 38 Z" fill="#a06020"/>
+  <rect x="33" y="18" width="3" height="22" fill="#7a4810"/>
+  <path d="M36 18 L58 30 L36 40 Z" fill="#e8e8cc"/>
+  <circle cx="26" cy="42" r="6" fill="#e05050"/>
+  <circle cx="38" cy="41" r="6" fill="#5080e0"/>
+</svg>

@@ -854,3 +854,204 @@ export async function seedBreakoutAttempts(prisma: PrismaClient, players: UserLi
     }
     console.log(`✅ Attempts Breakout créés pour ${players.length} joueurs`);
 }
+
+// ─── Solo-arcade factory ────────────────────────────────────────────────────────
+// Partagée par les jeux solo « meilleur score » (2048, Sutom, Space Invaders,
+// Flappy Bird, Plumber) : N parties par joueur, score selon distribution, sans placement.
+
+interface SoloGameConfig {
+    gameType: string;
+    label: string;
+    emoji: string;
+    minAttempts?: number;
+    attemptsSpread?: number;
+    daysSpread?: number;
+    /** Génère le score d'une partie (et éventuellement le niveau atteint via `rounds`). */
+    scoreGen: () => { score: number; rounds?: number };
+}
+
+async function seedSoloAttempts(prisma: PrismaClient, players: UserLike[], cfg: SoloGameConfig): Promise<void> {
+    const { gameType, label, emoji, minAttempts = 15, attemptsSpread = 20, daysSpread = 90, scoreGen } = cfg;
+    console.log(`\n${emoji} Création des attempts ${label}...`);
+
+    for (const player of players) {
+        const attemptsCount = Math.floor(Math.random() * attemptsSpread) + minAttempts;
+        for (let i = 0; i < attemptsCount; i++) {
+            const { score, rounds } = scoreGen();
+            await prisma.attempt.create({
+                data: {
+                    userId: player.id,
+                    score,
+                    ...(rounds !== undefined ? { rounds } : {}),
+                    gameType: gameType as any,
+                    gameId: crypto.randomUUID(),
+                    quizId: null, trapScore: 0,
+                    createdAt: daysAgo(Math.floor((i / attemptsCount) * daysSpread), Math.floor(Math.random() * 24)),
+                },
+            });
+        }
+        console.log(`  ✅ ${label} — ${player.username} — ${attemptsCount} parties`);
+    }
+    console.log(`✅ Attempts ${label} créés pour ${players.length} joueurs`);
+}
+
+// ─── 2048 ─────────────────────────────────────────────────────────────────────
+
+export async function seed2048Attempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score 2048 = somme des fusions. Atteindre 2048 ≈ 20000 pts ; la plupart calent bien avant.
+    function score2048(): number {
+        const r = Math.random();
+        if (r < 0.35) return Math.floor(Math.random() * 1500) + 500;        // 500–2000   (cale tôt)
+        if (r < 0.70) return Math.floor(Math.random() * 4000) + 2000;       // 2000–6000  (tuile 256/512)
+        if (r < 0.90) return Math.floor(Math.random() * 8000) + 6000;       // 6000–14000 (tuile 1024)
+        return Math.floor(Math.random() * 12000) + 14000;                   // 14000–26000 (2048+)
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'GAME_2048', label: '2048', emoji: '🔢',
+        scoreGen: () => ({ score: score2048() }),
+    });
+}
+
+// ─── SUTOM ──────────────────────────────────────────────────────────────────────
+
+export async function seedSutomAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // scoreFor(tries, wordLen) = (7 - tries) * 100 + wordLen * 25, échec = 0.
+    function sutomScore(): { score: number; rounds: number } {
+        const r = Math.random();
+        if (r < 0.15) return { score: 0, rounds: 7 };                       // échec (mot non trouvé)
+        // tries 1..6 — la plupart trouvent en 3–5 essais
+        const tries = r < 0.30 ? 6 : r < 0.55 ? 5 : r < 0.78 ? 4 : r < 0.93 ? 3 : Math.random() < 0.7 ? 2 : 1;
+        const wordLen = Math.floor(Math.random() * 5) + 6;                  // 6–10 lettres
+        return { score: (7 - tries) * 100 + wordLen * 25, rounds: tries };
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'SUTOM', label: 'Sutom', emoji: '🔡',
+        scoreGen: sutomScore,
+    });
+}
+
+// ─── SPACE INVADERS ───────────────────────────────────────────────────────────
+
+export async function seedSpaceInvadersAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Points par alien (10–40 selon la rangée), bonus de vagues franchies.
+    function spaceScore(wave: number): number {
+        const base = (wave - 1) * 600;
+        const r = Math.random();
+        if (r < 0.35) return base + Math.floor(Math.random() * 300);        // meurt tôt
+        if (r < 0.70) return base + Math.floor(Math.random() * 700) + 300;  // moyen
+        if (r < 0.90) return base + Math.floor(Math.random() * 1000) + 1000;// bon
+        return base + Math.floor(Math.random() * 1500) + 2000;              // excellent
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'SPACE_INVADERS', label: 'Space Invaders', emoji: '👾',
+        scoreGen: () => {
+            const r = Math.random();
+            const wave = r < 0.45 ? 1 : r < 0.72 ? 2 : r < 0.88 ? 3 : r < 0.96 ? 4 : 5;
+            return { score: spaceScore(wave), rounds: wave };
+        },
+    });
+}
+
+// ─── FLAPPY BIRD ─────────────────────────────────────────────────────────────────
+
+export async function seedFlappyBirdAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = nombre de tuyaux franchis. Punitif : beaucoup de petits scores.
+    function flappyScore(): number {
+        const r = Math.random();
+        if (r < 0.45) return Math.floor(Math.random() * 4);                 // 0–3   (meurt vite)
+        if (r < 0.75) return Math.floor(Math.random() * 8) + 4;             // 4–11
+        if (r < 0.92) return Math.floor(Math.random() * 14) + 12;           // 12–25
+        return Math.floor(Math.random() * 35) + 26;                         // 26–60 (très bon)
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'FLAPPY_BIRD', label: 'Flappy Bird', emoji: '🐤',
+        minAttempts: 20, attemptsSpread: 25,                                // jeu court → plus de parties
+        scoreGen: () => ({ score: flappyScore() }),
+    });
+}
+
+// ─── PLUMBER ──────────────────────────────────────────────────────────────────
+
+export async function seedPlumberAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score points cumulés sur les niveaux de tuyauterie franchis.
+    function plumberScore(level: number): number {
+        const base = (level - 1) * 250;
+        const r = Math.random();
+        if (r < 0.35) return base + Math.floor(Math.random() * 200);        // échoue tôt
+        if (r < 0.70) return base + Math.floor(Math.random() * 400) + 200;  // moyen
+        if (r < 0.90) return base + Math.floor(Math.random() * 600) + 600;  // bon
+        return base + Math.floor(Math.random() * 800) + 1200;               // excellent
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'PLUMBER', label: 'Plumber', emoji: '🔧',
+        scoreGen: () => {
+            const r = Math.random();
+            const level = r < 0.40 ? 1 : r < 0.68 ? 2 : r < 0.85 ? 3 : r < 0.95 ? 4 : 5;
+            return { score: plumberScore(level), rounds: level };
+        },
+    });
+}
+
+// ─── ATLANTIDE (Les Rescapés de l'Atlantide) ────────────────────────────────────
+
+export async function seedAtlantideAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = somme des valeurs des pions sauvés (6 pions, valeurs 1–6 → 0–21).
+    // Le gagnant a en général sauvé le plus de pions/points. 2–4 joueurs.
+    const atlantideScore = () => {
+        const saved = Math.floor(Math.random() * 7);                        // 0–6 pions sauvés
+        let total = 0;
+        for (let i = 0; i < saved; i++) total += Math.floor(Math.random() * 6) + 1;
+        return total;                                                       // 0–21
+    };
+    await seedRankedAttempts(prisma, players, {
+        gameType: 'ATLANTIDE', label: 'Atlantide', total: 40, daysSpread: 70,
+        maxPlayers: 4,
+        scoreGen: atlantideScore,
+        maxBots: 3,
+    });
+}
+
+// ─── SPYFALL ──────────────────────────────────────────────────────────────────
+
+export async function seedSpyfallAttempts(prisma: PrismaClient, players: UserLike[]) {
+    console.log('\n🕵️ Création des parties Spyfall...');
+    const total = 40;
+
+    const dates = Array.from({ length: total }, (_, g) =>
+        daysAgo(Math.floor((g / total) * 80), Math.floor(Math.random() * 36))
+    ).sort((a, b) => a.getTime() - b.getTime());
+
+    for (let g = 0; g < total; g++) {
+        const gameId = crypto.randomUUID();
+        const playerCount = Math.min(Math.floor(Math.random() * 5) + 4, players.length); // 4–8
+        const participants = shufflePlayers(players).slice(0, playerCount);
+
+        // Un espion par partie. Issue : espion démasqué (les non-espions marquent),
+        // ou espion gagnant (devine le lieu / tient jusqu'au bout).
+        const spyIndex = Math.floor(Math.random() * participants.length);
+        const spyWins = Math.random() < 0.4;
+
+        const ranked = participants
+            .map((player, i) => {
+                let score = 0;
+                if (i === spyIndex) score = spyWins ? 2 : 0;                // espion : 2 pts s'il gagne
+                else score = spyWins ? 0 : 1;                               // non-espions : 1 pt si l'espion perd
+                return { player, score };
+            })
+            .sort((a, b) => b.score - a.score);
+
+        for (let p = 0; p < ranked.length; p++) {
+            const { abandon, afk } = randomLeaveFlags(p === 0);
+            await prisma.attempt.create({
+                data: {
+                    userId: ranked[p].player.id, score: ranked[p].score,
+                    gameType: 'SPYFALL', placement: p + 1,
+                    gameId, quizId: null, trapScore: 0, abandon, afk, vsBot: false,
+                    createdAt: new Date(dates[g].getTime() + p * 1000),
+                },
+            });
+        }
+        console.log(`  ✅ Spyfall ${g + 1}/${total} — ${playerCount} joueurs — espion ${spyWins ? 'gagne' : 'démasqué'}`);
+    }
+    console.log(`✅ ${total} parties Spyfall créées`);
+}

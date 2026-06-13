@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Monstre marin">
+  <!-- boucles du corps émergeant de l'eau -->
+  <path d="M6 56 Q14 40 22 50 Q30 60 36 46 Q42 32 50 40" fill="none" stroke="#1f6e3a" stroke-width="11" stroke-linecap="round"/>
+  <path d="M6 56 Q14 40 22 50 Q30 60 36 46 Q42 32 50 40" fill="none" stroke="#34a14f" stroke-width="7.5" stroke-linecap="round"/>
+  <!-- crête dorsale -->
+  <path d="M14 47 l2 -5 l3 4 M24 46 l2 -5 l3 4 M34 44 l2 -5 l3 4 M44 40 l2 -5 l3 4" fill="#f0c23a" stroke="#c8951f" stroke-width="0.6"/>
+  <!-- cou + tête de dragon -->
+  <path d="M48 42 Q56 34 56 24 Q56 16 62 12 L66 18 Q60 20 60 26 Q60 38 52 46 Z" fill="#1f6e3a"/>
+  <path d="M50 42 Q57 35 57 25 Q57 19 61 15" fill="none" stroke="#34a14f" stroke-width="4" stroke-linecap="round"/>
+  <!-- mâchoire ouverte -->
+  <path d="M62 12 L70 10 L67 16 L66 18 Z" fill="#2a8443"/>
+  <path d="M66 18 L70 22 L64 22 Z" fill="#2a8443"/>
+  <!-- dents -->
+  <path d="M66 16 l1 2 M68 15 l0.6 2.4 M65 19 l1 -2 M67.5 19 l0.6 -2.2" stroke="#fff" stroke-width="0.9" stroke-linecap="round"/>
+  <!-- corne -->
+  <path d="M58 14 l-3 -6 l5 3 Z" fill="#f0c23a"/>
+  <!-- oeil féroce -->
+  <circle cx="60" cy="20" r="2.4" fill="#ffcf2e"/>
+  <circle cx="60.4" cy="20.4" r="1.1" fill="#7a1b00"/>
+  <!-- écailles ventre -->
+  <path d="M22 50 q4 1 7 -2 M32 50 q4 1 7 -3" fill="none" stroke="#9fe0b0" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+</svg>
