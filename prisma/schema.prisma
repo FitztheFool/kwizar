@@ -60,6 +60,7 @@ enum GameType {
   PLUMBER
   SPYFALL
   ATLANTIDE
+  ABALONE
 }
 
 model Account {

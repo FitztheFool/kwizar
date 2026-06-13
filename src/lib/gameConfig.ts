@@ -291,6 +291,19 @@ export const GAME_CONFIG = {
         rules: "<p>But : aller le plus loin en marquant un maximum.</p><ul><li>Cours vers la droite ; saute par-dessus les trous et les ennemis.</li><li>Écrase les ennemis en leur sautant dessus.</li><li>Champignon = vie en plus ; fleur de feu = boules de feu.</li><li>Tu meurs en touchant un ennemi sans pouvoir, ou en tombant dans un trou.</li></ul>",
         score: "1 pt par pièce, 5 pts par ennemi écrasé, bonus de distance et de power-up. Seul votre meilleur score est conservé.",
     },
+    abalone: {
+        gameType: 'ABALONE' as const,
+        bot: true,
+        noOptions: 'Abalone — solo (vs bot) ou 2 joueurs.',
+        label: 'Abalone',
+        mode: 'both' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Victoires',
+        description: "Le grand classique abstrait à billes, sur plateau hexagonal. Pousse 6 billes adverses hors du plateau pour l'emporter.",
+        players: 'vs bot ou 2j',
+        rules: "<p>But : éjecter 6 billes adverses du plateau.</p><ul><li>À ton tour, déplace 1, 2 ou 3 billes alignées d'une case.</li><li>Coup en ligne (dans l'axe des billes) ou de flanc (latéral, sur cases vides).</li><li>Sumito : pousse les billes adverses en supériorité dans l'axe (3 vs 2, 3 vs 1, 2 vs 1) — jamais à égalité ni si une bille bloque derrière.</li><li>Une bille poussée hors du plateau est éjectée.</li></ul>",
+        score: "1 point par victoire. Le classement est basé sur le total de victoires.",
+    },
 } as const;
 
 export type GameType = keyof typeof GAME_CONFIG;
@@ -314,7 +327,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     quiz: [1, 30], uno: [2, 8], taboo: [4, 12], skyjow: [2, 8], yahtzee: [2, 8],
     puissance4: [2, 2], just_one: [3, 7], battleship: [2, 2], diamant: [2, 8],
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
-    impostor: [4, 8], spyfall: [3, 8],
+    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1],
 };

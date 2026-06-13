@@ -43,6 +43,7 @@ let cantStopSocket: Socket | null = null;
 let milleBornesSocket: Socket | null = null;
 let spyfallSocket: Socket | null = null;
 let atlantideSocket: Socket | null = null;
+let abaloneSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -184,4 +185,11 @@ export function getAtlantideSocket(): Socket | null {
     if (!atlantideSocket) atlantideSocket = createSocket(process.env.NEXT_PUBLIC_ATLANTIDE_SERVER_URL ?? "http://localhost:10016", "Atlantide Socket");
     connectIfAuth(atlantideSocket);
     return atlantideSocket;
+}
+
+export function getAbaloneSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!abaloneSocket) abaloneSocket = createSocket(process.env.NEXT_PUBLIC_ABALONE_SERVER_URL ?? "http://localhost:10017", "Abalone Socket");
+    connectIfAuth(abaloneSocket);
+    return abaloneSocket;
 }

@@ -188,4 +188,14 @@ export const GAME_COLOR: Record<string, {
             label: 'text-cyan-700 dark:text-cyan-400'
         }
     },
+    ABALONE: {
+        selected: 'border-stone-500 bg-stone-500/10 text-stone-600 dark:text-stone-300',
+        badge: 'bg-stone-100 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300',
+        badgeActive: 'bg-stone-600 text-white border-stone-600',
+        card: {
+            border: 'border-stone-300 dark:border-stone-700/60',
+            bg: 'bg-stone-50 dark:bg-stone-800/20',
+            label: 'text-stone-600 dark:text-stone-300'
+        }
+    },
 };
