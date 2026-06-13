@@ -156,25 +156,28 @@ export default function LeaderboardView({ game }: Props) {
                     {(config?.description ?? GAME_CONFIG[game].description) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
                             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</h2>
-                            <p className="text-sm text-gray-700 dark:text-gray-200">
-                                {config?.description ?? GAME_CONFIG[game].description}
-                            </p>
+                            <div
+                                className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
+                                dangerouslySetInnerHTML={{ __html: config?.description ?? GAME_CONFIG[game].description }}
+                            />
                         </div>
                     )}
                     {(config?.rules ?? GAME_CONFIG[game].rules) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><BookOpenIcon className="w-3.5 h-3.5" /> Règles</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-200">
-                                {config?.rules ?? GAME_CONFIG[game].rules}
-                            </p>
+                            <div
+                                className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
+                                dangerouslySetInnerHTML={{ __html: config?.rules ?? GAME_CONFIG[game].rules ?? '' }}
+                            />
                         </div>
                     )}
                     {(config?.score ?? GAME_CONFIG[game].score) && (
                         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><ChartBarIcon className="w-3.5 h-3.5" /> Calcul des points</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-200">
-                                {config?.score ?? GAME_CONFIG[game].score}
-                            </p>
+                            <div
+                                className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
+                                dangerouslySetInnerHTML={{ __html: config?.score ?? GAME_CONFIG[game].score ?? '' }}
+                            />
                         </div>
                     )}
                 </div>
