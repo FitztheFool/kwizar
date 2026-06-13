@@ -1,5 +1,6 @@
 'use client';
 
+// VerifyEmailPage
 import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, EnvelopeIcon } from '@heroicons/react/24/outline';

@@ -178,4 +178,14 @@ export const GAME_COLOR: Record<string, {
             label: 'text-amber-700 dark:text-amber-400'
         }
     },
+    ATLANTIDE: {
+        selected: 'border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300',
+        badge: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400',
+        badgeActive: 'bg-cyan-600 text-white border-cyan-600',
+        card: {
+            border: 'border-cyan-200 dark:border-cyan-800/60',
+            bg: 'bg-cyan-50 dark:bg-cyan-900/15',
+            label: 'text-cyan-700 dark:text-cyan-400'
+        }
+    },
 };

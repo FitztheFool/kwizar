@@ -1,0 +1,221 @@
+'use client';
+
+import { notFound } from 'next/navigation';
+import { useGamePage } from '@/hooks/useGamePage';
+import { useEloUpdate } from '@/hooks/useEloUpdate';
+import { useAtlantide, isBot } from '@/hooks/useAtlantide';
+import GameOverModal from '@/components/GameOverModal';
+import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import GameWaitingScreen from '@/components/GameWaitingScreen';
+import GameIcon from '@/components/GameIcon';
+import TimerBar from '@/components/TimerBar';
+import GamePageHeader from '@/components/GamePageHeader';
+import SurrenderButton from '@/components/SurrenderButton';
+import AtlantideBoard from '@/components/Atlantide/Board';
+import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS } from '@/components/Atlantide/boardLayout';
+import PlayerLabel from '@/components/shared/PlayerLabel';
+import { GameLogSidebar } from '@/components/GameLog';
+import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+
+export default function AtlantidePage() {
+    const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const myElo = useEloUpdate('atlantide', me.userId);
+
+    const {
+        state, currentPlayer, isMyTurn,
+        inactivityUserId, inactivityEndsAt,
+        move, moveBoat, endMove, removeTile, moveCreature, skipCreature, surrender,
+    } = useAtlantide({
+        lobbyId,
+        userId: me.userId,
+        username: me.username ?? '',
+        onNotFound: () => setIsNotFound(true),
+        onModalReset: () => setModalDismissed(false),
+    });
+
+    if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
+    if (isNotFound) notFound();
+    if (!state || state.phase === 'waiting') return (
+        <GameWaitingScreen
+            gameType="atlantide"
+            gameName="Les Rescapés de l'Atlantide"
+            lobbyId={lobbyId}
+            players={state?.players.map(p => ({ userId: p.userId, username: p.username })) ?? []}
+            myUserId={me.userId}
+        />
+    );
+
+    const vsBot = state.players.some(p => isBot(p) && p.userId !== me.userId);
+    const showSurrender = state.phase !== 'finished';
+    const currentIsBot = isBot(currentPlayer);
+
+    const tilesLeft = (level: string) => state.tiles.filter(t => !t.removed && t.level === level).length;
+
+    const winnerLabel = (() => {
+        if (state.winner === null) return null;
+        const w = state.players[state.winner];
+        if (!w) return null;
+        return { title: `${w.username} gagne !`, isMe: w.userId === me.userId };
+    })();
+
+    const creatureInstruction: Record<string, string> = {
+        shark: 'Déplacez un requin (ou passez)',
+        whale: 'Déplacez une baleine (ou passez)',
+        serpent: 'Déplacez un serpent de mer (ou passez)',
+    };
+    const turnLabel = isMyTurn
+        ? state.phase === 'moving' ? `Déplacez vos pions — ${state.movePoints} pt${state.movePoints > 1 ? 's' : ''} restant${state.movePoints > 1 ? 's' : ''}`
+        : state.phase === 'tile' ? 'Choisissez une tuile à engloutir'
+        : state.creatureDie ? creatureInstruction[state.creatureDie]
+        : 'Dé créature…'
+        : currentIsBot ? 'Le bot réfléchit…' : `Tour de ${currentPlayer?.username ?? '…'}`;
+
+    return (
+        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+            <GamePageHeader
+                left={
+                    <>
+                        <GameIcon gameType="atlantide" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                        <span className="font-bold">Les Rescapés de l&apos;Atlantide{vsBot && <span className="ml-2 text-xs font-normal text-indigo-400">vs Bot</span>}</span>
+                    </>
+                }
+                center={
+                    <div className="flex items-center gap-2 text-sm flex-wrap justify-center">
+                        {state.players.map((p, idx) => (
+                            <PlayerLabel
+                                key={p.userId}
+                                username={`${p.username} (${p.saved}/6)`}
+                                active={state.phase !== 'finished' && idx === state.currentTurn}
+                                isBot={isBot(p)}
+                                bgClass={COLOR_CLASSES[p.colorIndex].bg}
+                                dotExtraClass="border border-white shadow-sm"
+                                inactivityEndsAt={inactivityUserId === p.userId ? inactivityEndsAt : null}
+                            />
+                        ))}
+                    </div>
+                }
+                right={showSurrender && <SurrenderButton onSurrender={surrender} />}
+            />
+
+            {state.phase !== 'finished' && (
+                <TimerBar
+                    endsAt={state.turnStartedAt ? state.turnStartedAt + state.turnDuration * 1000 : null}
+                    duration={state.turnDuration}
+                    label={turnLabel}
+                />
+            )}
+
+            <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-6 p-4">
+                <AtlantideBoard
+                    state={state}
+                    myUserId={me.userId}
+                    isMyTurn={isMyTurn}
+                    onMove={move}
+                    onMoveBoat={moveBoat}
+                    onRemoveTile={removeTile}
+                    onMoveCreature={moveCreature}
+                />
+
+                <div className="flex flex-col items-center gap-4 min-w-[180px]">
+                    {/* Points de déplacement */}
+                    {state.phase === 'moving' && (
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="flex gap-1.5">
+                                {[0, 1, 2].map(i => (
+                                    <span key={i} className={`w-3.5 h-3.5 rounded-full border border-white/60 ${i < state.movePoints ? 'bg-amber-400' : 'bg-gray-500/40'}`} />
+                                ))}
+                            </div>
+                            <span className="text-xs text-amber-100 font-semibold drop-shadow">Points de déplacement</span>
+                            {isMyTurn && (
+                                <button
+                                    onClick={endMove}
+                                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold shadow transition-colors"
+                                >
+                                    Terminer les déplacements
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Dé créature */}
+                    {state.phase === 'creature' && state.creatureDie && (
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="w-16 h-16 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-lg flex items-center justify-center text-4xl">
+                                {CREATURE_EMOJI[state.creatureDie]}
+                            </div>
+                            <span className="text-xs text-amber-100 font-semibold drop-shadow">{CREATURE_LABELS[state.creatureDie]}</span>
+                            {isMyTurn && (
+                                <button
+                                    onClick={skipCreature}
+                                    className="px-3 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold shadow transition-colors"
+                                >
+                                    Passer
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* État de l'île */}
+                    <div className="flex flex-col gap-1 text-xs text-amber-100 font-semibold drop-shadow">
+                        {(['beach', 'forest', 'mountain'] as const).map(level => (
+                            <div key={level}>{LEVEL_LABELS[level]} : {tilesLeft(level)} tuile{tilesLeft(level) > 1 ? 's' : ''}</div>
+                        ))}
+                        {state.players.find(p => p.userId === me.userId)?.score !== null && state.phase !== 'finished' && (
+                            <div className="mt-1 text-emerald-200">Mes points à l&apos;abri : {state.players.find(p => p.userId === me.userId)?.score ?? 0}</div>
+                        )}
+                    </div>
+                </div>
+
+                <GameLogSidebar entries={state.log ?? []} />
+            </main>
+
+            {state.phase === 'finished' && winnerLabel && !modalDismissed && (
+                <GameOverModal
+                    elo={myElo}
+                    icon={
+                        winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                        : (typeof state.winner === 'number' && isBot(state.players[state.winner])) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
+                        : <XCircleIcon className="w-8 h-8 text-red-400" />
+                    }
+                    title={winnerLabel.title}
+                    subtitle={state.volcanoErupted ? 'Le volcan a englouti l\'Atlantide 🌋' : undefined}
+                    onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                    onLeave={() => router.push('/')}
+                    onClose={() => setModalDismissed(true)}
+                    asModal
+                >
+                    <GameScoreLeaderboard
+                        myUserId={me.userId}
+                        entries={state.players
+                            .map((p, idx) => {
+                                const rank = state.ranking.indexOf(idx);
+                                const surrendered = state.surrenderedIdxs.includes(idx);
+                                const afk = state.afkIdxs.includes(idx);
+                                return { p, idx, rank, surrendered, afk, abandoned: surrendered || afk };
+                            })
+                            .sort((a, b) => {
+                                if (a.rank !== -1 && b.rank !== -1) return a.rank - b.rank;
+                                if (a.rank !== -1) return -1;
+                                if (b.rank !== -1) return 1;
+                                return a.idx - b.idx;
+                            })
+                            .map(({ p, abandoned, surrendered, afk }) => {
+                                const badges: string[] = [];
+                                if (isBot(p)) badges.push('Bot');
+                                if (surrendered) badges.push('Abandon');
+                                else if (afk) badges.push('AFK');
+                                return {
+                                    userId: p.userId,
+                                    username: p.username,
+                                    score: `${p.score ?? 0} pts · ${p.saved}/6 pions`,
+                                    badges,
+                                    disqualified: abandoned,
+                                };
+                            })}
+                    />
+                </GameOverModal>
+            )}
+        </div>
+    );
+}

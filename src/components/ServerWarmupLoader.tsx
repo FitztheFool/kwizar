@@ -20,6 +20,7 @@ const CAROUSEL_GAMES: { type: string; label: string }[] = [
     { type: 'DIAMANT',      label: 'Diamant' },
     { type: 'IMPOSTOR',     label: 'Imposteur' },
     { type: 'SPYFALL',      label: 'Spyfall' },
+    { type: 'ATLANTIDE',    label: 'Atlantide' },
 ];
 
 const TIPS = [

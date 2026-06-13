@@ -45,6 +45,20 @@ function LudoIcon({ className }: { className?: string }) {
     );
 }
 
+function AtlantideIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            {/* Volcan */}
+            <path d="M9 4.5 6.5 11h11L15 4.5z" />
+            <path d="M9 4.5h6" />
+            <path d="M12 2v1.5M9.8 1.8l.7 1.4M14.2 1.8l-.7 1.4" />
+            {/* Vagues */}
+            <path d="M2 15c1.7 0 1.7 1.5 3.3 1.5S7 15 8.7 15s1.6 1.5 3.3 1.5S13.6 15 15.3 15s1.7 1.5 3.4 1.5S20.3 15 22 15" />
+            <path d="M2 19c1.7 0 1.7 1.5 3.3 1.5S7 19 8.7 19s1.6 1.5 3.3 1.5S13.6 19 15.3 19s1.7 1.5 3.4 1.5S20.3 19 22 19" />
+        </svg>
+    );
+}
+
 function PerudoIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -188,6 +202,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     PERUDO:     PerudoIcon,
     CANT_STOP:  CantStopIcon,
     MILLE_BORNES: MilleBornesIcon,
+    ATLANTIDE:  AtlantideIcon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
     BREAKOUT:   BreakoutIcon,
@@ -212,6 +227,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     perudo:     PerudoIcon,
     cant_stop:  CantStopIcon,
     mille_bornes: MilleBornesIcon,
+    atlantide:  AtlantideIcon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,
     breakout:   BreakoutIcon,

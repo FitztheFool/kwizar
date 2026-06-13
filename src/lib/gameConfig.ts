@@ -142,6 +142,17 @@ export const GAME_CONFIG = {
         rules: "Posez des cartes Distance (25 à 200 km) pour avancer, à condition d'avoir un feu vert. Attaquez n'importe quel adversaire avec une attaque (Stop, Limite de vitesse, Accident, Panne d'essence, Crevaison) ; il doit jouer la parade correspondante pour repartir. Les 4 bottes (Prioritaire, As du volant, Citerne, Increvable) immunisent et, jouées juste après l'attaque correspondante, réussissent un Coup Fourré (rejouez aussitôt). Le premier à atteindre exactement la distance cible (700 ou 1000 km) gagne la manche.",
         score: "1 point par victoire. Le classement est basé sur le total de victoires.",
     },
+    atlantide: {
+        gameType: 'ATLANTIDE' as const,
+        label: "Les Rescapés de l'Atlantide",
+        mode: 'both' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Points',
+        description: "L'île sombre — sauvez vos pions avant l'éruption du volcan !",
+        players: '2 – 4 joueurs (ou vs bot)',
+        rules: "L'Atlantide s'engloutit tuile par tuile (plages, puis forêts, puis montagnes). À votre tour : déplacez vos pions (3 points de déplacement) vers les refuges aux coins du plateau, à la nage ou en bateau ; retirez ensuite une tuile de l'île (son effet s'applique : créature, bateau, tourbillon…) ; enfin lancez le dé créature et déplacez un requin, une baleine ou un serpent. Le requin dévore les nageurs, la baleine retourne les bateaux, le serpent détruit tout. Quand le volcan entre en éruption, tout ce qui n'est pas à l'abri est perdu.",
+        score: "Chaque pion sauvé rapporte sa valeur cachée (1 à 6). Le classement est basé sur le total de points cumulés.",
+    },
     impostor: {
         gameType: 'IMPOSTOR' as const,
         label: 'Imposteur',
@@ -295,6 +306,7 @@ export const MAX_PLAYERS_BY_GAME: Record<GameType, number[]> = {
     perudo: [2, 3, 4, 5, 6],
     cant_stop: [2, 3, 4],
     mille_bornes: [2, 3, 4],
+    atlantide: [2, 3, 4],
     impostor: [4, 5, 6, 7, 8],
     spyfall: [3, 4, 5, 6, 7, 8],
     snake: [1],
@@ -319,6 +331,7 @@ export const MIN_PLAYERS: Partial<Record<GameType, number>> = {
     perudo: 2,
     cant_stop: 2,
     mille_bornes: 2,
+    atlantide: 2,
     impostor: 4,
     spyfall: 3,
 };
@@ -329,9 +342,10 @@ export const NO_OPTIONS_GAMES: Partial<Record<GameType, string>> = {
     battleship: 'Bataille Navale — solo (vs bot) ou 2 joueurs.',
     just_one: 'Just One — 3 à 7 joueurs.',
     diamant: 'Diamant — 2 à 8 joueurs.',
+    atlantide: "Les Rescapés de l'Atlantide — 2 à 4 joueurs (ou vs bot).",
 };
 
-export const BOT_SUPPORTED_GAMES: Set<string> = new Set(['puissance4', 'yahtzee', 'diamant', 'battleship', 'uno', 'skyjow', 'ludo', 'perudo', 'cant_stop', 'mille_bornes']);
+export const BOT_SUPPORTED_GAMES: Set<string> = new Set(['puissance4', 'yahtzee', 'diamant', 'battleship', 'uno', 'skyjow', 'ludo', 'perudo', 'cant_stop', 'mille_bornes', 'atlantide']);
 
 // Badges par mode — chaque jeu n'apparaît que dans une seule catégorie
 export const SOLO_GAMES: Record<string, { text: string; color: string }> = Object.fromEntries(
@@ -352,7 +366,7 @@ export const MULTI_GAMES: Record<string, { text: string; color: string }> = Obje
         .map(([key]) => [key, { text: 'MULTI', color: '#1D4ED8' }])
 );
 
-export const GAME_URL_SLUGS = ['uno', 'skyjow', 'taboo', 'yahtzee', 'puissance4', 'just-one', 'battleship', 'diamant', 'impostor', 'spyfall', 'ludo', 'perudo', 'cant-stop', 'mille-bornes'] as const;
+export const GAME_URL_SLUGS = ['uno', 'skyjow', 'taboo', 'yahtzee', 'puissance4', 'just-one', 'battleship', 'diamant', 'impostor', 'spyfall', 'ludo', 'perudo', 'cant-stop', 'mille-bornes', 'atlantide'] as const;
 
 export const GAME_ROUTES: Partial<Record<GameType, (lobbyId: string, gameId?: string) => string>> = {
     uno: (id, gid) => gid ? `/uno/${id}/${gid}` : `/uno/${id}`,
@@ -369,5 +383,6 @@ export const GAME_ROUTES: Partial<Record<GameType, (lobbyId: string, gameId?: st
     perudo: (id, gid) => gid ? `/perudo/${id}/${gid}` : `/perudo/${id}`,
     cant_stop: (id, gid) => gid ? `/cant-stop/${id}/${gid}` : `/cant-stop/${id}`,
     mille_bornes: (id, gid) => gid ? `/mille-bornes/${id}/${gid}` : `/mille-bornes/${id}`,
+    atlantide: (id, gid) => gid ? `/atlantide/${id}/${gid}` : `/atlantide/${id}`,
     quiz: (id, gid) => gid ? `/quiz/${id}/${gid}` : `/quiz/${id}`,
 };

@@ -42,6 +42,7 @@ let perudoSocket: Socket | null = null;
 let cantStopSocket: Socket | null = null;
 let milleBornesSocket: Socket | null = null;
 let spyfallSocket: Socket | null = null;
+let atlantideSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -176,4 +177,11 @@ export function getSpyfallSocket(): Socket | null {
     if (!spyfallSocket) spyfallSocket = createSocket(process.env.NEXT_PUBLIC_SPYFALL_SERVER_URL ?? "http://localhost:10015", "Spyfall Socket");
     connectIfAuth(spyfallSocket);
     return spyfallSocket;
+}
+
+export function getAtlantideSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!atlantideSocket) atlantideSocket = createSocket(process.env.NEXT_PUBLIC_ATLANTIDE_SERVER_URL ?? "http://localhost:10016", "Atlantide Socket");
+    connectIfAuth(atlantideSocket);
+    return atlantideSocket;
 }
