@@ -63,7 +63,7 @@ export default function SixQuiPrendPage() {
                 <TimerBar
                     endsAt={state.turnStartedAt ? state.turnStartedAt + state.turnDuration * 1000 : null}
                     duration={state.turnDuration}
-                    label={`Manche ${state.deal} · tour ${state.turn}/10 · seuil ${state.threshold}🐮`}
+                    label={`Manche ${state.deal} · tour ${state.turn}/10 · ${Math.max(...state.penalty)}/${state.threshold}🐮`}
                 />
             )}
 
