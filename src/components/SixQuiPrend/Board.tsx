@@ -6,25 +6,44 @@ import type { SixState } from '@/hooks/useSixQuiPrend';
 export const heads = (c: number): number =>
     c === 55 ? 7 : c % 11 === 0 ? 5 : c % 10 === 0 ? 3 : c % 5 === 0 ? 2 : 1;
 
-const headStyle = (h: number): string =>
-    h >= 7 ? 'bg-purple-600 text-white'
-        : h === 5 ? 'bg-red-600 text-white'
-            : h === 3 ? 'bg-orange-500 text-white'
-                : h === 2 ? 'bg-amber-500 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-100';
+// bandeau de couleur par sévérité (1 → 7 têtes)
+const severity = (h: number): { band: string; text: string } =>
+    h >= 7 ? { band: 'bg-purple-600', text: 'text-purple-700 dark:text-purple-300' }
+        : h === 5 ? { band: 'bg-red-600', text: 'text-red-700 dark:text-red-300' }
+            : h === 3 ? { band: 'bg-sky-500', text: 'text-sky-700 dark:text-sky-300' }
+                : h === 2 ? { band: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-300' }
+                    : { band: 'bg-gray-300 dark:bg-gray-600', text: 'text-gray-500 dark:text-gray-400' };
+
+/** Tête de bœuf stylisée (rouge). */
+function BullHead({ className = 'w-3 h-3' }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 22" className={className} fill="currentColor">
+            <path d="M3 2c2.5 1 4 3 4.5 5.2C9 6.4 10.4 6 12 6s3 .4 4.5 1.2C17 5 18.5 3 21 2c.7 2.8.2 5.4-1.4 7.4 1 1.2 1.6 2.7 1.6 4.4 0 4-3.6 6.2-9.2 6.2S2.8 17.8 2.8 13.8c0-1.7.6-3.2 1.6-4.4C2.8 7.4 2.3 4.8 3 2Z" />
+            <circle cx="9.2" cy="13" r="1.1" fill="#fff" />
+            <circle cx="14.8" cy="13" r="1.1" fill="#fff" />
+        </svg>
+    );
+}
 
 export function Card({ n, size = 'md', dim = false, selected = false }: { n: number; size?: 'sm' | 'md'; dim?: boolean; selected?: boolean }) {
     const h = heads(n);
-    const w = size === 'sm' ? 'w-9 h-12 text-sm' : 'w-11 h-16 text-base';
+    const sev = severity(h);
+    const dims = size === 'sm' ? 'w-10 h-14' : 'w-12 h-[4.6rem]';
+    const num = size === 'sm' ? 'text-base' : 'text-xl';
     return (
-        <div className={`relative ${w} rounded-lg border-2 flex items-center justify-center font-black shadow-sm transition-all
-            ${selected ? 'border-rose-500 ring-2 ring-rose-400 -translate-y-1' : 'border-gray-200 dark:border-gray-700'}
-            ${dim ? 'opacity-40' : ''}
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}>
-            {n}
-            <span className={`absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold flex items-center justify-center ${headStyle(h)}`}>
-                {h}
-            </span>
+        <div className={`relative ${dims} rounded-lg overflow-hidden flex flex-col bg-white dark:bg-zinc-100 shadow-md transition-all
+            border ${selected ? 'ring-2 ring-rose-500 border-rose-400 -translate-y-1.5 shadow-lg' : 'border-black/10'}
+            ${dim ? 'opacity-40' : ''}`}>
+            {/* bandeau de sévérité */}
+            <div className={`h-1 w-full shrink-0 ${sev.band}`} />
+            {/* nombre */}
+            <div className={`flex-1 flex items-center justify-center font-black ${num} text-zinc-900`}>{n}</div>
+            {/* têtes de bœuf */}
+            <div className="flex items-center justify-center gap-0.5 pb-1 text-red-600">
+                {h <= 3
+                    ? Array.from({ length: h }).map((_, i) => <BullHead key={i} className={size === 'sm' ? 'w-2.5 h-2.5' : 'w-3 h-3'} />)
+                    : <span className="flex items-center gap-0.5 font-black text-[10px] leading-none"><BullHead className="w-3 h-3" />×{h}</span>}
+            </div>
         </div>
     );
 }
@@ -61,7 +80,7 @@ export default function SixBoard({ state, onChooseCard, onChooseRow }: Props) {
                             <div className="flex gap-1 flex-1">
                                 {row.map((c, i) => <Card key={i} n={c} size="sm" />)}
                                 {Array.from({ length: 5 - row.length }).map((_, i) => (
-                                    <div key={`e${i}`} className="w-9 h-12 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700/50" />
+                                    <div key={`e${i}`} className="w-10 h-14 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700/50" />
                                 ))}
                             </div>
                         </button>
