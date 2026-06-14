@@ -62,6 +62,7 @@ enum GameType {
   ATLANTIDE
   ABALONE
   BLOKUS
+  SIX_QUI_PREND
 }
 
 model Account {

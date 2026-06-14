@@ -45,6 +45,7 @@ let spyfallSocket: Socket | null = null;
 let atlantideSocket: Socket | null = null;
 let abaloneSocket: Socket | null = null;
 let blokusSocket: Socket | null = null;
+let sixQuiPrendSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -200,4 +201,11 @@ export function getBlokusSocket(): Socket | null {
     if (!blokusSocket) blokusSocket = createSocket(process.env.NEXT_PUBLIC_BLOKUS_SERVER_URL ?? "http://localhost:10018", "Blokus Socket");
     connectIfAuth(blokusSocket);
     return blokusSocket;
+}
+
+export function getSixQuiPrendSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!sixQuiPrendSocket) sixQuiPrendSocket = createSocket(process.env.NEXT_PUBLIC_SIX_QUI_PREND_SERVER_URL ?? "http://localhost:10019", "6 qui prend Socket");
+    connectIfAuth(sixQuiPrendSocket);
+    return sixQuiPrendSocket;
 }

@@ -81,6 +81,16 @@ function BlokusIcon({ className }: { className?: string }) {
     );
 }
 
+function SixQuiPrendIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+            <rect x="3" y="5" width="10" height="14" rx="1.5" />
+            <rect x="9.5" y="3.5" width="10" height="14" rx="1.5" />
+            <text x="14.5" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="currentColor" stroke="none">6</text>
+        </svg>
+    );
+}
+
 function PerudoIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -227,6 +237,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     ATLANTIDE:  AtlantideIcon,
     ABALONE:    AbaloneIcon,
     BLOKUS:     BlokusIcon,
+    SIX_QUI_PREND: SixQuiPrendIcon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
     BREAKOUT:   BreakoutIcon,
@@ -254,6 +265,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     atlantide:  AtlantideIcon,
     abalone:    AbaloneIcon,
     blokus:     BlokusIcon,
+    six_qui_prend: SixQuiPrendIcon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,
     breakout:   BreakoutIcon,

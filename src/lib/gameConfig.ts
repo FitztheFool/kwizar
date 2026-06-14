@@ -317,6 +317,19 @@ export const GAME_CONFIG = {
         rules: "<p>But : poser le plus de cases possible (toutes ses pièces idéalement).</p><ul><li>Ta 1ʳᵉ pièce doit couvrir ton coin de départ.</li><li>Ensuite, chaque nouvelle pièce doit toucher une de tes pièces par un coin, jamais par un côté.</li><li>Tes pièces peuvent toucher celles des adversaires par les côtés sans contrainte.</li><li>Tu passes quand tu ne peux plus poser ; la partie finit quand plus personne ne peut jouer.</li></ul>",
         score: "Score = nombre de cases posées. Bonus de +15 si tu poses toutes tes pièces, +5 de plus si la dernière est le monomino. Classement ELO.",
     },
+    six_qui_prend: {
+        gameType: 'SIX_QUI_PREND' as const,
+        bot: true,
+        noOptions: '6 qui prend! — 2 à 10 joueurs (places libres comblées par des bots).',
+        label: '6 qui prend!',
+        mode: 'both' as const,
+        higherIsBetter: false,
+        scoreLabel: 'Têtes',
+        description: "Jeu de cartes malin où il faut éviter de ramasser. Chaque tour, tout le monde pose une carte en même temps et la 6ᵉ d'une rangée fait tout ramasser.",
+        players: '2 à 10 joueurs',
+        rules: "<p>But : avoir le moins de têtes de bœuf possible.</p><ul><li>Chacun choisit une carte (1 à 104) en secret, puis on révèle.</li><li>Les cartes se placent par ordre croissant, chacune à la suite de la rangée à la tête la plus haute mais inférieure à elle.</li><li>Poser la 6ᵉ carte d'une rangée = tu ramasses les 5 précédentes (leurs têtes comptent en malus).</li><li>Carte plus basse que toutes les rangées = tu ramasses la rangée de ton choix.</li><li>La partie s'arrête dès qu'un joueur atteint 66 têtes ; le moins de têtes gagne.</li></ul>",
+        score: "Score = nombre de têtes de bœuf ramassées (le plus bas gagne). Classement ELO.",
+    },
 } as const;
 
 export type GameType = keyof typeof GAME_CONFIG;
@@ -340,7 +353,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     quiz: [1, 30], uno: [2, 8], taboo: [4, 12], skyjow: [2, 8], yahtzee: [2, 8],
     puissance4: [2, 2], just_one: [3, 7], battleship: [2, 2], diamant: [2, 8],
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
-    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4],
+    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1],
 };

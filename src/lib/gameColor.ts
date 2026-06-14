@@ -208,4 +208,14 @@ export const GAME_COLOR: Record<string, {
             label: 'text-fuchsia-700 dark:text-fuchsia-400'
         }
     },
+    SIX_QUI_PREND: {
+        selected: 'border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-300',
+        badge: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300',
+        badgeActive: 'bg-rose-600 text-white border-rose-600',
+        card: {
+            border: 'border-rose-200 dark:border-rose-800/60',
+            bg: 'bg-rose-50 dark:bg-rose-900/15',
+            label: 'text-rose-700 dark:text-rose-400'
+        }
+    },
 };
