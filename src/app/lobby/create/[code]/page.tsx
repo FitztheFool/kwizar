@@ -44,6 +44,7 @@ const GAME_SERVER_URL_BY_TYPE: Partial<Record<GameType, string | undefined>> = {
     spyfall:    process.env.NEXT_PUBLIC_SPYFALL_SERVER_URL,
     atlantide:  process.env.NEXT_PUBLIC_ATLANTIDE_SERVER_URL,
     abalone:    process.env.NEXT_PUBLIC_ABALONE_SERVER_URL,
+    blokus:     process.env.NEXT_PUBLIC_BLOKUS_SERVER_URL,
 };
 
 type Player = { userId: string; username: string };
