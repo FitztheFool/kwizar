@@ -69,6 +69,18 @@ function AbaloneIcon({ className }: { className?: string }) {
     );
 }
 
+function BlokusIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+            <rect x="3" y="3" width="5" height="5" rx="0.5" />
+            <rect x="8" y="8" width="5" height="5" rx="0.5" />
+            <rect x="13" y="8" width="5" height="5" rx="0.5" />
+            <rect x="13" y="13" width="5" height="5" rx="0.5" />
+            <rect x="16" y="16" width="5" height="5" rx="0.5" />
+        </svg>
+    );
+}
+
 function PerudoIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -214,6 +226,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     MILLE_BORNES: MilleBornesIcon,
     ATLANTIDE:  AtlantideIcon,
     ABALONE:    AbaloneIcon,
+    BLOKUS:     BlokusIcon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
     BREAKOUT:   BreakoutIcon,
@@ -240,6 +253,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     mille_bornes: MilleBornesIcon,
     atlantide:  AtlantideIcon,
     abalone:    AbaloneIcon,
+    blokus:     BlokusIcon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,
     breakout:   BreakoutIcon,

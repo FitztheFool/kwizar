@@ -44,6 +44,7 @@ let milleBornesSocket: Socket | null = null;
 let spyfallSocket: Socket | null = null;
 let atlantideSocket: Socket | null = null;
 let abaloneSocket: Socket | null = null;
+let blokusSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -192,4 +193,11 @@ export function getAbaloneSocket(): Socket | null {
     if (!abaloneSocket) abaloneSocket = createSocket(process.env.NEXT_PUBLIC_ABALONE_SERVER_URL ?? "http://localhost:10017", "Abalone Socket");
     connectIfAuth(abaloneSocket);
     return abaloneSocket;
+}
+
+export function getBlokusSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!blokusSocket) blokusSocket = createSocket(process.env.NEXT_PUBLIC_BLOKUS_SERVER_URL ?? "http://localhost:10018", "Blokus Socket");
+    connectIfAuth(blokusSocket);
+    return blokusSocket;
 }

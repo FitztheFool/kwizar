@@ -61,6 +61,7 @@ enum GameType {
   SPYFALL
   ATLANTIDE
   ABALONE
+  BLOKUS
 }
 
 model Account {

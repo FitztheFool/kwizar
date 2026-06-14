@@ -304,6 +304,19 @@ export const GAME_CONFIG = {
         rules: "<p>But : éjecter 6 billes adverses du plateau.</p><ul><li>À ton tour, déplace 1, 2 ou 3 billes alignées d'une case.</li><li>Coup en ligne (dans l'axe des billes) ou de flanc (latéral, sur cases vides).</li><li>Sumito : pousse les billes adverses en supériorité dans l'axe (3 vs 2, 3 vs 1, 2 vs 1) — jamais à égalité ni si une bille bloque derrière.</li><li>Une bille poussée hors du plateau est éjectée.</li></ul>",
         score: "1 point par victoire. Le classement est basé sur le total de victoires.",
     },
+    blokus: {
+        gameType: 'BLOKUS' as const,
+        bot: true,
+        noOptions: 'Blokus — 2 à 4 joueurs (places libres comblées par des bots).',
+        label: 'Blokus',
+        mode: 'multi' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Score',
+        description: "Jeu de pose de pièces sur un plateau de 20×20. Chaque couleur place ses 21 polyominoes en partant de son coin pour couvrir un maximum de cases.",
+        players: '2 à 4 joueurs',
+        rules: "<p>But : poser le plus de cases possible (toutes ses pièces idéalement).</p><ul><li>Ta 1ʳᵉ pièce doit couvrir ton coin de départ.</li><li>Ensuite, chaque nouvelle pièce doit toucher une de tes pièces par un coin, jamais par un côté.</li><li>Tes pièces peuvent toucher celles des adversaires par les côtés sans contrainte.</li><li>Tu passes quand tu ne peux plus poser ; la partie finit quand plus personne ne peut jouer.</li></ul>",
+        score: "Score = nombre de cases posées. Bonus de +15 si tu poses toutes tes pièces, +5 de plus si la dernière est le monomino. Classement ELO.",
+    },
 } as const;
 
 export type GameType = keyof typeof GAME_CONFIG;
@@ -327,7 +340,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     quiz: [1, 30], uno: [2, 8], taboo: [4, 12], skyjow: [2, 8], yahtzee: [2, 8],
     puissance4: [2, 2], just_one: [3, 7], battleship: [2, 2], diamant: [2, 8],
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
-    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2],
+    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1],
 };

@@ -65,7 +65,7 @@ export default function UserMenu() {
             {open && (
                 <div
                     role="menu"
-                    className="glass-strong absolute right-0 mt-2 w-56 rounded-xl p-1 animate-scale-in origin-top-right z-50"
+                    className="absolute right-0 mt-2 w-56 rounded-xl p-1 animate-scale-in origin-top-right z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-glass-lg"
                 >
                     <div className="px-2.5 py-2 mb-1 border-b border-gray-100 dark:border-gray-700">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>

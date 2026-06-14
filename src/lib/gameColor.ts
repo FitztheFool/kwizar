@@ -198,4 +198,14 @@ export const GAME_COLOR: Record<string, {
             label: 'text-stone-600 dark:text-stone-300'
         }
     },
+    BLOKUS: {
+        selected: 'border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-300',
+        badge: 'bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300',
+        badgeActive: 'bg-fuchsia-600 text-white border-fuchsia-600',
+        card: {
+            border: 'border-fuchsia-200 dark:border-fuchsia-800/60',
+            bg: 'bg-fuchsia-50 dark:bg-fuchsia-900/15',
+            label: 'text-fuchsia-700 dark:text-fuchsia-400'
+        }
+    },
 };
