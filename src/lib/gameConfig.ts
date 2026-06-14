@@ -309,7 +309,7 @@ export const GAME_CONFIG = {
         bot: true,
         noOptions: 'Blokus — 2 à 4 joueurs (places libres comblées par des bots).',
         label: 'Blokus',
-        mode: 'multi' as const,
+        mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Score',
         description: "Jeu de pose de pièces sur un plateau de 20×20. Chaque couleur place ses 21 polyominoes en partant de son coin pour couvrir un maximum de cases.",
