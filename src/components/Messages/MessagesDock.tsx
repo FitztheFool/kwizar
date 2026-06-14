@@ -4,6 +4,7 @@
 // and on the full /messages page.
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ChevronLeftIcon, XMarkIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
@@ -43,8 +44,14 @@ export default function MessagesDock() {
                         <button onClick={closeThread} aria-label="Retour" className="p-1 -ml-1 rounded-lg hover:bg-white/15">
                             <ChevronLeftIcon className="w-5 h-5" />
                         </button>
-                        {partner && <UserAvatar name={partnerName} image={partner.image} shape="round" size="sm" />}
-                        <span className="font-semibold truncate">{partnerName}</span>
+                        {partner ? (
+                            <Link href={`/user/${partner.username}`} onClick={closeDock} className="flex items-center gap-2 min-w-0 hover:opacity-90 transition-opacity" title={`Voir le profil de ${partnerName}`}>
+                                <UserAvatar name={partnerName} image={partner.image} shape="round" size="sm" />
+                                <span className="font-semibold truncate hover:underline">{partnerName}</span>
+                            </Link>
+                        ) : (
+                            <span className="font-semibold truncate">{partnerName}</span>
+                        )}
                     </>
                 ) : (
                     <>

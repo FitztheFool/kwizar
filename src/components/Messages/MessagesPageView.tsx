@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChatBubbleLeftRightIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import UserAvatar from '@/components/UserAvatar';
@@ -61,8 +62,14 @@ export default function MessagesPageView({ initialUserId }: { initialUserId?: st
                                 >
                                     <ChevronLeftIcon className="w-5 h-5" />
                                 </button>
-                                {partner && <UserAvatar name={partnerName} image={partner.image} shape="round" size="sm" />}
-                                <span className="font-semibold text-gray-900 dark:text-white truncate">{partnerName}</span>
+                                {partner ? (
+                                    <Link href={`/user/${partner.username}`} className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity" title={`Voir le profil de ${partnerName}`}>
+                                        <UserAvatar name={partnerName} image={partner.image} shape="round" size="sm" />
+                                        <span className="font-semibold text-gray-900 dark:text-white truncate hover:underline">{partnerName}</span>
+                                    </Link>
+                                ) : (
+                                    <span className="font-semibold text-gray-900 dark:text-white truncate">{partnerName}</span>
+                                )}
                             </div>
                             <DmThread userId={selected} className="flex-1 min-h-0" />
                         </>

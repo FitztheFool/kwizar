@@ -86,13 +86,13 @@ export default function QuizFilters({
           className="input-field w-full"
           disabled={categories.length === 0}
         >
-          <option value="">
+          <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">
             {categories.length === 0 ? 'Chargement...' : 'Toutes les catégories'}
           </option>
           {[...categories]
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">{c.name}</option>
             ))}
         </select>
       </div>

@@ -10,7 +10,6 @@ import GameIcon from '@/components/GameIcon';
 import PlayerModal from '@/components/PlayerModal';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import GameStatCards from '@/components/GameStatCards';
-import EloOverview from '@/components/EloOverview';
 import StatChip from '@/components/StatChip';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import ActivityTable, { type ActivityRow } from '@/components/ActivityTable';
@@ -88,11 +87,13 @@ export default function UserStats({ username }: Props) {
     const lastActivity = stats.recentActivity[0] ?? null;
     const activeGameStats = Object.fromEntries(Object.entries(stats.gameStats).filter(([, v]) => v.count > 0));
 
+    // Résumé ELO (moyenne / record / nb de jeux notés) — affiché dans l'en-tête de la card.
+    const ratedElo = Object.values(stats.gameStats).filter(s => s.elo != null && (s.eloGames ?? 0) > 0);
+    const eloAvg = ratedElo.length ? Math.round(ratedElo.reduce((a, s) => a + (s.elo as number), 0) / ratedElo.length) : null;
+    const eloPeakBest = ratedElo.length ? Math.max(...ratedElo.map(s => s.eloPeak ?? (s.elo as number))) : null;
+
     return (
         <div className="space-y-4">
-
-            {/* ── Panneau ELO ── */}
-            <EloOverview gameStats={stats.gameStats} eloRanks={eloRanks} />
 
             {/* ── Chips d'aperçu ── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -152,10 +153,19 @@ export default function UserStats({ username }: Props) {
             {/* ── Statistiques par jeu ── */}
             {Object.keys(activeGameStats).length > 0 && (
                 <div className="glass rounded-2xl p-4">
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white mb-3">
-                        Statistiques par jeu
-                    </h2>
-                    <GameStatCards gameStats={activeGameStats} ranks={ranks} />
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white">
+                            Statistiques par jeu
+                        </h2>
+                        {eloAvg != null && (
+                            <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+                                <span>ELO moyen <b className="text-sm text-indigo-600 dark:text-indigo-300">{eloAvg}</b></span>
+                                <span>Record <b className="text-sm text-amber-600 dark:text-amber-300">{eloPeakBest}</b></span>
+                                <span>{ratedElo.length} jeu{ratedElo.length > 1 ? 'x' : ''} noté{ratedElo.length > 1 ? 's' : ''}</span>
+                            </div>
+                        )}
+                    </div>
+                    <GameStatCards gameStats={activeGameStats} ranks={ranks} eloRanks={eloRanks} />
                 </div>
             )}
 

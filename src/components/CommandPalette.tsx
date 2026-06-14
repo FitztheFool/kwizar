@@ -20,6 +20,7 @@ import {
     UsersIcon,
     UserPlusIcon,
     ClockIcon,
+    ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -69,6 +70,7 @@ export default function CommandPalette() {
         }
         if (isAuth && !isGuest) {
             all.push({ id: 'friends', label: 'Amis', hint: 'SOCIAL', Icon: UsersIcon, keywords: 'amis friends social', onSelect: goto('/friends#amis') });
+            all.push({ id: 'messages', label: 'Messages', hint: 'SOCIAL', Icon: ChatBubbleLeftRightIcon, keywords: 'messages dm conversations chat privé', onSelect: goto('/messages') });
             all.push({ id: 'friends-requests', label: "Demandes d'ami", hint: 'SOCIAL', Icon: ClockIcon, keywords: 'demandes requests invitations amis pending', onSelect: goto('/friends#demandes') });
             all.push({ id: 'friends-add', label: 'Ajouter un ami', hint: 'SOCIAL', Icon: UserPlusIcon, keywords: 'ajouter add rechercher chercher ami nouvel', onSelect: goto('/friends#ajouter') });
         }

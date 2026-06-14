@@ -56,8 +56,8 @@ export default function QuizzesTab({ quizzes, quizPage, quizTotalPages, categori
                     onChange={e => setCategoryId(e.target.value)}
                     className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"
                 >
-                    <option value="">— Toutes les catégories —</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">— Toutes les catégories —</option>
+                    {categories.map(c => <option key={c.id} value={c.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">{c.name}</option>)}
                 </select>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">

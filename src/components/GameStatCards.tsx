@@ -30,6 +30,7 @@ function RankBadge({ rank }: { rank: number }) {
 interface Props {
     gameStats: Record<string, GameStat>;
     ranks?: Record<string, number>;
+    eloRanks?: Record<string, number>;
     columns?: 4 | 6;
     hideWinRate?: boolean;
     defaultExpanded?: boolean;
@@ -112,7 +113,7 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
 
 const PAGE = 4;
 
-export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = false, defaultExpanded = false }: Props) {
+export default function GameStatCards({ gameStats, ranks = {}, eloRanks = {}, hideWinRate = false, defaultExpanded = false }: Props) {
     const [visibleCount, setVisibleCount] = useState(() => defaultExpanded ? Infinity : PAGE);
 
     if (Object.keys(gameStats).length === 0) {
@@ -145,14 +146,6 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                                         {GAME_LABEL_MAP[type] ?? type}
                                     </span>
                                     {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
-                                    {stat.elo != null && (stat.eloGames ?? 0) > 0 && (
-                                        <span
-                                            title={`ELO${stat.eloPeak ? ` · record ${stat.eloPeak}` : ''}`}
-                                            className="shrink-0 text-[9px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-1 py-px rounded"
-                                        >
-                                            {stat.elo}
-                                        </span>
-                                    )}
                                 </div>
                                 {bar && (
                                     <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>
@@ -208,6 +201,22 @@ export default function GameStatCards({ gameStats, ranks = {}, hideWinRate = fal
                             {bar && bar.pct > 0 && (
                                 <div className="mt-2.5 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                     <div className={`h-full rounded-full ${bar.color} transition-all`} style={{ width: `${bar.pct}%` }} />
+                                </div>
+                            )}
+
+                            {/* ELO footer */}
+                            {stat.elo != null && (stat.eloGames ?? 0) > 0 && (
+                                <div className="mt-2.5 pt-2 border-t border-gray-200/70 dark:border-white/[0.06] flex items-center justify-between gap-2">
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                                        <span className="font-black text-indigo-600 dark:text-indigo-300 text-xs">{stat.elo}</span>
+                                        <span className="font-bold uppercase tracking-wide ml-0.5">ELO</span>
+                                        {stat.eloPeak ? <span className="text-gray-400 dark:text-gray-500"> · record {stat.eloPeak}</span> : null}
+                                    </span>
+                                    {eloRanks[type] ? (
+                                        <span className="shrink-0 inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                                            #{eloRanks[type]}
+                                        </span>
+                                    ) : null}
                                 </div>
                             )}
                         </div>
