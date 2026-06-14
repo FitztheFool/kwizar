@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBlokusSocket } from '@/lib/socket';
+import type { GameLogEntry } from '@/components/GameLog';
 
 export interface BlokusPlayer {
     userId: string;
@@ -21,6 +22,7 @@ export interface BlokusState {
     turnStartedAt: number | null;
     turnDuration: number;
     players: BlokusPlayer[];
+    log: GameLogEntry[];
 }
 
 export interface BlokusMove { pieceId: string; ori: number; x: number; y: number; }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getAbaloneSocket } from '@/lib/socket';
+import type { GameLogEntry } from '@/components/GameLog';
 
 export interface PlayerInfo {
     userId: string;
@@ -25,6 +26,7 @@ export interface AbaloneGameState {
     turnDuration: number;
     legal: AbaloneLegalMove[] | null;
     players: PlayerInfo[];
+    log: GameLogEntry[];
 }
 
 export function isBot(player: Pick<PlayerInfo, 'userId'> | null | undefined): boolean {

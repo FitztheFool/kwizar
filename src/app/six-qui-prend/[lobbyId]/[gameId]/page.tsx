@@ -13,6 +13,7 @@ import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, CpuChipIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 export default function SixQuiPrendPage() {
@@ -66,8 +67,11 @@ export default function SixQuiPrendPage() {
                 />
             )}
 
-            <main className="flex-1 flex flex-col items-center justify-center gap-4 p-3 min-w-0">
-                <SixBoard state={state} onChooseCard={chooseCard} onChooseRow={chooseRow} />
+            <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
+                <div className="flex-1 flex justify-center min-w-0 w-full">
+                    <SixBoard state={state} onChooseCard={chooseCard} onChooseRow={chooseRow} />
+                </div>
+                <GameLogSidebar entries={state.log ?? []} />
             </main>
 
             {state.phase === 'finished' && (

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getSixQuiPrendSocket } from '@/lib/socket';
+import type { GameLogEntry } from '@/components/GameLog';
 
 export interface SixPlayer {
     userId: string;
@@ -26,6 +27,7 @@ export interface SixState {
     turnStartedAt: number | null;
     turnDuration: number;
     players: SixPlayer[];
+    log: GameLogEntry[];
 }
 
 export function isBot(p: Pick<SixPlayer, 'userId'> | null | undefined): boolean {

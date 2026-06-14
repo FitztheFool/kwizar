@@ -13,6 +13,7 @@ import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 const WIN_EJECTED = 6;
@@ -83,15 +84,18 @@ export default function AbalonePage() {
                 />
             )}
 
-            <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4 min-w-0">
-                {myColorIndex !== null && (
-                    <AbaloneBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
-                )}
-                {isMyTurn && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-sm">
-                        Sélectionne 1 à 3 billes alignées, puis clique une flèche pour les déplacer (ou pousser l'adversaire).
-                    </p>
-                )}
+            <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-4 min-w-0">
+                <div className="flex-1 flex flex-col items-center justify-center gap-4 min-w-0 w-full">
+                    {myColorIndex !== null && (
+                        <AbaloneBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
+                    )}
+                    {isMyTurn && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-sm">
+                            Sélectionne 1 à 3 billes alignées, puis clique une flèche pour les déplacer (ou pousser l'adversaire).
+                        </p>
+                    )}
+                </div>
+                <GameLogSidebar entries={state.log ?? []} />
             </main>
 
             {state.phase === 'finished' && (

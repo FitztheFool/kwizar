@@ -13,6 +13,7 @@ import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
+import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 export default function BlokusPage() {
@@ -73,10 +74,13 @@ export default function BlokusPage() {
                 />
             )}
 
-            <main className="flex-1 flex flex-col items-center justify-center gap-4 p-3 min-w-0">
-                {myColorIndex !== null && (
-                    <BlokusBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
-                )}
+            <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
+                <div className="flex-1 flex justify-center min-w-0 w-full">
+                    {myColorIndex !== null && (
+                        <BlokusBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
+                    )}
+                </div>
+                <GameLogSidebar entries={state.log ?? []} />
             </main>
 
             {state.phase === 'finished' && (
