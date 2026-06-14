@@ -101,9 +101,9 @@ export default function PlayerModal({ gameId, players, onClose, onDeleted }: Pla
                             <div className="flex items-center gap-2">
                                 <span className="flex items-center">
                                     {p.abandon
-                                        ? <NoSymbolIcon className="w-4 h-4 text-gray-400" />
+                                        ? <NoSymbolIcon className="w-4 h-4 text-red-500" title="Abandon" />
                                         : p.afk
-                                            ? <ClockIcon className="w-4 h-4 text-gray-400" />
+                                            ? <ClockIcon className="w-4 h-4 text-amber-500" title="AFK" />
                                             : p.placement != null
                                                 ? <RankBadge placement={p.placement} />
                                                 : null
@@ -122,6 +122,9 @@ export default function PlayerModal({ gameId, players, onClose, onDeleted }: Pla
                                     >
                                         {p.username}
                                     </Link>
+                                )}
+                                {(p.abandon || p.afk) && (
+                                    <span className="text-xs font-medium text-gray-400">({p.abandon ? 'Abandon' : 'AFK'})</span>
                                 )}
                                 {p.team != null && <TeamBadge team={p.team} />}
                             </div>

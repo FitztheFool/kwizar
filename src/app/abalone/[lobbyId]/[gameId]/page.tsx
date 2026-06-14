@@ -12,6 +12,7 @@ import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
+import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 const WIN_EJECTED = 6;
@@ -24,7 +25,7 @@ export default function AbalonePage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
     const myElo = useEloUpdate('abalone', me.userId);
 
-    const { players, state, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender, rematch } = useAbalone({
+    const { players, state, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useAbalone({
         lobbyId,
         userId: me.userId,
         username: me.username ?? '',
@@ -98,12 +99,34 @@ export default function AbalonePage() {
                     asModal
                     elo={myElo}
                     icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
-                    title={iWon ? 'Victoire !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne`}
-                    subtitle={`Manche remportée · série ${state.scores[0]}–${state.scores[1]}${state.reason === 'surrender' ? ' (abandon)' : state.reason === 'afk' ? ' (AFK)' : ''}`}
-                    onLobby={rematch}
-                    lobbyLabel="Revanche"
-                    onLeave={() => router.push(`/lobby/create/${lobbyId}`)}
-                />
+                    title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
+                    subtitle={state.reason === 'surrender' ? 'Abandon' : state.reason === 'afk' ? 'AFK' : '6 billes éjectées'}
+                    onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
+                    onLeave={() => router.push('/')}
+                >
+                    <GameScoreLeaderboard
+                        myUserId={me.userId}
+                        entries={[player0, player1].filter(Boolean).sort((a, b) =>
+                            (state.scores[b!.colorIndex] ?? 0) - (state.scores[a!.colorIndex] ?? 0)
+                        ).map((p) => {
+                            const isWinner = p!.userId === winnerPlayer?.userId;
+                            const isLoserBySurrender = !isWinner && state.reason === 'surrender';
+                            const isLoserByAfk = !isWinner && state.reason === 'afk';
+                            const score = state.scores[p!.colorIndex] ?? 0;
+                            return {
+                                userId: p!.userId,
+                                username: p!.username,
+                                score: `${score} victoire${score !== 1 ? 's' : ''}`,
+                                badges: [
+                                    ...(isBot(p) ? ['Bot'] : []),
+                                    ...(isLoserBySurrender ? ['Abandon'] : []),
+                                    ...(isLoserByAfk ? ['AFK'] : []),
+                                ],
+                                disqualified: isLoserBySurrender || isLoserByAfk,
+                            };
+                        })}
+                    />
+                </GameOverModal>
             )}
         </div>
     );
