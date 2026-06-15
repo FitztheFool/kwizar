@@ -330,6 +330,17 @@ export const GAME_CONFIG = {
         rules: "<p>But : avoir le moins de têtes de bœuf possible.</p><ul><li>Chacun choisit une carte (1 à 104) en secret, puis on révèle.</li><li>Les cartes se placent par ordre croissant, chacune à la suite de la rangée à la tête la plus haute mais inférieure à elle.</li><li>Poser la 6ᵉ carte d'une rangée = tu ramasses les 5 précédentes (leurs têtes comptent en malus).</li><li>Carte plus basse que toutes les rangées = tu ramasses la rangée de ton choix.</li><li>La partie s'arrête dès qu'un joueur atteint 66 têtes ; le moins de têtes gagne.</li></ul>",
         score: "Score = nombre de têtes de bœuf ramassées (le plus bas gagne). Classement ELO.",
     },
+    match3: {
+        gameType: 'MATCH3' as const,
+        label: 'Aligne-3',
+        mode: 'solo' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Meilleur score',
+        description: "Le puzzle de gemmes qui rend accro. Échange deux gemmes voisines pour aligner trois symboles ou plus et déclenche des cascades.",
+        players: '1 joueur',
+        rules: "<p>But : faire le plus gros score avant de ne plus pouvoir bouger.</p><ul><li>Clique deux gemmes voisines pour les échanger.</li><li>Un échange n'est valide que s'il aligne au moins 3 gemmes identiques (en ligne ou en colonne).</li><li>Les gemmes alignées explosent, celles du dessus tombent et de nouvelles arrivent : les enchaînements (cascades) rapportent plus.</li><li>Game over quand plus aucun échange ne crée d'alignement.</li></ul>",
+        score: "Score = gemmes détruites × multiplicateur de cascade. Seul votre meilleur score est conservé.",
+    },
 } as const;
 
 export type GameType = keyof typeof GAME_CONFIG;
@@ -355,7 +366,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
     impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
-    space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1],
+    space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1],
 };
 
 // Liste des effectifs jouables (ex. uno → [2,3,4,5,6,7,8]) pour les sélecteurs.

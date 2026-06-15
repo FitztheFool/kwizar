@@ -28,6 +28,7 @@ const SOLO_GAMES: Record<string, GameType> = {
     '2048': 'GAME_2048',
     flappy_bird: 'FLAPPY_BIRD',
     plumber: 'PLUMBER',
+    match3: 'MATCH3',
 };
 
 export async function GET(
