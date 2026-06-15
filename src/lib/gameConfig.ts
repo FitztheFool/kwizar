@@ -338,7 +338,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Meilleur score',
         description: "Le puzzle de gemmes qui rend accro. Échange deux gemmes voisines pour aligner trois symboles ou plus et déclenche des cascades.",
         players: '1 joueur',
-        rules: "<p>But : faire le plus gros score avant de ne plus pouvoir bouger.</p><ul><li>Clique deux gemmes voisines pour les échanger.</li><li>Un échange n'est valide que s'il aligne au moins 3 gemmes identiques (en ligne ou en colonne).</li><li>Les gemmes alignées explosent, celles du dessus tombent et de nouvelles arrivent : les enchaînements (cascades) rapportent plus.</li><li>Game over quand plus aucun échange ne crée d'alignement.</li></ul>",
+        rules: "<p>But : faire le plus gros score avant la fin du chrono.</p><ul><li>Clique deux gemmes voisines pour les échanger.</li><li>Un échange n'est valide que s'il aligne au moins 3 gemmes identiques (en ligne ou en colonne).</li><li>Les gemmes alignées explosent, celles du dessus tombent et de nouvelles arrivent : les enchaînements (cascades) rapportent plus de points… et plus de temps.</li><li>Chaque alignement rallonge le chrono (gros combos = gros bonus). Bien jouer prolonge la partie ; elle s'arrête quand le temps est épuisé.</li></ul>",
         score: "Score = gemmes détruites × multiplicateur de cascade. Seul votre meilleur score est conservé.",
     },
 } as const;

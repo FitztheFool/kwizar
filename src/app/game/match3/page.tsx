@@ -1,6 +1,6 @@
 'use client';
 
-import { StarIcon } from '@heroicons/react/24/solid';
+import { StarIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { useMatch3 } from '@/hooks/useMatch3';
 import { SIZE } from '@/lib/match3/engine';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
@@ -19,7 +19,7 @@ const GEMS: { bg: string; glyph: string }[] = [
 ];
 
 export default function Match3Page() {
-    const { board, selected, phase, displayScore, bestScore, globalBest, isNewBest, submitState, session, startGame, select } = useMatch3();
+    const { board, selected, timeLeft, phase, displayScore, bestScore, globalBest, isNewBest, submitState, session, startGame, select } = useMatch3();
 
     return (
         <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
@@ -29,8 +29,9 @@ export default function Match3Page() {
                 <span className="text-fuchsia-500/40 text-xs tracking-widest">◆◆</span>
             </SoloGameHeader>
 
-            <div className="w-full max-w-[420px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
+            <div className="w-full max-w-[420px] mb-4 grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" align="left" />
+                <StatCell icon={<ClockIcon className="w-3 h-3 text-sky-500" />} label="TEMPS" value={`${timeLeft}s`} color={timeLeft <= 10 ? 'text-red-500' : 'text-gray-900 dark:text-white'} align="left" />
                 <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
@@ -83,7 +84,7 @@ export default function Match3Page() {
                         JOUER
                     </button>
                     <p className="text-gray-500 dark:text-white/30 text-xs tracking-wide text-center">
-                        Clique 2 gemmes voisines pour les échanger · aligne 3+ identiques
+                        Échange 2 gemmes voisines · aligne 3+ · chaque combo rajoute du temps
                     </p>
                 </div>
             )}
