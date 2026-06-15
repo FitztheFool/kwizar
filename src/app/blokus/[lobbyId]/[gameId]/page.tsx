@@ -66,7 +66,7 @@ export default function BlokusPage() {
                 right={state.phase === 'playing' && <SurrenderButton onSurrender={surrender} />}
             />
 
-            {state.phase === 'playing' && (
+            {state.phase === 'playing' && state.turnDuration > 0 && (
                 <TimerBar
                     endsAt={state.turnStartedAt ? state.turnStartedAt + state.turnDuration * 1000 : null}
                     duration={state.turnDuration}

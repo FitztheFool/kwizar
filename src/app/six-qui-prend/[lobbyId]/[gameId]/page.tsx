@@ -59,7 +59,7 @@ export default function SixQuiPrendPage() {
                 right={state.phase !== 'finished' && <SurrenderButton onSurrender={surrender} />}
             />
 
-            {state.phase !== 'finished' && (
+            {state.phase !== 'finished' && state.turnDuration > 0 && (
                 <TimerBar
                     endsAt={state.turnStartedAt ? state.turnStartedAt + state.turnDuration * 1000 : null}
                     duration={state.turnDuration}
