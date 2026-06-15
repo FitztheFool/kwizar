@@ -80,7 +80,7 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
             <button
                 onClick={() => onJoin(lobby.id)}
                 disabled={isFull && isWaiting}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-accent-gradient hover:brightness-110 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-glow"
             >
                 {isFull && isWaiting
                     ? <><CheckIcon className="w-4 h-4" /> Complet</>
