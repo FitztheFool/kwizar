@@ -46,9 +46,10 @@ export default function GameOverModal({
     const [dismissed, setDismissed] = useState(false);
     const close = () => { setDismissed(true); onClose?.(); };
     const closable = asModal;
-    if (asModal && dismissed) return null;
+    // ⚠️ tous les hooks AVANT tout return conditionnel (règles des hooks).
+    const trapRef = useFocusTrap<HTMLDivElement>(asModal && !dismissed, close);
 
-    const trapRef = useFocusTrap<HTMLDivElement>(asModal, close);
+    if (asModal && dismissed) return null;
     const card = (
         <div
             ref={asModal ? trapRef : undefined}
