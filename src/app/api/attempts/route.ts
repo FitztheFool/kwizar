@@ -10,6 +10,7 @@ import { computeElo, isEloGame, DEFAULT_RATING, BOT_RATING, EloParticipant } fro
 
 interface ScoreEntry {
     userId: string;
+    username?: string;
     score: number;
     placement?: number | null;
     team?: number | null;
@@ -22,9 +23,9 @@ interface ScoreEntry {
 }
 
 interface BotScore {
-    username: string;
+    username?: string;
     score: number;
-    placement: number;
+    placement: number | null;
     team?: number | null;
 }
 
@@ -98,9 +99,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: true, saved: 0 });
         }
 
+        // Adversaires bots : fournis via `bots`, OU passés dans `scores` avec un userId `bot-*`
+        // (cas des jeux 1v1 vs bot qui mettent le bot dans la liste des scores). On les exclut
+        // des attempts (pas de ligne en BDD) mais on les garde comme participants pour l'ELO.
+        const botsFromScores: BotScore[] = scores
+            .filter(s => !validUserIds.has(s.userId) && typeof s.userId === 'string' && s.userId.startsWith('bot-'))
+            .map(b => ({ username: b.username, score: b.score, placement: b.placement ?? null, team: b.team ?? null }));
+        const allBots: BotScore[] = [...(bots ?? []), ...botsFromScores];
+
         // Bot scores stored (as JSON) on the first (highest-placed) human attempt
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const botScoresJson: any = bots && bots.length > 0 ? bots : null;
+        const botScoresJson: any = allBots.length > 0 ? allBots : null;
 
         // Pré-calcul des champs nettoyés, réutilisés pour l'upsert et l'ELO.
         const prepared = validScores.map(s => ({
@@ -140,7 +149,7 @@ export async function POST(req: NextRequest) {
                     placement: p.placement,
                     rating: ratingByUser.get(p.userId)?.rating ?? DEFAULT_RATING,
                 }));
-                const botParts: EloParticipant[] = (bots ?? []).map((b, i) => ({
+                const botParts: EloParticipant[] = allBots.map((b, i) => ({
                     key: `bot-${i}`,
                     placement: b.placement ?? null,
                     rating: BOT_RATING,
@@ -170,7 +179,7 @@ export async function POST(req: NextRequest) {
                         totalAnswers: p.totalAnswers,
                         abandon: p.abandon,
                         afk: p.afk,
-                        vsBot: !!vsBot,
+                        vsBot: !!vsBot || allBots.length > 0,
                         ...(botScores !== null ? { botScores } : {}),
                         ...eloFields,
                     },
@@ -188,7 +197,7 @@ export async function POST(req: NextRequest) {
                         totalAnswers: p.totalAnswers,
                         abandon: p.abandon,
                         afk: p.afk,
-                        vsBot: !!vsBot,
+                        vsBot: !!vsBot || allBots.length > 0,
                         botScores,
                         ...eloFields,
                     },
