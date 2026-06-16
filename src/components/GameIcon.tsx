@@ -92,6 +92,19 @@ function Match3Icon({ className }: { className?: string }) {
     );
 }
 
+function TanksIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+            <path d="M3 16h14v-3H3z" />
+            <path d="M9 13V10h4l2 3" />
+            <path d="M13 11l7-3" />
+            <circle cx="6" cy="18.5" r="1.5" />
+            <circle cx="10.5" cy="18.5" r="1.5" />
+            <circle cx="15" cy="18.5" r="1.5" />
+        </svg>
+    );
+}
+
 function SixQuiPrendIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -249,6 +262,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     ABALONE:    AbaloneIcon,
     BLOKUS:     BlokusIcon,
     SIX_QUI_PREND: SixQuiPrendIcon,
+    TANKS:      TanksIcon,
     MATCH3:     Match3Icon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
@@ -278,6 +292,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     abalone:    AbaloneIcon,
     blokus:     BlokusIcon,
     six_qui_prend: SixQuiPrendIcon,
+    tanks:      TanksIcon,
     match3:     Match3Icon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,

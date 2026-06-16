@@ -63,6 +63,7 @@ enum GameType {
   ABALONE
   BLOKUS
   SIX_QUI_PREND
+  TANKS
   MATCH3
 }
 

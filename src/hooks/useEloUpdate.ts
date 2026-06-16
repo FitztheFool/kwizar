@@ -9,7 +9,7 @@ import {
     getUnoSocket, getQuizSocket, getTabooSocket, getSkyjowSocket, getYahtzeeSocket,
     getPuissance4Socket, getBattleshipSocket, getDiamantSocket, getImpostorSocket,
     getSpyfallSocket, getLudoSocket, getPerudoSocket, getCantStopSocket, getMilleBornesSocket,
-    getAtlantideSocket, getAbaloneSocket, getBlokusSocket, getSixQuiPrendSocket,
+    getAtlantideSocket, getAbaloneSocket, getBlokusSocket, getSixQuiPrendSocket, getTanksSocket,
 } from '@/lib/socket';
 
 export interface EloResult {
@@ -39,6 +39,7 @@ const SOCKET_GETTERS: Record<string, () => Socket | null> = {
     abalone: getAbaloneSocket,
     blokus: getBlokusSocket,
     six_qui_prend: getSixQuiPrendSocket,
+    tanks: getTanksSocket,
 };
 
 /**

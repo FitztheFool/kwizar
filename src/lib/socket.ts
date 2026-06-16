@@ -46,6 +46,7 @@ let atlantideSocket: Socket | null = null;
 let abaloneSocket: Socket | null = null;
 let blokusSocket: Socket | null = null;
 let sixQuiPrendSocket: Socket | null = null;
+let tanksSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -208,4 +209,11 @@ export function getSixQuiPrendSocket(): Socket | null {
     if (!sixQuiPrendSocket) sixQuiPrendSocket = createSocket(process.env.NEXT_PUBLIC_SIX_QUI_PREND_SERVER_URL ?? "http://localhost:10019", "6 qui prend Socket");
     connectIfAuth(sixQuiPrendSocket);
     return sixQuiPrendSocket;
+}
+
+export function getTanksSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!tanksSocket) tanksSocket = createSocket(process.env.NEXT_PUBLIC_TANKS_SERVER_URL ?? "http://localhost:10020", "Tanks Socket");
+    connectIfAuth(tanksSocket);
+    return tanksSocket;
 }
