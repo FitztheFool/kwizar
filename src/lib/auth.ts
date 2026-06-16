@@ -6,11 +6,22 @@ import Google from 'next-auth/providers/google';
 import { compare } from 'bcryptjs';
 import prisma from './prisma';
 import { createPending, getPending, deletePending } from './oauthPendingStore';
+import { checkRateLimit } from './rateLimit';
 
 class InvalidCredentialsError extends CredentialsSignin { code = 'invalid_credentials'; }
 class AccountBannedError extends CredentialsSignin { code = 'account_banned'; }
 class AccountPendingError extends CredentialsSignin { code = 'account_pending'; }
 class MissingFieldsError extends CredentialsSignin { code = 'missing_fields'; }
+class RateLimitError extends CredentialsSignin { code = 'rate_limited'; }
+
+/** IP du client (en-têtes posés par le reverse proxy ; ordre non-forgeable d'abord). */
+function ipFromRequest(request: unknown): string {
+    const headers = (request as { headers?: Headers })?.headers;
+    if (!headers || typeof headers.get !== 'function') return 'unknown';
+    return headers.get('x-real-ip')
+        || headers.get('x-forwarded-for')?.split(',').at(-1)?.trim()
+        || 'unknown';
+}
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma as any),
@@ -76,10 +87,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 identifier: { label: 'Email ou pseudo', type: 'text' },
                 password: { label: 'Password', type: 'password' },
             },
-            async authorize(credentials) {
+            async authorize(credentials, request) {
                 if (!credentials?.identifier || !credentials?.password) {
                     throw new MissingFieldsError();
                 }
+                // Anti brute-force / credential stuffing : limite par IP + identifiant.
+                const ip = ipFromRequest(request);
+                const id = String(credentials.identifier).toLowerCase().slice(0, 100);
+                const rlId = checkRateLimit(`login:${ip}:${id}`, 8, 15 * 60_000);   // 8 essais / 15 min sur un compte
+                const rlIp = checkRateLimit(`login-ip:${ip}`, 40, 15 * 60_000);     // 40 essais / 15 min depuis une IP
+                if (!rlId.allowed || !rlIp.allowed) throw new RateLimitError();
+
                 const user = await prisma.user.findFirst({
                     where: {
                         OR: [
