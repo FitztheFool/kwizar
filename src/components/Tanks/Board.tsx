@@ -88,7 +88,7 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
         setFiring(true);
         const traj = shot.trajectory;
         const total = traj.length;
-        const perFrame = Math.max(2, Math.floor(total / 45));   // ~0.75s
+        const perFrame = Math.max(1, Math.ceil(total / 110));   // ~1.8s : obus bien visible
         let i = 0;
         const tick = () => {
             i += perFrame;
@@ -146,8 +146,17 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
                 <div className="flex flex-col gap-1.5">
                     <select value={weaponId} onChange={e => setWeaponId(e.target.value)}
                         className="text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-gray-900 dark:text-white">
-                        {state.weapons.map(w => <option key={w.id} value={w.id} className="bg-white dark:bg-gray-800">{w.name}</option>)}
+                        {state.weapons.map(w => (
+                            <option key={w.id} value={w.id} className="bg-white dark:bg-gray-800">
+                                {w.name} — rayon {w.radius}, dégâts {w.damage}
+                            </option>
+                        ))}
                     </select>
+                    {(() => { const w = state.weapons.find(x => x.id === weaponId); return w ? (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">
+                            Plus le rayon est grand, plus c&apos;est facile de toucher ; plus les dégâts sont élevés, plus ça fait mal.
+                        </span>
+                    ) : null; })()}
                     <button
                         onClick={() => { if (canFire) onFire(myBarrelAngle(myColorIndex ?? 0), power, weaponId); }}
                         disabled={!canFire}
