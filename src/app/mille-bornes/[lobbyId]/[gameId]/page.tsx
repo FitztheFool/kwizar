@@ -135,7 +135,7 @@ export default function MilleBornesPage() {
             )}
 
             <main className="flex-1 flex flex-col lg:flex-row gap-4 p-3 md:p-6">
-              <div className="flex-1 flex flex-col items-center gap-4 min-w-0">
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 min-w-0">
                 {/* Team progress (2v2) */}
                 {is2v2 && (
                     <div className="w-full max-w-5xl bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700/50 rounded-2xl px-4 py-3">
@@ -206,8 +206,6 @@ export default function MilleBornesPage() {
                         <span className="font-semibold">{cardTitle(state.lastDiscard)}</span>
                     </div>
                 )}
-
-                <div className="flex-1" />
 
                 {/* My hand */}
                 {myPlayer?.alive && hand.length > 0 && (
