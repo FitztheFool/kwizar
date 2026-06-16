@@ -31,6 +31,7 @@ export default function TanksPage() {
         <GameWaitingScreen gameType="tanks" gameName="Tanks" lobbyId={lobbyId} players={players} myUserId={me.userId} />
     );
 
+    const myEloResult = myElo?.find(e => e.userId === me.userId) ?? null;
     const winnerPlayer = state.winner !== null ? players.find(p => p.colorIndex === state.winner) : null;
     const iWon = state.winner === myColorIndex;
     const turnName = players.find(p => p.colorIndex === state.currentTurn)?.username ?? '…';
@@ -82,7 +83,7 @@ export default function TanksPage() {
                     elo={myElo}
                     icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                     title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
-                    subtitle={state.reason === 'surrender' ? 'Abandon' : state.reason === 'afk' ? 'AFK' : `Manche remportée — série ${state.scores[myColorIndex ?? 0]}–${state.scores[myColorIndex === 0 ? 1 : 0]}`}
+                    subtitle={state.reason === 'surrender' ? 'Abandon' : state.reason === 'afk' ? 'AFK' : myEloResult ? `${myEloResult.delta >= 0 ? '+' : ''}${myEloResult.delta} ELO · ${myEloResult.after}` : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >
