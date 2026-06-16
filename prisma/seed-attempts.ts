@@ -257,11 +257,13 @@ interface RankedGameConfig {
     maxPlayers: number;
     scoreGen: () => number;
     maxBots?: number;
+    lowerWins?: boolean;   // score le + bas = meilleur (ex. 6 qui prend : têtes de bœuf)
     postRank?: (ranked: { player: UserLike; score: number }[]) => void;
 }
 
 async function seedRankedAttempts(prisma: PrismaClient, players: UserLike[], cfg: RankedGameConfig): Promise<void> {
-    const { gameType, label, total, daysSpread, maxPlayers, scoreGen, maxBots = 2, postRank } = cfg;
+    const { gameType, label, total, daysSpread, maxPlayers, scoreGen, maxBots = 2, lowerWins = false, postRank } = cfg;
+    const cmp = (a: number, b: number) => lowerWins ? a - b : b - a;   // ordre de classement
     console.log(`\n Création des parties ${label}...`);
 
     const dates = Array.from({ length: total }, (_, g) =>
@@ -279,7 +281,7 @@ async function seedRankedAttempts(prisma: PrismaClient, players: UserLike[], cfg
 
         const ranked = participants
             .map(player => ({ player, score: scoreGen() }))
-            .sort((a, b) => b.score - a.score);
+            .sort((a, b) => cmp(a.score, b.score));
 
         postRank?.(ranked);
         if (vsBot) assignBotPlacements(bots, ranked.map(r => r.score));
@@ -288,7 +290,7 @@ async function seedRankedAttempts(prisma: PrismaClient, players: UserLike[], cfg
         const combined = [
             ...ranked.map(r => ({ score: r.score, isBot: false, idx: ranked.indexOf(r) })),
             ...bots.map(b => ({ score: b.score, isBot: true, idx: -1 })),
-        ].sort((a, b) => b.score - a.score);
+        ].sort((a, b) => cmp(a.score, b.score));
         const humanPlacement = (humanIdx: number) =>
             combined.findIndex(c => !c.isBot && c.idx === humanIdx) + 1;
 
@@ -1054,4 +1056,91 @@ export async function seedSpyfallAttempts(prisma: PrismaClient, players: UserLik
         console.log(`  ✅ Spyfall ${g + 1}/${total} — ${playerCount} joueurs — espion ${spyWins ? 'gagne' : 'démasqué'}`);
     }
     console.log(`✅ ${total} parties Spyfall créées`);
+}
+
+// ─── BLOKUS ───────────────────────────────────────────────────────────────────
+
+export async function seedBlokusAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = cases posées (max 89). La plupart entre 55 et 89 ; +bonus si tout posé.
+    await seedRankedAttempts(prisma, players, {
+        gameType: 'BLOKUS', label: 'Blokus', total: 40, daysSpread: 70,
+        maxPlayers: 4, maxBots: 3,
+        scoreGen: () => {
+            const r = Math.random();
+            if (r < 0.15) return Math.floor(Math.random() * 20) + 40;   // 40–60 (mauvais)
+            if (r < 0.85) return Math.floor(Math.random() * 24) + 60;   // 60–84
+            return Math.floor(Math.random() * 6) + 89;                  // 89–95 (tout posé + bonus)
+        },
+    });
+}
+
+// ─── 6 QUI PREND ───────────────────────────────────────────────────────────────
+
+export async function seedSixQuiPrendAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = têtes de bœuf ramassées (le PLUS BAS gagne). Partie finie au seuil 66.
+    await seedRankedAttempts(prisma, players, {
+        gameType: 'SIX_QUI_PREND', label: '6 qui prend!', total: 40, daysSpread: 70,
+        maxPlayers: 6, maxBots: 4, lowerWins: true,
+        scoreGen: () => Math.floor(Math.random() * 66) + 8,            // 8–73 têtes
+    });
+}
+
+// ─── ABALONE ──────────────────────────────────────────────────────────────────
+
+export async function seedAbaloneAttempts(prisma: PrismaClient, players: UserLike[]) {
+    const total = 40;
+    console.log(`\n Création des parties Abalone...`);
+    for (let g = 0; g < total; g++) {
+        const gameId = crypto.randomUUID();
+        const vsBot = Math.random() < 0.35;
+        const winnerIndex = Math.random() < 0.5 ? 0 : 1;
+        const date = daysAgo(Math.floor((g / total) * 70), Math.floor(Math.random() * 24));
+
+        if (vsBot) {
+            const [p1] = shufflePlayers(players);
+            const humanWins = winnerIndex === 0;
+            const bot: BotEntry = { username: BOT_NAMES[0], score: humanWins ? 0 : 1, placement: humanWins ? 2 : 1 };
+            const { abandon, afk } = randomLeaveFlags(humanWins);
+            await prisma.attempt.create({
+                data: {
+                    userId: p1.id, score: humanWins ? 1 : 0, gameType: 'ABALONE',
+                    placement: humanWins ? 1 : 2, gameId, quizId: null, trapScore: 0,
+                    abandon, afk, vsBot: true, botScores: [bot], createdAt: date,
+                },
+            });
+        } else {
+            const [p1, p2] = shufflePlayers(players);
+            const pair = [p1, p2];
+            for (let p = 0; p < 2; p++) {
+                const isWinner = p === winnerIndex;
+                const { abandon, afk } = randomLeaveFlags(isWinner);
+                await prisma.attempt.create({
+                    data: {
+                        userId: pair[p].id, score: isWinner ? 1 : 0, gameType: 'ABALONE',
+                        placement: isWinner ? 1 : 2, gameId, quizId: null, trapScore: 0,
+                        abandon, afk, vsBot: false, createdAt: new Date(date.getTime() + p * 1000),
+                    },
+                });
+            }
+        }
+        console.log(`  ✅ Abalone ${g + 1}/${total}`);
+    }
+    console.log(`✅ ${total} parties Abalone créées`);
+}
+
+// ─── MATCH-3 (Aligne-3) ─────────────────────────────────────────────────────────
+
+export async function seedMatch3Attempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = gemmes × combos sur ~90s, rallongé par les bonus. Large étalement.
+    function match3Score(): number {
+        const r = Math.random();
+        if (r < 0.30) return Math.floor(Math.random() * 1200) + 300;    // 300–1500 (court)
+        if (r < 0.75) return Math.floor(Math.random() * 4000) + 1500;   // 1500–5500
+        if (r < 0.93) return Math.floor(Math.random() * 6000) + 5500;   // 5500–11500
+        return Math.floor(Math.random() * 9000) + 11500;                // 11500–20500 (combos en chaîne)
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'MATCH3', label: 'Aligne-3', emoji: '💎',
+        scoreGen: () => ({ score: match3Score() }),
+    });
 }
