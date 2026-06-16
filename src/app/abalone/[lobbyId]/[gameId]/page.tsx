@@ -104,7 +104,8 @@ export default function AbalonePage() {
                     elo={myElo}
                     icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                     title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
-                    subtitle={state.reason === 'surrender' ? 'Abandon' : state.reason === 'afk' ? 'AFK' : '6 billes éjectées'}
+                    reason={state.reason}
+                    subtitle="6 billes éjectées"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >

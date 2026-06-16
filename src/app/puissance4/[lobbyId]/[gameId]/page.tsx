@@ -204,13 +204,8 @@ export default function Puissance4Page() {
                                         ? 'Le bot gagne !'
                                         : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`
                         }
-                        subtitle={
-                            gameState.reason === 'surrender' ? 'Abandon'
-                                : gameState.reason === 'afk' ? 'AFK'
-                                    : winnerPlayer && gameState.winner !== 'draw'
-                                        ? '4 en ligne !'
-                                        : undefined
-                        }
+                        reason={gameState.reason}
+                        subtitle={winnerPlayer && gameState.winner !== 'draw' ? '4 en ligne !' : undefined}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                         onLeave={() => router.push('/')}
                         onClose={() => setModalDismissed(true)}

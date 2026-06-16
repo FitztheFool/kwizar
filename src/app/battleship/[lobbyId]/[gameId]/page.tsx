@@ -208,11 +208,9 @@ export default function BattleshipPage() {
             {/* Game over modal */}
             {state.phase === 'finished' && !modalDismissed && (() => {
                 const won = state.winnerUserId === myUserId;
-                const reasonLabel: Record<string, string> = {
-                    all_sunk: won ? 'Vous avez coulé toute la flotte ennemie !' : 'Votre flotte a été détruite.',
-                    surrender: won ? "L'adversaire a abandonné." : 'Vous avez abandonné.',
-                    disconnect: won ? "L'adversaire s'est déconnecté." : 'Vous avez été déconnecté.',
-                };
+                const allSunkLabel = won ? 'Vous avez coulé toute la flotte ennemie !' : 'Votre flotte a été détruite.';
+                const forfeit = state.gameOverReason === 'surrender' ? 'surrender'
+                    : state.gameOverReason === 'disconnect' ? 'disconnect' : null;
                 const orderedPlayers = [...state.players].sort((a, b) =>
                     (b?.userId === state.winnerUserId ? 1 : 0) - (a?.userId === state.winnerUserId ? 1 : 0)
                 );
@@ -221,7 +219,8 @@ export default function BattleshipPage() {
                         elo={myElo}
                         icon={won ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                         title={won ? 'Victoire !' : 'Défaite'}
-                        subtitle={reasonLabel[state.gameOverReason ?? ''] ?? ''}
+                        reason={forfeit}
+                        subtitle={state.gameOverReason === 'all_sunk' ? allSunkLabel : undefined}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                         onLeave={() => router.push('/')}
                         onClose={() => setModalDismissed(true)}

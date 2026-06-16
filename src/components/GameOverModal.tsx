@@ -1,7 +1,7 @@
 // src/components/GameOverModal.tsx
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TrophyIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import EloDeltaList from '@/components/shared/EloDeltaList';
@@ -16,8 +16,17 @@ interface GameOverModalProps {
     onClose?: () => void;
     lobbyLabel?: string;
     asModal?: boolean;
+    /** Raison de fin (forfait) — affichée de façon uniforme, prioritaire sur `subtitle`. */
+    reason?: 'afk' | 'surrender' | 'disconnect' | null;
     elo?: { userId: string; username?: string | null; after: number; delta: number }[] | null;
 }
+
+/** Libellés canoniques des fins de partie — identiques pour tous les jeux. */
+export const REASON_LABEL: Record<'afk' | 'surrender' | 'disconnect', string> = {
+    surrender: 'Abandon',
+    afk: 'AFK',
+    disconnect: 'Déconnexion',
+};
 
 export default function GameOverModal({
     icon,
@@ -29,9 +38,17 @@ export default function GameOverModal({
     onClose,
     lobbyLabel,
     asModal = false,
+    reason,
     elo,
 }: GameOverModalProps) {
-    const trapRef = useFocusTrap<HTMLDivElement>(asModal, onClose);
+    const displaySubtitle = reason ? REASON_LABEL[reason] : subtitle;
+    // Toujours fermable quand affiché en modal (état interne), même si la page ne passe pas onClose.
+    const [dismissed, setDismissed] = useState(false);
+    const close = () => { setDismissed(true); onClose?.(); };
+    const closable = asModal;
+    if (asModal && dismissed) return null;
+
+    const trapRef = useFocusTrap<HTMLDivElement>(asModal, close);
     const card = (
         <div
             ref={asModal ? trapRef : undefined}
@@ -40,9 +57,9 @@ export default function GameOverModal({
             aria-label={title}
             className="relative glass-strong rounded-2xl p-8 max-w-md w-full mx-4 text-center space-y-4 animate-scale-in"
         >
-            {onClose && (
+            {closable && (
                 <button
-                    onClick={onClose}
+                    onClick={close}
                     className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all"
                     aria-label="Fermer"
                 >
@@ -56,7 +73,7 @@ export default function GameOverModal({
             </div>
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
-                {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{subtitle}</p>}
+                {displaySubtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{displaySubtitle}</p>}
                 <EloDeltaList elo={elo} />
             </div>
             {children && <div className="text-left w-full">{children}</div>}
@@ -81,7 +98,7 @@ export default function GameOverModal({
         return (
             <div
                 className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto p-4"
-                onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
+                onClick={(e) => { if (e.target === e.currentTarget) close(); }}
             >
                 {card}
             </div>
