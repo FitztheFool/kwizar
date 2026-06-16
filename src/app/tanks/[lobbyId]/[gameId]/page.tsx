@@ -12,6 +12,7 @@ import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
+import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
@@ -19,7 +20,7 @@ export default function TanksPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
     const myElo = useEloUpdate('tanks', me.userId);
 
-    const { players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, fire, surrender, rematch } = useTanks({
+    const { players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, fire, surrender } = useTanks({
         lobbyId, userId: me.userId, username: me.username ?? '', onNotFound: () => setIsNotFound(true),
     });
 
@@ -82,10 +83,33 @@ export default function TanksPage() {
                     icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                     title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
                     subtitle={state.reason === 'surrender' ? 'Abandon' : state.reason === 'afk' ? 'AFK' : `Série ${state.scores[0]}–${state.scores[1]}`}
-                    onLobby={rematch}
-                    lobbyLabel="Revanche"
+                    onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
-                />
+                >
+                    <GameScoreLeaderboard
+                        myUserId={me.userId}
+                        entries={[0, 1].map(i => players.find(p => p.colorIndex === i))
+                            .filter((p): p is typeof players[number] => !!p)
+                            .sort((a, b) => state.scores[b.colorIndex] - state.scores[a.colorIndex])
+                            .map((p) => {
+                                const isWinner = p.colorIndex === state.winner;
+                                const loserBySurrender = !isWinner && state.reason === 'surrender';
+                                const loserByAfk = !isWinner && state.reason === 'afk';
+                                const score = state.scores[p.colorIndex];
+                                return {
+                                    userId: p.userId,
+                                    username: p.username,
+                                    score: `${score} victoire${score !== 1 ? 's' : ''}`,
+                                    badges: [
+                                        ...(isBot(p) ? ['Bot'] : []),
+                                        ...(loserBySurrender ? ['Abandon'] : []),
+                                        ...(loserByAfk ? ['AFK'] : []),
+                                    ],
+                                    disqualified: loserBySurrender || loserByAfk,
+                                };
+                            })}
+                    />
+                </GameOverModal>
             )}
         </div>
     );
