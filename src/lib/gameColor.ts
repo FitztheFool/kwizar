@@ -208,6 +208,16 @@ export const GAME_COLOR: Record<string, {
             label: 'text-fuchsia-700 dark:text-fuchsia-400'
         }
     },
+    COMPLOT: {
+        selected: 'border-amber-600 bg-amber-600/10 text-amber-700 dark:text-amber-300',
+        badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+        badgeActive: 'bg-amber-700 text-white border-amber-700',
+        card: {
+            border: 'border-amber-300 dark:border-amber-800/60',
+            bg: 'bg-amber-50 dark:bg-amber-900/15',
+            label: 'text-amber-700 dark:text-amber-400'
+        }
+    },
     TANKS: {
         selected: 'border-lime-600 bg-lime-600/10 text-lime-700 dark:text-lime-300',
         badge: 'bg-lime-100 dark:bg-lime-900/40 text-lime-700 dark:text-lime-300',

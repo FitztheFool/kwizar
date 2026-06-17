@@ -330,6 +330,19 @@ export const GAME_CONFIG = {
         rules: "<p>But : avoir le moins de têtes de bœuf possible.</p><ul><li>Chacun choisit une carte (1 à 104) en secret, puis on révèle.</li><li>Les cartes se placent par ordre croissant, chacune à la suite de la rangée à la tête la plus haute mais inférieure à elle.</li><li>Poser la 6ᵉ carte d'une rangée = tu ramasses les 5 précédentes (leurs têtes comptent en malus).</li><li>Carte plus basse que toutes les rangées = tu ramasses la rangée de ton choix.</li><li>La partie s'arrête dès qu'un joueur atteint 66 têtes ; le moins de têtes gagne.</li></ul>",
         score: "Score = nombre de têtes de bœuf ramassées (le plus bas gagne). Classement ELO.",
     },
+    complot: {
+        gameType: 'COMPLOT' as const,
+        bot: false,
+        noOptions: 'Complot — 2 à 6 joueurs (humains uniquement).',
+        label: 'Complot',
+        mode: 'multi' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Victoires',
+        description: "Jeu de bluff et de déduction. Manipule, conteste et élimine : sois le dernier joueur avec de l'influence.",
+        players: '2 à 6 joueurs',
+        rules: "<p>But : être le dernier joueur à garder de l'influence (cartes).</p><ul><li>Chacun démarre avec 2 cartes-personnages cachées et 2 pièces.</li><li>À ton tour, une action : Revenu (+1), Aide étrangère (+2, bloquée par le Duc), Coup (−7, fait perdre une influence), ou une action de personnage que tu revendiques (vrai ou bluff).</li><li>Personnages : Duc (Taxe +3), Assassin (−3, tue une influence, bloqué par la Comtesse), Capitaine (vole 2 pièces, bloqué par Capitaine/Ambassadeur), Ambassadeur (échange ses cartes).</li><li>N'importe qui peut Douter d'un personnage revendiqué : si c'est un bluff, le menteur perd une influence ; sinon c'est le contestataire qui perd la sienne.</li><li>Perdre ses 2 influences = éliminé.</li></ul>",
+        score: "1 point par victoire. Classement ELO.",
+    },
     tanks: {
         gameType: 'TANKS' as const,
         bot: true,
@@ -377,7 +390,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     quiz: [1, 30], uno: [2, 8], taboo: [4, 12], skyjow: [2, 8], yahtzee: [2, 8],
     puissance4: [2, 2], just_one: [3, 7], battleship: [2, 2], diamant: [2, 8],
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
-    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2],
+    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2], complot: [2, 6],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1],
 };
