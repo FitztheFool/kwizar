@@ -14,9 +14,10 @@ interface Props {
     shot: ShotEvent | null;
     onClearShot: () => void;
     onFire: (angle: number, power: number, weaponId: string) => void;
+    onMove: (dir: -1 | 1) => void;
 }
 
-export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClearShot, onFire }: Props) {
+export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClearShot, onFire, onMove }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [angle, setAngle] = useState(45);
     const [power, setPower] = useState(55);
@@ -117,6 +118,18 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
     }, [shot]);
 
     const canFire = isMyTurn && !firing && state.phase === 'playing';
+    const canMove = canFire && state.moveBudget > 0;
+
+    // Clavier : A/← et D/→ pour déplacer le tank.
+    useEffect(() => {
+        if (!canMove) return;
+        const h = (e: KeyboardEvent) => {
+            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { e.preventDefault(); onMove(-1); }
+            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') { e.preventDefault(); onMove(1); }
+        };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [canMove, onMove]);
 
     return (
         <div className="w-full max-w-3xl flex flex-col gap-3">
@@ -135,6 +148,26 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
                     : state.wind < 0 ? <ArrowLongLeftIcon className="w-5 h-5 text-sky-500" />
                         : <span className="text-gray-400">—</span>}
             </div>
+
+            {/* Déplacement (gauche/droite) en début de tour */}
+            {isMyTurn && !firing && state.phase === 'playing' && (
+                <div className="flex items-center justify-center gap-2">
+                    <button onClick={() => onMove(-1)} disabled={!canMove}
+                        className="p-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-40 transition" aria-label="Reculer">
+                        <ArrowLongLeftIcon className="w-5 h-5" />
+                    </button>
+                    <div className="w-32">
+                        <div className="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                            <div className="h-full bg-lime-500 transition-[width]" style={{ width: `${(state.moveBudget / 60) * 100}%` }} />
+                        </div>
+                        <p className="text-[10px] text-center text-gray-400 mt-0.5">Déplacement {canMove ? '(A/D)' : 'épuisé'}</p>
+                    </div>
+                    <button onClick={() => onMove(1)} disabled={!canMove}
+                        className="p-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-40 transition" aria-label="Avancer">
+                        <ArrowLongRightIcon className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
 
             {/* Contrôles */}
             <div className={`grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-end p-3 rounded-xl bg-black/5 dark:bg-white/5 ${canFire ? '' : 'opacity-50 pointer-events-none'}`}>

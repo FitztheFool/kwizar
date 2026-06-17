@@ -15,6 +15,7 @@ export interface TanksGameState {
     tanks: [Tank, Tank];
     currentTurn: 0 | 1;
     wind: number;
+    moveBudget: number;
     status: 'playing' | 'finished';
     winner: 0 | 1 | null;
     weapons: Weapon[];
@@ -87,12 +88,17 @@ export function useTanks({ lobbyId, userId, username, onNotFound }: {
         socket?.emit('tanks:fire', { angle, power, weaponId });
     }, [isMyTurn, socket]);
 
+    const move = useCallback((dir: -1 | 1) => {
+        if (!isMyTurn) return;
+        socket?.emit('tanks:move', { dir });
+    }, [isMyTurn, socket]);
+
     const surrender = useCallback(() => { socket?.emit('tanks:surrender'); }, [socket]);
     const rematch = useCallback(() => { socket?.emit('tanks:rematch'); }, [socket]);
     const clearShot = useCallback(() => setShot(null), []);
 
     return {
         players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot,
-        inactivityUserId, inactivityEndsAt, fire, surrender, rematch,
+        inactivityUserId, inactivityEndsAt, fire, move, surrender, rematch,
     };
 }

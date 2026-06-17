@@ -21,7 +21,7 @@ export default function TanksPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
     const myElo = useEloUpdate('tanks', me.userId);
 
-    const { players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, fire, surrender } = useTanks({
+    const { players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, fire, move, surrender } = useTanks({
         lobbyId, userId: me.userId, username: me.username ?? '', onNotFound: () => setIsNotFound(true),
     });
 
@@ -72,7 +72,7 @@ export default function TanksPage() {
             <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
                 <div className="flex-1 flex justify-center min-w-0 w-full">
                     {myColorIndex !== null && (
-                        <TanksBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} shot={shot} onClearShot={clearShot} onFire={fire} />
+                        <TanksBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} shot={shot} onClearShot={clearShot} onFire={fire} onMove={move} />
                     )}
                 </div>
                 <GameLogSidebar entries={state.log ?? []} />
