@@ -6,20 +6,23 @@ import { useDuel } from '@/hooks/useDuel';
 import { isEmoji, DuelItem } from '@/lib/duel/categories';
 import { ArrowLeftIcon, TrophyIcon } from '@heroicons/react/24/solid';
 
-/** Visuel d'un item : image web, emoji, ou repli sur le nom si l'image casse. */
-function ItemVisual({ item, big }: { item: DuelItem; big?: boolean }) {
+/** Visuel d'un item : image web, emoji, ou repli sur le nom si l'image casse.
+ *  `thumb` = petite vignette (podium) : remplit le parent, image rognée. */
+function ItemVisual({ item, big, thumb }: { item: DuelItem; big?: boolean; thumb?: boolean }) {
     const [broken, setBroken] = useState(false);
     const emoji = isEmoji(item.img);
     const showImg = item.img && !emoji && !broken;
+    const size = thumb ? 'w-full h-full' : `w-full ${big ? 'h-44 sm:h-56' : 'h-40 sm:h-52'}`;
     return (
-        <div className={`w-full ${big ? 'h-44 sm:h-56' : 'h-40 sm:h-52'} rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900`}>
+        <div className={`${size} rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900`}>
             {showImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.img} alt={item.name} onError={() => setBroken(true)} className="w-full h-full object-contain p-2" loading="lazy" />
+                <img src={item.img} alt={item.name} onError={() => setBroken(true)}
+                    className={`w-full h-full ${thumb ? 'object-cover' : 'object-contain p-2'}`} loading="lazy" />
             ) : emoji ? (
-                <span className="text-7xl sm:text-8xl">{item.img}</span>
+                <span className={thumb ? 'text-xl' : 'text-7xl sm:text-8xl'}>{item.img}</span>
             ) : (
-                <span className="text-2xl sm:text-3xl font-black text-center px-3 text-zinc-700 dark:text-zinc-200">{item.name}</span>
+                <span className={`font-black text-center text-zinc-700 dark:text-zinc-200 ${thumb ? 'text-[9px] leading-tight px-0.5' : 'text-2xl sm:text-3xl px-3'}`}>{item.name}</span>
             )}
         </div>
     );
@@ -94,7 +97,7 @@ export default function DuelPage() {
                         {podium.finalist && (
                             <div className="flex items-center gap-3 rounded-xl bg-white/70 dark:bg-zinc-800/70 p-2 px-3">
                                 <span className="text-lg">🥈</span>
-                                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"><ItemVisual item={podium.finalist} /></div>
+                                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"><ItemVisual item={podium.finalist} thumb /></div>
                                 <span className="font-bold text-sm flex-1 truncate">{podium.finalist.name}</span>
                                 <span className="text-[10px] text-gray-400 uppercase">Finaliste</span>
                             </div>
@@ -102,7 +105,7 @@ export default function DuelPage() {
                         {podium.semi.map((it, i) => (
                             <div key={i} className="flex items-center gap-3 rounded-xl bg-white/50 dark:bg-zinc-800/50 p-2 px-3">
                                 <span className="text-lg">🥉</span>
-                                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"><ItemVisual item={it} /></div>
+                                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0"><ItemVisual item={it} thumb /></div>
                                 <span className="font-bold text-sm flex-1 truncate">{it.name}</span>
                                 <span className="text-[10px] text-gray-400 uppercase">Demi-finale</span>
                             </div>
