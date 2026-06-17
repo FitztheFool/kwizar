@@ -39,10 +39,10 @@ export default function ComplotActionRef() {
                 <h3 className="text-center text-[11px] font-black uppercase tracking-widest text-stone-700 mb-3 pb-1.5 border-b border-amber-900/20">
                     Actions lors de votre tour
                 </h3>
-                <ul className="space-y-2.5">
+                <ul className="divide-y divide-amber-900/15">
                     {ROWS.map(r => (
-                        <li key={r.title} className="flex gap-2.5 items-start">
-                            <r.icon className="w-4 h-4 mt-0.5 shrink-0 text-stone-600" />
+                        <li key={r.title} className="flex gap-2.5 items-center py-2">
+                            <r.icon className="w-5 h-5 shrink-0 text-stone-600" />
                             <div className="text-[11px] leading-snug min-w-0">
                                 <span className="font-black uppercase tracking-wide text-stone-900">{r.title}</span>
                                 {r.as && <span className="italic text-stone-500"> {r.as}</span>}

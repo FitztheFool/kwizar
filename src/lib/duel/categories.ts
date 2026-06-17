@@ -11,8 +11,6 @@ const poke = (id: number, name: string): DuelItem => ({
 });
 // Drapeaux : flagcdn (code ISO 2 lettres).
 const flag = (code: string, name: string): DuelItem => ({ name, img: `https://flagcdn.com/w320/${code}.png` });
-// Wikimedia Commons : nom de fichier exact (repli sur le nom si 404).
-const wiki = (file: string, name: string): DuelItem => ({ name, img: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=400` });
 
 export const CATEGORIES: DuelCategory[] = [
     {
@@ -27,7 +25,7 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'hokage', title: 'Le meilleur Hokage de Konoha', emoji: '🍥',
         items: [
-            wiki('Hashirama_Senju.png', 'Hashirama Senju (1er)'),
+            { name: 'Hashirama Senju (1er)', img: '' },
             { name: 'Tobirama Senju (2e)', img: '' },
             { name: 'Hiruzen Sarutobi (3e)', img: '' },
             { name: 'Minato Namikaze (4e)', img: '' },
@@ -40,10 +38,16 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'streamers', title: 'Le meilleur streamer FR', emoji: '🎮',
         items: [
-            { name: 'Squeezie', img: '' }, { name: 'Gotaga', img: '' }, { name: 'ZeratoR', img: '' },
-            { name: 'Domingo', img: '' }, { name: 'Antoine Daniel', img: '' }, { name: 'Etoiles', img: '' },
-            { name: 'Ponce', img: '' }, { name: 'Kameto', img: '' }, { name: 'AmineMaTue', img: '' },
-            { name: 'Locklear', img: '' }, { name: 'Maghla', img: '' }, { name: 'Inoxtag', img: '' },
+            { name: 'Squeezie', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Squeezie_Zack_en_Roue_Libre_2025.png/330px-Squeezie_Zack_en_Roue_Libre_2025.png' },
+            { name: 'Gotaga', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Gotaga_2026.jpg/330px-Gotaga_2026.jpg' },
+            { name: 'ZeratoR', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/ZeratoR%2C_lors_du_ZEVENT_2025.jpg/330px-ZeratoR%2C_lors_du_ZEVENT_2025.jpg' },
+            { name: 'Antoine Daniel', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Antoine_Daniel_-_N%C3%A9oCast2_-_3_%28cropped%29.jpg/330px-Antoine_Daniel_-_N%C3%A9oCast2_-_3_%28cropped%29.jpg' },
+            { name: 'Etoiles', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Etoiles_%28Rayenne_Guendil%29_lors_du_ZEVENT_2025.jpg/330px-Etoiles_%28Rayenne_Guendil%29_lors_du_ZEVENT_2025.jpg' },
+            { name: 'Ponce', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Aur%C3%A9lien_Gilles_%28Ponce%29_lors_du_ZEVENT_2025.jpg/330px-Aur%C3%A9lien_Gilles_%28Ponce%29_lors_du_ZEVENT_2025.jpg' },
+            { name: 'Kameto', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Kameto_ZERL.jpg/330px-Kameto_ZERL.jpg' },
+            { name: 'AmineMaTue', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/AmineMaTu%C3%A9%2C_De_Twittos_%C3%A0_Top_Streameur_-_Zack_en_Roue_Libre_avec_AmineMaTu%C3%A9_%28S05E04%29_2-49_%28cropped%29.png/330px-AmineMaTu%C3%A9%2C_De_Twittos_%C3%A0_Top_Streameur_-_Zack_en_Roue_Libre_avec_AmineMaTu%C3%A9_%28S05E04%29_2-49_%28cropped%29.png' },
+            { name: 'Inoxtag', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Inoxtag-2023.jpg/330px-Inoxtag-2023.jpg' },
+            { name: 'Joyca', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Jordan_Rondelli_%28Joyca%29_lors_du_ZEVENT_2025.jpg/330px-Jordan_Rondelli_%28Joyca%29_lors_du_ZEVENT_2025.jpg' },
         ],
     },
     {
