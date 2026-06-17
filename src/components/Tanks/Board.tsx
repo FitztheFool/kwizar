@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { TanksGameState, ShotEvent } from '@/hooks/useTanks';
+import { ArrowLongRightIcon, ArrowLongLeftIcon, FireIcon } from '@heroicons/react/24/solid';
 
 const W = 900, H = 500;
 const COLORS = ['#2563eb', '#dc2626'];       // tank 0 bleu, tank 1 rouge
@@ -130,7 +131,9 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
             <div className="flex items-center justify-center gap-2 text-sm">
                 <span className="text-gray-500 dark:text-gray-400">Vent</span>
                 <span className="font-mono font-bold">{state.wind === 0 ? '0' : `${Math.abs(state.wind)}`}</span>
-                <span className="text-lg leading-none">{state.wind > 0 ? '➡️' : state.wind < 0 ? '⬅️' : '·'}</span>
+                {state.wind > 0 ? <ArrowLongRightIcon className="w-5 h-5 text-sky-500" />
+                    : state.wind < 0 ? <ArrowLongLeftIcon className="w-5 h-5 text-sky-500" />
+                        : <span className="text-gray-400">—</span>}
             </div>
 
             {/* Contrôles */}
@@ -160,8 +163,8 @@ export default function TanksBoard({ state, myColorIndex, isMyTurn, shot, onClea
                     <button
                         onClick={() => { if (canFire) onFire(myBarrelAngle(myColorIndex ?? 0), power, weaponId); }}
                         disabled={!canFire}
-                        className="px-5 py-2 rounded-lg bg-lime-600 hover:bg-lime-500 text-white font-bold text-sm active:scale-95 transition disabled:opacity-50">
-                        🔥 Feu
+                        className="px-5 py-2 rounded-lg bg-lime-600 hover:bg-lime-500 text-white font-bold text-sm active:scale-95 transition disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+                        <FireIcon className="w-4 h-4" /> Feu
                     </button>
                 </div>
             </div>

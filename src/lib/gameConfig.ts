@@ -340,7 +340,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Victoires',
         description: "Duel d'artillerie tour par tour sur terrain destructible. Règle l'angle, la puissance et compose avec le vent pour détruire le tank adverse.",
         players: 'vs bot ou 2j',
-        rules: "<p>But : réduire les points de vie du tank adverse à zéro.</p><ul><li>À ton tour, choisis ton arme, l'angle et la puissance du tir, puis fais feu.</li><li>L'obus subit la gravité et le vent (indiqué à chaque tour) : anticipe la dérive.</li><li>Une explosion inflige des dégâts de zone (plus tu es proche, plus ça fait mal) et creuse le terrain.</li><li>Trois armes : <b>Obus</b> (petit rayon, dégâts moyens), <b>Grosse bombe</b> (rayon moyen, gros dégâts), <b>Nuke</b> (très grand rayon — pardonne l'imprécision — gros dégâts). Plus le rayon est grand, plus c'est facile de toucher.</li><li>Le premier à détruire l'adversaire gagne la manche.</li></ul>",
+        rules: "<p>But : réduire les points de vie du tank adverse à zéro.</p><ul><li>À ton tour, choisis ton arme, l'angle et la puissance du tir, puis fais feu.</li><li>L'obus subit la gravité et le vent (indiqué à chaque tour) : anticipe la dérive.</li><li>Une explosion inflige des dégâts de zone (plus tu es proche, plus ça fait mal) et creuse le terrain.</li><li>Trois armes, chacune un compromis : <b>Obus</b> (équilibré), <b>Perforant</b> (petit rayon mais gros dégâts — récompense la précision), <b>Fragmentation</b> (grand rayon facile à toucher mais faibles dégâts). Plus le rayon est grand, plus c'est facile de toucher… mais moins ça fait mal.</li><li>Le premier à détruire l'adversaire gagne la manche.</li></ul>",
         score: "1 point par victoire. Classement ELO.",
     },
     match3: {

@@ -15,6 +15,7 @@ import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { HeartIcon } from '@heroicons/react/24/solid';
 
 export default function TanksPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -47,7 +48,7 @@ export default function TanksPage() {
                 <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: idx === 0 ? '#2563eb' : '#dc2626' }} />
                 {isBot(p) ? <CpuChipIcon className="w-3.5 h-3.5" /> : null}
                 <span className="max-w-[6rem] truncate">{p.username}</span>
-                <span className="text-[10px] opacity-80">{hp}❤</span>
+                <span className="text-[10px] opacity-80 inline-flex items-center gap-0.5">{hp}<HeartIcon className="w-3 h-3 text-red-500" /></span>
             </span>
         );
     };
