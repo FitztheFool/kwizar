@@ -5,6 +5,7 @@ import { useGamePage } from '@/hooks/useGamePage';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useComplot } from '@/hooks/useComplot';
 import ComplotBoard from '@/components/Complot/Board';
+import ComplotActionRef from '@/components/Complot/ActionRef';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
@@ -64,6 +65,7 @@ export default function ComplotPage() {
             )}
 
             <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
+                <ComplotActionRef />
                 <div className="flex-1 flex justify-center min-w-0 w-full">
                     <ComplotBoard state={state} myIndex={myIndex} fns={{ action, passReact, challenge, block, challengeBlock, lose, exchange }} />
                 </div>
