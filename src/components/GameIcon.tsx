@@ -92,6 +92,17 @@ function Match3Icon({ className }: { className?: string }) {
     );
 }
 
+function DuelIcon({ className }: { className?: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+            <rect x="3" y="4" width="7" height="9" rx="1.5" />
+            <rect x="14" y="11" width="7" height="9" rx="1.5" />
+            <path d="M11 7l2 2-2 2" />
+            <path d="M13 17l-2-2 2-2" />
+        </svg>
+    );
+}
+
 function ComplotIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -276,6 +287,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     SIX_QUI_PREND: SixQuiPrendIcon,
     TANKS:      TanksIcon,
     COMPLOT:    ComplotIcon,
+    DUEL:       DuelIcon,
     MATCH3:     Match3Icon,
     SNAKE:      SnakeIcon,
     PACMAN:     PacmanIcon,
@@ -307,6 +319,7 @@ const GAME_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
     six_qui_prend: SixQuiPrendIcon,
     tanks:      TanksIcon,
     complot:    ComplotIcon,
+    duel:       DuelIcon,
     match3:     Match3Icon,
     snake:      SnakeIcon,
     pacman:     PacmanIcon,

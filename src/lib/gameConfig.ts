@@ -356,6 +356,17 @@ export const GAME_CONFIG = {
         rules: "<p>But : réduire les points de vie du tank adverse à zéro.</p><ul><li>À ton tour, choisis ton arme, l'angle et la puissance du tir, puis fais feu.</li><li>L'obus subit la gravité et le vent (indiqué à chaque tour) : anticipe la dérive.</li><li>Une explosion inflige des dégâts de zone (plus tu es proche, plus ça fait mal) et creuse le terrain.</li><li>Trois armes, chacune un compromis : <b>Obus</b> (équilibré), <b>Perforant</b> (petit rayon mais gros dégâts — récompense la précision), <b>Fragmentation</b> (grand rayon facile à toucher mais faibles dégâts). Plus le rayon est grand, plus c'est facile de toucher… mais moins ça fait mal.</li><li>Le premier à détruire l'adversaire gagne la manche.</li></ul>",
         score: "1 point par victoire. Classement ELO.",
     },
+    duel: {
+        gameType: 'DUEL' as const,
+        label: 'Ceci ou Cela',
+        mode: 'solo' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Préférences',
+        description: "Un jeu de préférences sans enjeu : choisis une catégorie, puis élimine à chaque duel ton item le moins préféré jusqu'au grand gagnant.",
+        players: '1 joueur',
+        rules: "<p>But : désigner ton favori dans une catégorie.</p><ul><li>Choisis une catégorie (Pokémon, nourriture, streamers…).</li><li>À chaque tour, deux items s'affrontent : clique sur celui que tu préfères, l'autre est éliminé.</li><li>Continue jusqu'à la finale, puis admire ton podium.</li></ul>",
+        score: "Jeu sans score — juste pour le plaisir de classer tes préférences. Rien n'est enregistré.",
+    },
     match3: {
         gameType: 'MATCH3' as const,
         label: 'Aligne-3',
@@ -392,7 +403,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
     impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2], complot: [2, 6],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
-    space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1],
+    space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1], duel: [1, 1],
 };
 
 // Liste des effectifs jouables (ex. uno → [2,3,4,5,6,7,8]) pour les sélecteurs.

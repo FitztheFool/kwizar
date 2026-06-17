@@ -66,6 +66,7 @@ enum GameType {
   TANKS
   COMPLOT
   MATCH3
+  DUEL
 }
 
 model Account {
