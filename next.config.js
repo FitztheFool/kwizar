@@ -30,7 +30,7 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.discordapp.com https://lh3.googleusercontent.com https://images.unsplash.com https://upload.wikimedia.org https://raw.githubusercontent.com https://flagcdn.com",  // + sources d'images du jeu Ceci ou Cela (Wikimedia, PokeAPI, drapeaux)
+              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.discordapp.com https://lh3.googleusercontent.com https://images.unsplash.com https://upload.wikimedia.org https://raw.githubusercontent.com https://flagcdn.com https://static.wikia.nocookie.net",  // + sources d'images du jeu Ceci ou Cela (Wikimedia, PokeAPI, drapeaux, Fandom)
               "font-src 'self'",
               "connect-src 'self' wss: ws: https://*.onrender.com http://localhost:10000 ws://localhost:10000 https://api.cloudinary.com",
               "frame-ancestors 'none'",

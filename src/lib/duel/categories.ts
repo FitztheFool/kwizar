@@ -25,14 +25,14 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'hokage', title: 'Le meilleur Hokage de Konoha', emoji: '🍥',
         items: [
-            { name: 'Hashirama Senju (1er)', img: '' },
-            { name: 'Tobirama Senju (2e)', img: '' },
-            { name: 'Hiruzen Sarutobi (3e)', img: '' },
-            { name: 'Minato Namikaze (4e)', img: '' },
-            { name: 'Tsunade (5e)', img: '' },
-            { name: 'Kakashi Hatake (6e)', img: '' },
-            { name: 'Naruto Uzumaki (7e)', img: '' },
-            { name: 'Danzō (intérim)', img: '' },
+            { name: 'Hashirama Senju (1er)', img: 'https://static.wikia.nocookie.net/naruto/images/2/2e/Kid_Hashirama.png/revision/latest?cb=20230322145136' },
+            { name: 'Tobirama Senju (2e)', img: 'https://static.wikia.nocookie.net/naruto/images/7/70/Kid_Tobirama.png/revision/latest?cb=20230322145433' },
+            { name: 'Hiruzen Sarutobi (3e)', img: 'https://static.wikia.nocookie.net/naruto/images/e/e8/Young_Hiruzen_Mobile.png/revision/latest?cb=20210422155026' },
+            { name: 'Minato Namikaze (4e)', img: 'https://static.wikia.nocookie.net/naruto/images/e/eb/Minato_Jonin.png/revision/latest?cb=20230510153913' },
+            { name: 'Tsunade (5e)', img: 'https://static.wikia.nocookie.net/naruto/images/6/62/Kid_Tsunade.png/revision/latest?cb=20230407050656' },
+            { name: 'Kakashi Hatake (6e)', img: 'https://static.wikia.nocookie.net/naruto/images/2/27/Kakashi_Hatake.png/revision/latest?cb=20251019002845' },
+            { name: 'Naruto Uzumaki (7e)', img: 'https://static.wikia.nocookie.net/naruto/images/d/d6/Naruto_Part_I.png/revision/latest?cb=20251228135525' },
+            { name: 'Danzō (intérim)', img: 'https://static.wikia.nocookie.net/naruto/images/1/17/Danz%C5%8D.png/revision/latest?cb=20171028185149' },
         ],
     },
     {
