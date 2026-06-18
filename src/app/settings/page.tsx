@@ -115,7 +115,7 @@ export default function SettingsPage() {
         setAvatarPreview(URL.createObjectURL(file));
         setAvatarLoading(true);
         try {
-            const cloudinaryUrl = await uploadToCloudinary(file, 'avatars');
+            const cloudinaryUrl = await uploadToCloudinary(file, 'avatar');
             const res = await fetch(`/api/user/${u}/upload-avatar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
