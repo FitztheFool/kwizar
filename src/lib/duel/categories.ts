@@ -1,4 +1,4 @@
-// Catégories du jeu "Ceci ou Cela" — tournoi d'élimination par préférence.
+// Catégories du jeu "Duel" — tournoi d'élimination par préférence.
 // Chaque item = { name, img } (image web). Si l'image casse, l'UI affiche le nom (repli).
 
 export interface DuelItem { name: string; img: string; }

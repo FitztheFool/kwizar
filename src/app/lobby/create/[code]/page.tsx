@@ -155,7 +155,7 @@ export default function LobbyCodePage() {
     });
     const [maxPlayers, setMaxPlayersState] = useState(8);
     const [isPublic, setIsPublicState] = useState(false);
-    const [turnSeconds, setTurnSecondsState] = useState<number | null>(null); // null = défaut du jeu
+    const [turnSeconds, setTurnSecondsState] = useState<number>(60); // temps par tour (s) ; 0 = aucune limite
     const [selectedQuizId, setSelectedQuizId] = useState<string | undefined>();
     const [selectedQuizTitle, setSelectedQuizTitle] = useState('');
     const [selectedQuizQuestionCount, setSelectedQuizQuestionCount] = useState<number | undefined>();
@@ -295,7 +295,7 @@ export default function LobbyCodePage() {
             setMaxPlayersState(state.maxPlayers ?? 8);
             setTeams(state.teams ?? null);
             setIsPublicState(state.isPublic ?? false);
-            setTurnSecondsState(state.turnSeconds ?? null);
+            setTurnSecondsState(state.turnSeconds ?? 60);
             if (state.quizId) {
                 setSelectedQuizId(prev => { if (prev !== state.quizId) { setSelectedQuizTitle(''); setSelectedQuizCategoryId(''); } return state.quizId!; });
             }
@@ -792,10 +792,9 @@ export default function LobbyCodePage() {
                                     <ClockIcon className="w-3.5 h-3.5" /> Temps pour jouer
                                 </label>
                                 {isHost ? (
-                                    <select value={turnSeconds ?? -1}
-                                        onChange={e => { const v = Number(e.target.value); const ts = v < 0 ? null : v; setTurnSecondsState(ts); socket?.emit('lobby:setMeta', { turnSeconds: ts ?? -1 }); }}
+                                    <select value={turnSeconds}
+                                        onChange={e => { const v = Number(e.target.value); setTurnSecondsState(v); socket?.emit('lobby:setMeta', { turnSeconds: v }); }}
                                         className="font-sans w-full bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none cursor-pointer">
-                                        <option value={-1} className="bg-white dark:bg-gray-800">Défaut du jeu</option>
                                         <option value={15} className="bg-white dark:bg-gray-800">15 secondes</option>
                                         <option value={30} className="bg-white dark:bg-gray-800">30 secondes</option>
                                         <option value={45} className="bg-white dark:bg-gray-800">45 secondes</option>
@@ -806,7 +805,7 @@ export default function LobbyCodePage() {
                                     </select>
                                 ) : (
                                     <div className="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700/30 rounded-xl px-4 py-2.5 text-gray-700 dark:text-gray-300 text-sm">
-                                        {turnSeconds == null ? 'Défaut du jeu' : turnSeconds === 0 ? 'Aucune limite' : `${turnSeconds}s par tour`}
+                                        {turnSeconds === 0 ? 'Aucune limite' : `${turnSeconds}s par tour`}
                                     </div>
                                 )}
                                 <p className="text-[11px] text-gray-400 dark:text-gray-500">Au-delà de ce temps, le joueur est considéré inactif (AFK).</p>

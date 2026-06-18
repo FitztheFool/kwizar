@@ -38,7 +38,7 @@ export default function DuelPage() {
                 {phase === 'category'
                     ? <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"><ArrowLeftIcon className="w-4 h-4" /> Accueil</Link>
                     : <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"><ArrowLeftIcon className="w-4 h-4" /> Catégories</button>}
-                <h1 className="font-black text-lg tracking-tight">Ceci ou Cela</h1>
+                <h1 className="font-black text-lg tracking-tight">Duel</h1>
                 <span className="w-16" />
             </div>
 

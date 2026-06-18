@@ -358,7 +358,7 @@ export const GAME_CONFIG = {
     },
     duel: {
         gameType: 'DUEL' as const,
-        label: 'Ceci ou Cela',
+        label: 'Duel',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Préférences',
