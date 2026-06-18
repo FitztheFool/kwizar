@@ -107,6 +107,21 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Capybara', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Capybaracropped.jpg/330px-Capybaracropped.jpg' },
         ],
     },
+    {
+        id: 'marvel', title: 'Le meilleur film Marvel', emoji: '🦸',
+        items: [
+            { name: 'Iron Man', img: 'https://upload.wikimedia.org/wikipedia/en/0/02/Iron_Man_%282008_film%29_poster.jpg' },
+            { name: 'Avengers', img: 'https://upload.wikimedia.org/wikipedia/en/8/8a/The_Avengers_%282012_film%29_poster.jpg' },
+            { name: 'Endgame', img: 'https://upload.wikimedia.org/wikipedia/en/0/0d/Avengers_Endgame_poster.jpg' },
+            { name: 'Black Panther', img: 'https://upload.wikimedia.org/wikipedia/en/d/d6/Black_Panther_%28film%29_poster.jpg' },
+            { name: 'No Way Home', img: 'https://upload.wikimedia.org/wikipedia/en/0/00/Spider-Man_No_Way_Home_poster.jpg' },
+            { name: 'Gardiens de la Galaxie', img: 'https://upload.wikimedia.org/wikipedia/en/3/33/Guardians_of_the_Galaxy_%28film%29_poster.jpg' },
+            { name: 'Thor: Ragnarok', img: 'https://upload.wikimedia.org/wikipedia/en/7/7d/Thor_Ragnarok_poster.jpg' },
+            { name: 'Winter Soldier', img: 'https://upload.wikimedia.org/wikipedia/en/9/9e/Captain_America_The_Winter_Soldier_poster.jpg' },
+            { name: 'Doctor Strange', img: 'https://upload.wikimedia.org/wikipedia/en/a/a1/Doctor_Strange_%282016_film%29_poster.jpg' },
+            { name: 'Infinity War', img: 'https://upload.wikimedia.org/wikipedia/en/4/4d/Avengers_Infinity_War_poster.jpg' },
+        ],
+    },
 ];
 
 /** Une "image" est un emoji si ce n'est pas une URL. */
