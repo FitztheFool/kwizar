@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 flex flex-col min-w-0">
 
                 {/* Topbar mobile */}
-                <div className="md:hidden flex items-center gap-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sticky top-0 z-10">
+                <div data-print-hide className="md:hidden flex items-center gap-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 sticky top-0 z-10">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="p-2 rounded-lg hover:bg-gray-100 transition-colors"

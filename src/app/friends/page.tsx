@@ -17,6 +17,8 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { Button, EmptyState } from '@/components/ui';
 import { useFriends } from '@/context/FriendsContext';
 import { useMessages } from '@/context/MessagesContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useRouter } from 'next/navigation';
 
 type FriendUser = { id: string; username: string | null; image: string | null; online: boolean };
 type Friend = FriendUser & { friendshipId: string };
@@ -64,6 +66,10 @@ const HASH_TAB: Record<string, Tab> = { amis: 'friends', demandes: 'requests', a
 export default function FriendsPage() {
     const { refresh: refreshBadge } = useFriends();
     const { openThread } = useMessages();
+    const { friends: friendsEnabled } = useFeatureFlags();
+    const router = useRouter();
+    // Amis désactivés par l'admin → page inaccessible.
+    useEffect(() => { if (!friendsEnabled) router.replace('/'); }, [friendsEnabled, router]);
     const [tab, setTabState] = useState<Tab>(() =>
         typeof window === 'undefined' ? 'friends' : HASH_TAB[window.location.hash.replace('#', '')] ?? 'friends',
     );

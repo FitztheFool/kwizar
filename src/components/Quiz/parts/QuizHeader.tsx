@@ -1,5 +1,3 @@
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
-
 interface Props {
     title: string;
     progress: number;
@@ -12,8 +10,12 @@ export default function QuizHeader({ title, progress, currentIndex, total, point
     return (
         <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 sm:px-4 flex items-center gap-2 sm:gap-4">
             <div className="shrink-0 flex items-center gap-2 min-w-0">
-                <DocumentTextIcon className="w-4 h-4 shrink-0 text-gray-500 dark:text-gray-400" />
-                <span className="hidden sm:block font-semibold truncate text-gray-900 dark:text-white text-sm max-w-[120px] lg:max-w-xs">{title}</span>
+                {/* Identité Kwizar */}
+                <img src="/logo/icon-light.svg" alt="Kwizar" width={28} height={28} className="block dark:hidden shrink-0" />
+                <img src="/logo/icon-dark.svg" alt="Kwizar" width={28} height={28} className="hidden dark:block shrink-0" />
+                <span className="hidden sm:block font-bold text-sm bg-accent-gradient bg-clip-text text-transparent">Kwizar</span>
+                <span className="hidden md:block text-gray-300 dark:text-gray-700">·</span>
+                <span className="hidden md:block font-semibold truncate text-gray-900 dark:text-white text-sm max-w-[120px] lg:max-w-xs">{title}</span>
             </div>
             <div className="flex-1 flex flex-col justify-center items-center gap-1">
                 <div className="w-full max-w-xs bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">

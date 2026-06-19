@@ -28,6 +28,7 @@ import PinnedQuizzes from '@/components/Sidebar/PinnedQuizzes';
 import { useLobbyCount } from '@/hooks/useLobbyCount';
 import { useMessages } from '@/context/MessagesContext';
 import { useFriends } from '@/context/FriendsContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 // ─── Color system ─────────────────────────────────────────────────────────────
 type Color = 'blue' | 'green' | 'yellow' | 'red' | 'gray' | 'purple';
@@ -163,7 +164,10 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
     const isAdmin = userRole === 'ADMIN';
     const isGuest = userRole === 'GUEST' || isAnonymous;
     const canCreateQuiz = isAuthenticated && !isGuest;
+    const features = useFeatureFlags();
     const showSocial = isAuthenticated && !isGuest;
+    const showFriends = showSocial && features.friends;
+    const showMessages = showSocial && features.messages;
 
     useEffect(() => {
         if (quizSectionActive) setQuizMenuOpen(true);
@@ -288,11 +292,11 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 <PinnedQuizzes collapsed={collapsed} />
 
                 {/* ── SOCIAL ── */}
-                {showSocial && (
+                {showSocial && (showFriends || showMessages) && (
                     <>
                         <SectionHeader label="Social" collapsed={collapsed} />
-                        <NavLink href="/friends" Icon={UsersIcon} label="Amis" isActive={pathname.startsWith('/friends')} collapsed={collapsed} color="gray" badge={pendingCount} />
-                        <NavLink href="/messages" Icon={ChatBubbleLeftRightIcon} label="Messages" isActive={pathname.startsWith('/messages')} collapsed={collapsed} color="gray" badge={totalUnread} />
+                        {showFriends && <NavLink href="/friends" Icon={UsersIcon} label="Amis" isActive={pathname.startsWith('/friends')} collapsed={collapsed} color="gray" badge={pendingCount} />}
+                        {showMessages && <NavLink href="/messages" Icon={ChatBubbleLeftRightIcon} label="Messages" isActive={pathname.startsWith('/messages')} collapsed={collapsed} color="gray" badge={totalUnread} />}
                     </>
                 )}
 

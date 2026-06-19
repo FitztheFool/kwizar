@@ -19,9 +19,13 @@ import {
     HEX_CLIP,
     HEX_H,
     LEVEL_SPRITE,
+    MEEPLE_SPRITE,
     REFUGE_SPRITE,
     SEA_SPRITE,
+    SWIMMER_SPRITE,
     SYMBOL_SPRITE,
+    TILE_HIDDEN_SPRITE,
+    TOKEN_SAFE_SPRITE,
     hexOrigin,
     isRefuge,
 } from './boardLayout';
@@ -187,6 +191,15 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onPlace, onM
                                 style={{ transform: 'scale(1.03)' }}
                                 draggable={false}
                             />
+                            {/* Tuile encore en place cachant un symbole : pastille face cachée. */}
+                            {tile && !tile.removed && tile.effect && tile.effect !== 'none' && (
+                                <img
+                                    src={TILE_HIDDEN_SPRITE}
+                                    alt="Symbole caché"
+                                    className="absolute bottom-0 right-0 w-1/4 h-1/4 object-contain pointer-events-none select-none opacity-70 drop-shadow"
+                                    draggable={false}
+                                />
+                            )}
                             {/* Symbole révélé sous une tuile engloutie (mémo du joueur). */}
                             {tile?.removed && tile.effect && tile.effect !== 'none' && SYMBOL_SPRITE[tile.effect] && (
                                 <img
@@ -328,31 +341,45 @@ function MeepleDot({ playerIdx, sizeRatio, swimming = false, safe = false, mine 
 }) {
     const color = COLOR_CLASSES[playerIdx] ?? COLOR_CLASSES[0];
     const myShelter = safe && mine; // mes pions à l'abri : mis en évidence
+    // Sprite du pion : nageur dans la mer, sinon meeple coloré du joueur.
+    const sprite = swimming ? SWIMMER_SPRITE : (MEEPLE_SPRITE[playerIdx] ?? MEEPLE_SPRITE[0]);
     return (
         <button
             type="button"
             disabled={!selectable}
             onClick={onClick}
-            className={`relative rounded-full ${color.bg} flex items-center justify-center text-white font-bold shadow-md transition-all
-                ${swimming ? 'border-2 border-sky-200' : 'border-2 border-white'}
-                ${myShelter ? 'ring-2 ring-emerald-300 ring-offset-1 ring-offset-emerald-900' : ''}
+            className={`relative flex items-center justify-center transition-all
+                ${myShelter ? 'drop-shadow-[0_0_4px_rgba(110,231,183,0.9)]' : 'drop-shadow-[0_2px_1px_rgba(0,0,0,0.5)]'}
                 ${selectable ? 'cursor-pointer hover:scale-125 animate-pulse pointer-events-auto' : ''}
-                ${selected ? 'scale-125 ring-2 ring-white ring-offset-1' : ''}`}
+                ${selected ? 'scale-125 drop-shadow-[0_0_5px_rgba(255,255,255,0.95)]' : ''}`}
             style={{
                 width: `calc(var(--atl-cell) * ${sizeRatio})`,
                 height: `calc(var(--atl-cell) * ${sizeRatio})`,
-                fontSize: `calc(var(--atl-cell) * ${sizeRatio * 0.55})`,
             }}
             title={myShelter ? 'À l’abri' : undefined}
         >
-            {myShelter && (
+            <img
+                src={sprite}
+                alt={swimming ? 'Nageur' : color.name}
+                className="w-full h-full object-contain pointer-events-none select-none"
+                draggable={false}
+            />
+            {/* Nageur : teinte la couleur du joueur via un point en bas. */}
+            {swimming && (
                 <span
-                    className="absolute -top-1 -right-1 flex items-center justify-center rounded-full bg-emerald-400 text-emerald-950 leading-none shadow"
-                    style={{ width: '0.7em', height: '0.7em', fontSize: '0.6em' }}
+                    className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 rounded-full ${color.bg} border border-white shadow`}
+                    style={{ width: '0.4em', height: '0.4em' }}
                     aria-hidden
-                >
-                    ✓
-                </span>
+                />
+            )}
+            {/* Pion à l'abri : jeton "safe" en pastille. */}
+            {safe && (
+                <img
+                    src={TOKEN_SAFE_SPRITE}
+                    alt="À l'abri"
+                    className="absolute -top-1 -right-1 w-1/2 h-1/2 object-contain pointer-events-none select-none drop-shadow"
+                    draggable={false}
+                />
             )}
         </button>
     );

@@ -11,6 +11,7 @@ import { ChevronLeftIcon, XMarkIcon, ChatBubbleLeftRightIcon } from '@heroicons/
 import UserAvatar from '@/components/UserAvatar';
 import { useMessages } from '@/context/MessagesContext';
 import { useChat } from '@/context/ChatContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import ConversationList from './ConversationList';
 import DmThread from './DmThread';
 
@@ -19,9 +20,10 @@ export default function MessagesDock() {
     const pathname = usePathname();
     const { lobbyId } = useChat();
     const { dockOpen, activeUserId, openThread, closeThread, closeDock, conversations, threads } = useMessages();
+    const { messages: messagesEnabled } = useFeatureFlags();
 
     const isGuest = (session?.user?.isAnonymous ?? false) || session?.user?.role === 'GUEST';
-    if (!session?.user?.id || isGuest) return null;
+    if (!session?.user?.id || isGuest || !messagesEnabled) return null;
     if (!dockOpen) return null;
     if (pathname?.startsWith('/messages')) return null;
     // In a lobby the unified FloatingChat panel hosts DMs (its "Messages" tab),

@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
       ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
       ...(categoryId ? { categoryId } : {}),
       ...(creatorId
-        ? { creatorId, ...(isOwnProfile ? {} : { isPublic: true }) }
+        ? { creatorId, ...(isOwnProfile ? {} : { isPublic: true, isDraft: false }) }
         : onlyMine && session?.user?.id
           ? { creatorId: session.user.id }
-          : { isPublic: true }),
+          : { isPublic: true, isDraft: false }),
     };
 
     const [quizzes, total] = await Promise.all([
@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         description: q.description,
         imageUrl: q.imageUrl ?? null,
         isPublic: q.isPublic,
+        isDraft: q.isDraft,
         category: q.category ?? null,
         creator: {
           id: q.creator.id,
@@ -81,17 +82,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, isPublic, randomizeQuestions, categoryId, imageUrl, questions, creatorRole } = body;
+    const { title, description, isPublic, isDraft, randomizeQuestions, categoryId, imageUrl, questions, creatorRole } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Titre requis' }, { status: 400 });
     }
 
-    if (!Array.isArray(questions) || questions.length === 0) {
+    const questionList = Array.isArray(questions) ? questions : [];
+
+    // Un brouillon peut être incomplet (ni questions ni catégorie). Un quiz publié non.
+    if (!isDraft && questionList.length === 0) {
       return NextResponse.json({ error: 'Au moins une question est requise' }, { status: 400 });
     }
+    if (!isDraft && !categoryId) {
+      return NextResponse.json({ error: 'Catégorie requise' }, { status: 400 });
+    }
 
-    if (questions.length > 15) {
+    if (questionList.length > 15) {
       return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
     }
 
@@ -101,24 +108,36 @@ export async function POST(request: NextRequest) {
       if (randomUser) creatorId = randomUser.id;
     }
 
+    // Valide la catégorie : un id inexistant casserait la FK.
+    let safeCategoryId: string | null = categoryId || null;
+    if (safeCategoryId) {
+      const cat = await prisma.category.findUnique({ where: { id: safeCategoryId }, select: { id: true } });
+      if (!cat) {
+        if (!isDraft) return NextResponse.json({ error: 'Catégorie introuvable' }, { status: 400 });
+        safeCategoryId = null; // brouillon : on ignore une catégorie invalide
+      }
+    }
+
     const quiz = await prisma.quiz.create({
       data: {
         title,
         description: description ?? '',
-        isPublic: isPublic ?? false,
+        // Un brouillon reste privé tant qu'il n'est pas publié.
+        isPublic: isDraft ? false : (isPublic ?? false),
+        isDraft: !!isDraft,
         randomizeQuestions: randomizeQuestions ?? false,
         imageUrl: imageUrl || '/quiz/default-cover.svg',
         creatorId,
-        categoryId: categoryId ?? null,
+        categoryId: safeCategoryId,
         questions: {
-          create: questions.map((q: any) => ({
+          create: questionList.map((q: any) => ({
             content: q.text,
             type: q.type,
             points: q.points ?? 1,
             strictOrder: q.strictOrder ?? false,
             imageUrl: q.imageUrl ?? null,
             answers: {
-              create: q.answers.map((a: any) => ({
+              create: (q.answers ?? []).map((a: any) => ({
                 content: a.content,
                 isCorrect: a.isCorrect,
               })),

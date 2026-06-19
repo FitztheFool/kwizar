@@ -56,10 +56,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                         <Header />
                                         <AppLayout>{children}</AppLayout>
                                         <Footer />
-                                        <FloatingChat />
-                                        <MessagesDock />
-                                        <Toasts />
-                                        <CommandPalette />
+                                        <div data-print-hide>
+                                            <FloatingChat />
+                                            <MessagesDock />
+                                            <Toasts />
+                                            <CommandPalette />
+                                        </div>
                                     </CommandPaletteProvider>
                                 </ChatProvider>
                             </NotificationsProvider>

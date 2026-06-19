@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToCloudinary } from '@/lib/uploadToCloudinary';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 type QuestionType = 'TRUE_FALSE' | 'MCQ' | 'TEXT' | 'MULTI_TEXT' | 'MCQ_UNIQUE';
 
@@ -31,6 +31,7 @@ type QuizFormState = {
     title: string;
     description: string;
     isPublic: boolean;
+    isDraft?: boolean;
     randomizeQuestions?: boolean;
     categoryId?: string;
     imageUrl?: string;
@@ -182,6 +183,84 @@ function ImageUpload({
 let idCounter = 0;
 const generateId = () => `temp_${Date.now()}_${idCounter++}`;
 
+// Imprime un brouillon de quiz (non enregistré) : ouvre une fenêtre autonome
+// avec le corrigé masqué par défaut (case à cocher pour l'afficher).
+function printQuizDraft(form: QuizFormState) {
+    const esc = (s: string) =>
+        (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+    const questionsHtml = form.questions.map((q, i) => {
+        const answers = q.answers.map((a, ai) => {
+            const correct = a.isCorrect;
+            const marker = `<span class="mk${correct ? ' ok' : ''}">${correct ? '✓' : String.fromCharCode(65 + ai)}</span>`;
+            const text = a.text?.trim() ? esc(a.text) : '…';
+            return `<li class="${correct ? 'correct' : ''}">${marker}<span>${text}</span></li>`;
+        }).join('');
+        const img = q.imageUrl ? `<img class="qimg" src="${esc(q.imageUrl)}" alt="" />` : '';
+        return `<li class="q">
+            <div class="qhead"><p class="qtext">${i + 1}. ${esc(q.text) || '<em>Sans énoncé</em>'}</p><span class="pts">${q.points} pt${q.points > 1 ? 's' : ''}</span></div>
+            ${img}
+            <ul class="answers">${answers}</ul>
+        </li>`;
+    }).join('');
+
+    const meta = [
+        form.questions.length ? `${form.questions.length} question${form.questions.length > 1 ? 's' : ''}` : null,
+    ].filter(Boolean).join(' · ');
+
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8" />
+        <title>${esc(form.title) || 'Quiz'}</title>
+        <style>
+            * { box-sizing: border-box; }
+            body { font-family: system-ui, sans-serif; color: #111; max-width: 760px; margin: 0 auto; padding: 32px; }
+            h1 { font-size: 28px; margin: 0; }
+            .desc { color: #555; margin: 4px 0 0; }
+            .meta { color: #777; font-size: 13px; margin-top: 8px; }
+            .bar { margin: 16px 0 24px; padding-bottom: 16px; border-bottom: 1px solid #ddd; display: flex; gap: 16px; align-items: center; }
+            button { padding: 8px 16px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
+            label { font-size: 14px; color: #333; display: inline-flex; gap: 6px; align-items: center; }
+            ol.qs { list-style: none; padding: 0; margin: 24px 0 0; }
+            li.q { margin-bottom: 22px; page-break-inside: avoid; }
+            .qhead { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+            .qtext { font-weight: 600; margin: 0; }
+            .pts { font-size: 12px; color: #777; white-space: nowrap; }
+            .qimg { max-height: 180px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; }
+            ul.answers { list-style: none; padding: 0; margin: 8px 0 0; }
+            ul.answers li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
+            .mk { display: inline-flex; width: 18px; height: 18px; border: 1px solid #999; border-radius: 999px; align-items: center; justify-content: center; font-size: 11px; flex: none; }
+            .mk.ok { background: #16a34a; border-color: #16a34a; color: #fff; }
+            body:not(.show-answers) .mk.ok { background: #fff; border-color: #999; color: transparent; }
+            body:not(.show-answers) .correct, body:not(.show-answers) .correct span { color: inherit !important; font-weight: normal !important; }
+            body.show-answers .correct span { color: #15803d; font-weight: 600; }
+            .brand { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #ddd; padding-bottom: 12px; margin-bottom: 20px; }
+            .brand span { font-size: 18px; font-weight: 700; color: #4f46e5; }
+            .ftr { margin-top: 40px; padding-top: 12px; border-top: 1px solid #ddd; text-align: center; font-size: 11px; color: #999; }
+            @media print { .bar { display: none; } body { padding: 0; } }
+        </style></head>
+        <body>
+            <div class="bar">
+                <button onclick="window.print()">Imprimer</button>
+                <label><input type="checkbox" onchange="document.body.classList.toggle('show-answers', this.checked)" /> Afficher le corrigé</label>
+            </div>
+            <div class="brand">
+                <img src="${esc(location.origin)}/logo/icon-light.svg" alt="Kwizar" width="26" height="26" />
+                <span>Kwizar</span>
+            </div>
+            <header>
+                <h1>${esc(form.title) || 'Quiz sans titre'}</h1>
+                ${form.description?.trim() ? `<p class="desc">${esc(form.description)}</p>` : ''}
+                ${meta ? `<p class="meta">${meta}</p>` : ''}
+            </header>
+            <ol class="qs">${questionsHtml || '<li>Aucune question.</li>'}</ol>
+            <footer class="ftr">Quiz généré sur Kwizar · kwizar</footer>
+        </body></html>`;
+
+    const w = window.open('', '_blank');
+    if (!w) { alert('Autorisez les fenêtres pop-up pour imprimer.'); return; }
+    w.document.write(html);
+    w.document.close();
+}
+
 function defaultTrueFalseAnswers(): AnswerForm[] {
     return [
         { tempId: generateId(), text: 'Vrai', isCorrect: true },
@@ -255,11 +334,17 @@ export default function QuizForm({
     const [categories, setCategories] = useState<Category[]>([]);
     const titleRef = useRef<HTMLInputElement>(null);
 
+    // Sauvegarde auto en brouillon
+    const [draftStatus, setDraftStatus] = useState<string | null>(null);
+    const draftIdRef = useRef<string | undefined>(initialData?.id);
+    const autosavingRef = useRef(false);
+
     const [form, setForm] = useState<QuizFormState>(() => ({
         id: initialData?.id,
         title: initialData?.title ?? '',
         description: initialData?.description ?? '',
         isPublic: initialData?.isPublic ?? true,
+        isDraft: initialData?.isDraft ?? false,
         randomizeQuestions: initialData?.randomizeQuestions !== undefined ? initialData.randomizeQuestions : true,
         categoryId: initialData?.categoryId ?? '',
         imageUrl: initialData?.imageUrl,
@@ -277,6 +362,67 @@ export default function QuizForm({
     useEffect(() => {
         fetch('/api/categories').then(r => r.json()).then(setCategories);
     }, []);
+
+    // ── Sauvegarde auto du brouillon ──
+    // Conditions : titre + catégorie présents (catégorie non-nullable en base).
+    // En mode édition, on n'autosauve QUE si le quiz est déjà un brouillon
+    // (on ne veut pas réécrire silencieusement un quiz publié).
+    const buildDraftPayload = useCallback(() => ({
+        title: form.title,
+        description: form.description,
+        isPublic: false,
+        isDraft: true,
+        randomizeQuestions: form.randomizeQuestions,
+        categoryId: form.categoryId,
+        imageUrl: form.imageUrl ?? null,
+        questions: form.questions.map((q) => ({
+            id: q.id,
+            text: q.text,
+            type: q.type,
+            points: q.points,
+            strictOrder: q.strictOrder ?? false,
+            imageUrl: q.imageUrl ?? null,
+            answers: q.answers.map((a) => ({ id: a.id, content: a.text, isCorrect: a.isCorrect })),
+        })),
+    }), [form]);
+
+    const autosaveDraft = useCallback(async () => {
+        if (autosavingRef.current) return;
+        // Un brouillon n'exige qu'un titre (catégorie/questions facultatives).
+        if (!form.title.trim()) return;
+        if (saving) return; // une sauvegarde manuelle est en cours
+        // En édition d'un quiz publié : pas d'autosave.
+        if (mode === 'edit' && !form.isDraft && !draftIdRef.current) return;
+        if (mode === 'edit' && initialData?.id && !form.isDraft) return;
+
+        autosavingRef.current = true;
+        setDraftStatus('Enregistrement…');
+        try {
+            const id = draftIdRef.current;
+            const res = id
+                ? await fetch(`/api/quiz/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildDraftPayload()) })
+                : await fetch('/api/quiz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildDraftPayload()) });
+            if (!res.ok) { setDraftStatus('Échec de la sauvegarde'); return; }
+            const data = await res.json();
+            if (!id && data?.id) {
+                draftIdRef.current = data.id;
+                setForm(f => ({ ...f, id: data.id, isDraft: true }));
+            }
+            setDraftStatus(`Brouillon enregistré · ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`);
+        } catch {
+            setDraftStatus('Échec de la sauvegarde');
+        } finally {
+            autosavingRef.current = false;
+        }
+    }, [form.title, form.categoryId, form.isDraft, saving, mode, initialData?.id, buildDraftPayload]);
+
+    // Débounce : autosave 2 s après le dernier changement du formulaire.
+    const mountedRef = useRef(false);
+    useEffect(() => {
+        if (!mountedRef.current) { mountedRef.current = true; return; }
+        const t = setTimeout(() => { autosaveDraft(); }, 2000);
+        return () => clearTimeout(t);
+    }, [form]);
 
     const totalPoints = useMemo(
         () => form.questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0),
@@ -485,9 +631,10 @@ export default function QuizForm({
         return null;
     }
 
-    async function onSubmit() {
+    async function onSubmit(asDraft = false) {
         setSubmitted(true);
 
+        // Titre + catégorie toujours requis (catégorie non nullable en base).
         if (!form.title.trim()) {
             setFieldError('title', 'Titre requis');
             setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); titleRef.current?.focus(); }, 50);
@@ -499,14 +646,17 @@ export default function QuizForm({
             return;
         }
 
-        form.questions.forEach((q, qi) => {
-            validateQuestionText(qi, q.text);
-            validateQuestionPoints(qi, q.points);
-            validateAnswers(qi, q.answers, q.type);
-        });
+        // Un brouillon peut rester incomplet : on saute la validation des questions.
+        if (!asDraft) {
+            form.questions.forEach((q, qi) => {
+                validateQuestionText(qi, q.text);
+                validateQuestionPoints(qi, q.points);
+                validateAnswers(qi, q.answers, q.type);
+            });
 
-        const msg = validate();
-        if (msg) { setError(msg); return; }
+            const msg = validate();
+            if (msg) { setError(msg); return; }
+        }
 
         try {
             setSaving(true);
@@ -515,7 +665,8 @@ export default function QuizForm({
             const payload = {
                 title: form.title,
                 description: form.description,
-                isPublic: form.isPublic,
+                isPublic: asDraft ? false : form.isPublic,
+                isDraft: asDraft,
                 randomizeQuestions: form.randomizeQuestions,
                 categoryId: form.categoryId,
                 imageUrl: form.imageUrl ?? null,
@@ -534,9 +685,12 @@ export default function QuizForm({
                 })),
             };
 
-            const res = mode === 'create'
-                ? await fetch('/api/quiz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-                : await fetch(`/api/quiz/${form.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            // Un autosave a pu déjà créer le brouillon : on met à jour cet enregistrement
+            // plutôt que d'en créer un doublon.
+            const existingId = form.id ?? draftIdRef.current;
+            const res = existingId
+                ? await fetch(`/api/quiz/${existingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                : await fetch('/api/quiz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
             if (!res.ok) {
                 const j = await res.json().catch(() => null);
@@ -557,10 +711,30 @@ export default function QuizForm({
         <div className="max-w-4xl mx-auto px-4 py-8">
             {/* ── Bloc quiz ── */}
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    {mode === 'create' ? 'Créer un quiz' : 'Modifier le quiz'}
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total points : {totalPoints}</p>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                            {mode === 'create' ? 'Créer un quiz' : 'Modifier le quiz'}
+                        </h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total points : {totalPoints}</p>
+                    </div>
+
+                    {/* En haut à droite : impression + état de sauvegarde auto */}
+                    <div className="flex items-center gap-3">
+                        {draftStatus && (
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{draftStatus}</span>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => printQuizDraft(form)}
+                            title="Imprimer"
+                            aria-label="Imprimer"
+                            className="p-2 rounded-lg text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                        >
+                            <PrinterIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
 
                 {error && (
                     <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
@@ -808,7 +982,7 @@ export default function QuizForm({
                     type="button"
                     onClick={addQuestion}
                     disabled={form.questions.length >= 15}
-                    className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 ${form.questions.length >= 15 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-4 py-2 rounded-lg font-semibold border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors ${form.questions.length >= 15 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     + Ajouter une question {form.questions.length >= 15 && '(max 15)'}
                 </button>
@@ -817,17 +991,17 @@ export default function QuizForm({
                     <button
                         type="button"
                         onClick={() => router.back()}
-                        className="px-6 py-3 rounded-lg font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        className="px-6 py-3 rounded-lg font-semibold text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors"
                     >
                         Annuler
                     </button>
                     <button
                         type="button"
-                        onClick={onSubmit}
+                        onClick={() => onSubmit(false)}
                         disabled={saving}
-                        className={`px-6 py-3 rounded-lg font-medium ${saving ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-500'}`}
+                        className={`px-6 py-3 rounded-lg font-bold text-white shadow-md transition-all ${saving ? 'bg-gray-300 dark:bg-gray-700 !text-gray-600 dark:!text-gray-400 shadow-none' : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-blue-500/30 hover:shadow-lg hover:scale-[1.02] active:scale-95'}`}
                     >
-                        {saving ? 'Enregistrement...' : mode === 'create' ? 'Créer le quiz' : 'Enregistrer'}
+                        {saving ? 'Enregistrement...' : mode === 'create' ? 'Publier le quiz' : (form.isDraft ? 'Publier le quiz' : 'Enregistrer')}
                     </button>
                 </div>
             </div>

@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Impression d'un quiz : masque tout le chrome de l'app (header, footer, sidebar, widgets). */
+@media print {
+  body.printing-quiz header,
+  body.printing-quiz footer,
+  body.printing-quiz aside,
+  body.printing-quiz [data-print-hide] {
+    display: none !important;
+  }
+  /* Sort la page imprimable du flux flex de l'app et neutralise le fond. */
+  body.printing-quiz,
+  body.printing-quiz main {
+    display: block !important;
+    background: #fff !important;
+  }
+}
+
 @layer base {
   body {
     @apply min-h-dvh flex flex-col text-gray-900 transition-colors duration-200;

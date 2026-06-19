@@ -7,13 +7,18 @@ import { useRouter } from 'next/navigation';
 import { ChatBubbleLeftRightIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import UserAvatar from '@/components/UserAvatar';
 import { useMessages } from '@/context/MessagesContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import ConversationList from './ConversationList';
 import DmThread from './DmThread';
 
 export default function MessagesPageView({ initialUserId }: { initialUserId?: string }) {
     const router = useRouter();
     const { conversations, threads } = useMessages();
+    const { messages: messagesEnabled } = useFeatureFlags();
     const [selected, setSelected] = useState<string | null>(initialUserId ?? null);
+
+    // Messagerie désactivée par l'admin → page inaccessible.
+    useEffect(() => { if (!messagesEnabled) router.replace('/'); }, [messagesEnabled, router]);
 
     useEffect(() => {
         if (initialUserId) setSelected(initialUserId);

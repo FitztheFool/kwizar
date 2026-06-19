@@ -51,7 +51,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
     if (isLoadingQuiz) return <LoadingSpinner message="Chargement du quiz..." />;
 
     return (
-        <div className="flex flex-col min-h-screen wood-table text-gray-900 dark:text-white">
+        <div className="flex flex-col min-h-screen bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <QuizHeader
                 title={quizData.title}
                 progress={progress}
@@ -80,7 +80,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                     )}
 
                     {currentQuestion ? (
-                        <div className="wood-tile rounded-2xl overflow-hidden shadow-xl">
+                        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-xl">
                             {/* Question text */}
                             <div className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-gray-800">
                                 <p className="text-lg font-semibold text-gray-800 dark:text-gray-100 leading-snug">
@@ -176,7 +176,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                             {showFeedback && feedback && <FeedbackBanner feedback={feedback} />}
                         </div>
                     ) : (
-                        <div className="wood-tile rounded-2xl p-6 shadow-xl">
+                        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-xl">
                             <p className="text-gray-500 dark:text-gray-400">Chargement de la question...</p>
                         </div>
                     )}

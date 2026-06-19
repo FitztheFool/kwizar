@@ -68,6 +68,7 @@ export async function GET(
       category: quiz.category ?? null,
       description: quiz.description || '',
       isPublic: quiz.isPublic,
+      isDraft: quiz.isDraft,
       randomizeQuestions: quiz.randomizeQuestions,
       creatorId: quiz.creatorId,
       creator: {
@@ -146,7 +147,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Un quiz ne peut pas dépasser 15 questions.' }, { status: 400 });
     }
 
-    const { title, description, isPublic, randomizeQuestions, questions } = body;
+    const { title, description, isPublic, isDraft, randomizeQuestions, questions, categoryId } = body;
+
+    // Publier un quiz exige au moins une question + une catégorie ; un brouillon peut rester incomplet.
+    if (!isDraft && questions.length === 0) {
+      return NextResponse.json({ error: 'Au moins une question est requise' }, { status: 400 });
+    }
+    if (!isDraft && !categoryId) {
+      return NextResponse.json({ error: 'Catégorie requise' }, { status: 400 });
+    }
 
     const existingQuiz = await prisma.quiz.findUnique({
       where: { id },
@@ -161,16 +170,28 @@ export async function PUT(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
+    // Valide la catégorie pour éviter une violation de FK.
+    let safeCategoryId: string | null = categoryId || null;
+    if (safeCategoryId) {
+      const cat = await prisma.category.findUnique({ where: { id: safeCategoryId }, select: { id: true } });
+      if (!cat) {
+        if (!isDraft) return NextResponse.json({ error: 'Catégorie introuvable' }, { status: 400 });
+        safeCategoryId = null;
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.quiz.update({
         where: { id },
         data: {
           title,
           description,
-          isPublic,
+          isPublic: isDraft ? false : isPublic,
+          isDraft: !!isDraft,
           randomizeQuestions: randomizeQuestions ?? false,
+          categoryId: safeCategoryId,
           imageUrl: body.imageUrl || '/quiz/default-cover.svg',
-        },
+        } as any,
       });
 
       await tx.answer.deleteMany({

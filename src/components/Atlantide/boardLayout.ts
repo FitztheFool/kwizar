@@ -104,15 +104,24 @@ export const SYMBOL_SPRITE: Record<string, string> = {
     shark: `${SPRITE_BASE}/symbol-shark.png`,
     boat: `${SPRITE_BASE}/symbol-boat.png`,
     dolphin: `${SPRITE_BASE}/symbol-dolphin.png`,
-    whirlpool: `${SPRITE_BASE}/symbol-whirlpool.png`,
-    octopus: `${SPRITE_BASE}/symbol-octopus.png`,
+    whirlpool: `${SPRITE_BASE}/symbol-typhon.png`,
+    octopus: `${SPRITE_BASE}/symbol-octopuus.png`,
     monster: `${SPRITE_BASE}/symbol-monster.png`,
+};
+
+/** Pions des 4 joueurs, par index couleur (cf. COLOR_CLASSES). */
+export const MEEPLE_SPRITE: Record<number, string> = {
+    0: `${SPRITE_BASE}/meeple-red.png`,
+    1: `${SPRITE_BASE}/meeple-green.png`,
+    2: `${SPRITE_BASE}/meeple-yellow.png`,
+    3: `${SPRITE_BASE}/meeple-blue.png`,
 };
 
 export const BOAT_SPRITE = `${SPRITE_BASE}/boat.png`;
 export const BOAT_LOADED_SPRITE = `${SPRITE_BASE}/boat-loaded.png`;
 export const REFUGE_SPRITE = `${SPRITE_BASE}/refuge.png`;
 export const SEA_SPRITE = `${SPRITE_BASE}/sea.png`;
+export const TILE_HIDDEN_SPRITE = `${SPRITE_BASE}/tile-hidden.png`;
 export const SWIMMER_SPRITE = `${SPRITE_BASE}/swimmer.png`;
 export const TOKEN_SAFE_SPRITE = `${SPRITE_BASE}/token-safe.png`;
 export const TOKEN_DEAD_SPRITE = `${SPRITE_BASE}/token-dead.png`;

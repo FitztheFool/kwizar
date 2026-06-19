@@ -1,7 +1,7 @@
 // src/components/QuizCard.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 interface QuizCardProps {
   quiz: {
@@ -9,6 +9,7 @@ interface QuizCardProps {
     title: string;
     description: string | null;
     isPublic: boolean;
+    isDraft?: boolean;
     createdAt?: string;
     imageUrl?: string | null;
     _count: {
@@ -79,14 +80,32 @@ export default function QuizCard({
         </div>
       )}
 
-      {/* Badges */}
+      {/* Badges + imprimer */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+        {!isLocked && (
+          <Link
+            href={`/quiz/${quiz.id}/print`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="Imprimer ce quiz"
+            aria-label="Imprimer ce quiz"
+            className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 shadow-md hover:bg-blue-500 hover:text-white transition-colors"
+          >
+            <PrinterIcon className="w-4 h-4" />
+          </Link>
+        )}
+        {quiz.isDraft && (
+          <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+            <DocumentTextIcon className="w-3 h-3" />Brouillon
+          </span>
+        )}
         {isMyQuiz && (
           <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
             <UserIcon className="w-3 h-3" />Créé par moi
           </span>
         )}
-        {!quiz.isPublic && (
+        {!quiz.isPublic && !quiz.isDraft && (
           <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
             <LockClosedIcon className="w-3 h-3" />Privé
           </span>

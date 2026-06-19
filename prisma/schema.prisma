@@ -212,9 +212,10 @@ model Quiz {
   description        String?  @db.Text
   randomizeQuestions Boolean  @default(false)
   isPublic           Boolean  @default(true)
+  isDraft            Boolean  @default(false)
   imageUrl           String?
-  categoryId         String
-  category           Category @relation(fields: [categoryId], references: [id])
+  categoryId         String?
+  category           Category? @relation(fields: [categoryId], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -227,6 +228,7 @@ model Quiz {
   @@index([categoryId])
   @@index([creatorId])
   @@index([isPublic])
+  @@index([isDraft])
   @@map("quizzes")
 }
 
@@ -349,4 +351,14 @@ model GameSetting {
   updatedAt DateTime @updatedAt
 
   @@map("game_settings")
+}
+
+// Réglages globaux de la plateforme en clé/valeur (drapeaux de fonctionnalités).
+// Ex. clé "social" = "true"/"false" (amis + messagerie). Absence = activé par défaut.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
 }

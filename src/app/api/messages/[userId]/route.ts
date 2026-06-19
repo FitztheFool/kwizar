@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { getRelationship } from '@/lib/friends';
 import { MAX_BODY, pushToUser, serializeMessage } from '@/lib/messages';
+import { isFeatureEnabled } from '@/lib/appSettings';
 
 const THREAD_LIMIT = 50;
 
@@ -53,6 +54,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
+    }
+    if (!(await isFeatureEnabled('messages'))) {
+        return NextResponse.json({ error: 'Fonctionnalité désactivée.' }, { status: 403 });
     }
     const me = session.user.id;
     const { userId: other } = await params;

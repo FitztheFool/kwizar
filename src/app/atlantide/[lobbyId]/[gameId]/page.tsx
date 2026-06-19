@@ -13,7 +13,7 @@ import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
 import AtlantideBoard from '@/components/Atlantide/Board';
-import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS, WHEEL_SPRITE } from '@/components/Atlantide/boardLayout';
+import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS, WHEEL_SPRITE, TOKEN_DEAD_SPRITE } from '@/components/Atlantide/boardLayout';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
@@ -170,10 +170,19 @@ export default function AtlantidePage() {
                         {(() => {
                             const mine = state.players.find(p => p.userId === me.userId);
                             if (!mine || state.phase === 'finished') return null;
+                            const dead = mine.meeples.filter(m => m.state === 'dead').length;
                             return (
-                                <div className="mt-1 text-emerald-200">
-                                    Mes pions à l&apos;abri : {mine.saved}/12
-                                </div>
+                                <>
+                                    <div className="mt-1 text-emerald-200">
+                                        Mes pions à l&apos;abri : {mine.saved}/12
+                                    </div>
+                                    {dead > 0 && (
+                                        <div className="flex items-center gap-1 text-red-200">
+                                            <img src={TOKEN_DEAD_SPRITE} alt="Perdu" className="w-4 h-4 object-contain" />
+                                            Mes pions perdus : {dead}
+                                        </div>
+                                    )}
+                                </>
                             );
                         })()}
                     </div>

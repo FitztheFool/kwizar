@@ -14,6 +14,7 @@ import CategoriesTab from './tabs/CategoriesTab';
 import WordsTab from './tabs/WordsTab';
 import WordGroupsTab from './tabs/WordGroupsTab';
 import GamesTab from './tabs/GamesTab';
+import FeaturesTab from './tabs/FeaturesTab';
 import type { AdminTab, AdminQuiz, AdminCategory, AdminWordGroup } from './types';
 import {
     ChartBarIcon,
@@ -23,13 +24,15 @@ import {
     FolderOpenIcon,
     BookOpenIcon,
     PuzzlePieceIcon,
+    ChevronDownIcon,
+    AdjustmentsHorizontalIcon,
 } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 20;
 const SECTION_ID: Record<AdminTab, string> = {
     stats: 'stats', users: 'users', quizzes: 'quizzes',
     categories: 'categories', words: 'words', wordGroups: 'word-groups',
-    games: 'games',
+    games: 'games', features: 'features',
 };
 
 const hashToTab = (hash: string): AdminTab => ({
@@ -40,6 +43,7 @@ const hashToTab = (hash: string): AdminTab => ({
     '#words': 'words',
     '#word-groups': 'wordGroups',
     '#games': 'games',
+    '#features': 'features',
 } as Record<string, AdminTab>)[hash] ?? 'stats';
 
 function qs(q: string) { return q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''; }
@@ -52,6 +56,7 @@ const TAB_CONFIG: { key: AdminTab; label: string; icon: React.FC<{ className?: s
     { key: 'wordGroups', label: 'Groupes de mots', icon: FolderOpenIcon },
     { key: 'words', label: 'Mots', icon: BookOpenIcon },
     { key: 'games', label: 'Jeux', icon: PuzzlePieceIcon },
+    { key: 'features', label: 'Fonctionnalités', icon: AdjustmentsHorizontalIcon },
 ];
 
 export default function AdminPanel() {
@@ -221,21 +226,23 @@ export default function AdminPanel() {
             {/* Main content */}
             <div className="flex-1 min-w-0 flex flex-col">
 
-                {/* Mobile tab bar */}
-                <div className="md:hidden flex gap-1.5 overflow-x-auto px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                    {TAB_CONFIG.map(({ key, label, icon: Icon }) => (
-                        <button
-                            key={key}
-                            onClick={() => { setActiveTab(key); scrollToSection(key); }}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap transition-colors shrink-0 ${activeTab === key
-                                ? 'bg-red-600 text-white border-red-600'
-                                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
-                                }`}
+                {/* Mobile nav : menu déroulant (tous les onglets accessibles sans scroll horizontal) */}
+                <div className="md:hidden px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                    <label htmlFor="admin-tab-select" className="sr-only">Section d&apos;administration</label>
+                    <div className="relative">
+                        <activeConfig.icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500 dark:text-red-400" />
+                        <select
+                            id="admin-tab-select"
+                            value={activeTab}
+                            onChange={(e) => { const key = e.target.value as AdminTab; setActiveTab(key); scrollToSection(key); }}
+                            className="w-full appearance-none rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-semibold pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500"
                         >
-                            <Icon className="w-3.5 h-3.5" />
-                            {label}
-                        </button>
-                    ))}
+                            {TAB_CONFIG.map(({ key, label }) => (
+                                <option key={key} value={key}>{label}</option>
+                            ))}
+                        </select>
+                        <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                 </div>
 
                 {/* Content header */}
@@ -371,6 +378,7 @@ export default function AdminPanel() {
                                 />
                             )}
                             {activeTab === 'games' && <GamesTab />}
+                            {activeTab === 'features' && <FeaturesTab />}
                         </>
                     )}
                 </div>
