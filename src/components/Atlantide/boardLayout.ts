@@ -70,47 +70,66 @@ export const LEVEL_CLASSES: Record<string, string> = {
 
 export const LEVEL_LABELS: Record<string, string> = {
     beach: 'Plage',
-    forest: 'Forêt',
+    forest: 'Colline',
     mountain: 'Montagne',
 };
 
 export const CREATURE_EMOJI: Record<string, string> = {
+    dolphin: '🐬',
     shark: '🦈',
-    whale: '🐋',
-    serpent: '🐍',
+    octopus: '🐙',
+    monster: '🐉',
 };
 
-// ── Sprites (planche atlantide_sprites.svg, découpée dans public/atlantide/sprites/) ──
+// ── Sprites PNG (planche découpée dans public/atlantide/sprites/) ──
 const SPRITE_BASE = '/atlantide/sprites';
 
-/** Sprites des créatures marines, posés sur le plateau (fallback emoji si absent). */
+/** Sprites des 4 animaux marins, posés sur le plateau. */
 export const CREATURE_SPRITE: Record<string, string> = {
-    shark: `${SPRITE_BASE}/creature-shark.svg`,
-    whale: `${SPRITE_BASE}/creature-whale.svg`,
-    serpent: `${SPRITE_BASE}/creature-serpent.svg`,
+    dolphin: `${SPRITE_BASE}/creature-dolphin.png`,
+    shark: `${SPRITE_BASE}/creature-shark.png`,
+    octopus: `${SPRITE_BASE}/creature-octopus.png`,
+    monster: `${SPRITE_BASE}/creature-monster.png`,
 };
 
-/** Décor superposé au fond coloré de la tuile (palmier, sapin, sommet…). */
+/** Image de fond de la tuile selon son niveau. */
 export const LEVEL_SPRITE: Record<string, string> = {
-    beach: `${SPRITE_BASE}/tile-beach.svg`,
-    forest: `${SPRITE_BASE}/tile-forest.svg`,
-    mountain: `${SPRITE_BASE}/tile-mountain.svg`,
+    beach: `${SPRITE_BASE}/tile-beach.png`,
+    forest: `${SPRITE_BASE}/tile-hill.png`,
+    mountain: `${SPRITE_BASE}/tile-mountain.png`,
 };
 
-export const BOAT_SPRITE = `${SPRITE_BASE}/boat-voilier.svg`;
-export const REFUGE_SPRITE = `${SPRITE_BASE}/tile-refuge.svg`;
+/** Icônes des symboles révélés sous les tuiles. */
+export const SYMBOL_SPRITE: Record<string, string> = {
+    shark: `${SPRITE_BASE}/symbol-shark.png`,
+    boat: `${SPRITE_BASE}/symbol-boat.png`,
+    dolphin: `${SPRITE_BASE}/symbol-dolphin.png`,
+    whirlpool: `${SPRITE_BASE}/symbol-whirlpool.png`,
+    octopus: `${SPRITE_BASE}/symbol-octopus.png`,
+    monster: `${SPRITE_BASE}/symbol-monster.png`,
+};
+
+export const BOAT_SPRITE = `${SPRITE_BASE}/boat.png`;
+export const BOAT_LOADED_SPRITE = `${SPRITE_BASE}/boat-loaded.png`;
+export const REFUGE_SPRITE = `${SPRITE_BASE}/refuge.png`;
+export const SEA_SPRITE = `${SPRITE_BASE}/sea.png`;
+export const SWIMMER_SPRITE = `${SPRITE_BASE}/swimmer.png`;
+export const TOKEN_SAFE_SPRITE = `${SPRITE_BASE}/token-safe.png`;
+export const TOKEN_DEAD_SPRITE = `${SPRITE_BASE}/token-dead.png`;
+export const WHEEL_SPRITE = `${SPRITE_BASE}/wheel.png`;
 
 export const CREATURE_LABELS: Record<string, string> = {
+    dolphin: 'Dauphin',
     shark: 'Requin',
-    whale: 'Baleine',
-    serpent: 'Serpent de mer',
+    octopus: 'Pieuvre',
+    monster: 'Monstre marin',
 };
 
 export const EFFECT_EMOJI: Record<string, string> = {
     shark: '🦈',
-    whale: '🐋',
-    serpent: '🐍',
     boat: '⛵',
+    dolphin: '🐬',
     whirlpool: '🌀',
-    volcano: '🌋',
+    octopus: '🐙',
+    monster: '🐉',
 };

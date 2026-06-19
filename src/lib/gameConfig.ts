@@ -160,7 +160,6 @@ export const GAME_CONFIG = {
     atlantide: {
         gameType: 'ATLANTIDE' as const,
         bot: true,
-        noOptions: "Les Rescapés de l'Atlantide — 2 à 4 joueurs (ou vs bot).",
         label: "Les Rescapés de l'Atlantide",
         mode: 'both' as const,
         higherIsBetter: true,

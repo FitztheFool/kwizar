@@ -5,10 +5,10 @@ import { getAtlantideSocket } from '@/lib/socket';
 import type { GameLogEntry } from '@/components/GameLog';
 
 export type AtlantideTileLevel = 'beach' | 'forest' | 'mountain';
-export type AtlantideEffect = 'none' | 'shark' | 'whale' | 'serpent' | 'boat' | 'whirlpool' | 'volcano';
-export type AtlantideCreatureType = 'shark' | 'whale' | 'serpent';
+export type AtlantideEffect = 'none' | 'shark' | 'boat' | 'dolphin' | 'whirlpool' | 'octopus' | 'monster';
+export type AtlantideCreatureType = 'dolphin' | 'shark' | 'octopus' | 'monster';
 export type AtlantideMoveKind = 'tile' | 'sea' | 'boat' | 'refuge';
-export type AtlantidePhase = 'waiting' | 'moving' | 'tile' | 'creature' | 'finished';
+export type AtlantidePhase = 'waiting' | 'placement' | 'moving' | 'tile' | 'spin' | 'finished';
 
 export interface AtlantideHex { q: number; r: number; }
 
@@ -29,7 +29,6 @@ export interface AtlantideMeeple extends AtlantideHex {
     state: 'tile' | 'sea' | 'boat' | 'safe' | 'dead';
     boatId: number | null;
     movesUsed: number;
-    value: number | null; // null = caché (pion adverse, partie en cours)
 }
 
 export interface AtlantidePlayer {
@@ -37,24 +36,40 @@ export interface AtlantidePlayer {
     username: string;
     colorIndex: number;
     connected: boolean;
+    placed: number;
     saved: number;
-    score: number | null;
+    score: number;
     meeples: AtlantideMeeple[];
 }
+
+// Résultat du tourniquet : un animal + N cases (1..4) ou téléport (« T »).
+export interface AtlantideSpin {
+    animal: AtlantideCreatureType;
+    steps: number | 'teleport';
+}
+
+export interface AtlantideOptions {
+    placement: 'auto' | 'manual';
+    earlyEnd: boolean;
+}
+
+// Pour le tourniquet : soit une liste de cases, soit un téléport avec ses cibles.
+export type AtlantideCreatureLegal = AtlantideLegalMove[] | { teleport: true; targets: AtlantideHex[] };
 
 export interface AtlantideLegal {
     meeples?: Record<number, AtlantideLegalMove[]>;
     boats?: Record<number, AtlantideLegalMove[]>;
     tiles?: AtlantideHex[];
-    creatures?: Record<number, AtlantideLegalMove[]>;
+    placements?: AtlantideHex[];
+    creatures?: Record<number, AtlantideCreatureLegal>;
 }
 
 export interface AtlantideState {
     phase: AtlantidePhase;
     currentTurn: number;
     movePoints: number;
-    creatureDie: AtlantideCreatureType | null;
-    volcanoErupted: boolean;
+    spin: AtlantideSpin | null;
+    options: AtlantideOptions;
     ranking: number[];
     surrenderedIdxs: number[];
     afkIdxs: number[];
@@ -91,7 +106,7 @@ export function useAtlantide({
     const [state, setState] = useState<AtlantideState | null>(null);
     const [inactivityUserId, setInactivityUserId] = useState<string | null>(null);
     const [inactivityEndsAt, setInactivityEndsAt] = useState<number | null>(null);
-    const [lastDie, setLastDie] = useState<{ die: AtlantideCreatureType; at: number } | null>(null);
+    const [lastSpin, setLastSpin] = useState<{ spin: AtlantideSpin; at: number } | null>(null);
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -100,11 +115,11 @@ export function useAtlantide({
             setState(s);
             if (s.phase !== 'finished') onModalReset();
         };
-        const onDie = ({ die }: { die: AtlantideCreatureType }) => setLastDie({ die, at: Date.now() });
+        const onSpin = (spin: AtlantideSpin) => setLastSpin({ spin, at: Date.now() });
 
         socket.on('notFound', onNotFound);
         socket.on('atlantide:state', onState);
-        socket.on('atlantide:dieRolled', onDie);
+        socket.on('atlantide:spin', onSpin);
         socket.on('atlantide:inactivityWarning', ({ userId: uid, secondsLeft }: { userId: string; secondsLeft: number }) => {
             setInactivityUserId(uid);
             setInactivityEndsAt(Date.now() + secondsLeft * 1000);
@@ -126,13 +141,14 @@ export function useAtlantide({
         return () => {
             socket.off('notFound', onNotFound);
             socket.off('atlantide:state', onState);
-            socket.off('atlantide:dieRolled', onDie);
+            socket.off('atlantide:spin', onSpin);
             socket.off('atlantide:inactivityWarning');
             socket.off('atlantide:playerKicked');
             socket.off('atlantide:playerReconnected');
         };
     }, [socket, lobbyId, userId, username, onNotFound, onModalReset]);
 
+    const place = useCallback((q: number, r: number) => socket?.emit('atlantide:place', { q, r }), [socket]);
     const move = useCallback((meepleId: number, q: number, r: number) => socket?.emit('atlantide:move', { meepleId, q, r }), [socket]);
     const moveBoat = useCallback((boatId: number, q: number, r: number) => socket?.emit('atlantide:moveBoat', { boatId, q, r }), [socket]);
     const endMove = useCallback(() => socket?.emit('atlantide:endMove'), [socket]);
@@ -155,7 +171,8 @@ export function useAtlantide({
         isMyTurn,
         inactivityUserId,
         inactivityEndsAt,
-        lastDie,
+        lastSpin,
+        place,
         move,
         moveBoat,
         endMove,

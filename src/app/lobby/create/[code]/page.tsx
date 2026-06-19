@@ -62,6 +62,7 @@ type LobbyMeta = {
     tabooOptions?: { turnDuration: number; totalRounds: number; trapWordCount: number; maxAttempts: number; trapDuration: number };
     quizOptions?: { timeMode: string; timePerQuestion: number };
     skyjowOptions?: { eliminateRows: boolean };
+    atlantideOptions?: { placement: 'auto' | 'manual'; earlyEnd: boolean };
     battleshipOptions?: { gridSize: number; turnTime: number };
     impostorOptions?: { rounds: number; timePerRound: number; misterWhite?: boolean };
     spyfallOptions?: { exchangesPerPlayer: number; turnTime: number };
@@ -86,6 +87,7 @@ type LobbyState = {
     unoOptions?: { stackable: boolean; jumpIn: boolean; teamMode: string; teamWinMode: string };
     tabooOptions?: { turnDuration: number; totalRounds: number; trapWordCount: number; maxAttempts: number; trapDuration: number };
     skyjowOptions?: { eliminateRows: boolean };
+    atlantideOptions?: { placement: 'auto' | 'manual'; earlyEnd: boolean };
     battleshipOptions?: { gridSize: number; turnTime: number };
     impostorOptions?: { rounds: number; timePerRound: number; misterWhite?: boolean };
     spyfallOptions?: { exchangesPerPlayer: number; turnTime: number };
@@ -115,6 +117,7 @@ import BattleshipOptions from '@/components/Lobby/Options/BattleshipOptions';
 import TabooOptions from '@/components/Lobby/Options/TabooOptions';
 import QuizOptions from '@/components/Lobby/Options/QuizOptions';
 import SkyjowOptions from '@/components/Lobby/Options/SkyjowOptions';
+import AtlantideOptions from '@/components/Lobby/Options/AtlantideOptions';
 import ImpostorOptions from '@/components/Lobby/Options/ImpostorOptions';
 import SpyfallOptions from '@/components/Lobby/Options/SpyfallOptions';
 import LudoOptions from '@/components/Lobby/Options/LudoOptions';
@@ -173,6 +176,8 @@ export default function LobbyCodePage() {
     const [quizTimeMode, setQuizTimeMode] = useState<'per_question' | 'total' | 'none'>('none');
     const [quizTimePerQuestion, setQuizTimePerQuestion] = useState(15);
     const [skyjowEliminateRows, setSkyjowEliminateRows] = useState(false);
+    const [atlantidePlacement, setAtlantidePlacement] = useState<'auto' | 'manual'>('auto');
+    const [atlantideEarlyEnd, setAtlantideEarlyEnd] = useState(false);
     const [teams, setTeams] = useState<Record<string, 0 | 1> | null>(null);
     const [gridSize, setGridSize] = useState(10);
     const [turnTime, setTurnTime] = useState(30);
@@ -204,6 +209,33 @@ export default function LobbyCodePage() {
     useEffect(() => {
         fetch('/api/categories').then(r => r.ok ? r.json() : []).then(setCategories).catch(() => { });
     }, []);
+
+    // Jeux activés par l'admin (null = pas encore chargé → on n'exclut rien).
+    const [enabledGames, setEnabledGames] = useState<Set<string> | null>(null);
+    useEffect(() => {
+        fetch('/api/games/enabled')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.enabled) setEnabledGames(new Set<string>(d.enabled)); })
+            .catch(() => { });
+    }, []);
+    const isGameEnabled = (key: string) => !enabledGames || enabledGames.has(key);
+
+    // Réfs vers des valeurs déclarées plus bas, pour l'effet d'auto-bascule ci-dessous
+    // (qui doit rester avec les autres hooks, avant tout return conditionnel).
+    const handleGameTypeChangeRef = useRef<(g: GameType) => void>(() => { });
+    const gameTypeRef = useRef<GameType>(gameType);
+    gameTypeRef.current = gameType;
+    const isHostRef = useRef(false);
+
+    // Si le jeu sélectionné (ex. via ?game=) a été désactivé par l'admin, l'hôte
+    // bascule automatiquement vers le premier jeu de lobby encore activé.
+    useEffect(() => {
+        if (!isHostRef.current || !enabledGames) return;
+        const current = gameTypeRef.current;
+        if (enabledGames.has(current)) return;
+        const fallback = LOBBY_GAME_OPTIONS.find(g => enabledGames.has(g.value));
+        if (fallback && fallback.value !== current) handleGameTypeChangeRef.current(fallback.value);
+    }, [enabledGames, gameType]);
 
     // Keep reconnect config ref in sync so the reconnect handler always has fresh values
     useEffect(() => {
@@ -282,6 +314,7 @@ export default function LobbyCodePage() {
                 unoOptions: state.unoOptions ?? prev?.unoOptions,
                 tabooOptions: state.tabooOptions ?? prev?.tabooOptions,
                 skyjowOptions: state.skyjowOptions ?? prev?.skyjowOptions,
+                atlantideOptions: state.atlantideOptions ?? prev?.atlantideOptions,
                 battleshipOptions: state.battleshipOptions ?? prev?.battleshipOptions,
                 ludoOptions: state.ludoOptions ?? prev?.ludoOptions,
                 perudoOptions: (state as { perudoOptions?: { initialDice: number } }).perudoOptions ?? prev?.perudoOptions,
@@ -315,6 +348,10 @@ export default function LobbyCodePage() {
             if (state.timeMode) setQuizTimeMode(state.timeMode as 'per_question' | 'total' | 'none');
             if (state.timePerQuestion) setQuizTimePerQuestion(state.timePerQuestion);
             if (state.skyjowOptions) setSkyjowEliminateRows(state.skyjowOptions.eliminateRows ?? false);
+            if (state.atlantideOptions) {
+                setAtlantidePlacement(state.atlantideOptions.placement ?? 'auto');
+                setAtlantideEarlyEnd(state.atlantideOptions.earlyEnd ?? false);
+            }
             if (state.battleshipOptions) {
                 setGridSize(state.battleshipOptions.gridSize ?? 10);
                 setTurnTime(state.battleshipOptions.turnTime ?? 30);
@@ -438,6 +475,7 @@ export default function LobbyCodePage() {
                 if (m.tabooOptions) { setTabooTurnDuration(m.tabooOptions.turnDuration); setTabooTotalRounds(m.tabooOptions.totalRounds); setTabooTrapWordCount(m.tabooOptions.trapWordCount); setTabooMaxAttempts(m.tabooOptions.maxAttempts); setTabooTrapDuration(m.tabooOptions.trapDuration); }
                 if (m.quizOptions) { setQuizTimeMode(m.quizOptions.timeMode as 'per_question' | 'total' | 'none'); setQuizTimePerQuestion(m.quizOptions.timePerQuestion); }
                 if (m.skyjowOptions) setSkyjowEliminateRows(m.skyjowOptions.eliminateRows);
+                if (m.atlantideOptions) { setAtlantidePlacement(m.atlantideOptions.placement); setAtlantideEarlyEnd(m.atlantideOptions.earlyEnd); }
                 if (m.battleshipOptions) { setGridSize(m.battleshipOptions.gridSize); setTurnTime(m.battleshipOptions.turnTime); }
                 if (m.impostorOptions) { setImpostorRounds(m.impostorOptions.rounds ?? 1); setImpostorTime(m.impostorOptions.timePerRound ?? 60); setImpostorMisterWhite(m.impostorOptions.misterWhite ?? false); }
                 if (m.spyfallOptions) { setSpyfallExchanges(m.spyfallOptions.exchangesPerPlayer ?? 2); setSpyfallTurnTime(m.spyfallOptions.turnTime ?? 60); }
@@ -453,6 +491,7 @@ export default function LobbyCodePage() {
             if (m?.unoOptions) setTimeout(() => socket.emit('lobby:setUnoOptions', m!.unoOptions), 400);
             if (m?.tabooOptions) setTimeout(() => socket.emit('lobby:setTabooOptions', m!.tabooOptions), 400);
             if (m?.skyjowOptions) setTimeout(() => socket.emit('lobby:setSkyjowOptions', m!.skyjowOptions), 400);
+            if (m?.atlantideOptions) setTimeout(() => socket.emit('lobby:setAtlantideOptions', m!.atlantideOptions), 400);
             if (m?.battleshipOptions) setTimeout(() => socket.emit('lobby:setBattleshipOptions', m!.battleshipOptions), 400);
             if (m?.impostorOptions) setTimeout(() => socket.emit('lobby:setImpostorOptions', m!.impostorOptions), 400);
             if (m?.spyfallOptions) setTimeout(() => socket.emit('lobby:setSpyfallOptions', m!.spyfallOptions), 400);
@@ -501,6 +540,7 @@ export default function LobbyCodePage() {
     const me = session.user.id;
     const isAdmin = session.user.role === 'ADMIN';
     const isHost = hostId === me;
+    isHostRef.current = isHost;
     const selectedGame = LOBBY_GAME_OPTIONS.find(g => g.value === gameType);
     const isMaxLocked = gameType === 'puissance4' || (gameType === 'uno' && unoTeamMode === '2v2') || (gameType === 'ludo' && ludoTeamMode === '2v2') || (gameType === 'mille_bornes' && mbTeamMode === '2v2');
     const formatTime = (t: number) => t < 60 ? `${t}s` : `${Math.floor(t / 60)} min${t % 60 ? ` ${t % 60}s` : ''}`;
@@ -516,6 +556,7 @@ export default function LobbyCodePage() {
         setMaxPlayersState(newMax);
         socket?.emit('lobby:setMeta', { maxPlayers: newMax });
     };
+    handleGameTypeChangeRef.current = handleGameTypeChange;
 
     const handleUnoTeamMode = (mode: 'none' | '2v2') => {
         setUnoTeamMode(mode);
@@ -614,6 +655,8 @@ export default function LobbyCodePage() {
                             </div>
                             <div className="grid grid-cols-5 gap-2">
                                 {[...LOBBY_GAME_OPTIONS]
+                                    // On masque les jeux désactivés (sauf celui déjà sélectionné, pour rester cohérent).
+                                    .filter(g => isGameEnabled(g.value) || gameType === g.value)
                                     .sort((a, b) => (BOTH_GAMES[a.value] ? 0 : 1) - (BOTH_GAMES[b.value] ? 0 : 1))
                                     .map((g, i, arr) => {
                                     const firstBoth = i === 0 && !!BOTH_GAMES[g.value];
@@ -705,6 +748,12 @@ export default function LobbyCodePage() {
                         {gameType === 'skyjow' && (
                             <SkyjowOptions isHost={isHost} socket={socket}
                                 skyjowEliminateRows={skyjowEliminateRows} setSkyjowEliminateRows={setSkyjowEliminateRows} />
+                        )}
+
+                        {gameType === 'atlantide' && (
+                            <AtlantideOptions isHost={isHost} socket={socket}
+                                placement={atlantidePlacement} setPlacement={setAtlantidePlacement}
+                                earlyEnd={atlantideEarlyEnd} setEarlyEnd={setAtlantideEarlyEnd} />
                         )}
 
                         {gameType === 'impostor' && (

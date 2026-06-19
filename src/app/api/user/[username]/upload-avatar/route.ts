@@ -47,3 +47,23 @@ export async function POST(
 
     return NextResponse.json({ imageUrl: `${imageUrl}?t=${Date.now()}` });
 }
+
+// Supprime l'avatar personnalisé → retour à l'avatar par défaut (initiales).
+export async function DELETE(
+    _req: NextRequest,
+    { params }: { params: Promise<{ username: string }> }
+) {
+    const { session, error } = await requireRegistered();
+    if (error) return error;
+
+    const { username } = await params;
+    if (session.user.username !== username)
+        return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 });
+
+    await prisma.user.update({
+        where: { id: session.user.id },
+        data: { image: null },
+    });
+
+    return NextResponse.json({ imageUrl: null });
+}

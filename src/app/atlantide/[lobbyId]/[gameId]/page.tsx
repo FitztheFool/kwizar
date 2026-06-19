@@ -13,7 +13,7 @@ import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
 import AtlantideBoard from '@/components/Atlantide/Board';
-import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS } from '@/components/Atlantide/boardLayout';
+import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS, WHEEL_SPRITE } from '@/components/Atlantide/boardLayout';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
@@ -25,7 +25,7 @@ export default function AtlantidePage() {
     const {
         state, currentPlayer, isMyTurn,
         inactivityUserId, inactivityEndsAt,
-        move, moveBoat, endMove, removeTile, moveCreature, skipCreature, surrender,
+        place, move, moveBoat, endMove, removeTile, moveCreature, skipCreature, surrender,
     } = useAtlantide({
         lobbyId,
         userId: me.userId,
@@ -59,16 +59,18 @@ export default function AtlantidePage() {
         return { title: `${w.username} gagne !`, isMe: w.userId === me.userId };
     })();
 
-    const creatureInstruction: Record<string, string> = {
-        shark: 'Déplacez un requin (ou passez)',
-        whale: 'Déplacez une baleine (ou passez)',
-        serpent: 'Déplacez un serpent de mer (ou passez)',
-    };
+    const myPlaced = state.players.find(p => p.userId === me.userId)?.placed ?? 0;
+    const spinInstruction = state.spin
+        ? (state.spin.steps === 'teleport'
+            ? `Faites réapparaître ${CREATURE_LABELS[state.spin.animal].toLowerCase()} (ou passez)`
+            : `Déplacez ${CREATURE_LABELS[state.spin.animal].toLowerCase()} de ${state.spin.steps} (ou passez)`)
+        : 'Tourniquet…';
     const turnLabel = isMyTurn
-        ? state.phase === 'moving' ? `Déplacez vos pions — ${state.movePoints} pt${state.movePoints > 1 ? 's' : ''} restant${state.movePoints > 1 ? 's' : ''}`
+        ? state.phase === 'placement' ? `Placez vos pions (${myPlaced}/12)`
+        : state.phase === 'moving' ? `Déplacez vos pions — ${state.movePoints} pt${state.movePoints > 1 ? 's' : ''} restant${state.movePoints > 1 ? 's' : ''}`
         : state.phase === 'tile' ? 'Choisissez une tuile à engloutir'
-        : state.creatureDie ? creatureInstruction[state.creatureDie]
-        : 'Dé créature…'
+        : state.phase === 'spin' ? spinInstruction
+        : '…'
         : currentIsBot ? 'Le bot réfléchit…' : `Tour de ${currentPlayer?.username ?? '…'}`;
 
     return (
@@ -85,7 +87,7 @@ export default function AtlantidePage() {
                         {state.players.map((p, idx) => (
                             <PlayerLabel
                                 key={p.userId}
-                                username={`${p.username} (${p.saved}/6)`}
+                                username={`${p.username} (${p.saved}/12)`}
                                 active={state.phase !== 'finished' && idx === state.currentTurn}
                                 isBot={isBot(p)}
                                 bgClass={COLOR_CLASSES[p.colorIndex].bg}
@@ -111,6 +113,7 @@ export default function AtlantidePage() {
                     state={state}
                     myUserId={me.userId}
                     isMyTurn={isMyTurn}
+                    onPlace={place}
                     onMove={move}
                     onMoveBoat={moveBoat}
                     onRemoveTile={removeTile}
@@ -138,13 +141,16 @@ export default function AtlantidePage() {
                         </div>
                     )}
 
-                    {/* Dé créature */}
-                    {state.phase === 'creature' && state.creatureDie && (
+                    {/* Tourniquet */}
+                    {state.phase === 'spin' && state.spin && (
                         <div className="flex flex-col items-center gap-2">
-                            <div className="w-16 h-16 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-lg flex items-center justify-center text-4xl">
-                                {CREATURE_EMOJI[state.creatureDie]}
+                            <div className="relative w-20 h-20">
+                                <img src={WHEEL_SPRITE} alt="Tourniquet" className="w-full h-full object-contain drop-shadow-lg" />
                             </div>
-                            <span className="text-xs text-amber-100 font-semibold drop-shadow">{CREATURE_LABELS[state.creatureDie]}</span>
+                            <span className="text-xs text-amber-100 font-semibold drop-shadow">
+                                {CREATURE_EMOJI[state.spin.animal]} {CREATURE_LABELS[state.spin.animal]}
+                                {' · '}{state.spin.steps === 'teleport' ? 'T (réapparaît)' : `${state.spin.steps} case${state.spin.steps > 1 ? 's' : ''}`}
+                            </span>
                             {isMyTurn && (
                                 <button
                                     onClick={skipCreature}
@@ -163,10 +169,10 @@ export default function AtlantidePage() {
                         ))}
                         {(() => {
                             const mine = state.players.find(p => p.userId === me.userId);
-                            if (!mine || mine.score === null || state.phase === 'finished') return null;
+                            if (!mine || state.phase === 'finished') return null;
                             return (
                                 <div className="mt-1 text-emerald-200">
-                                    Mes pions à l&apos;abri : {mine.saved}/6 · {mine.score} pt{mine.score > 1 ? 's' : ''}
+                                    Mes pions à l&apos;abri : {mine.saved}/12
                                 </div>
                             );
                         })()}
@@ -185,7 +191,6 @@ export default function AtlantidePage() {
                         : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
                     title={winnerLabel.title}
-                    subtitle={state.volcanoErupted ? 'Le volcan a englouti l\'Atlantide 🌋' : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                     onClose={() => setModalDismissed(true)}
@@ -214,7 +219,7 @@ export default function AtlantidePage() {
                                 return {
                                     userId: p.userId,
                                     username: p.username,
-                                    score: `${p.score ?? 0} pts · ${p.saved}/6 pions`,
+                                    score: `${p.saved}/12 pions sauvés`,
                                     badges,
                                     disqualified: abandoned,
                                 };

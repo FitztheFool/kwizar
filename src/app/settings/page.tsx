@@ -138,6 +138,26 @@ export default function SettingsPage() {
         }
     };
 
+    const handleAvatarDelete = async () => {
+        setAvatarStatus(null);
+        setAvatarLoading(true);
+        try {
+            const res = await fetch(`/api/user/${u}/upload-avatar`, { method: 'DELETE' });
+            const data = await res.json();
+            if (!res.ok) {
+                setAvatarStatus({ type: 'error', msg: data.error ?? 'Erreur suppression.' });
+            } else {
+                setAvatarPreview(null);
+                setAvatarStatus({ type: 'success', msg: 'Avatar supprimé.' });
+                await updateSession();
+            }
+        } catch {
+            setAvatarStatus({ type: 'error', msg: 'Erreur suppression.' });
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
+
     const handleUsernameSubmit = async () => {
         setUsernameStatus(null);
         setUsernameLoading(true);
@@ -355,6 +375,15 @@ export default function SettingsPage() {
                                     >
                                         {avatarLoading ? 'Upload...' : "Changer l'avatar"}
                                     </button>
+                                    {currentAvatar && (
+                                        <button
+                                            onClick={handleAvatarDelete}
+                                            disabled={avatarLoading}
+                                            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg transition-colors"
+                                        >
+                                            Supprimer l&apos;avatar
+                                        </button>
+                                    )}
                                     <p className="text-xs text-gray-400 dark:text-gray-500">Recadrage automatique 256×256</p>
                                 </div>
                                 <input

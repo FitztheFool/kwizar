@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Déplacement">
-<circle cx="22" cy="36" r="8" fill="#4a8ae0" stroke="#6aaaf0" stroke-width="1.5"/>
-  <circle cx="36" cy="36" r="8" fill="#4a8ae0" stroke="#6aaaf0" stroke-width="1.5"/>
-  <circle cx="50" cy="36" r="8" fill="#4a8ae0" stroke="#6aaaf0" stroke-width="1.5"/>
-  <text x="22" y="40" fill="#fff">1</text>
-  <text x="36" y="40" fill="#fff">2</text>
-  <text x="50" y="40" fill="#fff">3</text>
-</svg>

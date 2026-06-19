@@ -13,6 +13,7 @@ import QuizzesTab from './tabs/QuizzesTab';
 import CategoriesTab from './tabs/CategoriesTab';
 import WordsTab from './tabs/WordsTab';
 import WordGroupsTab from './tabs/WordGroupsTab';
+import GamesTab from './tabs/GamesTab';
 import type { AdminTab, AdminQuiz, AdminCategory, AdminWordGroup } from './types';
 import {
     ChartBarIcon,
@@ -21,12 +22,14 @@ import {
     TagIcon,
     FolderOpenIcon,
     BookOpenIcon,
+    PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 20;
 const SECTION_ID: Record<AdminTab, string> = {
     stats: 'stats', users: 'users', quizzes: 'quizzes',
     categories: 'categories', words: 'words', wordGroups: 'word-groups',
+    games: 'games',
 };
 
 const hashToTab = (hash: string): AdminTab => ({
@@ -36,6 +39,7 @@ const hashToTab = (hash: string): AdminTab => ({
     '#categories': 'categories',
     '#words': 'words',
     '#word-groups': 'wordGroups',
+    '#games': 'games',
 } as Record<string, AdminTab>)[hash] ?? 'stats';
 
 function qs(q: string) { return q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''; }
@@ -47,6 +51,7 @@ const TAB_CONFIG: { key: AdminTab; label: string; icon: React.FC<{ className?: s
     { key: 'quizzes', label: 'Quiz', icon: QuestionMarkCircleIcon },
     { key: 'wordGroups', label: 'Groupes de mots', icon: FolderOpenIcon },
     { key: 'words', label: 'Mots', icon: BookOpenIcon },
+    { key: 'games', label: 'Jeux', icon: PuzzlePieceIcon },
 ];
 
 export default function AdminPanel() {
@@ -365,6 +370,7 @@ export default function AdminPanel() {
                                     onDeleteWord={wordsHook.handleDeleteWord}
                                 />
                             )}
+                            {activeTab === 'games' && <GamesTab />}
                         </>
                     )}
                 </div>

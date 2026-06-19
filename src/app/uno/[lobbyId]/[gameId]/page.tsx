@@ -286,7 +286,7 @@ export default function UnoPage() {
     const isMeInactive = inactivityUserId === me.userId;
 
     return (
-        <div className="flex-1 casino-felt text-gray-900 dark:text-white flex flex-col select-none">
+        <div className="h-[calc(100dvh-8.5rem)] casino-felt text-gray-900 dark:text-white flex flex-col select-none overflow-hidden">
 
             {showColorPicker && !gameState.spectator && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
@@ -389,7 +389,7 @@ export default function UnoPage() {
             </div>
 
             {/* Zone centrale */}
-            <div className="flex-1 flex flex-col lg:flex-row items-stretch gap-4 px-3">
+            <div className="flex-1 min-h-0 overflow-auto flex flex-col lg:flex-row items-stretch gap-4 px-3">
               <div className="flex-1 flex items-center justify-center gap-8 min-w-0">
                 <div className="flex flex-col items-center gap-2">
                     <div
@@ -435,7 +435,7 @@ export default function UnoPage() {
 
             {/* Main — masquée pour les spectateurs */}
             {!gameState.spectator && (
-                <div className="casino-tile border-t border-amber-900/30 px-4 py-4">
+                <div className="casino-tile border-t border-amber-900/30 px-4 py-4 shrink-0">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-emerald-100 font-bold">Ma main ({gameState.hand.length} cartes)</span>
                         {gameState.hand.length === 1 && (

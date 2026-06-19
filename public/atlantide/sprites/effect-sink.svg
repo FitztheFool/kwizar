@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" role="img" aria-label="Engloutissement">
-<rect x="16" y="24" width="40" height="24" rx="4" fill="#3a7d44" opacity="0.7"/>
-  <path d="M16 36 Q36 44 56 36" fill="#0e4a7a" opacity="0.8"/>
-  <path d="M10 44 Q20 38 30 44 Q40 50 50 44 Q60 38 68 44" fill="none" stroke="#4aaad8" stroke-width="2"/>
-  <path d="M8 54 Q20 48 32 54 Q44 60 56 54 Q64 48 70 54" fill="none" stroke="#3a8ac8" stroke-width="2"/>
-  <line x1="36" y1="20" x2="36" y2="34" stroke="#e04040" stroke-width="2.5"/>
-  <polygon points="32,32 40,32 36,38" fill="#e04040"/>
-</svg>

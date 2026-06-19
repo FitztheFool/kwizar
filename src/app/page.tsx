@@ -77,7 +77,17 @@ function fmt(n: number): string {
 export default function HomePage() {
     const [lobbyCode, setCode] = useState('');
     const { data: stats } = useSWR<Stats>('/api/stats', fetcher);
-    const nbJeux = Object.keys(GAME_CONFIG).length;
+    const { data: enabledData } = useSWR<{ enabled: string[] }>('/api/games/enabled', fetcher);
+
+    // Tant que la liste n'est pas chargée, on n'exclut rien (évite un flash vide).
+    const enabledSet = enabledData ? new Set(enabledData.enabled) : null;
+    const isEnabled = (key: string) => !enabledSet || enabledSet.has(key);
+    const visibleByMode = {
+        solo: GAMES_BY_MODE.solo.filter(([key]) => isEnabled(key)),
+        both: GAMES_BY_MODE.both.filter(([key]) => isEnabled(key)),
+        multi: GAMES_BY_MODE.multi.filter(([key]) => isEnabled(key)),
+    };
+    const nbJeux = visibleByMode.solo.length + visibleByMode.both.length + visibleByMode.multi.length;
 
     useEffect(() => { setCode(crypto.randomUUID()); }, []);
 
@@ -136,19 +146,25 @@ export default function HomePage() {
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-8">Nos jeux</h2>
 
                 {/* Solo */}
-                <div className="mt-4">
-                    <GameSection label="Solo uniquement" badge="1 joueur" mode="solo" games={GAMES_BY_MODE.solo} />
-                </div>
+                {visibleByMode.solo.length > 0 && (
+                    <div className="mt-4">
+                        <GameSection label="Solo uniquement" badge="1 joueur" mode="solo" games={visibleByMode.solo} />
+                    </div>
+                )}
 
                 {/* Solo + Multi */}
-                <div className="mt-12">
-                    <GameSection label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" games={GAMES_BY_MODE.both} />
-                </div>
+                {visibleByMode.both.length > 0 && (
+                    <div className="mt-12">
+                        <GameSection label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" games={visibleByMode.both} />
+                    </div>
+                )}
 
                 {/* Multi only */}
-                <div className="mt-12">
-                    <GameSection label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" games={GAMES_BY_MODE.multi} />
-                </div>
+                {visibleByMode.multi.length > 0 && (
+                    <div className="mt-12">
+                        <GameSection label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" games={visibleByMode.multi} />
+                    </div>
+                )}
 
             </section>
 

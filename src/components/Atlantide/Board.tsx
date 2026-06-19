@@ -11,13 +11,17 @@ import {
     BOARD_HEXES,
     BOARD_W,
     BOAT_SPRITE,
+    BOAT_LOADED_SPRITE,
     COLOR_CLASSES,
     CREATURE_SPRITE,
+    CREATURE_LABELS,
+    LEVEL_LABELS,
     HEX_CLIP,
     HEX_H,
-    LEVEL_CLASSES,
     LEVEL_SPRITE,
     REFUGE_SPRITE,
+    SEA_SPRITE,
+    SYMBOL_SPRITE,
     hexOrigin,
     isRefuge,
 } from './boardLayout';
@@ -32,28 +36,42 @@ interface BoardProps {
     state: AtlantideState;
     myUserId: string;
     isMyTurn: boolean;
+    onPlace: (q: number, r: number) => void;
     onMove: (meepleId: number, q: number, r: number) => void;
     onMoveBoat: (boatId: number, q: number, r: number) => void;
     onRemoveTile: (q: number, r: number) => void;
     onMoveCreature: (creatureId: number, q: number, r: number) => void;
 }
 
-// La cellule est une variable CSS pour que le plateau s'adapte aux petits écrans.
-const CELL_CSS = 'min(52px, max(30px, calc((100vw - 2rem) / 11.5)))';
+/** Normalise les coups légaux d'une créature (liste de cases, ou téléport avec cibles). */
+function creatureLegalCells(legal: AtlantideLegalMove[] | { teleport: true; targets: AtlantideHex[] } | undefined): AtlantideHex[] {
+    if (!legal) return [];
+    return Array.isArray(legal) ? legal : legal.targets;
+}
+
+// La cellule est une variable CSS : le plateau grandit pour remplir l'espace
+// disponible tout en restant borné par la largeur ET la hauteur du viewport.
+// - largeur : ~11 cellules de plateau + la colonne latérale et le journal (~28rem) ;
+// - hauteur : ~9.8 cellules + l'en-tête, la barre de temps et le padding (~10rem).
+const CELL_BY_WIDTH = 'calc((100vw - 28rem) / 11.5)';
+const CELL_BY_HEIGHT = 'calc((100vh - 10rem) / 10.5)';
+// On prend la plus petite des deux contraintes (pour tenir dans les deux sens),
+// plafonnée à 80px et avec un plancher de 30px sur très petit écran.
+const CELL_CSS = `max(30px, min(80px, ${CELL_BY_WIDTH}, ${CELL_BY_HEIGHT}))`;
 
 const key = (q: number, r: number) => `${q},${r}`;
 
-export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMoveBoat, onRemoveTile, onMoveCreature }: BoardProps) {
+export default function AtlantideBoard({ state, myUserId, isMyTurn, onPlace, onMove, onMoveBoat, onRemoveTile, onMoveCreature }: BoardProps) {
     const [selected, setSelected] = useState<Selected>(null);
 
     // Toute évolution du tour invalide la sélection en cours.
     useEffect(() => {
         setSelected(null);
-    }, [state.phase, state.currentTurn, state.movePoints, state.creatureDie]);
+    }, [state.phase, state.currentTurn, state.movePoints, state.spin]);
 
     const tilesByHex = useMemo(() => {
-        const map = new Map<string, { level: string; removed: boolean }>();
-        for (const t of state.tiles) map.set(key(t.q, t.r), { level: t.level, removed: t.removed });
+        const map = new Map<string, { level: string; removed: boolean; effect: string | null }>();
+        for (const t of state.tiles) map.set(key(t.q, t.r), { level: t.level, removed: t.removed, effect: t.effect });
         return map;
     }, [state.tiles]);
 
@@ -61,14 +79,16 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
     const targets = useMemo(() => {
         const map = new Map<string, AtlantideLegalMove | AtlantideHex>();
         if (!isMyTurn || !state.legal) return map;
-        if (state.phase === 'tile') {
+        if (state.phase === 'placement') {
+            for (const h of state.legal.placements ?? []) map.set(key(h.q, h.r), h);
+        } else if (state.phase === 'tile') {
             for (const t of state.legal.tiles ?? []) map.set(key(t.q, t.r), t);
         } else if (state.phase === 'moving' && selected?.kind === 'meeple') {
             for (const m of state.legal.meeples?.[selected.id] ?? []) map.set(key(m.q, m.r), m);
         } else if (state.phase === 'moving' && selected?.kind === 'boat') {
             for (const m of state.legal.boats?.[selected.id] ?? []) map.set(key(m.q, m.r), m);
-        } else if (state.phase === 'creature' && selected?.kind === 'creature') {
-            for (const m of state.legal.creatures?.[selected.id] ?? []) map.set(key(m.q, m.r), m);
+        } else if (state.phase === 'spin' && selected?.kind === 'creature') {
+            for (const m of creatureLegalCells(state.legal.creatures?.[selected.id])) map.set(key(m.q, m.r), m);
         }
         return map;
     }, [isMyTurn, state.legal, state.phase, selected]);
@@ -80,12 +100,13 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
         isMyTurn && state.phase === 'moving' ? Object.keys(state.legal?.boats ?? {}).map(Number) : []
     ), [isMyTurn, state.phase, state.legal]);
     const selectableCreatures = useMemo(() => new Set(
-        isMyTurn && state.phase === 'creature' ? Object.keys(state.legal?.creatures ?? {}).map(Number) : []
+        isMyTurn && state.phase === 'spin' ? Object.keys(state.legal?.creatures ?? {}).map(Number) : []
     ), [isMyTurn, state.phase, state.legal]);
 
     const handleHexClick = (q: number, r: number) => {
         const target = targets.get(key(q, r));
         if (!target) return;
+        if (state.phase === 'placement') { onPlace(q, r); return; }
         if (state.phase === 'tile') { onRemoveTile(q, r); return; }
         if (!selected) return;
         if (selected.kind === 'meeple') onMove(selected.id, q, r);
@@ -96,25 +117,25 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
 
     // Pions « libres » (sur tuile, à la nage, sauvés) groupés par hex.
     const meeplesByHex = useMemo(() => {
-        const map = new Map<string, { playerIdx: number; meepleId: number; value: number | null; state: string }[]>();
+        const map = new Map<string, { playerIdx: number; meepleId: number; state: string }[]>();
         state.players.forEach((p, playerIdx) => {
             for (const m of p.meeples) {
                 if (m.state === 'boat' || m.state === 'dead') continue;
                 const k = key(m.q, m.r);
                 if (!map.has(k)) map.set(k, []);
-                map.get(k)!.push({ playerIdx, meepleId: m.id, value: m.value, state: m.state });
+                map.get(k)!.push({ playerIdx, meepleId: m.id, state: m.state });
             }
         });
         return map;
     }, [state.players]);
 
     const passengersByBoat = useMemo(() => {
-        const map = new Map<number, { playerIdx: number; meepleId: number; value: number | null }[]>();
+        const map = new Map<number, { playerIdx: number; meepleId: number }[]>();
         state.players.forEach((p, playerIdx) => {
             for (const m of p.meeples) {
                 if (m.state !== 'boat' || m.boatId === null) continue;
                 if (!map.has(m.boatId)) map.set(m.boatId, []);
-                map.get(m.boatId)!.push({ playerIdx, meepleId: m.id, value: m.value });
+                map.get(m.boatId)!.push({ playerIdx, meepleId: m.id });
             }
         });
         return map;
@@ -134,10 +155,11 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                     const refuge = isRefuge(q, r);
                     const isTarget = targets.has(key(q, r));
 
-                    let bg = 'bg-sky-300/30 dark:bg-sky-400/15'; // mer
-                    if (refuge) bg = 'bg-emerald-300 dark:bg-emerald-600';
-                    else if (tile && !tile.removed) bg = LEVEL_CLASSES[tile.level];
                     const isLand = refuge || (!!tile && !tile.removed);
+                    // Image de fond de la case : tuile selon niveau, refuge, ou mer.
+                    const hexSprite = refuge
+                        ? REFUGE_SPRITE
+                        : (tile && !tile.removed ? LEVEL_SPRITE[tile.level] : SEA_SPRITE);
 
                     return (
                         <button
@@ -145,28 +167,35 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                             type="button"
                             onClick={() => handleHexClick(q, r)}
                             disabled={!isTarget}
-                            className={`absolute flex items-center justify-center transition-all ${bg}
-                                ${isLand ? 'drop-shadow-[0_3px_2px_rgba(0,0,0,0.45)]' : ''}
-                                ${isTarget ? 'cursor-pointer ring-0 brightness-110 animate-pulse z-10' : ''}`}
+                            className={`absolute flex items-center justify-center transition-all
+                                ${isLand ? 'drop-shadow-[0_3px_2px_rgba(0,0,0,0.45)] z-[1]' : ''}
+                                ${isTarget ? 'cursor-pointer brightness-110 animate-pulse z-10' : ''}`}
                             style={{
                                 left: `calc(${x} * ${cell})`,
                                 top: `calc(${y} * ${cell})`,
                                 width: cell,
                                 height: `calc(${HEX_H} * ${cell})`,
-                                clipPath: HEX_CLIP,
-                                ...(isTarget ? { outline: '3px solid rgba(255,255,255,0.9)', outlineOffset: '-3px' } : {}),
+                                ...(isTarget ? { outline: '3px solid rgba(255,255,255,0.9)', outlineOffset: '-3px', clipPath: HEX_CLIP } : {}),
                             }}
-                            title={refuge ? 'Refuge' : tile && !tile.removed ? tile.level : 'Mer'}
+                            title={refuge ? 'Refuge' : tile && !tile.removed ? LEVEL_LABELS[tile.level] : 'Mer'}
                         >
-                            {/* Relief : biseau haut-clair / bas-sombre (clippé par la forme du bouton) */}
-                            {isLand && (
-                                <span className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/35 via-white/5 to-black/30" />
+                            {/* Le sprite est déjà hexagonal : on le rend en plein, légèrement débordant pour combler les jointures. */}
+                            <img
+                                src={hexSprite}
+                                alt={refuge ? 'Refuge' : tile && !tile.removed ? tile.level : 'Mer'}
+                                className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                                style={{ transform: 'scale(1.03)' }}
+                                draggable={false}
+                            />
+                            {/* Symbole révélé sous une tuile engloutie (mémo du joueur). */}
+                            {tile?.removed && tile.effect && tile.effect !== 'none' && SYMBOL_SPRITE[tile.effect] && (
+                                <img
+                                    src={SYMBOL_SPRITE[tile.effect]}
+                                    alt={tile.effect}
+                                    className="absolute bottom-0 right-0 w-1/3 h-1/3 object-contain pointer-events-none select-none opacity-80 drop-shadow"
+                                    draggable={false}
+                                />
                             )}
-                            {refuge ? (
-                                <img src={REFUGE_SPRITE} alt="Refuge" className="w-2/3 h-2/3 pointer-events-none select-none" draggable={false} />
-                            ) : tile && !tile.removed && LEVEL_SPRITE[tile.level] ? (
-                                <img src={LEVEL_SPRITE[tile.level]} alt={tile.level} className="w-3/4 h-3/4 pointer-events-none select-none" draggable={false} />
-                            ) : null}
                         </button>
                     );
                 })}
@@ -192,7 +221,7 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                 height: `calc(${HEX_H} * ${cell})`,
                                 fontSize: `calc(0.52 * ${cell})`,
                             }}
-                            title={c.type}
+                            title={CREATURE_LABELS[c.type]}
                         >
                             <img
                                 src={CREATURE_SPRITE[c.type]}
@@ -231,7 +260,7 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                 style={{ width: `calc(0.7 * ${cell})`, height: `calc(0.7 * ${cell})` }}
                                 title="Bateau"
                             >
-                                <img src={BOAT_SPRITE} alt="Bateau" className="w-full h-full object-contain pointer-events-none select-none drop-shadow" draggable={false} />
+                                <img src={passengers.length > 0 ? BOAT_LOADED_SPRITE : BOAT_SPRITE} alt="Bateau" className="w-full h-full object-contain pointer-events-none select-none drop-shadow" draggable={false} />
                             </button>
                             {passengers.length > 0 && (
                                 <div className="flex gap-px pointer-events-auto">
@@ -239,7 +268,6 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                         <MeepleDot
                                             key={`${p.playerIdx}-${p.meepleId}`}
                                             playerIdx={p.playerIdx}
-                                            value={p.value}
                                             sizeRatio={0.26}
                                             selectable={selectableMeeples.has(p.meepleId) && state.players[p.playerIdx]?.userId === myUserId}
                                             selected={selected?.kind === 'meeple' && selected.id === p.meepleId && state.players[p.playerIdx]?.userId === myUserId}
@@ -271,7 +299,6 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
                                 <MeepleDot
                                     key={`${m.playerIdx}-${m.meepleId}`}
                                     playerIdx={m.playerIdx}
-                                    value={m.value}
                                     sizeRatio={group.length > 2 ? 0.3 : 0.42}
                                     swimming={m.state === 'sea'}
                                     safe={m.state === 'safe'}
@@ -289,9 +316,8 @@ export default function AtlantideBoard({ state, myUserId, isMyTurn, onMove, onMo
     );
 }
 
-function MeepleDot({ playerIdx, value, sizeRatio, swimming = false, safe = false, mine = false, selectable, selected, onClick }: {
+function MeepleDot({ playerIdx, sizeRatio, swimming = false, safe = false, mine = false, selectable, selected, onClick }: {
     playerIdx: number;
-    value: number | null;
     sizeRatio: number;
     swimming?: boolean;
     safe?: boolean;
@@ -317,9 +343,8 @@ function MeepleDot({ playerIdx, value, sizeRatio, swimming = false, safe = false
                 height: `calc(var(--atl-cell) * ${sizeRatio})`,
                 fontSize: `calc(var(--atl-cell) * ${sizeRatio * 0.55})`,
             }}
-            title={[myShelter ? 'À l’abri' : null, value !== null ? `Valeur ${value}` : null].filter(Boolean).join(' · ') || undefined}
+            title={myShelter ? 'À l’abri' : undefined}
         >
-            {value !== null ? value : ''}
             {myShelter && (
                 <span
                     className="absolute -top-1 -right-1 flex items-center justify-center rounded-full bg-emerald-400 text-emerald-950 leading-none shadow"

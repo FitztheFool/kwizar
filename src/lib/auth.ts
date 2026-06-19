@@ -209,7 +209,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                     token.role = dbUser.role;
                     if (dbUser.username) token.username = dbUser.username;
-                    if (dbUser.image) token.image = dbUser.image;
+                    token.image = dbUser.image ?? null;   // refléter null (avatar supprimé) et pas seulement les valeurs truthy
                     if (dbUser.email) token.email = dbUser.email;
                     token.isAnonymous = dbUser.isAnonymous;
                     token.status = dbUser.status;

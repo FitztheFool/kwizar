@@ -340,3 +340,13 @@ model WordGroup {
 
   @@map("word_groups")
 }
+
+// Activation/désactivation d'un jeu sur la plateforme (onglet admin « Jeux »).
+// Absence de ligne = jeu activé par défaut.
+model GameSetting {
+  gameType  GameType @id
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@map("game_settings")
+}
