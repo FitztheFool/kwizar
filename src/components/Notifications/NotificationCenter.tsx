@@ -18,6 +18,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { useFriends } from '@/context/FriendsContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useMessages } from '@/context/MessagesContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 
 type IncomingRequest = {
@@ -30,14 +31,16 @@ export default function NotificationCenter() {
     const { pendingCount, refresh: refreshFriends } = useFriends();
     const { invites, dismissInvite } = useNotifications();
     const { conversations, openThread } = useMessages();
+    const { friends: friendsEnabled, messages: messagesEnabled } = useFeatureFlags();
 
     const [open, setOpen] = useState(false);
     const [requests, setRequests] = useState<IncomingRequest[]>([]);
     const [busy, setBusy] = useState<string | null>(null);
     const ref = useRef<HTMLDivElement>(null);
 
-    const unreadConversations = conversations.filter(c => c.unreadCount > 0);
-    const total = pendingCount + invites.length + unreadConversations.length;
+    const visibleRequests = friendsEnabled ? requests : [];
+    const unreadConversations = (messagesEnabled ? conversations : []).filter(c => c.unreadCount > 0);
+    const total = (friendsEnabled ? pendingCount : 0) + invites.length + unreadConversations.length;
 
     const loadRequests = useCallback(async () => {
         try {
@@ -107,7 +110,7 @@ export default function NotificationCenter() {
         openThread(userId);
     };
 
-    const isEmpty = requests.length === 0 && invites.length === 0 && unreadConversations.length === 0;
+    const isEmpty = visibleRequests.length === 0 && invites.length === 0 && unreadConversations.length === 0;
 
     return (
         <div className="relative shrink-0" ref={ref}>
@@ -136,9 +139,9 @@ export default function NotificationCenter() {
                     ) : (
                         <div className="py-1">
                             {/* Demandes d'ami */}
-                            {requests.length > 0 && (
+                            {visibleRequests.length > 0 && (
                                 <Section label="Demandes d'ami">
-                                    {requests.map(r => {
+                                    {visibleRequests.map(r => {
                                         const name = r.user.username ?? 'Joueur';
                                         return (
                                             <div key={r.friendshipId} className="flex items-center gap-2 px-3 py-2">

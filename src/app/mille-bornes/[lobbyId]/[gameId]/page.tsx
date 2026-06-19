@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useMilleBornes, isBot } from '@/hooks/useMilleBornes';
 import GameOverModal from '@/components/GameOverModal';
@@ -21,6 +23,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon } from '@heroicons/react
 
 export default function MilleBornesPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('mille_bornes');
     const myElo = useEloUpdate('mille-bornes', me.userId);
 
     const {
@@ -41,6 +44,7 @@ export default function MilleBornesPage() {
         if (selectedId && !myPlayer?.hand?.some(c => c.id === selectedId)) setSelectedId(null);
     }, [isMyTurn, selectedId, myPlayer]);
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (!state) return (
@@ -101,7 +105,7 @@ export default function MilleBornesPage() {
         : winnerScore?.userId === me.userId;
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={
                     <>
@@ -209,7 +213,7 @@ export default function MilleBornesPage() {
 
                 {/* My hand */}
                 {myPlayer?.alive && hand.length > 0 && (
-                    <div className="wood-tile rounded-2xl px-4 py-4 w-full max-w-4xl">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-4 py-4 w-full max-w-4xl">
                         <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                             <h2 className="font-extrabold text-lg text-gray-900">Votre main</h2>
                             {isMyTurn ? (
@@ -264,7 +268,7 @@ export default function MilleBornesPage() {
                 )}
 
                 {myPlayer && !myPlayer.alive && state.phase !== 'ended' && (
-                    <div className="wood-tile rounded-2xl px-5 py-4 text-sm text-gray-700">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-4 text-sm text-gray-700">
                         Vous n&apos;êtes plus en course — observez la fin de la partie.
                     </div>
                 )}

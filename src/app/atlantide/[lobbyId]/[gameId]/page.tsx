@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useAtlantide, isBot } from '@/hooks/useAtlantide';
 import GameOverModal from '@/components/GameOverModal';
@@ -20,6 +22,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outlin
 
 export default function AtlantidePage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('atlantide');
     const myElo = useEloUpdate('atlantide', me.userId);
 
     const {
@@ -34,6 +37,7 @@ export default function AtlantidePage() {
         onModalReset: () => setModalDismissed(false),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (!state || state.phase === 'waiting') return (
@@ -74,7 +78,7 @@ export default function AtlantidePage() {
         : currentIsBot ? 'Le bot réfléchit…' : `Tour de ${currentPlayer?.username ?? '…'}`;
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={
                     <>
@@ -129,7 +133,7 @@ export default function AtlantidePage() {
                                     <span key={i} className={`w-3.5 h-3.5 rounded-full border border-white/60 ${i < state.movePoints ? 'bg-amber-400' : 'bg-gray-500/40'}`} />
                                 ))}
                             </div>
-                            <span className="text-xs text-amber-100 font-semibold drop-shadow">Points de déplacement</span>
+                            <span className="text-xs text-gray-600 dark:text-amber-200 font-semibold">Points de déplacement</span>
                             {isMyTurn && (
                                 <button
                                     onClick={endMove}
@@ -147,7 +151,7 @@ export default function AtlantidePage() {
                             <div className="relative w-20 h-20">
                                 <img src={WHEEL_SPRITE} alt="Tourniquet" className="w-full h-full object-contain drop-shadow-lg" />
                             </div>
-                            <span className="text-xs text-amber-100 font-semibold drop-shadow">
+                            <span className="text-xs text-gray-600 dark:text-amber-200 font-semibold">
                                 {CREATURE_EMOJI[state.spin.animal]} {CREATURE_LABELS[state.spin.animal]}
                                 {' · '}{state.spin.steps === 'teleport' ? 'T (réapparaît)' : `${state.spin.steps} case${state.spin.steps > 1 ? 's' : ''}`}
                             </span>
@@ -163,7 +167,7 @@ export default function AtlantidePage() {
                     )}
 
                     {/* État de l'île */}
-                    <div className="flex flex-col gap-1 text-xs text-amber-100 font-semibold drop-shadow">
+                    <div className="flex flex-col gap-1 text-xs text-gray-600 dark:text-amber-200 font-semibold">
                         {(['beach', 'forest', 'mountain'] as const).map(level => (
                             <div key={level}>{LEVEL_LABELS[level]} : {tilesLeft(level)} tuile{tilesLeft(level) > 1 ? 's' : ''}</div>
                         ))}
@@ -173,11 +177,11 @@ export default function AtlantidePage() {
                             const dead = mine.meeples.filter(m => m.state === 'dead').length;
                             return (
                                 <>
-                                    <div className="mt-1 text-emerald-200">
+                                    <div className="mt-1 text-emerald-600 dark:text-emerald-300">
                                         Mes pions à l&apos;abri : {mine.saved}/12
                                     </div>
                                     {dead > 0 && (
-                                        <div className="flex items-center gap-1 text-red-200">
+                                        <div className="flex items-center gap-1 text-red-600 dark:text-red-300">
                                             <img src={TOKEN_DEAD_SPRITE} alt="Perdu" className="w-4 h-4 object-contain" />
                                             Mes pions perdus : {dead}
                                         </div>

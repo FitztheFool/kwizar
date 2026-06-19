@@ -427,6 +427,7 @@ export default function LobbyCodePage() {
         socket.on('lobby:kicked', () => { alert('Vous avez été expulsé.'); router.push('/lobby/all'); });
         socket.on('lobby:server_warming', () => { setIsWarming(true); });
         socket.on('lobby:server_error', () => { setIsWarming(false); setIsLaunching(false); alert('Le serveur de jeu n\'a pas pu démarrer. Réessaie dans quelques secondes.'); });
+        socket.on('lobby:error', (p: { message?: string }) => { setIsWarming(false); setIsLaunching(false); alert(p?.message ?? 'Action impossible.'); });
 
         // ── game:start via GAME_ROUTES ────────────────────────────────────
         socket.on('game:start', (payload: { gameType: GameType; gameId?: string; quizId?: string; timeMode?: string; timePerQuestion?: number }) => {
@@ -524,6 +525,7 @@ export default function LobbyCodePage() {
             socket.off('lobby:kicked');
             socket.off('lobby:server_warming');
             socket.off('lobby:server_error');
+            socket.off('lobby:error');
             socket.off('game:start');
             socket.io.off('reconnect', handleReconnect);
             socket.emit('lobby:leave');

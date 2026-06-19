@@ -2,7 +2,7 @@
 // Chaque item = { name, img } (image web). Si l'image casse, l'UI affiche le nom.
 
 export interface DuelItem { name: string; img: string; }
-export interface DuelCategory { id: string; title: string; emoji: string; items: DuelItem[]; }
+export interface DuelCategory { id: string; title: string; emoji: string; img?: string; items: DuelItem[]; }
 
 // Helpers
 const poke = (id: number, name: string): DuelItem => ({
@@ -186,82 +186,95 @@ export const CATEGORIES: DuelCategory[] = [
         id: 'dc',
         title: 'Le meilleur film DC',
         emoji: '🦇',
+        img: 'https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg',
         items: [
-            { name: 'The Dark Knight', img: 'https://upload.wikimedia.org/wikipedia/en/8/8a/The_Dark_Knight_%282008_film%29_poster.jpg' },
-            { name: 'Joker', img: 'https://upload.wikimedia.org/wikipedia/en/9/9e/Joker_%282019_film%29_poster.jpg' },
-            { name: 'Wonder Woman', img: 'https://upload.wikimedia.org/wikipedia/en/3/3f/Wonder_Woman_%282017_film%29_poster.jpg' },
-            { name: 'Aquaman', img: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Aquaman_%28film%29_poster.jpg' },
-            { name: 'The Batman', img: 'https://upload.wikimedia.org/wikipedia/en/3/3b/The_Batman_%282022_film%29_poster.jpg' },
-            { name: 'Man of Steel', img: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Man_of_Steel_poster.jpg' },
+            { name: 'The Dark Knight', img: 'https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg' },
+            { name: 'Joker', img: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Joker_%282019_film%29_poster.jpg' },
+            { name: 'Wonder Woman', img: 'https://upload.wikimedia.org/wikipedia/en/b/b0/Wonder_Woman_%282017_film%29_poster.jpg' },
+            { name: 'Aquaman', img: 'https://upload.wikimedia.org/wikipedia/en/e/ed/Aquaman_%28film%29_poster.jpg' },
+            { name: 'The Batman', img: 'https://upload.wikimedia.org/wikipedia/en/f/ff/The_Batman_%28film%29_poster.jpg' },
+            { name: 'Man of Steel', img: 'https://upload.wikimedia.org/wikipedia/en/5/50/Man_of_Steel_%28film%29_poster.jpg' },
         ],
     },
     {
         id: 'starwars',
         title: 'Le meilleur de Star Wars',
         emoji: '🌌',
+        img: 'https://upload.wikimedia.org/wikipedia/en/3/3f/The_Empire_Strikes_Back_%281980_film%29.jpg',
         items: [
-            { name: 'L\'Empire contre-attaque', img: 'https://upload.wikimedia.org/wikipedia/en/3/3c/SW_-_Empire_Strikes_Back.jpg' },
-            { name: 'Un Nouvel Espoir', img: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Star_Wars_Episode_IV_-_A_New_Hope_%28poster%29.jpg' },
-            { name: 'Le Retour du Jedi', img: 'https://upload.wikimedia.org/wikipedia/en/b/b2/Return_of_the_Jedi_poster.jpg' },
-            { name: 'Rogue One', img: 'https://upload.wikimedia.org/wikipedia/en/4/4f/Rogue_One_poster.jpg' },
-            { name: 'Andor', img: 'https://upload.wikimedia.org/wikipedia/en/5/5f/Andor_season_1_poster.jpg' },
-            { name: 'The Mandalorian', img: 'https://upload.wikimedia.org/wikipedia/en/b/b9/The_Mandalorian_season_2_poster.jpg' },
+            { name: 'L\'Empire contre-attaque', img: 'https://upload.wikimedia.org/wikipedia/en/3/3f/The_Empire_Strikes_Back_%281980_film%29.jpg' },
+            { name: 'Un Nouvel Espoir', img: 'https://upload.wikimedia.org/wikipedia/en/8/87/StarWarsMoviePoster1977.jpg' },
+            { name: 'Le Retour du Jedi', img: 'https://upload.wikimedia.org/wikipedia/en/b/b2/ReturnOfTheJediPoster1983.jpg' },
+            { name: 'Rogue One', img: 'https://upload.wikimedia.org/wikipedia/en/d/d4/Rogue_One%2C_A_Star_Wars_Story_poster.png' },
+            { name: 'Andor', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Andor.svg/960px-Andor.svg.png' },
+            { name: 'The Mandalorian', img: 'https://upload.wikimedia.org/wikipedia/en/0/04/The_Mandalorian_season_1_poster.jpg' },
         ],
     },
     {
         id: 'jeuxvideo',
         title: 'Le meilleur jeu vidéo',
         emoji: '🎮',
+        img: 'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg',
         items: [
-            { name: 'The Legend of Zelda: BOTW', img: 'https://upload.wikimedia.org/wikipedia/en/c/c3/The_Legend_of_Zelda_Breath_of_the_Wild.jpg' },
-            { name: 'Elden Ring', img: 'https://upload.wikimedia.org/wikipedia/en/b/b8/Elden_Ring_cover_art.jpg' },
-            { name: 'Minecraft', img: 'https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png' },
+            { name: 'The Legend of Zelda: BOTW', img: 'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg' },
+            { name: 'Elden Ring', img: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
+            { name: 'Minecraft', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Minecraft-creeper-face.svg/500px-Minecraft-creeper-face.svg.png' },
             { name: 'GTA V', img: 'https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png' },
             { name: 'The Witcher 3', img: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Witcher_3_cover_art.jpg' },
-            { name: 'Super Mario Odyssey', img: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Super_Mario_Odyssey.jpg' },
+            { name: 'Super Mario Odyssey', img: 'https://upload.wikimedia.org/wikipedia/en/8/8d/Super_Mario_Odyssey.jpg' },
             { name: 'Red Dead Redemption 2', img: 'https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg' },
-            { name: 'Hades', img: 'https://upload.wikimedia.org/wikipedia/en/6/6a/Hades_cover_art.jpg' },
+            { name: 'Hades', img: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg' },
         ],
     },
     {
         id: 'boissons',
         title: 'La meilleure boisson',
         emoji: '🥤',
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/330px-Coca_Cola_Flasche_-_Original_Taste.jpg',
         items: [
-            { name: 'Coca-Cola', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Coca-Cola_logo.svg/330px-Coca-Cola_logo.svg.png' },
-            { name: 'Café', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Cappuccino_at_Sightglass_Coffee.jpg/330px-Cappuccino_at_Sightglass_Coffee.jpg' },
-            { name: 'Thé', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Cup_of_black_tea.jpg/330px-Cup_of_black_tea.jpg' },
-            { name: 'Chocolat chaud', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Hot_chocolate.jpg/330px-Hot_chocolate.jpg' },
-            { name: 'Jus d\'orange', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Orange_juice_1.jpg/330px-Orange_juice_1.jpg' },
-            { name: 'Bières artisanales', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Assorted_beer.jpg/330px-Assorted_beer.jpg' },
-            { name: 'Limonade', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Lemonade.jpg/330px-Lemonade.jpg' },
+            { name: 'Coca-Cola', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/330px-Coca_Cola_Flasche_-_Original_Taste.jpg' },
+            { name: 'Café', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Latte_and_dark_coffee.jpg/330px-Latte_and_dark_coffee.jpg' },
+            { name: 'Thé', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Longjing_tea_steeping_in_gaiwan.jpg/330px-Longjing_tea_steeping_in_gaiwan.jpg' },
+            { name: 'Chocolat chaud', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/After_The_St._Patrick%27s_Parade_Late_Lunch_%40_Lemon%2C_Dawson_Street%2C_Dublin%2C_Rep._Of_Ireland_A_Fine_Tradition%21_%286992614913%29.jpg/330px-After_The_St._Patrick%27s_Parade_Late_Lunch_%40_Lemon%2C_Dawson_Street%2C_Dublin%2C_Rep._Of_Ireland_A_Fine_Tradition%21_%286992614913%29.jpg' },
+            { name: 'Jus d\'orange', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Orangejuice.jpg/330px-Orangejuice.jpg' },
+            { name: 'Bières artisanales', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Hacker-Pschorr_Oktoberfest_Girl_Remix.jpg/330px-Hacker-Pschorr_Oktoberfest_Girl_Remix.jpg' },
+            { name: 'Limonade', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Lemonade_-_27682817724.jpg/330px-Lemonade_-_27682817724.jpg' },
         ],
     },
     {
         id: 'desserts',
         title: 'Le meilleur dessert',
         emoji: '🍰',
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Tiramisu_-_Raffaele_Diomede.jpg/330px-Tiramisu_-_Raffaele_Diomede.jpg',
         items: [
-            { name: 'Crème brûlée', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Cr%C3%A8me_br%C3%BBl%C3%A9e.jpg/330px-Cr%C3%A8me_br%C3%BBl%C3%A9e.jpg' },
-            { name: 'Tiramisu', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Tiramisu_-_Two.jpg/330px-Tiramisu_-_Two.jpg' },
-            { name: 'Macarons', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Macarons.jpg/330px-Macarons.jpg' },
-            { name: 'Éclair', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/%C3%89clair_au_chocolat.jpg/330px-%C3%89clair_au_chocolat.jpg' },
-            { name: 'Fondant au chocolat', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Fondant_au_chocolat.jpg/330px-Fondant_au_chocolat.jpg' },
-            { name: 'Cheesecake', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Cheesecake.jpg/330px-Cheesecake.jpg' },
+            { name: 'Crème brûlée', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/2014_0531_Cr%C3%A8me_br%C3%BBl%C3%A9e_Doi_Mae_Salong_%28cropped%29.jpg/330px-2014_0531_Cr%C3%A8me_br%C3%BBl%C3%A9e_Doi_Mae_Salong_%28cropped%29.jpg' },
+            { name: 'Tiramisu', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Tiramisu_-_Raffaele_Diomede.jpg/330px-Tiramisu_-_Raffaele_Diomede.jpg' },
+            { name: 'Macarons', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/VanillaMacaron.jpg/330px-VanillaMacaron.jpg' },
+            { name: 'Éclair', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Two_Safeway_Chocolate_Eclairs_%2819043880936%29.jpg/330px-Two_Safeway_Chocolate_Eclairs_%2819043880936%29.jpg' },
+            { name: 'Fondant au chocolat', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Chocolate_Fondant.jpg/330px-Chocolate_Fondant.jpg' },
+            { name: 'Cheesecake', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Baked_cheesecake_with_raspberries_and_blueberries.jpg/330px-Baked_cheesecake_with_raspberries_and_blueberries.jpg' },
         ],
     },
     {
         id: 'kpop',
         title: 'Le meilleur groupe/artiste K-pop',
         emoji: '🎤',
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg/330px-BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg',
         items: [
-            { name: 'BTS', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/BTS_at_the_White_House_%28cropped%29.jpg/330px-BTS_at_the_White_House_%28cropped%29.jpg' },
-            { name: 'Blackpink', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Blackpink_in_your_area.jpg/330px-Blackpink_in_your_area.jpg' },
-            { name: 'Stray Kids', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Stray_Kids_2023.jpg/330px-Stray_Kids_2023.jpg' },
-            { name: 'NewJeans', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/NewJeans_2024.jpg/330px-NewJeans_2024.jpg' },
-            { name: 'Twice', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/TWICE_2022.jpg/330px-TWICE_2022.jpg' },
+            { name: 'BTS', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg/330px-BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg' },
+            { name: 'Blackpink', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/20240809_Blackpink_Pink_Carpet_09.png/330px-20240809_Blackpink_Pink_Carpet_09.png' },
+            { name: 'Stray Kids', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Stray_Kids_at_the_40th_Golden_Disc_Awards%2C_January_10%2C_2026_%281%29.png/330px-Stray_Kids_at_the_40th_Golden_Disc_Awards%2C_January_10%2C_2026_%281%29.png' },
+            { name: 'NewJeans', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/NewJeans_2023_MelonMusicAwards_composite.jpg/330px-NewJeans_2023_MelonMusicAwards_composite.jpg' },
+            { name: 'Twice', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Twice_-_Dickies_Arena%2C_2022_%28cropped%29.jpg/330px-Twice_-_Dickies_Arena%2C_2022_%28cropped%29.jpg' },
         ],
     },
 ];
 
 export const isEmoji = (img: string) => !!img && !img.startsWith('http');
+
+/** Image d'icône d'une catégorie : champ `img` explicite, sinon 1ʳᵉ image d'item utilisable. */
+export function categoryImage(c: DuelCategory): string | null {
+    if (c.img && !isEmoji(c.img)) return c.img;
+    const item = c.items.find(i => i.img && !isEmoji(i.img));
+    return item ? item.img : null;
+}

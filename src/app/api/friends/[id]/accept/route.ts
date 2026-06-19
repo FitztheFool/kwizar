@@ -2,11 +2,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { isFeatureEnabled } from '@/lib/appSettings';
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
+    }
+    if (!(await isFeatureEnabled('friends'))) {
+        return NextResponse.json({ error: 'Fonctionnalité désactivée.' }, { status: 403 });
     }
     const me = session.user.id;
     const { id } = await params;

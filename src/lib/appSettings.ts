@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 
 // Drapeaux de fonctionnalités globaux (clé/valeur en base, défaut = activé).
-export const FEATURE_KEYS = ['friends', 'messages'] as const;
+export const FEATURE_KEYS = ['friends', 'messages', 'sidebarSearch'] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
 async function getBoolSetting(key: string, fallback = true): Promise<boolean> {
@@ -28,6 +28,7 @@ export async function getFeatureFlags(): Promise<Record<FeatureKey, boolean>> {
     return {
         friends: byKey.get('friends') ?? true,
         messages: byKey.get('messages') ?? true,
+        sidebarSearch: byKey.get('sidebarSearch') ?? true,
     };
 }
 

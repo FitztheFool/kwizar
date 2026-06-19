@@ -3,6 +3,8 @@
 // no extra react hooks needed
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useLudo, isBot } from '@/hooks/useLudo';
 import GameOverModal from '@/components/GameOverModal';
@@ -22,6 +24,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outlin
 
 export default function LudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('ludo');
     const myElo = useEloUpdate('ludo', me.userId);
 
     const {
@@ -36,6 +39,7 @@ export default function LudoPage() {
         onModalReset: () => setModalDismissed(false),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (!state || state.phase === 'waiting') return (
@@ -68,7 +72,7 @@ export default function LudoPage() {
     const currentIsBot = isBot(currentTurnPlayer);
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={
                     <>

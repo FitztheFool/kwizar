@@ -12,6 +12,8 @@ import AfkCountdown from '@/components/AfkCountdown';
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useYahtzee, isBot, ScoreCard } from '@/hooks/useYahtzee';
 import SharedDie from '@/components/Dice/Die';
@@ -90,6 +92,7 @@ function Die({ value, held, onClick, rolling, disabled }: {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function YahtzeePage() {
     const { session, status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('yahtzee');
 
     const myId = session?.user?.id ?? meInfo.userId;
     const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
@@ -104,6 +107,7 @@ export default function YahtzeePage() {
 
     const [hoveredCat, setHoveredCat] = useState<string | null>(null);
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 

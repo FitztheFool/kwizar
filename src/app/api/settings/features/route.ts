@@ -7,6 +7,6 @@ export async function GET() {
         return NextResponse.json(await getFeatureFlags());
     } catch {
         // En cas d'erreur, on n'empêche rien (tout activé).
-        return NextResponse.json({ friends: true, messages: true });
+        return NextResponse.json({ friends: true, messages: true, sidebarSearch: true });
     }
 }

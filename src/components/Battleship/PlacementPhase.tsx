@@ -295,15 +295,15 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
 
     const timerColor = timeLeft !== null && timeLeft <= 10
         ? 'text-red-400 animate-pulse'
-        : 'text-sky-100/70';
+        : 'text-gray-500 dark:text-gray-400';
 
     return (
-        <div className="flex flex-col items-center gap-6 p-6 select-none naval-tile rounded-2xl max-w-4xl mx-auto">
+        <div className="flex flex-col items-center gap-6 p-6 select-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl max-w-4xl mx-auto">
 
             {/* Header */}
             <div className="text-center">
-                <h2 className="text-xl font-bold text-white drop-shadow">Placez votre flotte</h2>
-                <p className="text-sky-100/80 text-sm mt-1">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Placez votre flotte</h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                     {confirmed
                         ? opponentReady ? (<><CheckCircleIcon className="inline-block w-4 h-4 text-green-500 align-text-bottom mr-1" />Les deux joueurs sont prêts !</>) : (<><CheckCircleIcon className="inline-block w-4 h-4 text-green-500 align-text-bottom mr-1" />Prêt — en attente de l'adversaire…</>)
                         : selected
@@ -330,11 +330,11 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
             >
                 <div />
                 {COL_LABELS.map((l) => (
-                    <div key={l} className="text-center text-xs text-sky-200/50 font-mono" style={{ lineHeight: '32px' }}>{l}</div>
+                    <div key={l} className="text-center text-xs text-gray-400 dark:text-gray-500 font-mono" style={{ lineHeight: '32px' }}>{l}</div>
                 ))}
                 {Array.from({ length: GRID_SIZE }, (_, ri) => (
                     <React.Fragment key={ri}>
-                        <div className="text-right text-xs text-sky-200/50 font-mono pr-1" style={{ lineHeight: '32px' }}>{ri + 1}</div>
+                        <div className="text-right text-xs text-gray-400 dark:text-gray-500 font-mono pr-1" style={{ lineHeight: '32px' }}>{ri + 1}</div>
                         {Array.from({ length: GRID_SIZE }, (_, ci) => renderCell(ri, ci))}
                     </React.Fragment>
                 ))}
@@ -349,10 +349,10 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                         <button
                             key={config.name}
                             onClick={() => !confirmed && setSelected(isSelected ? null : config.name)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all
                                 ${isSelected
                                     ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-                                    : 'border-sky-700/40 bg-sky-950/40 text-sky-100/85 hover:border-sky-500'}
+                                    : 'border-gray-300 dark:border-sky-700/40 bg-gray-100 dark:bg-sky-950/40 text-gray-700 dark:text-sky-100/85 hover:border-blue-400 dark:hover:border-sky-500'}
                                 ${confirmed ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
                         >
                             {/* Mini ship strip (toujours horizontal dans la liste) */}
@@ -369,7 +369,7 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                             </div>
                             <span>{config.name}</span>
                             {ship && (
-                                <span className="text-sky-200/50 text-[10px]">
+                                <span className="text-gray-500 dark:text-gray-400 text-[10px]">
                                     {ship.horizontal ? '↔' : '↕'}
                                 </span>
                             )}
@@ -384,14 +384,14 @@ export default function PlacementPhase({ onConfirm, placementEndsAt, opponentRea
                     {selected && (
                         <button
                             onClick={rotateSelected}
-                            className="px-4 py-2 rounded-lg border border-sky-700/40 text-sky-100/85 text-sm hover:border-sky-500 hover:text-gray-900 dark:hover:text-white transition-all"
+                            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-sky-700/40 bg-gray-100 dark:bg-transparent text-gray-700 dark:text-sky-100/85 text-sm font-semibold hover:border-blue-400 dark:hover:border-sky-500 hover:text-gray-900 dark:hover:text-white transition-all"
                         >
                             <span className="inline-flex items-center gap-1.5"><ArrowPathIcon className="w-4 h-4" /> Pivoter</span>
                         </button>
                     )}
                     <button
                         onClick={handleAutoPlace}
-                        className="px-4 py-2 rounded-lg border border-sky-700/40 text-sky-100/85 text-sm hover:border-sky-500 hover:text-gray-900 dark:hover:text-white transition-all"
+                        className="px-4 py-2 rounded-lg border border-gray-300 dark:border-sky-700/40 bg-gray-100 dark:bg-transparent text-gray-700 dark:text-sky-100/85 text-sm font-semibold hover:border-blue-400 dark:hover:border-sky-500 hover:text-gray-900 dark:hover:text-white transition-all"
                     >
                         🎲 Placement auto
                     </button>

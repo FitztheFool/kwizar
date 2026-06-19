@@ -10,6 +10,8 @@ import TimerBar from '@/components/TimerBar';
 import { useEffect, useRef, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useTaboo } from '@/hooks/useTaboo';
 import { TrapPhase } from '@/components/TrapPhase';
@@ -34,6 +36,7 @@ const TABOO_LEFT = (
 
 export default function TabooGamePage() {
     const { session, status, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('taboo');
 
     const myId = session?.user?.id ?? '';
     const username = session?.user?.username ?? session?.user?.email ?? 'User';
@@ -65,6 +68,7 @@ export default function TabooGamePage() {
     }, [game?.attempts]);
 
     if (isNotFound) notFound();
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (status !== 'authenticated') return null;
     if (!game) return (
@@ -92,7 +96,7 @@ export default function TabooGamePage() {
     // ── Phase trap ────────────────────────────────────────────────────────────
     if (game.phase === 'trap') {
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -153,7 +157,7 @@ export default function TabooGamePage() {
         const trapsUsed = game.currentTraps.filter(t => t);
 
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -234,7 +238,7 @@ export default function TabooGamePage() {
         const myTeamPlayers = game.players.filter(p => p.team === myTeam);
 
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
                     left={TABOO_LEFT}
@@ -380,7 +384,7 @@ export default function TabooGamePage() {
         : '?';
 
     return (
-        <div className="flex-1 flex flex-col mystery-table text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             
 
             <GamePageHeader

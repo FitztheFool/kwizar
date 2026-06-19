@@ -5,6 +5,8 @@ import { useMemo, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useBattleship } from '@/hooks/useBattleship';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import PlacementPhase from '@/components/Battleship/PlacementPhase';
 import BattleshipBoard from '@/components/Battleship/BattleshipBoard';
@@ -26,6 +28,7 @@ import { BoltIcon } from '@heroicons/react/24/solid';
 
 export default function BattleshipPage() {
     const { session, status, router, me: meInfo, lobbyId, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('battleship');
 
     // Read options from sessionStorage (set by lobby before redirect)
     const options = useMemo(() => {
@@ -49,6 +52,7 @@ export default function BattleshipPage() {
     const [lastShot, setLastShot] = useState<string | null>(null);
     const myElo = useEloUpdate('battleship', meInfo.userId);
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (gameNotFound) notFound();
     if (status !== 'authenticated') { router.push('/login'); return null; }
@@ -69,7 +73,7 @@ export default function BattleshipPage() {
         const currentTurnPlayer = state.players.find(p => p?.userId === state.currentTurnUserId);
         const winnerPlayer = state.players.find(p => p?.userId === state.winnerUserId);
         return (
-            <div className="flex-1 flex flex-col naval-table text-gray-100">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <header className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 flex items-center gap-2">
                     <span className="text-xl">⚓</span>
                     <h1 className="text-sm font-bold tracking-tight">Bataille Navale</h1>
@@ -105,7 +109,7 @@ export default function BattleshipPage() {
     const me = state.players.find((p) => p?.userId === myUserId) ?? null;
 
     return (
-        <div className="flex-1 flex flex-col naval-table text-gray-100">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <GamePageHeader
                 left={<><GameIcon gameType="battleship" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><h1 className="text-sm font-bold tracking-tight">Bataille Navale</h1></>}
@@ -165,7 +169,7 @@ export default function BattleshipPage() {
                     {state.phase === 'playing' && (
                         <div className="flex flex-col items-center gap-4 w-full">
                             {/* Board */}
-                            <div className="naval-tile rounded-xl p-4">
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl p-4">
                                 <BattleshipBoard
                                     myShips={state.myShips}
                                     myReceivedShots={state.myReceivedShots}
@@ -186,7 +190,7 @@ export default function BattleshipPage() {
                     {/* Finished */}
                     {state.phase === 'finished' && (
                         <div className="w-full max-w-4xl">
-                            <div className="naval-tile rounded-xl p-4">
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl p-4">
                                 <BattleshipBoard
                                     myShips={state.myShips}
                                     myReceivedShots={state.myReceivedShots}

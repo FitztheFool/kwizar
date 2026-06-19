@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { CheckCircleIcon, NoSymbolIcon, UsersIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon, UsersIcon, ChatBubbleLeftRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { setFeatureFlagCache, type FeatureFlags } from '@/hooks/useFeatureFlags';
 
 const FEATURES: { key: keyof FeatureFlags; label: string; description: string; Icon: React.FC<{ className?: string }> }[] = [
@@ -17,6 +17,12 @@ const FEATURES: { key: keyof FeatureFlags; label: string; description: string; I
         label: 'Messagerie',
         description: 'Messages privés entre joueurs. Désactivé : la messagerie disparaît et les envois sont bloqués.',
         Icon: ChatBubbleLeftRightIcon,
+    },
+    {
+        key: 'sidebarSearch',
+        label: 'Barre de recherche',
+        description: 'Barre de recherche dans la sidebar. Désactivé : elle est masquée pour tous les utilisateurs.',
+        Icon: MagnifyingGlassIcon,
     },
 ];
 

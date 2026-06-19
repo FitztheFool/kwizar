@@ -77,8 +77,8 @@ function Grid({ ships, receivedShots, hitShots, showShips, onShoot, label, highl
         const isHighlight = highlight === key;
         const isClickable = !!onShoot && !receivedShots.has(key);
 
-        let borderBg = 'bg-sky-950/40 border-sky-700/40';
-        if (isClickable) borderBg = 'bg-sky-950/40 border-sky-700/40 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 cursor-crosshair transition-colors';
+        let borderBg = 'bg-sky-100 dark:bg-sky-950/40 border-sky-300 dark:border-sky-700/40';
+        if (isClickable) borderBg = 'bg-sky-100 dark:bg-sky-950/40 border-sky-300 dark:border-sky-700/40 hover:bg-blue-200 dark:hover:bg-blue-900/30 hover:border-blue-500 dark:hover:border-blue-500 cursor-crosshair transition-colors';
         if (isShot && !entry && !isHit) borderBg = 'bg-blue-100 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700'; // miss
         if (isShot && (!!entry || isHit) && !entry?.ship.sunk) borderBg = 'bg-orange-100 dark:bg-orange-900/50 border-orange-400 dark:border-orange-500'; // hit
         if (isHighlight) borderBg += ' ring-2 ring-gray-400 dark:ring-white/40';
@@ -125,18 +125,18 @@ function Grid({ ships, receivedShots, hitShots, showShips, onShoot, label, highl
 
     return (
         <div className="flex flex-col gap-2 items-center">
-            <p className="text-xs font-semibold text-sky-100/70 uppercase tracking-wider text-center">{label}</p>
+            <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center">{label}</p>
             <div
                 className="grid gap-0.5"
                 style={{ gridTemplateColumns: `20px repeat(${GRID_SIZE}, 30px)` }}
             >
                 <div />
                 {COL_LABELS.map((l) => (
-                    <div key={l} className="text-center text-xs text-sky-200/50 font-mono" style={{ lineHeight: '30px' }}>{l}</div>
+                    <div key={l} className="text-center text-xs text-gray-500 dark:text-gray-400 font-mono" style={{ lineHeight: '30px' }}>{l}</div>
                 ))}
                 {Array.from({ length: GRID_SIZE }, (_, ri) => (
                     <React.Fragment key={ri}>
-                        <div className="text-right text-xs text-sky-200/50 font-mono pr-1" style={{ lineHeight: '30px' }}>{ri + 1}</div>
+                        <div className="text-right text-xs text-gray-500 dark:text-gray-400 font-mono pr-1" style={{ lineHeight: '30px' }}>{ri + 1}</div>
                         {Array.from({ length: GRID_SIZE }, (_, ci) => renderCell(ri, ci))}
                     </React.Fragment>
                 ))}
@@ -150,14 +150,14 @@ function Grid({ ships, receivedShots, hitShots, showShips, onShoot, label, highl
 function ShipTracker({ ships, label }: { ships: PlacedShip[]; label: string }) {
     return (
         <div className="space-y-1.5">
-            <p className="text-xs text-sky-100/70 uppercase tracking-wider font-semibold">{label}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{label}</p>
             {SHIPS_CONFIG.map((config) => {
                 const ship = ships.find((s) => s.name === config.name);
                 const sunk = ship?.sunk ?? false;
                 return (
                     <div key={config.name} className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sunk ? 'bg-red-500' : 'bg-blue-500'}`} />
-                        <span className={`text-xs font-mono ${sunk ? 'text-sky-200/50 line-through' : 'text-white/70'}`}>
+                        <span className={`text-xs font-mono ${sunk ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-700 dark:text-gray-200'}`}>
                             {config.name}
                         </span>
                         <div className="flex gap-0 ml-auto">
@@ -238,10 +238,10 @@ export default function BattleshipBoard({
             </div>
 
             <div className="flex gap-8 flex-wrap justify-center w-full max-w-2xl">
-                <div className="flex-1 min-w-[160px] naval-tile rounded-xl p-4">
+                <div className="flex-1 min-w-[160px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl p-4">
                     <ShipTracker ships={enemySunkShips} label="Flotte ennemie" />
                 </div>
-                <div className="flex-1 min-w-[160px] naval-tile rounded-xl p-4">
+                <div className="flex-1 min-w-[160px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl p-4">
                     <ShipTracker ships={myShipsWithSunk} label="Votre flotte" />
                 </div>
             </div>

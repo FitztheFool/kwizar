@@ -11,6 +11,8 @@ import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useSkyjow } from '@/hooks/useSkyjow';
 
@@ -27,6 +29,7 @@ const isPlayingPhase = (p: Phase) => p === 'playing' || p === 'last_round';
 
 export default function skyjowGamePage() {
     const { status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('skyjow');
 
     const userId = meInfo.userId;
     const username = meInfo.username ?? '';
@@ -94,6 +97,7 @@ export default function skyjowGamePage() {
 
     // ── Render guards ──────────────────────────────────────────────────────────
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 
@@ -227,7 +231,7 @@ export default function skyjowGamePage() {
     // ── Interface principale ───────────────────────────────────────────────────
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden casino-felt text-gray-100" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="flex-1 flex flex-col overflow-hidden bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* ── Notification ── */}
             {notification && (
@@ -271,19 +275,19 @@ export default function skyjowGamePage() {
             <main className="flex-1 flex flex-col lg:flex-row gap-0 lg:min-h-0 lg:overflow-hidden">
 
                 {/* ── Zone adversaires ── (passe en second sur mobile) */}
-                <div className="lg:w-72 bg-black/30 backdrop-blur-sm border-b lg:border-b-0 lg:border-r border-black/40 p-3 lg:overflow-y-auto lg:shrink-0 order-3 lg:order-1">
-                    <p className="text-xs text-emerald-100 uppercase font-bold mb-3 tracking-wider">Adversaires</p>
+                <div className="lg:w-72 bg-white dark:bg-gray-900 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-800 p-3 lg:overflow-y-auto lg:shrink-0 order-3 lg:order-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-3 tracking-wider">Adversaires</p>
                     <div className="space-y-4">
                         {otherPlayers.map((p) => {
                             const isTurn = p.userId === currentPlayerId;
                             const pScore = p.liveScore ?? scores.find(s => s.userId === p.userId)?.totalScore ?? 0;
                             return (
                                 <div key={p.userId}
-                                    className={`rounded-xl p-3 border transition-all ${isTurn ? 'bg-emerald-900/40 border-yellow-400 shadow-lg shadow-yellow-400/20' : 'bg-emerald-900/30 border-emerald-700/40'}`}>
+                                    className={`rounded-xl p-3 border transition-all ${isTurn ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 shadow-lg shadow-blue-400/20' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800'}`}>
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
-                                            {isTurn && <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
-                                            <span className="font-semibold text-sm text-white">{p.username}</span>
+                                            {isTurn && <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />}
+                                            <span className="font-semibold text-sm text-gray-900 dark:text-white">{p.username}</span>
                                         </div>
                                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pScore >= 80 ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400' : pScore >= 50 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                                             {pScore} pts
@@ -304,7 +308,7 @@ export default function skyjowGamePage() {
                                     <div className="flex items-center gap-1.5">
                                         {scores.find(s => s.userId === p.userId)?.afk ? <ClockIcon className="w-3.5 h-3.5 text-gray-400" /> : <NoSymbolIcon className="w-3.5 h-3.5 text-gray-400" />}
 
-                                        <span className="font-semibold text-sm text-white/70 line-through">{p.username}</span>
+                                        <span className="font-semibold text-sm text-gray-500 dark:text-gray-400 line-through">{p.username}</span>
                                     </div>
                                     <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">
                                         {scores.find(s => s.userId === p.userId)?.afk ? 'AFK' : 'Abandon'}
@@ -369,7 +373,7 @@ export default function skyjowGamePage() {
                         <div className="flex items-center gap-8">
                             {/* Pioche */}
                             <div className="flex flex-col items-center gap-2">
-                                <p className="text-xs text-emerald-100 uppercase tracking-wider font-bold">Pioche</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold">Pioche</p>
                                 <button
                                     onClick={drawDeck}
                                     disabled={!isCurrent || drawnCard !== null}
@@ -407,7 +411,7 @@ export default function skyjowGamePage() {
 
                             {/* Défausse */}
                             <div className="flex flex-col items-center gap-2">
-                                <p className="text-xs text-emerald-100 uppercase tracking-wider font-bold">Défausse</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold">Défausse</p>
                                 <button
                                     onClick={takeDiscard}
                                     disabled={!isCurrent || drawnCard !== null || discardTop === null}

@@ -3,6 +3,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useSpyfall } from '@/hooks/useSpyfall';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -18,6 +20,7 @@ import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, EyeSlashIcon, 
 
 export default function SpyfallPage() {
     const { session, status, me, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('spyfall');
     const myElo = useEloUpdate('spyfall', me.userId);
 
     const {
@@ -35,6 +38,7 @@ export default function SpyfallPage() {
         onNotFound: () => setIsNotFound(true),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 
@@ -167,7 +171,7 @@ export default function SpyfallPage() {
     if (roundState === 'ASKING') {
         const isMyTurn = askerId === me.userId;
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
                 {timerBar}
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
@@ -248,7 +252,7 @@ export default function SpyfallPage() {
 
     if (roundState === 'VOTING') {
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
                 {timerBar}
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">
@@ -304,7 +308,7 @@ export default function SpyfallPage() {
 
     if (roundState === 'SPY_GUESS') {
         return (
-            <div className="flex-1 flex flex-col mystery-table text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 {header}
                 {timerBar}
                 <main className="flex-1 p-4 flex flex-col lg:flex-row lg:items-start lg:justify-center gap-4">

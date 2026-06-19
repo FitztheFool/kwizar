@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useCantStop, isBot } from '@/hooks/useCantStop';
 import GameOverModal from '@/components/GameOverModal';
@@ -21,6 +23,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@
 
 export default function CantStopPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('cant_stop');
     const myElo = useEloUpdate('cant-stop', me.userId);
 
     const { state, me: myPlayer, isMyTurn, vsBot, bustedFlash, pickSplit, roll, stop, surrender } = useCantStop({
@@ -31,6 +34,7 @@ export default function CantStopPage() {
         onModalReset: () => setModalDismissed(false),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (!state) return (
@@ -44,7 +48,7 @@ export default function CantStopPage() {
     const isWinner = winner?.userId === me.userId;
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-amber-50">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={
                     <>
@@ -91,11 +95,11 @@ export default function CantStopPage() {
                         const isCurrent = idx === state.currentPlayerIndex;
                         return (
                             <div key={p.userId}
-                                className={`wood-tile px-3 py-1.5 rounded-xl flex items-center gap-2 ${isCurrent && p.alive ? 'ring-2 ring-yellow-400 shadow-yellow-300/30 shadow-lg' : ''} ${!p.alive ? 'opacity-50 grayscale' : ''}`}>
+                                className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm px-3 py-1.5 rounded-xl flex items-center gap-2 ${isCurrent && p.alive ? 'ring-2 ring-blue-500 shadow-blue-400/30 shadow-lg' : ''} ${!p.alive ? 'opacity-50 grayscale' : ''}`}>
                                 <span className="w-4 h-4 rounded-full border-2 shadow" style={{ background: color.bg, borderColor: color.border }} />
-                                <span className="text-sm font-extrabold text-amber-950 drop-shadow-sm">{p.username}</span>
+                                <span className="text-sm font-extrabold text-gray-900 dark:text-white">{p.username}</span>
                                 {isBot(p) && <BotBadge />}
-                                <span className="text-xs font-mono font-bold text-amber-50 bg-amber-900/80 px-1.5 py-0.5 rounded">{p.claimed.length}/{state.options.columnsToWin}</span>
+                                <span className="text-xs font-mono font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded">{p.claimed.length}/{state.options.columnsToWin}</span>
                             </div>
                         );
                     })}
@@ -106,16 +110,16 @@ export default function CantStopPage() {
 
                 {/* Action zone */}
                 {state.phase !== 'ended' && myPlayer?.alive && isMyTurn && (
-                    <div className="wood-tile rounded-2xl px-5 py-4 w-full max-w-xl space-y-3">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-4 w-full max-w-xl space-y-3">
                         {state.phase === 'rolling' && (
                             <>
-                                <h2 className="font-extrabold text-amber-950">Choisissez un split</h2>
+                                <h2 className="font-extrabold text-gray-900 dark:text-white">Choisissez un split</h2>
                                 <SplitChoice dice={state.dice} splits={state.splits} onPick={pickSplit} />
                             </>
                         )}
                         {state.phase === 'choosing' && (
                             <>
-                                <h2 className="font-extrabold text-amber-950">Continuer ou stopper ?</h2>
+                                <h2 className="font-extrabold text-gray-900 dark:text-white">Continuer ou stopper ?</h2>
                                 <div className="flex gap-2">
                                     <button onClick={roll}
                                         className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-500/30">
@@ -132,12 +136,12 @@ export default function CantStopPage() {
                 )}
 
                 {state.phase !== 'ended' && !isMyTurn && (
-                    <p className="text-sm text-amber-100/80 animate-pulse">Tour de <span className="font-bold">{currentPlayer?.username ?? '…'}</span></p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">Tour de <span className="font-bold text-gray-900 dark:text-white">{currentPlayer?.username ?? '…'}</span></p>
                 )}
 
                 {myPlayer && !myPlayer.alive && state.phase !== 'ended' && (
-                    <div className="wood-tile px-5 py-3 rounded-xl text-sm text-amber-900 inline-flex items-center gap-2">
-                        <ExclamationTriangleIcon className="w-4 h-4 text-amber-700" />
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm px-5 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 inline-flex items-center gap-2">
+                        <ExclamationTriangleIcon className="w-4 h-4 text-amber-500" />
                         Vous êtes éliminé — observez la fin de la partie.
                     </div>
                 )}

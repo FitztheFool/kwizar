@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useAbalone, isBot } from '@/hooks/useAbalone';
 import AbaloneBoard from '@/components/Abalone/Board';
@@ -24,6 +26,7 @@ function MarbleDot({ color }: { color: 0 | 1 }) {
 
 export default function AbalonePage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('abalone');
     const myElo = useEloUpdate('abalone', me.userId);
 
     const { players, state, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useAbalone({
@@ -33,6 +36,7 @@ export default function AbalonePage() {
         onNotFound: () => setIsNotFound(true),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 
@@ -63,7 +67,7 @@ export default function AbalonePage() {
     };
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={<><GameIcon gameType="abalone" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Abalone{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
                 center={
@@ -84,7 +88,9 @@ export default function AbalonePage() {
                 />
             )}
 
-            <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-4 min-w-0">
+            <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-4 p-4 min-w-0">
+                {/* Spacer équilibrant la sidebar pour centrer le plateau sur la page (desktop) */}
+                <div className="hidden lg:block lg:w-72 shrink-0" aria-hidden />
                 <div className="flex-1 flex flex-col items-center justify-center gap-4 min-w-0 w-full">
                     {myColorIndex !== null && (
                         <AbaloneBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />

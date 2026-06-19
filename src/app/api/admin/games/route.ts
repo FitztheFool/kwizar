@@ -17,6 +17,7 @@ export async function GET() {
         gameType: g.gameType as string,
         label: g.label,
         mode: g.mode,
+        image: 'image' in g ? (g.image as string) : null,
         // Pas de ligne = activé par défaut.
         enabled: enabledByEnum.get(g.gameType) ?? true,
     }));

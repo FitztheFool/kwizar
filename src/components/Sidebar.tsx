@@ -23,8 +23,8 @@ import {
     UsersIcon,
     ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
-import SidebarSearch from '@/components/Sidebar/SidebarSearch';
 import PinnedQuizzes from '@/components/Sidebar/PinnedQuizzes';
+import SidebarSearch from '@/components/Sidebar/SidebarSearch';
 import { useLobbyCount } from '@/hooks/useLobbyCount';
 import { useMessages } from '@/context/MessagesContext';
 import { useFriends } from '@/context/FriendsContext';
@@ -236,10 +236,12 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="px-2 pt-3 flex-shrink-0">
-                <SidebarSearch collapsed={collapsed} />
-            </div>
+            {/* Search (masquable via le drapeau admin) */}
+            {features.sidebarSearch && (
+                <div className="px-2 pt-3 flex-shrink-0">
+                    <SidebarSearch collapsed={collapsed} />
+                </div>
+            )}
 
             {/* Navigation */}
             <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">

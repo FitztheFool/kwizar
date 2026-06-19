@@ -42,19 +42,29 @@ interface GameCardProps {
 
 export default function GameCard({ gameKey, mode }: GameCardProps) {
     const g = GAME_CONFIG[gameKey as keyof typeof GAME_CONFIG];
+    const image = 'image' in g ? (g.image as string) : null;
     const [lobbyCode] = useState(() => crypto.randomUUID());
 
     return (
         <div
             className={cn(
-                'glass flex flex-col rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5',
+                'glass flex flex-col overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5',
                 MODE_GLOW[mode],
             )}
         >
+            {image && (
+                <Link href={`/leaderboard/${gameKey}`} className="block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={image} alt={g.label} className="h-28 w-full object-cover" draggable={false} />
+                </Link>
+            )}
+            <div className="flex flex-1 flex-col p-4">
             <Link href={`/leaderboard/${gameKey}`} className="block min-w-0 flex-1">
-                <span className={cn('mb-2 block', MODE_ICON[mode])}>
-                    <GameIcon gameType={g.gameType} className="h-8 w-8" />
-                </span>
+                {!image && (
+                    <span className={cn('mb-2 block', MODE_ICON[mode])}>
+                        <GameIcon gameType={g.gameType} className="h-8 w-8" />
+                    </span>
+                )}
                 <h4 className="mb-1 text-sm font-bold text-gray-900 dark:text-white">{g.label}</h4>
                 <div className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{g.description}</div>
             </Link>
@@ -76,6 +86,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
                         </Link>
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

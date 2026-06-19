@@ -6,6 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUnoSocket } from '@/lib/socket';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import EloDeltaList from '@/components/shared/EloDeltaList';
 import TimerBar from '@/components/TimerBar';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -96,6 +98,7 @@ export default function UnoPage() {
         username: session?.user?.username ?? session?.user?.email ?? 'Joueur',
     }), [session]);
     const myElo = useEloUpdate('uno', me.userId);
+    const gameGuard = useGameEnabledGuard('uno');
 
     useEffect(() => {
         if (!socket) return;
@@ -194,14 +197,15 @@ export default function UnoPage() {
         setShowColorPicker(false);
     };
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
 
     // ── Fin de partie ──────────────────────────────────────────────────────────
     if (gameState?.status === 'FINISHED') {
         const scores = gameState.finalScores ?? [];
         return (
-            <div className="flex-1 casino-felt flex items-center justify-center p-4">
-                <div className="casino-tile rounded-2xl p-8 w-full max-w-md text-gray-900 dark:text-white text-center shadow-lg">
+            <div className="flex-1 bg-stone-50 dark:bg-gray-950 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl p-8 w-full max-w-md text-gray-900 dark:text-white text-center shadow-lg">
                     <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 mb-2 mx-auto">
                         <TrophyIcon className="w-8 h-8 text-amber-500 dark:text-amber-400" />
                     </div>
@@ -286,7 +290,7 @@ export default function UnoPage() {
     const isMeInactive = inactivityUserId === me.userId;
 
     return (
-        <div className="h-[calc(100dvh-8.5rem)] casino-felt text-gray-900 dark:text-white flex flex-col select-none overflow-hidden">
+        <div className="h-[calc(100dvh-8.5rem)] bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white flex flex-col select-none overflow-hidden">
 
             {showColorPicker && !gameState.spectator && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
@@ -349,7 +353,7 @@ export default function UnoPage() {
                     const isActive = gameState.players[gameState.currentPlayerIndex]?.userId === p.userId;
                     const isInactive = inactivityUserId === p.userId && inactivitySeconds !== null;
                     return (
-                        <div key={p.userId} className={`casino-tile flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all
+                        <div key={p.userId} className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all
                             ${isActive ? 'ring-2 ring-yellow-400' : ''}
                             ${isInactive ? 'ring-2 ring-orange-400' : ''}`}>
                             <div className="flex items-center gap-1.5">
@@ -382,7 +386,7 @@ export default function UnoPage() {
                     );
                 })}
                 {kickedPlayers.filter(k => k.userId !== me.userId).map(p => (
-                    <div key={p.userId} className="casino-tile flex flex-col items-center gap-1 px-3 py-2 rounded-xl opacity-50">
+                    <div key={p.userId} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col items-center gap-1 px-3 py-2 rounded-xl opacity-50">
                         <span className="text-sm font-semibold line-through text-gray-400">{p.username}</span>
                     </div>
                 ))}
@@ -399,7 +403,7 @@ export default function UnoPage() {
                         <span className="absolute inset-2 rounded-full bg-white/10 -rotate-[20deg]" />
                         <span className="relative z-10 italic tracking-tight">UNO</span>
                     </div>
-                    <span className="text-xs text-amber-100/90 font-semibold">
+                    <span className="text-xs text-gray-600 dark:text-gray-300 font-semibold">
                         {gameState.drawStack > 0 ? `Piocher +${gameState.drawStack}` : 'Piocher'}
                     </span>
                 </div>
@@ -435,9 +439,9 @@ export default function UnoPage() {
 
             {/* Main — masquée pour les spectateurs */}
             {!gameState.spectator && (
-                <div className="casino-tile border-t border-amber-900/30 px-4 py-4 shrink-0">
+                <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-4 shrink-0">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-emerald-100 font-bold">Ma main ({gameState.hand.length} cartes)</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-200 font-bold">Ma main ({gameState.hand.length} cartes)</span>
                         {gameState.hand.length === 1 && (
                             <button onClick={() => socket?.emit('uno:sayUno')}
                                 className="text-xs bg-yellow-400 text-gray-900 px-3 py-1 rounded-full font-bold hover:bg-yellow-300 transition animate-bounce">

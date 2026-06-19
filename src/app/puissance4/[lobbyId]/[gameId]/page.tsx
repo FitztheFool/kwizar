@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { usePuissance4, isBot, PlayerInfo, Cell } from '@/hooks/usePuissance4';
 import GameOverModal from '@/components/GameOverModal';
@@ -50,6 +52,7 @@ function P4PlayerLabel({ player, active, inactivityEndsAt }: { player: PlayerInf
 
 export default function Puissance4Page() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
+    const gameGuard = useGameEnabledGuard('puissance4');
     const myElo = useEloUpdate('puissance4', me.userId);
 
     const { players, gameState, myColorIndex, isMyTurn, vsBot, winSet, inactivityUserId, inactivityEndsAt, drop, surrender } = usePuissance4({
@@ -62,6 +65,7 @@ export default function Puissance4Page() {
 
     const [hoverCol, setHoverCol] = useState<number | null>(null);
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 
@@ -92,7 +96,7 @@ export default function Puissance4Page() {
         .col-hover { animation: pulse-glow 1.5s ease-in-out infinite; }
       `}</style>
 
-            <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+            <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
                 <GamePageHeader
                     left={<><GameIcon gameType="puissance4" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Puissance 4{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
@@ -126,7 +130,9 @@ export default function Puissance4Page() {
                     />
                 )}
 
-                <main className="flex-1 flex flex-col lg:flex-row items-stretch gap-4 p-4">
+                <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-4 p-4">
+                  {/* Spacer équilibrant la sidebar pour centrer le plateau sur la page (desktop) */}
+                  <div className="hidden lg:block lg:w-72 shrink-0" aria-hidden />
                   <div className="flex-1 flex flex-col items-center justify-center gap-6 min-w-0">
                     <div className="relative select-none" onMouseLeave={() => setHoverCol(null)}>
                         {isMyTurn && hoverCol !== null && gameState.grid[0][hoverCol] === null && (

@@ -3,6 +3,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useJustOne } from '@/hooks/useJustOne';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
@@ -52,6 +54,7 @@ function PlayerBadge({ name, submitted, isGuesser, isMe, inactivityEndsAt, kicke
 
 export default function JustOnePage() {
     const { status, router, me: meInfo, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('just_one');
 
     const {
         players,
@@ -96,6 +99,7 @@ export default function JustOnePage() {
 
     const me = meInfo.userId;
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (status !== 'authenticated') return null;
@@ -351,7 +355,7 @@ export default function JustOnePage() {
     };
 
     return (
-        <div className="flex-1 flex flex-col casino-felt text-gray-100">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <GamePageHeader
                 left={<><GameIcon gameType="just_one" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Just One</span></>}

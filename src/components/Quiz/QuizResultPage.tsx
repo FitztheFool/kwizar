@@ -26,22 +26,22 @@ const rankStyle = (i: number) => ({
                 : 'border-orange-400',
     bg:
         i === 0
-            ? 'bg-amber-200/40'
+            ? 'bg-amber-200/40 dark:bg-amber-900/20'
             : i === 1
-                ? 'bg-slate-200/40'
-                : 'bg-orange-200/40',
+                ? 'bg-slate-200/40 dark:bg-slate-700/20'
+                : 'bg-orange-200/40 dark:bg-orange-900/20',
     text:
         i === 0
-            ? 'text-amber-950'
+            ? 'text-amber-950 dark:text-amber-200'
             : i === 1
-                ? 'text-slate-900'
-                : 'text-orange-950',
+                ? 'text-slate-900 dark:text-slate-200'
+                : 'text-orange-950 dark:text-orange-200',
     score:
         i === 0
-            ? 'text-amber-900'
+            ? 'text-amber-900 dark:text-amber-300'
             : i === 1
-                ? 'text-slate-800'
-                : 'text-orange-900',
+                ? 'text-slate-800 dark:text-slate-300'
+                : 'text-orange-900 dark:text-orange-300',
 });
 
 export default function QuizResultPage() {
@@ -106,22 +106,22 @@ export default function QuizResultPage() {
         : leaderboard;
 
     return (
-        <div className="min-h-screen wood-table">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
             <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-                <div className="mb-8 rounded-xl wood-tile p-8 shadow-2xl">
+                <div className="mb-8 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-8 shadow-xl">
                     <div className="mb-6 text-center">
                         <div className="mb-3 flex justify-center"><TrophyIcon className="w-16 h-16 text-amber-500" /></div>
-                        <h1 className="mb-1 text-3xl font-bold text-stone-900">
+                        <h1 className="mb-1 text-3xl font-bold text-gray-900 dark:text-white">
                             Classement final
                         </h1>
-                        <p className="mb-4 text-stone-700">{payload.quizTitle}</p>
-                        <div className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-800/30 bg-stone-900/10 px-5 py-3">
-                            <span className="font-semibold text-stone-700">
+                        <p className="mb-4 text-gray-600 dark:text-gray-400">{payload.quizTitle}</p>
+                        <div className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/20 px-5 py-3">
+                            <span className="font-semibold text-gray-700 dark:text-gray-300">
                                 Ton score
                             </span>
-                            <span className="text-xl font-extrabold text-amber-900">
+                            <span className="text-xl font-extrabold text-amber-700 dark:text-amber-400">
                                 {payload.score}
-                                <span className="text-sm font-medium text-stone-600">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                     {' '}/ {payload.totalPoints} pts
                                 </span>
                             </span>
@@ -157,16 +157,16 @@ export default function QuizResultPage() {
                                     {displayLeaderboard.slice(3).map((entry, i) => (
                                         <div
                                             key={entry.userId}
-                                            className="flex items-center gap-4 rounded-xl border border-amber-800/20 bg-stone-900/5 px-4 py-3"
+                                            className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3"
                                         >
-                                            <span className="w-10 text-center font-bold text-stone-600">
+                                            <span className="w-10 text-center font-bold text-gray-500 dark:text-gray-400">
                                                 {i + 4}
                                             </span>
-                                            <span className="flex-1 font-medium text-stone-800">
+                                            <span className="flex-1 font-medium text-gray-800 dark:text-gray-200">
                                                 {entry.username}
                                                 {entry.userId === session?.user?.id && <MeTag />}
                                             </span>
-                                            <span className="font-bold text-stone-700">
+                                            <span className="font-bold text-gray-700 dark:text-gray-300">
                                                 {entry.totalScore} pts
                                             </span>
                                         </div>

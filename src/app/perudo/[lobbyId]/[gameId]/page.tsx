@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { usePerudo, isBot } from '@/hooks/usePerudo';
 import GameOverModal from '@/components/GameOverModal';
@@ -24,6 +26,7 @@ import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@
 
 export default function PerudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('perudo');
     const myElo = useEloUpdate('perudo', me.userId);
 
     const {
@@ -37,6 +40,7 @@ export default function PerudoPage() {
         onNotFound: () => setIsNotFound(true),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
     if (!state) return (
@@ -100,7 +104,7 @@ export default function PerudoPage() {
     })();
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={
                     <>
@@ -141,7 +145,7 @@ export default function PerudoPage() {
 
             <main className="flex-1 flex flex-col lg:flex-row gap-4 p-3 md:p-6">
               <div className="flex-1 flex flex-col items-center gap-4 min-w-0">
-                {/* Opponents — wood-tile cards */}
+                {/* Adversaires */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 w-full max-w-5xl">
                     {state.players
                         .map((p, idx) => ({ p, idx }))
@@ -152,7 +156,7 @@ export default function PerudoPage() {
                             return (
                                 <div
                                     key={p.userId}
-                                    className={`wood-tile rounded-xl px-3 py-2.5 transition-all
+                                    className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl px-3 py-2.5 transition-all
                                         ${!p.alive ? 'opacity-40 grayscale' : ''}
                                         ${isCurrent && p.alive ? 'ring-4 ring-yellow-300/80 shadow-yellow-200/40' : ''}`}
                                 >
@@ -183,7 +187,7 @@ export default function PerudoPage() {
 
                 {/* Last bid — center plaque (hidden during reveal — recap shows full info) */}
                 {state.lastBid && state.phase !== 'reveal' && (
-                    <div className="wood-tile rounded-2xl px-5 py-3 flex items-center gap-3">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-3 flex items-center gap-3">
                         <span className="text-[10px] uppercase tracking-widest text-gray-700 font-bold">Annonce</span>
                         <span className="font-mono text-lg font-black text-gray-900">{state.lastBid.count}</span>
                         <span className="text-gray-600">×</span>
@@ -198,7 +202,7 @@ export default function PerudoPage() {
                         const myIdx = state.players.findIndex(pp => pp.userId === me.userId);
                         const myColor = myIdx >= 0 ? colorForIndex(myIdx) : colorForIndex(0);
                         return (
-                            <div className="wood-tile rounded-2xl px-5 py-4">
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <h2 className={`font-extrabold text-lg ${myColor.text}`}>Mon gobelet</h2>
                                     {inactivityUserId === me.userId && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
@@ -213,7 +217,7 @@ export default function PerudoPage() {
                     })()}
 
                     {myPlayer && !myPlayer.alive && state.phase !== 'ended' && (
-                        <div className="wood-tile rounded-2xl px-5 py-4 text-sm text-gray-700 inline-flex items-center gap-2">
+                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-4 text-sm text-gray-700 inline-flex items-center gap-2">
                             <ExclamationTriangleIcon className="w-4 h-4 text-amber-700" />
                             Vous êtes éliminé — observez la fin de la partie.
                         </div>
@@ -221,7 +225,7 @@ export default function PerudoPage() {
 
                     {/* Faites votre proposition */}
                     {state.phase === 'bidding' && myPlayer?.alive && (
-                        <div className="wood-tile rounded-2xl px-5 py-4">
+                        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-5 py-4">
                             <h2 className="font-extrabold text-lg text-gray-900 mb-3">Faites votre proposition</h2>
                             <BidInput
                                 lastBid={state.lastBid}

@@ -12,14 +12,14 @@ export interface GameLogEntry {
 }
 
 const TONE_STYLE: Record<LogTone, string> = {
-    move: 'text-sky-200',
-    attack: 'text-red-300 font-semibold',
-    defend: 'text-emerald-200',
-    safety: 'text-amber-200 font-semibold',
-    coup: 'text-purple-200 font-bold',
-    score: 'text-amber-200 font-semibold',
-    turn: 'text-gray-300',
-    system: 'text-gray-400 italic',
+    move: 'text-sky-700 dark:text-sky-200',
+    attack: 'text-red-600 dark:text-red-300 font-semibold',
+    defend: 'text-emerald-700 dark:text-emerald-200',
+    safety: 'text-amber-700 dark:text-amber-200 font-semibold',
+    coup: 'text-purple-700 dark:text-purple-200 font-bold',
+    score: 'text-amber-700 dark:text-amber-200 font-semibold',
+    turn: 'text-gray-600 dark:text-gray-300',
+    system: 'text-gray-500 dark:text-gray-400 italic',
 };
 
 const TONE_ICON: Partial<Record<LogTone, string>> = {
@@ -59,20 +59,20 @@ export default function GameLog({ entries, title = 'Journal', className = '' }: 
     }, [entries, open]);
 
     return (
-        <div className={`bg-black/30 backdrop-blur rounded-2xl px-4 py-3 w-full ${className}`}>
+        <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl px-4 py-3 w-full ${className}`}>
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="w-full flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-300 font-bold hover:text-white transition-colors"
+                className="w-full flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold hover:text-gray-900 dark:hover:text-white transition-colors"
             >
                 <span>{title}</span>
                 <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${open ? '' : '-rotate-90'}`} />
             </button>
             {open && (
                 <div ref={scrollRef} className="mt-1.5 max-h-28 lg:max-h-[70vh] overflow-y-auto space-y-0.5 text-xs leading-snug pr-1">
-                    {entries.length === 0 && <p className="text-gray-300/70 italic">La partie commence…</p>}
+                    {entries.length === 0 && <p className="text-gray-400 dark:text-gray-500 italic">La partie commence…</p>}
                     {entries.map(e => (
-                        <p key={e.id} className={TONE_STYLE[e.tone] ?? 'text-gray-300'}>
+                        <p key={e.id} className={TONE_STYLE[e.tone] ?? 'text-gray-600 dark:text-gray-300'}>
                             {TONE_ICON[e.tone] ?? ''}{e.text}
                         </p>
                     ))}

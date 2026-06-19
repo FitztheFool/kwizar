@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useDuel } from '@/hooks/useDuel';
-import { isEmoji, DuelItem } from '@/lib/duel/categories';
+import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/categories';
 import { ArrowLeftIcon, TrophyIcon } from '@heroicons/react/24/solid';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 /** Visuel d'un item : image web, emoji, ou repli sur le nom si l'image casse.
  *  `thumb` = petite vignette (podium) : remplit le parent, image rognée. */
@@ -28,36 +29,131 @@ function ItemVisual({ item, big, thumb }: { item: DuelItem; big?: boolean; thumb
     );
 }
 
+/** Carte de catégorie façon TierMaker : image plein cadre + bandeau-titre noir en bas. */
+function CategoryCard({ category, matchedItems, onClick }: {
+    category: DuelCategory;
+    matchedItems: string[];
+    onClick: () => void;
+}) {
+    const [broken, setBroken] = useState(false);
+    const src = categoryImage(category);
+    return (
+        <button
+            onClick={onClick}
+            className="group relative aspect-[4/3] overflow-hidden rounded-md bg-zinc-800 ring-1 ring-white/5 transition-all hover:ring-2 hover:ring-amber-400 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            title={category.title}
+        >
+            {src && !broken ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt={category.title} onError={() => setBroken(true)}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy" />
+            ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-zinc-700 to-zinc-900">
+                    {category.emoji}
+                </div>
+            )}
+
+            {/* Bandeau-titre noir en bas, comme TierMaker */}
+            <div className="absolute inset-x-0 bottom-0 bg-black/85 px-2 py-2 text-center">
+                <div className="text-sm font-bold text-white leading-tight truncate">{category.title}</div>
+                {matchedItems.length > 0 ? (
+                    <div className="text-[10px] text-amber-400 truncate" title={matchedItems.join(', ')}>
+                        ✓ {matchedItems.slice(0, 3).join(', ')}{matchedItems.length > 3 ? `, +${matchedItems.length - 3}` : ''}
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-gray-400">{category.items.length} items</div>
+                )}
+            </div>
+        </button>
+    );
+}
+
 export default function DuelPage() {
     const { phase, categories, category, start, choose, reset, podium, currentMatch, roundLabel } = useDuel();
+    const [query, setQuery] = useState('');
+
+    // Recherche : on garde une catégorie si son titre OU l'un de ses items correspond.
+    // Pour chaque résultat, on retient les items qui matchent (affichés en aperçu).
+    const q = query.trim().toLowerCase();
+    const filtered = useMemo(() => {
+        if (!q) return categories.map(c => ({ category: c, matchedItems: [] as string[] }));
+        return categories
+            .map(c => {
+                const titleMatch = c.title.toLowerCase().includes(q);
+                const matchedItems = c.items.filter(i => i.name.toLowerCase().includes(q)).map(i => i.name);
+                return { category: c, matchedItems, keep: titleMatch || matchedItems.length > 0 };
+            })
+            .filter(r => r.keep)
+            .map(({ category, matchedItems }) => ({ category, matchedItems }));
+    }, [categories, q]);
+
+    // Phase « catégorie » : page sombre type TierMaker, pleine largeur.
+    if (phase === 'category') {
+        return (
+            <div className="min-h-screen bg-zinc-900 text-white px-4 sm:px-8 py-8">
+                <div className="mx-auto max-w-6xl">
+                    <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-6">
+                        <ArrowLeftIcon className="w-4 h-4" /> Accueil
+                    </Link>
+
+                    {/* Titre type « Create a Tier List for Anything » */}
+                    <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3">Crée un Duel sur n&apos;importe quoi</h1>
+                    <p className="text-gray-400 max-w-2xl mb-8">
+                        Choisis une catégorie, puis élimine à chaque duel l&apos;item que tu préfères le moins
+                        jusqu&apos;à désigner ton favori.
+                    </p>
+
+                    {/* Recherche : par nom de catégorie ou par item (ex. « Pikachu ») */}
+                    <div className="relative max-w-xl mb-8">
+                        <MagnifyingGlassIcon className="absolute inset-y-0 left-3 my-auto w-5 h-5 text-gray-400 pointer-events-none" />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            placeholder="Rechercher une catégorie ou un item…"
+                            className="w-full pl-10 pr-10 py-3 text-sm rounded-lg border border-white/10 bg-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        />
+                        {query && (
+                            <button
+                                type="button"
+                                onClick={() => setQuery('')}
+                                className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white"
+                                title="Effacer"
+                            >
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+
+                    <h2 className="text-lg font-bold mb-4">
+                        Catégories <span className="text-gray-500 font-normal text-sm">· {filtered.length}</span>
+                    </h2>
+
+                    {filtered.length === 0 ? (
+                        <p className="py-16 text-sm text-center text-gray-500">
+                            Aucune catégorie ne correspond à « {query} ».
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            {filtered.map(({ category: c, matchedItems }) => (
+                                <CategoryCard key={c.id} category={c} matchedItems={matchedItems} onClick={() => start(c)} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-transparent flex flex-col items-center px-4 py-6">
             {/* En-tête */}
             <div className="w-full max-w-3xl flex items-center justify-between mb-5">
-                {phase === 'category'
-                    ? <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"><ArrowLeftIcon className="w-4 h-4" /> Accueil</Link>
-                    : <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"><ArrowLeftIcon className="w-4 h-4" /> Catégories</button>}
+                <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"><ArrowLeftIcon className="w-4 h-4" /> Catégories</button>
                 <h1 className="font-black text-lg tracking-tight">Duel</h1>
                 <span className="w-16" />
             </div>
-
-            {/* Choix de catégorie */}
-            {phase === 'category' && (
-                <div className="w-full max-w-3xl">
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">Choisis une catégorie, puis élimine à chaque duel celui que tu préfères le moins.</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {categories.map(c => (
-                            <button key={c.id} onClick={() => start(c)}
-                                className="group rounded-2xl border border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-4 text-center hover:border-amber-400 hover:-translate-y-0.5 transition-all">
-                                <div className="text-4xl mb-2">{c.emoji}</div>
-                                <div className="font-bold text-sm">{c.title}</div>
-                                <div className="text-[11px] text-gray-400 mt-1">{c.items.length} items</div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {/* Duel */}
             {phase === 'duel' && currentMatch && category && (

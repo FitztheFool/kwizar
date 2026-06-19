@@ -314,7 +314,7 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
             {isPendingForMyTeam && (
                 <div className="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-sm">
                     <p className="text-orange-400 font-semibold mb-1">Changement de mot demandé.</p>
-                    <p className="text-xs text-white/40 mb-3">
+                    <p className="text-xs text-gray-500 dark:text-white/40 mb-3">
                         {pending.approvals.length}/{game.players.filter(p => p.team === myTeam).length} approbation(s)
                     </p>
                     {iHaveApproved ? (
@@ -326,7 +326,7 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
                         </button>
                     )}
                     <button onClick={handleCancel}
-                        className="ml-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 text-xs transition-colors">
+                        className="ml-2 px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-600 dark:text-white/60 text-xs transition-colors">
                         Annuler
                     </button>
                 </div>
@@ -337,7 +337,7 @@ export function TrapPhase({ game, myId, myTeam, lobbyId, socketRef }: TrapPhaseP
                 <div className="mb-4">
                     <button
                         onClick={handleRequestChange}
-                        className="text-xs text-white/30 hover:text-white/60 underline underline-offset-2 transition-colors"
+                        className="text-xs text-gray-400 dark:text-white/30 hover:text-gray-700 dark:hover:text-white/60 underline underline-offset-2 transition-colors"
                     >
                         Changer de mot ({changesLeft} restant{changesLeft > 1 ? 's' : ''})
                     </button>
@@ -398,8 +398,8 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
     const borderClass = ownerUsername && colors
         ? `${colors.border} ${colors.bg}`
         : isMe && value
-            ? 'border-orange-500/40 bg-orange-500/5'
-            : 'border-white/10 bg-white/5';
+            ? 'border-orange-500/40 bg-orange-50 dark:bg-orange-500/5'
+            : 'border-gray-200 dark:border-white/10 bg-white dark:bg-white/5';
 
     return (
         <div className="relative">
@@ -408,9 +408,9 @@ function TrapSlotInput({ index, value, ownerInfo, onChange }: {
                 onChange={e => onChange(index, e.target.value)}
                 placeholder={`Mot piégé ${index + 1}`}
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm pr-24 font-semibold
-                    focus:outline-none placeholder:text-white/30 placeholder:font-normal transition-colors duration-150
+                    focus:outline-none placeholder:text-gray-400 dark:placeholder:text-white/30 placeholder:font-normal transition-colors duration-150
                     ${borderClass}
-                    ${(ownerUsername || (isMe && value)) ? 'text-white/90' : 'text-white focus:border-orange-400/70'}`}
+                    ${(ownerUsername || (isMe && value)) ? 'text-gray-900 dark:text-white/90' : 'text-gray-900 dark:text-white focus:border-orange-400/70'}`}
             />
             {ownerUsername && colors && (
                 <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { CheckIcon, UserPlusIcon, ClockIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useFriends } from '@/context/FriendsContext';
 import { useMessages } from '@/context/MessagesContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import type { Relationship } from '@/lib/friends';
 
 type Rel = Relationship | 'loading';
@@ -25,6 +26,7 @@ export default function FriendButton({
     const { data: session } = useSession();
     const { refresh } = useFriends();
     const { openThread } = useMessages();
+    const { friends: friendsEnabled, messages: messagesEnabled } = useFeatureFlags();
     const [rel, setRel] = useState<Rel>('loading');
     const [friendshipId, setFriendshipId] = useState<string | null>(null);
     const [targetId, setTargetId] = useState<string | null>(null);
@@ -105,6 +107,13 @@ export default function FriendButton({
         'text-xs font-semibold rounded-lg px-3 py-1.5 transition shrink-0 flex items-center gap-1 disabled:opacity-50 ' +
         className;
 
+    // Social entièrement désactivé pour ce viewer → aucun bouton.
+    if (!friendsEnabled && !messagesEnabled) return null;
+
+    // Amis désactivés : on ne montre les actions d'amitié que si on est déjà amis
+    // (et seulement le bouton Message, si la messagerie est active).
+    if (!friendsEnabled && rel !== 'friends') return null;
+
     if (rel === 'none') {
         return (
             <button onClick={send} disabled={busy} className={base + ' bg-primary-600 hover:bg-primary-700 text-white'}>
@@ -137,7 +146,7 @@ export default function FriendButton({
     // friends
     return (
         <div className="flex items-center gap-2">
-            {targetId && (
+            {targetId && messagesEnabled && (
                 <button
                     onClick={() => openThread(targetId)}
                     title="Envoyer un message"
@@ -147,15 +156,17 @@ export default function FriendButton({
                     Message
                 </button>
             )}
-            <button
-                onClick={cancelOrRemove}
-                disabled={busy}
-                title="Retirer cet ami"
-                className={base + ' border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:hover:bg-red-900/20'}
-            >
-                <CheckIcon className="w-3.5 h-3.5" />
-                Amis
-            </button>
+            {friendsEnabled && (
+                <button
+                    onClick={cancelOrRemove}
+                    disabled={busy}
+                    title="Retirer cet ami"
+                    className={base + ' border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:hover:bg-red-900/20'}
+                >
+                    <CheckIcon className="w-3.5 h-3.5" />
+                    Amis
+                </button>
+            )}
         </div>
     );
 }

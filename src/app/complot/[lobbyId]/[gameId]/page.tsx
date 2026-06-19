@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { useGamePage } from '@/hooks/useGamePage';
+import { useGameEnabledGuard } from '@/hooks/useGameEnabledGuard';
+import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { useComplot } from '@/hooks/useComplot';
 import ComplotBoard from '@/components/Complot/Board';
@@ -21,12 +23,14 @@ const PCOLOR = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#0891b2'
 
 export default function ComplotPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
+    const gameGuard = useGameEnabledGuard('complot');
     const myElo = useEloUpdate('complot', me.userId);
 
     const { state, players, myIndex, inactivityUserId, inactivityEndsAt, action, passReact, challenge, block, challengeBlock, lose, exchange, surrender } = useComplot({
         lobbyId, userId: me.userId, onNotFound: () => setIsNotFound(true),
     });
 
+    if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (isNotFound) notFound();
 
@@ -41,7 +45,7 @@ export default function ComplotPage() {
     const ranking = [...players].sort((a, b) => (b.alive ? 1 : 0) - (a.alive ? 1 : 0) || b.influence - a.influence);
 
     return (
-        <div className="flex-1 flex flex-col wood-table text-gray-900 dark:text-white">
+        <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={<><GameIcon gameType="complot" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Complot</span></>}
                 center={<div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60vw]">

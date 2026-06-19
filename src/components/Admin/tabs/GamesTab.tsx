@@ -9,6 +9,7 @@ interface AdminGame {
     gameType: string;
     label: string;
     mode: 'solo' | 'both' | 'multi';
+    image: string | null;
     enabled: boolean;
 }
 
@@ -217,6 +218,10 @@ export default function GamesTab() {
                                         {game.enabled
                                             ? <CheckCircleIcon className="w-5 h-5 text-green-500 shrink-0" />
                                             : <NoSymbolIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />}
+                                        {game.image && (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={game.image} alt="" className={`w-8 h-8 rounded object-cover shrink-0 border border-gray-200 dark:border-gray-700 ${game.enabled ? '' : 'grayscale opacity-60'}`} draggable={false} />
+                                        )}
                                         <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
                                             {game.label}
                                         </span>

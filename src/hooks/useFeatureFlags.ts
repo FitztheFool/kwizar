@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 export interface FeatureFlags {
     friends: boolean;
     messages: boolean;
+    sidebarSearch: boolean;
 }
 
-const DEFAULTS: FeatureFlags = { friends: true, messages: true };
+const DEFAULTS: FeatureFlags = { friends: true, messages: true, sidebarSearch: true };
 
 // Drapeaux globaux mémorisés entre montages.
 let cached: FeatureFlags | null = null;
@@ -20,7 +21,7 @@ function load() {
     fetch('/api/settings/features')
         .then(r => r.ok ? r.json() : DEFAULTS)
         .then((d: Partial<FeatureFlags>) => {
-            cached = { friends: d?.friends !== false, messages: d?.messages !== false };
+            cached = { friends: d?.friends !== false, messages: d?.messages !== false, sidebarSearch: d?.sidebarSearch !== false };
             listeners.forEach(l => l(cached!));
         })
         .catch(() => { cached = DEFAULTS; listeners.forEach(l => l(DEFAULTS)); });
