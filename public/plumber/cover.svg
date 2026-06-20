@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <rect width="800" height="450" fill="url(#glow)"/>
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.55">
+    <ellipse cx="160" cy="90" rx="46" ry="22"/><ellipse cx="200" cy="82" rx="34" ry="18"/>
+    <ellipse cx="640" cy="120" rx="46" ry="22"/><ellipse cx="600" cy="112" rx="30" ry="16"/>
+  </g>
+  <!-- coins -->
+  <g fill="#fde047" stroke="#ca8a04" stroke-width="3">
+    <circle cx="300" cy="170" r="18"/><circle cx="360" cy="150" r="18"/><circle cx="420" cy="170" r="18"/>
+  </g>
+  <!-- brick blocks -->
+  <g fill="#b45309" stroke="#78350f" stroke-width="3">
+    <rect x="280" y="220" width="60" height="60"/>
+    <rect x="340" y="220" width="60" height="60"/>
+    <rect x="400" y="220" width="60" height="60"/>
+  </g>
+  <text x="370" y="263" font-size="40" font-weight="900" fill="#fef3c7" text-anchor="middle" font-family="system-ui, sans-serif">?</text>
+  <!-- pipe -->
+  <g fill="#16a34a" stroke="#15803d" stroke-width="4">
+    <rect x="540" y="260" width="70" height="120"/>
+    <rect x="528" y="250" width="94" height="34" rx="6"/>
+  </g>
+  <rect x="0" y="380" width="800" height="70" fill="#854d0e"/>
+  <g transform="translate(400 345)" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+    <text font-size="44" font-weight="800" fill="#ffffff" letter-spacing="4">PLUMBER</text>
+  </g>
+</svg>

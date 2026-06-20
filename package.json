@@ -16,7 +16,7 @@
     "postinstall": "prisma generate",
     "kill:port": "fuser -k 3000/tcp",
     "db:deploy": "DATABASE_URL=\"$(node -e \"console.log((process.env.DATABASE_URL||'').replace('-pooler',''))\")\" prisma migrate deploy",
-    "build": "prisma generate && next build"
+    "build": "prisma generate && DATABASE_URL=\"$(node -e \"console.log((process.env.DATABASE_URL||'').replace('-pooler',''))\")\" prisma migrate deploy && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

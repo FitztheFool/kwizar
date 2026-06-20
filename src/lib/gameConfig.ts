@@ -158,6 +158,7 @@ export const GAME_CONFIG = {
         bot: true,
         label: 'Mille Bornes',
         mode: 'both' as const,
+        image: '/atlantide/board/atlantide.png',
         higherIsBetter: true,
         scoreLabel: 'Victoires',
         description: "La course automobile en cartes, pleine de coups bas. Avale les kilomètres, attaque tes rivaux et dégaine la botte au bon moment.",
@@ -203,6 +204,7 @@ export const GAME_CONFIG = {
     snake: {
         gameType: 'SNAKE' as const,
         label: 'Snake',
+        image: '/snake/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -214,6 +216,7 @@ export const GAME_CONFIG = {
     pacman: {
         gameType: 'PACMAN' as const,
         label: 'Pac-Man',
+        image: '/pacman/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -225,6 +228,7 @@ export const GAME_CONFIG = {
     breakout: {
         gameType: 'BREAKOUT' as const,
         label: 'Casse-brique',
+        image: '/breakout/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -236,6 +240,7 @@ export const GAME_CONFIG = {
     tetris: {
         gameType: 'TETRIS' as const,
         label: 'Tetris',
+        image: '/tetris/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -247,6 +252,7 @@ export const GAME_CONFIG = {
     sutom: {
         gameType: 'SUTOM' as const,
         label: 'Sutom',
+        image: '/sutom/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -258,6 +264,7 @@ export const GAME_CONFIG = {
     space_invaders: {
         gameType: 'SPACE_INVADERS' as const,
         label: 'Space Invaders',
+        image: '/space-invaders/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -269,6 +276,7 @@ export const GAME_CONFIG = {
     '2048': {
         gameType: 'GAME_2048' as const,
         label: '2048',
+        image: '/2048/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -280,6 +288,7 @@ export const GAME_CONFIG = {
     flappy_bird: {
         gameType: 'FLAPPY_BIRD' as const,
         label: 'Flappy Bird',
+        image: '/flappy-bird/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -291,6 +300,7 @@ export const GAME_CONFIG = {
     plumber: {
         gameType: 'PLUMBER' as const,
         label: 'Plumber',
+        image: '/plumber/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
@@ -380,6 +390,7 @@ export const GAME_CONFIG = {
     match3: {
         gameType: 'MATCH3' as const,
         label: 'Aligne-3',
+        image: '/match3/cover.svg',
         mode: 'solo' as const,
         higherIsBetter: true,
         scoreLabel: 'Meilleur score',
