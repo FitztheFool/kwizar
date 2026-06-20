@@ -9,7 +9,7 @@ export async function GET() {
     const guard = await requireAdmin();
     if (guard.error) return guard.error;
 
-    const rows = await prisma.gameSetting.findMany({ select: { gameType: true, enabled: true, imageUrl: true } });
+    const rows = await prisma.gameSetting.findMany({ select: { gameType: true, enabled: true, imageUrl: true, label: true } });
     const byEnum = new Map(rows.map(r => [r.gameType as string, r]));
 
     const games = Object.entries(GAME_CONFIG).map(([key, g]) => {
@@ -18,7 +18,11 @@ export async function GET() {
         return {
             key,
             gameType: g.gameType as string,
-            label: g.label,
+            // Nom effectif : override admin sinon défaut config.
+            label: row?.label ?? g.label,
+            defaultLabel: g.label,
+            // Vrai si un nom custom a été défini en base.
+            hasCustomLabel: !!row?.label,
             mode: g.mode,
             defaultImage,
             // Image effective : override admin sinon défaut config.
@@ -38,20 +42,21 @@ export async function PATCH(req: NextRequest) {
     const guard = await requireAdmin();
     if (guard.error) return guard.error;
 
-    let body: { key?: string; enabled?: boolean; imageUrl?: string | null };
+    let body: { key?: string; enabled?: boolean; imageUrl?: string | null; label?: string | null };
     try {
         body = await req.json();
     } catch {
         return NextResponse.json({ error: 'Corps invalide' }, { status: 400 });
     }
 
-    const { key, enabled, imageUrl } = body;
+    const { key, enabled, imageUrl, label } = body;
     if (typeof key !== 'string') {
         return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 });
     }
     const hasEnabled = typeof enabled === 'boolean';
     const hasImage = imageUrl !== undefined; // null = réinitialiser à l'image par défaut
-    if (!hasEnabled && !hasImage) {
+    const hasLabel = label !== undefined; // null/"" = réinitialiser au nom par défaut
+    if (!hasEnabled && !hasImage && !hasLabel) {
         return NextResponse.json({ error: 'Rien à modifier' }, { status: 400 });
     }
 
@@ -60,14 +65,17 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Jeu inconnu' }, { status: 404 });
     }
 
-    const update: { enabled?: boolean; imageUrl?: string | null } = {};
+    const cleanLabel = hasLabel ? (label?.trim() || null) : undefined;
+
+    const update: { enabled?: boolean; imageUrl?: string | null; label?: string | null } = {};
     if (hasEnabled) update.enabled = enabled;
     if (hasImage) update.imageUrl = imageUrl || null;
+    if (hasLabel) update.label = cleanLabel ?? null;
 
     await prisma.gameSetting.upsert({
         where: { gameType: enumValue as never },
         update,
-        create: { gameType: enumValue as never, enabled: enabled ?? true, imageUrl: imageUrl || null },
+        create: { gameType: enumValue as never, enabled: enabled ?? true, imageUrl: imageUrl || null, label: cleanLabel ?? null },
     });
 
     return NextResponse.json({ ok: true, key, ...update });

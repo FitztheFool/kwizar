@@ -1,3 +1,5 @@
+import { NONAME } from "dns";
+
 export const GAME_CONFIG = {
     uno: {
         gameType: 'UNO' as const,
@@ -158,7 +160,6 @@ export const GAME_CONFIG = {
         bot: true,
         label: 'Mille Bornes',
         mode: 'both' as const,
-        image: '/atlantide/board/atlantide.png',
         higherIsBetter: true,
         scoreLabel: 'Victoires',
         description: "La course automobile en cartes, pleine de coups bas. Avale les kilomètres, attaque tes rivaux et dégaine la botte au bon moment.",

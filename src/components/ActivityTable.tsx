@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 import { GAME_COLOR } from '@/lib/gameColor';
 import PlayerButton from '@/components/PlayerButton';
 import GameIcon from '@/components/GameIcon';
@@ -73,6 +73,7 @@ export default function ActivityTable({
     showQuiz = true,
     onDelete,
 }: ActivityTableProps) {
+    const { labelOf } = useGameLabels();
     const isUser = variant === 'user';
 
     const headers = isUser
@@ -120,7 +121,7 @@ export default function ActivityTable({
                                             }`}
                                     >
                                         <GameIcon gameType={row.gameType} className="w-3 h-3 inline mr-1" />
-                                        {GAME_LABEL_MAP[row.gameType] ?? row.gameType}
+                                        {labelOf(row.gameType)}
                                     </span>
                                 </td>
 

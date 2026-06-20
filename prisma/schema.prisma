@@ -349,6 +349,7 @@ model GameSetting {
   gameType  GameType @id
   enabled   Boolean  @default(true)
   imageUrl  String?
+  label     String?
   updatedAt DateTime @updatedAt
 
   @@map("game_settings")

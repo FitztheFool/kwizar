@@ -5,16 +5,18 @@ import { useRouter } from 'next/navigation';
 import { PlayIcon, XMarkIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { useNotifications } from '@/context/NotificationsContext';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 
 export default function Toasts() {
     const { toasts, dismissInvite, dismissToast } = useNotifications();
+    const { labelOf } = useGameLabels();
     const router = useRouter();
     if (toasts.length === 0) return null;
 
     return (
         <div role="status" aria-live="polite" className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 z-[60] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
             {toasts.map(inv => {
-                const game = GAME_LABEL_MAP[inv.gameType] ?? 'une partie';
+                const game = GAME_LABEL_MAP[inv.gameType] ? labelOf(inv.gameType) : 'une partie';
                 const join = () => {
                     dismissInvite(inv.id);
                     router.push(`/lobby/create/${inv.lobbyId}`);

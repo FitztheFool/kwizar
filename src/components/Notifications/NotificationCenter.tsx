@@ -20,6 +20,7 @@ import { useNotifications } from '@/context/NotificationsContext';
 import { useMessages } from '@/context/MessagesContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 
 type IncomingRequest = {
     friendshipId: string;

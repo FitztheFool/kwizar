@@ -1,7 +1,9 @@
 // src/components/LobbyCard.tsx
+'use client';
+
 import { UsersIcon, StarIcon, PlayIcon, CheckIcon } from '@heroicons/react/24/outline';
 import GameIcon from '@/components/GameIcon';
-import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 
 interface LobbyCardProps {
     lobby: {
@@ -20,6 +22,7 @@ interface LobbyCardProps {
 }
 
 export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardProps) {
+    const { labelOf } = useGameLabels();
     const isFull = lobby.currentPlayers >= lobby.maxPlayers;
     const isWaiting = lobby.status === 'waiting';
 
@@ -47,7 +50,7 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
                     </span>
                     <span className="font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded flex items-center gap-1.5">
                         <GameIcon gameType={lobby.gameType} className="w-3.5 h-3.5" />
-                        {GAME_LABEL_MAP[lobby.gameType.toUpperCase()] ?? GAME_LABEL_MAP[lobby.gameType] ?? lobby.gameType}
+                        {labelOf(lobby.gameType)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">

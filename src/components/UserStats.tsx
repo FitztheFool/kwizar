@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Pagination from '@/components/Pagination';
-import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 import GameIcon from '@/components/GameIcon';
 import PlayerModal from '@/components/PlayerModal';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
@@ -27,6 +27,7 @@ interface Props {
 }
 
 export default function UserStats({ username }: Props) {
+    const { labelOf } = useGameLabels();
     const [stats, setStats] = useState<Stats | null>(null);
     const [ranks, setRanks] = useState<Record<string, number>>({});
     const [eloRanks, setEloRanks] = useState<Record<string, number>>({});
@@ -125,7 +126,7 @@ export default function UserStats({ username }: Props) {
                                             )}
                                             <div className="flex items-center gap-1 min-w-0">
                                                 <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0 text-gray-500 dark:text-gray-400" />
-                                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{GAME_LABEL_MAP[type] ?? type}</span>
+                                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{labelOf(type)}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -141,7 +142,7 @@ export default function UserStats({ username }: Props) {
                         <div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Dernière partie</div>
                         <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900 dark:text-white">
                             <GameIcon gameType={lastActivity.gameType} className="w-4 h-4" />
-                            {GAME_LABEL_MAP[lastActivity.gameType] ?? lastActivity.gameType}
+                            {labelOf(lastActivity.gameType)}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {new Date(lastActivity.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {new Date(lastActivity.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}

@@ -48,6 +48,9 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
     const { data: imagesData } = useSWR<{ images: Record<string, string> }>('/api/games/images', fetcher);
     const defaultImage = 'image' in g ? (g.image as string) : null;
     const image = imagesData?.images?.[gameKey] ?? defaultImage;
+    // Nom effectif : override admin sinon défaut config.
+    const { data: labelsData } = useSWR<{ labels: Record<string, string> }>('/api/games/labels', fetcher);
+    const label = labelsData?.labels?.[gameKey] ?? g.label;
     const [lobbyCode] = useState(() => crypto.randomUUID());
 
     return (
@@ -60,7 +63,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
             {image && (
                 <Link href={`/leaderboard/${gameKey}`} className="block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image} alt={g.label} className="h-28 w-full object-cover" draggable={false} />
+                    <img src={image} alt={label} className="h-28 w-full object-cover" draggable={false} />
                 </Link>
             )}
             <div className="flex flex-1 flex-col p-4">
@@ -70,7 +73,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
                         <GameIcon gameType={g.gameType} className="h-8 w-8" />
                     </span>
                 )}
-                <h4 className="mb-1 text-sm font-bold text-gray-900 dark:text-white">{g.label}</h4>
+                <h4 className="mb-1 text-sm font-bold text-gray-900 dark:text-white">{label}</h4>
                 <div className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{g.description}</div>
             </Link>
             <div className="mt-3 flex items-center justify-between border-t border-black/5 pt-3 dark:border-white/10">

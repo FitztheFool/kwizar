@@ -48,6 +48,23 @@ export async function getGameImages(): Promise<Record<string, string>> {
     return out;
 }
 
+/**
+ * Nom effectif de chaque jeu : override admin (base) sinon `label` du GAME_CONFIG.
+ * Indexé à la fois par clé GAME_CONFIG (atlantide) ET par valeur d'enum (ATLANTIDE),
+ * pour que tous les consommateurs puissent résoudre le nom quel que soit l'identifiant.
+ */
+export async function getGameLabels(): Promise<Record<string, string>> {
+    const rows = await prisma.gameSetting.findMany({ select: { gameType: true, label: true } });
+    const overrideByEnum = new Map(rows.filter(r => r.label).map(r => [r.gameType as string, r.label as string]));
+    const out: Record<string, string> = {};
+    for (const [key, g] of Object.entries(GAME_CONFIG)) {
+        const label = overrideByEnum.get(g.gameType) ?? g.label;
+        out[key] = label;
+        out[g.gameType] = label;
+    }
+    return out;
+}
+
 /** Un jeu donné (clé GAME_CONFIG) est-il activé ? */
 export async function isGameEnabled(key: GameKey): Promise<boolean> {
     const enumValue = GAME_ENUM_BY_KEY[key];

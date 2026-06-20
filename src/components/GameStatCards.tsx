@@ -1,7 +1,7 @@
 // src/components/GameStatCards.tsx
 'use client';
 import { useState } from 'react';
-import { GAME_LABEL_MAP } from '@/lib/gameConfig';
+import { useGameLabels } from '@/hooks/useGameLabels';
 import { GAME_COLOR } from '@/lib/gameColor';
 import { plural } from '@/lib/utils';
 import GameIcon from '@/components/GameIcon';
@@ -115,6 +115,7 @@ function getBar(type: string, stat: GameStat): { pct: number; label: string; win
 const PAGE = 4;
 
 export default function GameStatCards({ gameStats, ranks = {}, eloRanks = {}, hideWinRate = false, defaultExpanded = false }: Props) {
+    const { labelOf } = useGameLabels();
     const [visibleCount, setVisibleCount] = useState(() => defaultExpanded ? Infinity : PAGE);
 
     if (Object.keys(gameStats).length === 0) {
@@ -144,7 +145,7 @@ export default function GameStatCards({ gameStats, ranks = {}, eloRanks = {}, hi
                                 <div className="flex items-center gap-1.5 min-w-0">
                                     <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0" />
                                     <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${c.label}`}>
-                                        {GAME_LABEL_MAP[type] ?? type}
+                                        {labelOf(type)}
                                     </span>
                                     {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
                                 </div>

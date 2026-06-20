@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, ArrowUpTrayIcon, PencilSquareIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 interface AdminGame {
     key: string;
     gameType: string;
     label: string;
+    defaultLabel: string;
+    hasCustomLabel: boolean;
     mode: 'solo' | 'both' | 'multi';
     image: string | null;
     defaultImage: string | null;
@@ -47,6 +49,35 @@ export default function GamesTab() {
     useEffect(() => { fetchGames(); }, [fetchGames]);
 
     const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+
+    // Édition du nom : jeu en cours d'édition + valeur saisie.
+    const [editing, setEditing] = useState<{ key: string; value: string } | null>(null);
+    const [savingLabel, setSavingLabel] = useState<string | null>(null);
+
+    // Enregistre le nom (valeur vide ⇒ réinitialise au nom par défaut).
+    const saveLabel = useCallback(async (game: AdminGame, raw: string) => {
+        const value = raw.trim();
+        // Pas de changement par rapport au nom effectif actuel : on ferme simplement.
+        if (value === game.label) { setEditing(null); return; }
+        setSavingLabel(game.key);
+        try {
+            const res = await fetch('/api/admin/games', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: game.key, label: value || null }),
+            });
+            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
+            const effective = value || game.defaultLabel;
+            setGames(prev => prev.map(g => g.key === game.key
+                ? { ...g, label: effective, hasCustomLabel: !!value }
+                : g));
+            setEditing(null);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Erreur réseau');
+        } finally {
+            setSavingLabel(null);
+        }
+    }, []);
 
     const patchGame = useCallback(async (key: string, enabled: boolean) => {
         const res = await fetch('/api/admin/games', {
@@ -287,19 +318,64 @@ export default function GamesTab() {
                                             />
                                         </label>
                                         <div className="flex flex-col min-w-0">
-                                            <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
-                                                {game.label}
-                                            </span>
-                                            {game.hasCustomImage && (
+                                            {editing?.key === game.key ? (
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="text"
+                                                        value={editing.value}
+                                                        autoFocus
+                                                        disabled={savingLabel === game.key}
+                                                        onChange={e => setEditing({ key: game.key, value: e.target.value })}
+                                                        onKeyDown={e => {
+                                                            if (e.key === 'Enter') saveLabel(game, editing.value);
+                                                            if (e.key === 'Escape') setEditing(null);
+                                                        }}
+                                                        placeholder={game.defaultLabel}
+                                                        className="text-sm w-40 max-w-full border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded px-2 py-0.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                    />
+                                                    <button type="button" title="Enregistrer" disabled={savingLabel === game.key} onClick={() => saveLabel(game, editing.value)} className="text-blue-600 hover:text-blue-700 disabled:opacity-50">
+                                                        <CheckIcon className="w-4 h-4" />
+                                                    </button>
+                                                    <button type="button" title="Annuler" onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                                        <XMarkIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
                                                 <button
                                                     type="button"
-                                                    onClick={() => resetImage(game)}
-                                                    disabled={uploadingKey === game.key}
-                                                    className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
+                                                    onClick={() => setEditing({ key: game.key, value: game.hasCustomLabel ? game.label : '' })}
+                                                    title="Renommer"
+                                                    className="group/name flex items-center gap-1 self-start text-left"
                                                 >
-                                                    Réinitialiser l&apos;image
+                                                    <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
+                                                        {game.label}
+                                                    </span>
+                                                    <PencilSquareIcon className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/name:opacity-100 transition-opacity shrink-0" />
                                                 </button>
                                             )}
+                                            <div className="flex items-center gap-2">
+                                                {game.hasCustomLabel && editing?.key !== game.key && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => saveLabel(game, '')}
+                                                        disabled={savingLabel === game.key}
+                                                        className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
+                                                        title={`Revenir à « ${game.defaultLabel} »`}
+                                                    >
+                                                        Réinitialiser le nom
+                                                    </button>
+                                                )}
+                                                {game.hasCustomImage && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => resetImage(game)}
+                                                        disabled={uploadingKey === game.key}
+                                                        className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
+                                                    >
+                                                        Réinitialiser l&apos;image
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <input
