@@ -348,6 +348,7 @@ model WordGroup {
 model GameSetting {
   gameType  GameType @id
   enabled   Boolean  @default(true)
+  imageUrl  String?
   updatedAt DateTime @updatedAt
 
   @@map("game_settings")

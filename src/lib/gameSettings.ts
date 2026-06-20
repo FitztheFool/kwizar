@@ -31,6 +31,23 @@ export async function getEnabledGameKeys(): Promise<Set<GameKey>> {
     return enabled;
 }
 
+/**
+ * Image effective de chaque jeu : override admin (base) sinon `image` du GAME_CONFIG.
+ * Map clé GAME_CONFIG → URL (uniquement les jeux qui ont une image).
+ */
+export async function getGameImages(): Promise<Record<string, string>> {
+    const rows = await prisma.gameSetting.findMany({ select: { gameType: true, imageUrl: true } });
+    const overrideByEnum = new Map(rows.filter(r => r.imageUrl).map(r => [r.gameType as string, r.imageUrl as string]));
+    const out: Record<string, string> = {};
+    for (const [key, g] of Object.entries(GAME_CONFIG)) {
+        const override = overrideByEnum.get(g.gameType);
+        const fallback = 'image' in g ? (g.image as string) : undefined;
+        const url = override ?? fallback;
+        if (url) out[key] = url;
+    }
+    return out;
+}
+
 /** Un jeu donné (clé GAME_CONFIG) est-il activé ? */
 export async function isGameEnabled(key: GameKey): Promise<boolean> {
     const enumValue = GAME_ENUM_BY_KEY[key];

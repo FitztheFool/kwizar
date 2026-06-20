@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 
 interface AdminGame {
     key: string;
@@ -10,6 +10,8 @@ interface AdminGame {
     label: string;
     mode: 'solo' | 'both' | 'multi';
     image: string | null;
+    defaultImage: string | null;
+    hasCustomImage: boolean;
     enabled: boolean;
 }
 
@@ -44,6 +46,8 @@ export default function GamesTab() {
 
     useEffect(() => { fetchGames(); }, [fetchGames]);
 
+    const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+
     const patchGame = useCallback(async (key: string, enabled: boolean) => {
         const res = await fetch('/api/admin/games', {
             method: 'PATCH',
@@ -51,6 +55,48 @@ export default function GamesTab() {
             body: JSON.stringify({ key, enabled }),
         });
         if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur lors de la mise à jour');
+    }, []);
+
+    // Upload d'une image de couverture pour un jeu.
+    const uploadImage = useCallback(async (game: AdminGame, file: File) => {
+        setUploadingKey(game.key);
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const up = await fetch('/api/upload', { method: 'POST', body: fd });
+            if (!up.ok) throw new Error((await up.json())?.error ?? "Échec de l'upload");
+            const { url } = await up.json();
+
+            const res = await fetch('/api/admin/games', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: game.key, imageUrl: url }),
+            });
+            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
+            setGames(prev => prev.map(g => g.key === game.key ? { ...g, image: url, hasCustomImage: true } : g));
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Erreur réseau');
+        } finally {
+            setUploadingKey(null);
+        }
+    }, []);
+
+    // Réinitialise l'image au défaut (retire l'override).
+    const resetImage = useCallback(async (game: AdminGame) => {
+        setUploadingKey(game.key);
+        try {
+            const res = await fetch('/api/admin/games', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: game.key, imageUrl: null }),
+            });
+            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
+            setGames(prev => prev.map(g => g.key === game.key ? { ...g, image: g.defaultImage, hasCustomImage: false } : g));
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Erreur réseau');
+        } finally {
+            setUploadingKey(null);
+        }
     }, []);
 
     const toggle = useCallback(async (game: AdminGame) => {
@@ -218,13 +264,43 @@ export default function GamesTab() {
                                         {game.enabled
                                             ? <CheckCircleIcon className="w-5 h-5 text-green-500 shrink-0" />
                                             : <NoSymbolIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />}
-                                        {game.image && (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={game.image} alt="" className={`w-8 h-8 rounded object-cover shrink-0 border border-gray-200 dark:border-gray-700 ${game.enabled ? '' : 'grayscale opacity-60'}`} draggable={false} />
-                                        )}
-                                        <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
-                                            {game.label}
-                                        </span>
+                                        {/* Vignette cliquable = changer l'image */}
+                                        <label
+                                            title="Changer l'image"
+                                            className={`relative group w-9 h-9 rounded object-cover shrink-0 border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${uploadingKey === game.key ? 'opacity-50' : ''}`}
+                                        >
+                                            {game.image ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={game.image} alt="" className={`w-full h-full object-cover ${game.enabled ? '' : 'grayscale opacity-60'}`} draggable={false} />
+                                            ) : (
+                                                <PhotoIcon className="w-4 h-4 text-gray-400" />
+                                            )}
+                                            <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                <ArrowUpTrayIcon className="w-4 h-4 text-white opacity-0 group-hover:opacity-100" />
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploadingKey === game.key}
+                                                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(game, f); e.target.value = ''; }}
+                                            />
+                                        </label>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
+                                                {game.label}
+                                            </span>
+                                            {game.hasCustomImage && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => resetImage(game)}
+                                                    disabled={uploadingKey === game.key}
+                                                    className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
+                                                >
+                                                    Réinitialiser l&apos;image
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <input
                                         type="checkbox"

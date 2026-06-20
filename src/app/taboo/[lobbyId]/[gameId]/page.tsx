@@ -28,7 +28,7 @@ import { GameLogSidebar } from '@/components/GameLog';
 const TABOO_LEFT = (
     <>
         <GameIcon gameType="taboo" className="shrink-0 w-5 h-5 text-gray-700 dark:text-gray-300" />
-        <span className="hidden sm:block font-bold text-gray-900 dark:text-white truncate">Taboo</span>
+        <span className="hidden sm:block font-bold text-gray-900 dark:text-white truncate">Devinette</span>
     </>
 );
 
@@ -72,7 +72,7 @@ export default function TabooGamePage() {
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (status !== 'authenticated') return null;
     if (!game) return (
-        <GameWaitingScreen gameType="taboo" gameName="Taboo" lobbyId={lobbyId} players={[]} myUserId={myId} />
+        <GameWaitingScreen gameType="taboo" gameName="Devinette" lobbyId={lobbyId} players={[]} myUserId={myId} />
     );
 
     const myTeam = game.teams?.[myId] ?? null;

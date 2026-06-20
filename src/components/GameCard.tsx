@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameIcon from '@/components/GameIcon';
+import { fetcher } from '@/lib/swr';
 import { cn } from '@/lib/cn';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -42,7 +44,10 @@ interface GameCardProps {
 
 export default function GameCard({ gameKey, mode }: GameCardProps) {
     const g = GAME_CONFIG[gameKey as keyof typeof GAME_CONFIG];
-    const image = 'image' in g ? (g.image as string) : null;
+    // Image effective : override admin (base) sinon défaut config. SWR partagé → 1 requête.
+    const { data: imagesData } = useSWR<{ images: Record<string, string> }>('/api/games/images', fetcher);
+    const defaultImage = 'image' in g ? (g.image as string) : null;
+    const image = imagesData?.images?.[gameKey] ?? defaultImage;
     const [lobbyCode] = useState(() => crypto.randomUUID());
 
     return (

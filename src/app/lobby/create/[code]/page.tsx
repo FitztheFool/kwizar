@@ -220,6 +220,15 @@ export default function LobbyCodePage() {
     }, []);
     const isGameEnabled = (key: string) => !enabledGames || enabledGames.has(key);
 
+    // Images effectives des jeux (override admin ou défaut config).
+    const [gameImages, setGameImages] = useState<Record<string, string>>({});
+    useEffect(() => {
+        fetch('/api/games/images')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.images) setGameImages(d.images); })
+            .catch(() => { });
+    }, []);
+
     // Réfs vers des valeurs déclarées plus bas, pour l'effet d'auto-bascule ci-dessous
     // (qui doit rester avec les autres hooks, avant tout return conditionnel).
     const handleGameTypeChangeRef = useRef<(g: GameType) => void>(() => { });
@@ -706,7 +715,12 @@ export default function LobbyCodePage() {
                                                     />
                                                 )}
                                             </span>
-                                            <GameIcon gameType={g.value} className="w-6 h-6" />
+                                            {gameImages[g.value] ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={gameImages[g.value]} alt="" className={`w-10 h-10 rounded-lg object-cover ${disabled ? 'grayscale opacity-50' : ''}`} draggable={false} />
+                                            ) : (
+                                                <GameIcon gameType={g.value} className="w-6 h-6" />
+                                            )}
                                             <span className="leading-tight text-center">{g.label}</span>
                                         </button>
                                         </Fragment>
