@@ -13,6 +13,8 @@ import {
     EyeSlashIcon,
     RectangleGroupIcon,
 } from '@heroicons/react/24/outline';
+import { GAME_CONFIG, GAME_KEY_BY_TYPE, gameIconUrl } from '@/lib/gameConfig';
+import { cn } from '@/lib/cn';
 
 function PacmanIcon({ className }: { className?: string }) {
     return (
@@ -336,7 +338,14 @@ interface Props {
     className?: string;
 }
 
+// `gameType` accepte aussi bien l'enum (UNO, GAME_2048) que la clé GAME_CONFIG (uno, 2048).
 export default function GameIcon({ gameType, className = 'w-5 h-5' }: Props) {
+    const key = GAME_KEY_BY_TYPE[gameType] ?? (gameType in GAME_CONFIG ? gameType : undefined);
+    if (key) {
+        // eslint-disable-next-line @next/next/no-img-element
+        return <img src={gameIconUrl(key)} alt="" className={cn('rounded-md object-cover', className)} draggable={false} />;
+    }
+    // Type inconnu → repli sur l'icône SVG générique.
     const Icon = GAME_ICON_MAP[gameType] ?? RectangleGroupIcon;
     return <Icon className={className} />;
 }

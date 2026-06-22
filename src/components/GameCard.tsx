@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
+import { GAME_CONFIG, gameCoverUrl, type GameMode } from '@/lib/gameConfig';
 import GameIcon from '@/components/GameIcon';
 import { fetcher } from '@/lib/swr';
 import { cn } from '@/lib/cn';
@@ -44,10 +44,9 @@ interface GameCardProps {
 
 export default function GameCard({ gameKey, mode }: GameCardProps) {
     const g = GAME_CONFIG[gameKey as keyof typeof GAME_CONFIG];
-    // Image effective : override admin (base) sinon défaut config. SWR partagé → 1 requête.
-    const { data: imagesData } = useSWR<{ images: Record<string, string> }>('/api/games/images', fetcher);
-    const defaultImage = 'image' in g ? (g.image as string) : null;
-    const image = imagesData?.images?.[gameKey] ?? defaultImage;
+    // Cover effective : override admin (base) sinon défaut public/covers/. SWR partagé → 1 requête.
+    const { data: coversData } = useSWR<{ covers: Record<string, string> }>('/api/games/covers', fetcher);
+    const image = coversData?.covers?.[gameKey] ?? gameCoverUrl(gameKey);
     // Nom effectif : override admin sinon défaut config.
     const { data: labelsData } = useSWR<{ labels: Record<string, string> }>('/api/games/labels', fetcher);
     const label = labelsData?.labels?.[gameKey] ?? g.label;

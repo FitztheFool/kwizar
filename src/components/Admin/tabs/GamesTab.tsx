@@ -2,20 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, ArrowUpTrayIcon, PencilSquareIcon, CheckIcon } from '@heroicons/react/24/outline';
-
-interface AdminGame {
-    key: string;
-    gameType: string;
-    label: string;
-    defaultLabel: string;
-    hasCustomLabel: boolean;
-    mode: 'solo' | 'both' | 'multi';
-    image: string | null;
-    defaultImage: string | null;
-    hasCustomImage: boolean;
-    enabled: boolean;
-}
+import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import GameEditModal, { type AdminGame } from '@/components/Admin/GameEditModal';
 
 const MODE_LABEL: Record<AdminGame['mode'], string> = {
     solo: 'Solo',
@@ -30,6 +18,8 @@ export default function GamesTab() {
     const [loading, setLoading] = useState(true);
     const [savingKey, setSavingKey] = useState<string | null>(null);
     const [savingMode, setSavingMode] = useState<AdminGame['mode'] | null>(null);
+    // Jeu en cours d'édition dans le modal.
+    const [editingGame, setEditingGame] = useState<AdminGame | null>(null);
 
     // Tri : 1) par type (ordre des modes), 2) par nom (asc/desc) + recherche autocomplétée.
     const [typeAsc, setTypeAsc] = useState(true);
@@ -37,7 +27,6 @@ export default function GamesTab() {
     const [search, setSearch] = useState('');
 
     const fetchGames = useCallback(async () => {
-        setLoading(true);
         try {
             const res = await fetch('/api/admin/games', { cache: 'no-store' });
             if (res.ok) setGames((await res.json()).games ?? []);
@@ -48,37 +37,6 @@ export default function GamesTab() {
 
     useEffect(() => { fetchGames(); }, [fetchGames]);
 
-    const [uploadingKey, setUploadingKey] = useState<string | null>(null);
-
-    // Édition du nom : jeu en cours d'édition + valeur saisie.
-    const [editing, setEditing] = useState<{ key: string; value: string } | null>(null);
-    const [savingLabel, setSavingLabel] = useState<string | null>(null);
-
-    // Enregistre le nom (valeur vide ⇒ réinitialise au nom par défaut).
-    const saveLabel = useCallback(async (game: AdminGame, raw: string) => {
-        const value = raw.trim();
-        // Pas de changement par rapport au nom effectif actuel : on ferme simplement.
-        if (value === game.label) { setEditing(null); return; }
-        setSavingLabel(game.key);
-        try {
-            const res = await fetch('/api/admin/games', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: game.key, label: value || null }),
-            });
-            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
-            const effective = value || game.defaultLabel;
-            setGames(prev => prev.map(g => g.key === game.key
-                ? { ...g, label: effective, hasCustomLabel: !!value }
-                : g));
-            setEditing(null);
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Erreur réseau');
-        } finally {
-            setSavingLabel(null);
-        }
-    }, []);
-
     const patchGame = useCallback(async (key: string, enabled: boolean) => {
         const res = await fetch('/api/admin/games', {
             method: 'PATCH',
@@ -86,48 +44,6 @@ export default function GamesTab() {
             body: JSON.stringify({ key, enabled }),
         });
         if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur lors de la mise à jour');
-    }, []);
-
-    // Upload d'une image de couverture pour un jeu.
-    const uploadImage = useCallback(async (game: AdminGame, file: File) => {
-        setUploadingKey(game.key);
-        try {
-            const fd = new FormData();
-            fd.append('file', file);
-            const up = await fetch('/api/upload', { method: 'POST', body: fd });
-            if (!up.ok) throw new Error((await up.json())?.error ?? "Échec de l'upload");
-            const { url } = await up.json();
-
-            const res = await fetch('/api/admin/games', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: game.key, imageUrl: url }),
-            });
-            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
-            setGames(prev => prev.map(g => g.key === game.key ? { ...g, image: url, hasCustomImage: true } : g));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Erreur réseau');
-        } finally {
-            setUploadingKey(null);
-        }
-    }, []);
-
-    // Réinitialise l'image au défaut (retire l'override).
-    const resetImage = useCallback(async (game: AdminGame) => {
-        setUploadingKey(game.key);
-        try {
-            const res = await fetch('/api/admin/games', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: game.key, imageUrl: null }),
-            });
-            if (!res.ok) throw new Error((await res.json())?.error ?? 'Erreur');
-            setGames(prev => prev.map(g => g.key === game.key ? { ...g, image: g.defaultImage, hasCustomImage: false } : g));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Erreur réseau');
-        } finally {
-            setUploadingKey(null);
-        }
     }, []);
 
     const toggle = useCallback(async (game: AdminGame) => {
@@ -295,10 +211,12 @@ export default function GamesTab() {
                                         {game.enabled
                                             ? <CheckCircleIcon className="w-5 h-5 text-green-500 shrink-0" />
                                             : <NoSymbolIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 shrink-0" />}
-                                        {/* Vignette cliquable = changer l'image */}
-                                        <label
-                                            title="Changer l'image"
-                                            className={`relative group w-9 h-9 rounded object-cover shrink-0 border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${uploadingKey === game.key ? 'opacity-50' : ''}`}
+                                        {/* Vignette cliquable → ouvre le modal d'édition. */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingGame(game)}
+                                            title="Modifier ce jeu"
+                                            className="relative group/thumb w-9 h-9 rounded shrink-0 border border-gray-200 dark:border-gray-700 overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-800"
                                         >
                                             {game.image ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
@@ -306,76 +224,26 @@ export default function GamesTab() {
                                             ) : (
                                                 <PhotoIcon className="w-4 h-4 text-gray-400" />
                                             )}
-                                            <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                <ArrowUpTrayIcon className="w-4 h-4 text-white opacity-0 group-hover:opacity-100" />
-                                            </span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                disabled={uploadingKey === game.key}
-                                                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(game, f); e.target.value = ''; }}
-                                            />
-                                        </label>
+                                            <span className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-colors" />
+                                        </button>
                                         <div className="flex flex-col min-w-0">
-                                            {editing?.key === game.key ? (
-                                                <div className="flex items-center gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={editing.value}
-                                                        autoFocus
-                                                        disabled={savingLabel === game.key}
-                                                        onChange={e => setEditing({ key: game.key, value: e.target.value })}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Enter') saveLabel(game, editing.value);
-                                                            if (e.key === 'Escape') setEditing(null);
-                                                        }}
-                                                        placeholder={game.defaultLabel}
-                                                        className="text-sm w-40 max-w-full border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded px-2 py-0.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                                    />
-                                                    <button type="button" title="Enregistrer" disabled={savingLabel === game.key} onClick={() => saveLabel(game, editing.value)} className="text-blue-600 hover:text-blue-700 disabled:opacity-50">
-                                                        <CheckIcon className="w-4 h-4" />
-                                                    </button>
-                                                    <button type="button" title="Annuler" onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                                                        <XMarkIcon className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setEditing({ key: game.key, value: game.hasCustomLabel ? game.label : '' })}
-                                                    title="Renommer"
-                                                    className="group/name flex items-center gap-1 self-start text-left"
-                                                >
-                                                    <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
-                                                        {game.label}
-                                                    </span>
-                                                    <PencilSquareIcon className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/name:opacity-100 transition-opacity shrink-0" />
-                                                </button>
+                                            {/* Nom cliquable → ouvre le modal d'édition. */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingGame(game)}
+                                                title="Modifier ce jeu"
+                                                className="group/name flex items-center gap-1 self-start text-left"
+                                            >
+                                                <span className={`text-sm font-medium truncate ${game.enabled ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
+                                                    {game.label}
+                                                </span>
+                                                <PencilSquareIcon className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/name:opacity-100 transition-opacity shrink-0" />
+                                            </button>
+                                            {(game.hasCustomLabel || game.hasCustomImage) && (
+                                                <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                                                    {[game.hasCustomLabel && 'nom', game.hasCustomImage && 'image'].filter(Boolean).join(' + ')} personnalisé{game.hasCustomLabel && game.hasCustomImage ? 's' : ''}
+                                                </span>
                                             )}
-                                            <div className="flex items-center gap-2">
-                                                {game.hasCustomLabel && editing?.key !== game.key && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => saveLabel(game, '')}
-                                                        disabled={savingLabel === game.key}
-                                                        className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
-                                                        title={`Revenir à « ${game.defaultLabel} »`}
-                                                    >
-                                                        Réinitialiser le nom
-                                                    </button>
-                                                )}
-                                                {game.hasCustomImage && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => resetImage(game)}
-                                                        disabled={uploadingKey === game.key}
-                                                        className="text-[10px] text-gray-400 hover:text-red-500 self-start disabled:opacity-50"
-                                                    >
-                                                        Réinitialiser l&apos;image
-                                                    </button>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
                                     <input
@@ -392,6 +260,14 @@ export default function GamesTab() {
                     </div>
                 );
             })}
+
+            {editingGame && (
+                <GameEditModal
+                    game={editingGame}
+                    onClose={() => setEditingGame(null)}
+                    onSaved={fetchGames}
+                />
+            )}
         </div>
     );
 }

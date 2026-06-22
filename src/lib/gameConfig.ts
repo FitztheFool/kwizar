@@ -409,6 +409,17 @@ export const GAME_LABEL_MAP = Object.fromEntries(
     Object.values(GAME_CONFIG).map(g => [g.gameType, g.label])
 ) as Record<string, string>;
 
+/** Valeur d'enum (gameType, ex. GAME_2048) → clé GAME_CONFIG (2048). */
+export const GAME_KEY_BY_TYPE = Object.fromEntries(
+    Object.entries(GAME_CONFIG).map(([key, g]) => [g.gameType, key]),
+) as Record<string, string>;
+
+/** URL de l'image de couverture d'un jeu — public/covers/<clé>.jpg. */
+export const gameCoverUrl = (key: string): string => `/covers/${key}.jpg`;
+
+/** URL de l'icône d'un jeu — public/icons/<clé>.jpg. */
+export const gameIconUrl = (key: string): string => `/icons/${key}.jpg`;
+
 export const GAME_OPTIONS = Object.entries(GAME_CONFIG).map(([key, g]) => ({
     value: key as GameType,
     label: g.label,

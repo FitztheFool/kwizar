@@ -346,11 +346,17 @@ model WordGroup {
 // Activation/désactivation d'un jeu sur la plateforme (onglet admin « Jeux »).
 // Absence de ligne = jeu activé par défaut.
 model GameSetting {
-  gameType  GameType @id
-  enabled   Boolean  @default(true)
-  imageUrl  String?
-  label     String?
-  updatedAt DateTime @updatedAt
+  gameType   GameType @id
+  enabled    Boolean  @default(true)
+  imageUrl   String? // icône carrée (lobby)
+  coverUrl   String? // bannière paysage (accueil)
+  label      String?
+  description String?  @db.Text
+  rules      String?  @db.Text
+  score      String?  @db.Text
+  players    String?
+  scoreLabel String?
+  updatedAt  DateTime @updatedAt
 
   @@map("game_settings")
 }

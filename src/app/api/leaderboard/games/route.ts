@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { GameType } from '@/generated/prisma/client';
 import { GAME_CONFIG } from '@/lib/gameConfig';
+import { getGameConfig } from '@/lib/gameSettings';
 import { ELO_GAME_TYPES } from '@/lib/elo';
 
 
@@ -19,7 +20,8 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Jeu invalide' }, { status: 400 });
         }
 
-        const config = GAME_CONFIG[game];
+        // Config fusionnée avec les overrides admin (nom, description, règles, points, libellé de score…).
+        const config = await getGameConfig(game);
 
         const eligibleUsers = await prisma.user.findMany({
             where: { role: { notIn: ['RANDOM'] } },
