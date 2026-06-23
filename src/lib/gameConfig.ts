@@ -28,7 +28,7 @@ export const GAME_CONFIG = {
     },
     taboo: {
         gameType: 'TABOO' as const,
-        label: 'Devinette',
+        label: 'Taboo',
         mode: 'multi' as const,
         higherIsBetter: true,
         image: '/taboo/board/board.png',

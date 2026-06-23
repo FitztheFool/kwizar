@@ -30,11 +30,11 @@ const GAMES = {
   atlantide:     { c: 'a crumbling island sinking into the ocean with a smoking volcano, tiny boats and swimmers fleeing to the corners, dramatic', i: 'a small island with a volcano and a rescue boat, turquoise-sea gradient' },
   impostor:      { c: 'a circle of mysterious masked silhouettes, one glowing red as the impostor, secret-word tension, noir', i: 'a single masked face emblem, dark red gradient' },
   spyfall:       { c: 'a shadowy trench-coat spy among location cards beach plane casino, interrogation spotlight, noir spy mood', i: 'a spy hat and sunglasses silhouette, dark blue gradient' },
-  snake:         { c: 'a glowing neon retro snake winding across a dark grid toward a red apple, arcade CRT vibe, green neon', i: 'a coiled neon snake segment with a small apple, dark green gradient' },
+  snake:         { c: 'a single long glossy emerald-green serpent slithering in tight S-curves across a black top-down grid, one bright red apple, classic monochrome-green arcade, CRT scanlines and vignette', i: 'a coiled neon snake segment with a small apple, dark green gradient' },
   pacman:        { c: 'a round yellow chomper character racing through a neon-blue maze chased by colorful ghosts, retro arcade', i: 'a yellow round chomper with open mouth, dark arcade gradient' },
-  breakout:      { c: 'a glowing ball smashing through rows of colorful neon bricks, a paddle below, arcade energy, dark background', i: 'a ball and paddle with a few colorful bricks, neon gradient' },
-  tetris:        { c: 'colorful falling tetromino blocks stacking and clearing glowing lines, retro arcade neon', i: 'a few interlocking colorful tetromino blocks, dark neon gradient' },
-  sutom:         { c: 'a grid of letter tiles with some highlighted red and yellow, word-guessing puzzle mood', i: 'a single bold letter tile highlighted red, dark grid gradient' },
+  breakout:      { c: 'a bright rainbow wall of glossy candy-colored bricks across the top, a sleek white paddle at the bottom bouncing a comet-trailed ball, vivid multicolor on a clean royal-blue background, energetic and light', i: 'a ball and paddle with a few colorful bricks, neon gradient' },
+  tetris:        { c: 'colorful interlocking tetromino blocks falling into a tall vertical well and clearing one flashing line, clean isometric stack, deep indigo-purple and cyan palette', i: 'a few interlocking colorful tetromino blocks, dark neon gradient' },
+  sutom:         { c: 'a clean flat top-down board of square letter tiles spelling words, each tile Motus-style bright red blue or yellow with one bold white capital letter, orderly rows, even daylight studio light on a soft cream background, flat graphic editorial, no glow, no lens flare, no bokeh', i: 'a single bold letter tile highlighted red, dark grid gradient' },
   space_invaders:{ c: 'rows of pixel-art alien invaders descending toward a defending spaceship firing lasers, retro green-on-black', i: 'a single pixel-art alien invader, dark green gradient' },
   '2048':        { c: 'sliding numbered tiles merging into one glowing 2048 tile, clean minimalist puzzle, warm beige-orange', i: 'a single rounded number tile, warm orange gradient' },
   flappy_bird:   { c: 'a tiny round yellow bird flapping between green pipes under a bright cartoon sky, side-scroller', i: 'a small round yellow bird with tiny wings, sky-blue gradient' },
@@ -44,8 +44,8 @@ const GAMES = {
   six_qui_prend: { c: 'rows of numbered cards with ox-head penalty symbols, a sixth card forcing a pickup, classic card-game vibe', i: 'one card with an ox-head symbol, red gradient' },
   complot:       { c: 'a tense table of face-down character cards and stacked gold coins, a duel of dukes and assassins, royal intrigue', i: 'two crossed face-down character cards over a gold coin, royal purple-and-gold gradient' },
   tanks:         { c: 'two cartoon tanks on opposing destructible hills lobbing an arcing artillery shell, wind and explosion, side-view', i: 'a small cartoon tank with an aiming arc, military-green gradient' },
-  duel:          { c: 'two items facing off head-to-head with a glowing VS between them, tournament bracket vibe, playful', i: 'a bold VS versus emblem between two circles, vibrant gradient' },
-  match3:        { c: 'a sparkling grid of colorful gems with three aligned and exploding in a cascade, jewel-bright candy puzzle', i: 'three aligned glowing gems, jewel-bright gradient' },
+  duel:          { c: 'a clean vertical split background cool blue left versus warm orange right, two cute distinct food mascots a cheeseburger and a pizza slice facing off with flat bold white VS letters between, flat cartoon vector style, even lighting, no lens flare, no central burst, no glow', i: 'a bold VS versus emblem between two circles, vibrant gradient' },
+  match3:        { c: 'a tidy top-down grid of distinct cut gems, emerald square sapphire round citrine jade triangle, cool teal turquoise and green tones on a bright mint background, clear cell separation, even soft flat lighting, candy puzzle, no central glow, no lens flare, no bokeh', i: 'three aligned glowing gems, jewel-bright gradient' },
 };
 
 // Hash stable -> seed reproductible par image.
