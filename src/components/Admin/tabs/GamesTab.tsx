@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon, MagnifyingGlassIcon, BarsArrowUpIcon, BarsArrowDownIcon, XMarkIcon, PhotoIcon, PencilSquareIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import GameEditModal, { type AdminGame } from '@/components/Admin/GameEditModal';
+import GameIcon from '@/components/GameIcon';
 
 const MODE_LABEL: Record<AdminGame['mode'], string> = {
     solo: 'Solo',
@@ -12,6 +13,9 @@ const MODE_LABEL: Record<AdminGame['mode'], string> = {
 };
 
 const MODE_ORDER: AdminGame['mode'][] = ['both', 'multi', 'solo'];
+
+/** Normalise pour une recherche insensible aux accents/casse. */
+const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 export default function GamesTab() {
     const [games, setGames] = useState<AdminGame[]>([]);
@@ -25,6 +29,25 @@ export default function GamesTab() {
     const [typeAsc, setTypeAsc] = useState(true);
     const [nameAsc, setNameAsc] = useState(true);
     const [search, setSearch] = useState('');
+    // Dropdown d'autocomplétion (custom, pas de <datalist> natif mal positionné).
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+    // Sections de type repliées (comme sur l'accueil).
+    const [collapsed, setCollapsed] = useState<Set<AdminGame['mode']>>(new Set());
+    const toggleCollapse = (mode: AdminGame['mode']) => setCollapsed(prev => {
+        const next = new Set(prev);
+        if (next.has(mode)) next.delete(mode); else next.add(mode);
+        return next;
+    });
+
+    useEffect(() => {
+        if (!searchOpen) return;
+        const onClick = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSearchOpen(false); };
+        document.addEventListener('mousedown', onClick);
+        document.addEventListener('keydown', onKey);
+        return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+    }, [searchOpen]);
 
     const fetchGames = useCallback(async () => {
         try {
@@ -102,11 +125,13 @@ export default function GamesTab() {
     }, [games, typeAsc, nameAsc, search]);
 
     const enabledCount = games.filter(g => g.enabled).length;
-    // Suggestions d'autocomplétion : tous les noms de jeux, triés.
-    const nameSuggestions = useMemo(
-        () => [...games].map(g => g.label).sort((a, b) => a.localeCompare(b, 'fr')),
-        [games],
-    );
+    // Suggestions d'autocomplétion : jeux filtrés par la saisie, triés (avec icône).
+    const nameSuggestions = useMemo(() => {
+        const q = norm(search.trim());
+        return [...games]
+            .filter(g => !q || norm(g.label).includes(q))
+            .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+    }, [games, search]);
     const matchCount = grouped.reduce((n, g) => n + g.games.length, 0);
 
     if (loading) {
@@ -126,28 +151,43 @@ export default function GamesTab() {
 
             {/* Barre de tri + recherche avec autocomplétion */}
             <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[200px]">
+                <div ref={searchRef} className="relative flex-1 min-w-[200px]">
                     <MagnifyingGlassIcon className="absolute inset-y-0 left-3 my-auto w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
                         type="text"
-                        list="admin-games-names"
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        onChange={e => { setSearch(e.target.value); setSearchOpen(true); }}
+                        onFocus={() => setSearchOpen(true)}
                         placeholder="Rechercher un jeu…"
                         className="w-full pl-9 pr-9 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
                     />
-                    <datalist id="admin-games-names">
-                        {nameSuggestions.map(name => <option key={name} value={name} />)}
-                    </datalist>
                     {search && (
                         <button
                             type="button"
-                            onClick={() => setSearch('')}
+                            onClick={() => { setSearch(''); setSearchOpen(false); }}
                             className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                             title="Effacer"
                         >
                             <XMarkIcon className="w-4 h-4" />
                         </button>
+                    )}
+                    {searchOpen && nameSuggestions.length > 0 && (
+                        <ul role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl py-1">
+                            {nameSuggestions.map(g => (
+                                <li key={g.key}>
+                                    <button
+                                        type="button"
+                                        role="option"
+                                        aria-selected={search === g.label}
+                                        onClick={() => { setSearch(g.label); setSearchOpen(false); }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                                    >
+                                        <GameIcon gameType={g.gameType} className="w-5 h-5 shrink-0 rounded" />
+                                        <span className="flex-1 truncate">{g.label}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     )}
                 </div>
 
@@ -185,13 +225,21 @@ export default function GamesTab() {
                 const allEnabled = modeGames.every(g => g.enabled);
                 const someEnabled = modeGames.some(g => g.enabled);
                 const groupSaving = savingMode === mode;
+                // Recherche active → toujours déplié pour voir les résultats.
+                const open = !!search.trim() || !collapsed.has(mode);
 
                 return (
                     <div key={mode}>
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                            <button
+                                type="button"
+                                onClick={() => toggleCollapse(mode)}
+                                aria-expanded={open}
+                                className="group flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <ChevronDownIcon className={`w-4 h-4 shrink-0 transition-transform ${open ? '' : '-rotate-90'}`} />
                                 {MODE_LABEL[mode]} <span className="text-gray-300 dark:text-gray-600">· {list.length}</span>
-                            </h3>
+                            </button>
                             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 cursor-pointer select-none">
                                 <input
                                     type="checkbox"
@@ -204,6 +252,7 @@ export default function GamesTab() {
                                 {groupSaving ? 'Mise à jour...' : 'Tout activer'}
                             </label>
                         </div>
+                        {open && (
                         <ul className="rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden divide-y divide-gray-50 dark:divide-gray-700/50">
                             {list.map(game => (
                                 <li key={game.key} className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors gap-3">
@@ -257,6 +306,7 @@ export default function GamesTab() {
                                 </li>
                             ))}
                         </ul>
+                        )}
                     </div>
                 );
             })}

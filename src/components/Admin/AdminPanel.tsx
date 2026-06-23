@@ -14,6 +14,7 @@ import CategoriesTab from './tabs/CategoriesTab';
 import WordsTab from './tabs/WordsTab';
 import WordGroupsTab from './tabs/WordGroupsTab';
 import GamesTab from './tabs/GamesTab';
+import LobbiesTab from './tabs/LobbiesTab';
 import FeaturesTab from './tabs/FeaturesTab';
 import type { AdminTab, AdminQuiz, AdminCategory, AdminWordGroup } from './types';
 import {
@@ -26,13 +27,14 @@ import {
     PuzzlePieceIcon,
     ChevronDownIcon,
     AdjustmentsHorizontalIcon,
+    SignalIcon,
 } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 20;
 const SECTION_ID: Record<AdminTab, string> = {
     stats: 'stats', users: 'users', quizzes: 'quizzes',
     categories: 'categories', words: 'words', wordGroups: 'word-groups',
-    games: 'games', features: 'features',
+    games: 'games', lobbies: 'lobbies', features: 'features',
 };
 
 const hashToTab = (hash: string): AdminTab => ({
@@ -43,6 +45,7 @@ const hashToTab = (hash: string): AdminTab => ({
     '#words': 'words',
     '#word-groups': 'wordGroups',
     '#games': 'games',
+    '#lobbies': 'lobbies',
     '#features': 'features',
 } as Record<string, AdminTab>)[hash] ?? 'stats';
 
@@ -56,6 +59,7 @@ const TAB_CONFIG: { key: AdminTab; label: string; icon: React.FC<{ className?: s
     { key: 'wordGroups', label: 'Groupes de mots', icon: FolderOpenIcon },
     { key: 'words', label: 'Mots', icon: BookOpenIcon },
     { key: 'games', label: 'Jeux', icon: PuzzlePieceIcon },
+    { key: 'lobbies', label: 'Lobbies', icon: SignalIcon },
     { key: 'features', label: 'Fonctionnalités', icon: AdjustmentsHorizontalIcon },
 ];
 
@@ -378,6 +382,7 @@ export default function AdminPanel() {
                                 />
                             )}
                             {activeTab === 'games' && <GamesTab />}
+                            {activeTab === 'lobbies' && <LobbiesTab />}
                             {activeTab === 'features' && <FeaturesTab />}
                         </>
                     )}
