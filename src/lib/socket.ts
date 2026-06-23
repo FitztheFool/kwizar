@@ -48,6 +48,7 @@ let blokusSocket: Socket | null = null;
 let sixQuiPrendSocket: Socket | null = null;
 let tanksSocket: Socket | null = null;
 let complotSocket: Socket | null = null;
+let damesSocket: Socket | null = null;
 
 function createSocket(url: string, name: string): Socket {
     const socket = io(url, {
@@ -224,4 +225,11 @@ export function getComplotSocket(): Socket | null {
     if (!complotSocket) complotSocket = createSocket(process.env.NEXT_PUBLIC_COMPLOT_SERVER_URL ?? "http://localhost:10021", "Complot Socket");
     connectIfAuth(complotSocket);
     return complotSocket;
+}
+
+export function getDamesSocket(): Socket | null {
+    if (typeof window === "undefined") return null;
+    if (!damesSocket) damesSocket = createSocket(process.env.NEXT_PUBLIC_DAMES_SERVER_URL ?? "http://localhost:10022", "Dames Socket");
+    connectIfAuth(damesSocket);
+    return damesSocket;
 }

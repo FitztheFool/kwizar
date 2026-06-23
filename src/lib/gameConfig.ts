@@ -334,7 +334,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Score',
         description: "Jeu de pose de pièces sur un plateau de 20×20. Chaque couleur place ses 21 polyominoes en partant de son coin pour couvrir un maximum de cases.",
         players: '2 à 4 joueurs',
-        rules: "<p>But : poser le plus de cases possible (toutes ses pièces idéalement).</p><ul><li>Ta 1ʳᵉ pièce doit couvrir ton coin de départ.</li><li>Ensuite, chaque nouvelle pièce doit toucher une de tes pièces par un coin, jamais par un côté.</li><li>Tes pièces peuvent toucher celles des adversaires par les côtés sans contrainte.</li><li>Tu passes quand tu ne peux plus poser ; la partie finit quand plus personne ne peut jouer.</li></ul>",
+        rules: "<p><b>But :</b> placer un maximum de ses 21 pièces sur le plateau.</p><p><b>Matériel :</b> un plateau de 20×20 cases et 84 pièces — 21 par couleur (bleu, jaune, rouge, vert), toutes de formes différentes, du monomino (1 case) au pentomino (5 cases).</p><p><b>Déroulement</b> (ordre : bleu, jaune, rouge, vert) :</p><ul><li>Ta toute première pièce doit recouvrir ton coin de départ du plateau.</li><li>Ensuite, chaque nouvelle pièce doit toucher une de tes pièces par au moins un coin, et jamais par un côté.</li><li>Tes pièces peuvent en revanche toucher celles des adversaires par les côtés, sans contrainte.</li><li>Les pièces se posent dans n'importe quel sens (rotation et symétrie) et restent en place jusqu'à la fin.</li><li>Un joueur qui ne peut plus poser passe son tour ; la partie s'arrête quand plus personne ne peut jouer.</li></ul><p><b>Score</b> (le plus haut gagne) :</p><ul><li>+1 point par carré posé sur le plateau.</li><li>+15 points bonus si tes 21 pièces sont posées.</li><li>+20 points bonus (au lieu de 15) si la dernière pièce posée est le carré solitaire.</li></ul><p><b>Variantes :</b></p><ul><li><b>En 2 équipes de 2 :</b> ordre bleu, jaune, rouge, vert ; les joueurs diagonalement opposés sont associés. En fin de partie on additionne bleu + rouge et jaune + vert ; l'équipe au meilleur score gagne.</li><li><b>À 2 joueurs :</b> le 1ᵉʳ joueur prend les pièces bleues et rouges, le 2ᵉ les jaunes et vertes (ordre bleu, jaune, rouge, vert). On additionne le score des 2 couleurs de chaque joueur.</li><li><b>À 3 joueurs :</b> chacun joue sa couleur ; la 4ᵉ couleur est « tournante », jouée à tour de rôle par l'un des trois joueurs. Le vainqueur place le plus de carrés, sans compter la couleur tournante.</li><li><b>En solitaire :</b> casse-tête — placer les 84 pièces en respectant les règles, ou ranger les 20 pièces de 4 carrés dans un rectangle de 8 × 10 (pièces de même couleur se touchant par les coins, jamais par les côtés).</li></ul>",
         score: "Score = nombre de cases posées. Bonus de +15 si tu poses toutes tes pièces, +5 de plus si la dernière est le monomino. Classement ELO.",
     },
     six_qui_prend: {
@@ -374,6 +374,19 @@ export const GAME_CONFIG = {
         description: "Duel d'artillerie tour par tour sur terrain destructible. Règle l'angle, la puissance et compose avec le vent pour détruire le tank adverse.",
         players: 'vs bot ou 2j',
         rules: "<p>But : réduire les points de vie du tank adverse à zéro.</p><ul><li>À ton tour, choisis ton arme, l'angle et la puissance du tir, puis fais feu.</li><li>L'obus subit la gravité et le vent (indiqué à chaque tour) : anticipe la dérive.</li><li>Une explosion inflige des dégâts de zone (plus tu es proche, plus ça fait mal) et creuse le terrain.</li><li>Trois armes, chacune un compromis : <b>Obus</b> (équilibré), <b>Perforant</b> (petit rayon mais gros dégâts — récompense la précision), <b>Fragmentation</b> (grand rayon facile à toucher mais faibles dégâts). Plus le rayon est grand, plus c'est facile de toucher… mais moins ça fait mal.</li><li>Le premier à détruire l'adversaire gagne la manche.</li></ul>",
+        score: "1 point par victoire. Classement ELO.",
+    },
+    dames: {
+        gameType: 'DAMES' as const,
+        bot: true,
+        noOptions: 'Dames — solo (vs bot) ou 2 joueurs.',
+        label: 'Dames',
+        mode: 'both' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Victoires',
+        description: "Le grand classique du damier, contre le bot ou un adversaire. Avance en diagonale, enchaîne les prises et transforme tes pions en dames.",
+        players: 'vs bot ou 2j',
+        rules: "<p>But : capturer ou bloquer tous les pions adverses.</p><ul><li>Les pions avancent d'une case en diagonale vers l'avant.</li><li>La prise est obligatoire : on saute par-dessus un pion adverse adjacent vers la case vide juste derrière, en avant comme en arrière, et les rafles s'enchaînent avec la même pièce.</li><li>Un pion qui atteint la dernière rangée devient une dame, qui glisse et capture à distance le long des diagonales.</li><li>On gagne quand l'adversaire n'a plus de pièce ou ne peut plus bouger.</li></ul>",
         score: "1 point par victoire. Classement ELO.",
     },
     duel: {
@@ -434,7 +447,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     quiz: [1, 30], uno: [2, 8], taboo: [4, 12], skyjow: [2, 8], yahtzee: [2, 8],
     puissance4: [2, 2], just_one: [3, 7], battleship: [2, 2], diamant: [2, 8],
     ludo: [2, 4], perudo: [2, 6], cant_stop: [2, 4], mille_bornes: [2, 4], atlantide: [2, 4],
-    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2], complot: [2, 6],
+    impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2], complot: [2, 6], dames: [2, 2],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1], duel: [1, 1],
 };

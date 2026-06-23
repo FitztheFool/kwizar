@@ -45,6 +45,7 @@ const GAMES = {
   complot:       { c: 'a tense table of face-down character cards and stacked gold coins, a duel of dukes and assassins, royal intrigue', i: 'two crossed face-down character cards over a gold coin, royal purple-and-gold gradient' },
   tanks:         { c: 'two cartoon tanks on opposing destructible hills lobbing an arcing artillery shell, wind and explosion, side-view', i: 'a small cartoon tank with an aiming arc, military-green gradient' },
   duel:          { c: 'a clean vertical split background cool blue left versus warm orange right, two cute distinct food mascots a cheeseburger and a pizza slice facing off with flat bold white VS letters between, flat cartoon vector style, even lighting, no lens flare, no central burst, no glow', i: 'a bold VS versus emblem between two circles, vibrant gradient' },
+  dames:         { c: 'a polished wooden draughts board seen in perspective with rows of glossy cream and dark-brown round checkers, a crowned king piece stacked, one piece mid-jump capturing, warm classic board-game lighting', i: 'a single stacked crowned checkers piece, cream and dark brown, warm wood gradient' },
   match3:        { c: 'a tidy top-down grid of distinct cut gems, emerald square sapphire round citrine jade triangle, cool teal turquoise and green tones on a bright mint background, clear cell separation, even soft flat lighting, candy puzzle, no central glow, no lens flare, no bokeh', i: 'three aligned glowing gems, jewel-bright gradient' },
 };
 
