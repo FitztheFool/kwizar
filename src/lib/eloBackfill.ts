@@ -8,7 +8,7 @@ import type { PrismaClient } from '../generated/prisma/client';
 const ELO_GAME_TYPES = new Set<string>([
     'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE', 'PUISSANCE4', 'BATTLESHIP',
     'DIAMANT', 'IMPOSTOR', 'SPYFALL', 'LUDO', 'PERUDO', 'CANT_STOP', 'MILLE_BORNES',
-    'ATLANTIDE', 'ABALONE', 'BLOKUS', 'SIX_QUI_PREND', 'TANKS', 'COMPLOT',
+    'ATLANTIDE', 'ABALONE', 'BLOKUS', 'SIX_QUI_PREND', 'TANKS', 'COMPLOT', 'DAMES',
 ]);
 const DEFAULT_RATING = 1000;
 const BOT_RATING = 1000;

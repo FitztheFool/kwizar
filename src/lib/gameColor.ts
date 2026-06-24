@@ -218,6 +218,16 @@ export const GAME_COLOR: Record<string, {
             label: 'text-amber-700 dark:text-amber-400'
         }
     },
+    DAMES: {
+        selected: 'border-yellow-700 bg-yellow-700/10 text-yellow-800 dark:text-yellow-300',
+        badge: 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300',
+        badgeActive: 'bg-yellow-800 text-white border-yellow-800',
+        card: {
+            border: 'border-yellow-300 dark:border-yellow-800/60',
+            bg: 'bg-yellow-50 dark:bg-yellow-900/15',
+            label: 'text-yellow-800 dark:text-yellow-400'
+        }
+    },
     DUEL: {
         selected: 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-300',
         badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
