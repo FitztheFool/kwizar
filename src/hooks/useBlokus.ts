@@ -7,7 +7,8 @@ import type { GameLogEntry } from '@/components/GameLog';
 export interface BlokusPlayer {
     userId: string;
     username: string;
-    colorIndex: number;
+    colorIndex: number;          // 1ʳᵉ couleur (compat)
+    colorIndices?: number[];     // couleurs contrôlées (duo : 2)
 }
 
 export interface BlokusState {
@@ -47,8 +48,10 @@ export function useBlokus({
 
     const players = state?.players ?? [];
     const myPlayer = players.find(p => p.userId === userId);
-    const myColorIndex = myPlayer?.colorIndex ?? null;
-    const isMyTurn = state?.phase === 'playing' && state.currentTurn === myColorIndex;
+    const myColorIndices = myPlayer ? (myPlayer.colorIndices ?? [myPlayer.colorIndex]) : [];
+    const isMyTurn = state?.phase === 'playing' && myColorIndices.includes(state.currentTurn);
+    // Couleur active à jouer : celle du tour quand c'est à moi (duo), sinon ma 1ʳᵉ couleur.
+    const myColorIndex = isMyTurn && state ? state.currentTurn : (myColorIndices[0] ?? null);
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
 
     useEffect(() => {
@@ -97,7 +100,7 @@ export function useBlokus({
     const surrender = useCallback(() => { socket?.emit('blokus:surrender'); }, [socket]);
 
     return {
-        players, state, myColorIndex, isMyTurn, vsBot,
+        players, state, myColorIndex, myColorIndices, isMyTurn, vsBot,
         inactivityUserId, inactivityEndsAt,
         move, pass, surrender,
     };

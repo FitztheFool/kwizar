@@ -37,16 +37,22 @@ export default function BlokusPage() {
         <GameWaitingScreen gameType="blokus" gameName="Blokus" lobbyId={lobbyId} players={players} myUserId={me.userId} />
     );
 
-    const turnName = players.find(p => p.colorIndex === state.currentTurn)?.username ?? '…';
-    const turnIsBot = isBot(players.find(p => p.colorIndex === state.currentTurn));
+    // Duo : un joueur contrôle 2 couleurs. Propriétaire d'une couleur + score joueur = somme de ses couleurs.
+    const colorOwner = (ci: number) => players.find(p => (p.colorIndices ?? [p.colorIndex]).includes(ci));
+    const playerScore = (p: typeof players[number]) => (p.colorIndices ?? [p.colorIndex]).reduce((s, c) => s + state.scores[c], 0);
+    const numColors = state.scores.length;
 
-    // classement final par score décroissant
-    const ranking = [...players].sort((a, b) => state.scores[b.colorIndex] - state.scores[a.colorIndex]);
-    const myRank = ranking.findIndex(p => p.colorIndex === myColorIndex);
+    const turnName = colorOwner(state.currentTurn)?.username ?? '…';
+    const turnIsBot = isBot(colorOwner(state.currentTurn));
+
+    // classement final par score joueur décroissant
+    const ranking = [...players].sort((a, b) => playerScore(b) - playerScore(a));
+    const myPlayer = players.find(p => p.userId === me.userId);
+    const myRank = ranking.findIndex(p => p.userId === me.userId);
     const iWon = state.phase === 'finished' && myRank === 0;
 
     const PlayerTag = ({ colorIndex }: { colorIndex: number }) => {
-        const p = players.find(pl => pl.colorIndex === colorIndex);
+        const p = colorOwner(colorIndex);
         if (!p) return null;
         const active = state.phase === 'playing' && state.currentTurn === colorIndex;
         const warn = inactivityUserId === p.userId ? inactivityEndsAt : null;
@@ -66,7 +72,7 @@ export default function BlokusPage() {
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
                 left={<><GameIcon gameType="blokus" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Blokus{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
-                center={<div className="flex items-center gap-1.5 flex-wrap justify-center">{players.map(p => <PlayerTag key={p.colorIndex} colorIndex={p.colorIndex} />)}</div>}
+                center={<div className="flex items-center gap-1.5 flex-wrap justify-center">{Array.from({ length: numColors }, (_, ci) => <PlayerTag key={ci} colorIndex={ci} />)}</div>}
                 right={state.phase === 'playing' && <SurrenderButton onSurrender={surrender} />}
             />
 
@@ -93,21 +99,26 @@ export default function BlokusPage() {
                     elo={myElo}
                     icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
                     title={iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
-                    subtitle={`Tu poses ${state.scores[myColorIndex ?? 0]} cases`}
+                    subtitle={`Tu poses ${myPlayer ? playerScore(myPlayer) : 0} cases`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     lobbyLabel="Rejouer"
                     onLeave={() => router.push('/')}
                 >
                     <ol className="space-y-1.5 mt-1">
-                        {ranking.map((p, i) => (
-                            <li key={p.colorIndex} className={`flex items-center gap-2 text-sm ${p.colorIndex === myColorIndex ? 'font-bold' : ''}`}>
-                                <span className="w-5 text-right opacity-60">{i + 1}.</span>
-                                <span className="inline-block w-3 h-3 rounded-sm border border-black/30" style={{ background: COLORS[p.colorIndex] }} />
-                                {isBot(p) && <CpuChipIcon className="w-3.5 h-3.5 text-indigo-400" />}
-                                <span className="flex-1 truncate">{p.username}</span>
-                                <span className="tabular-nums">{state.scores[p.colorIndex]} cases</span>
-                            </li>
-                        ))}
+                        {ranking.map((p, i) => {
+                            const cis = p.colorIndices ?? [p.colorIndex];
+                            return (
+                                <li key={p.userId} className={`flex items-center gap-2 text-sm ${p.userId === me.userId ? 'font-bold' : ''}`}>
+                                    <span className="w-5 text-right opacity-60">{i + 1}.</span>
+                                    <span className="flex gap-0.5">
+                                        {cis.map(c => <span key={c} className="inline-block w-3 h-3 rounded-sm border border-black/30" style={{ background: COLORS[c] }} />)}
+                                    </span>
+                                    {isBot(p) && <CpuChipIcon className="w-3.5 h-3.5 text-indigo-400" />}
+                                    <span className="flex-1 truncate">{p.username}</span>
+                                    <span className="tabular-nums">{playerScore(p)} cases</span>
+                                </li>
+                            );
+                        })}
                     </ol>
                 </GameOverModal>
             )}
