@@ -413,6 +413,29 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Rio de Janeiro', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Cidade_Maravilhosa.jpg/330px-Cidade_Maravilhosa.jpg' },
         ],
     },
+    {
+        id: 'series',
+        title: 'La meilleure série TV',
+        emoji: '📺',
+        img: 'https://image.tmdb.org/t/p/w500/hVVxgGZFR3JaXmkstnG1IR9Qbt6.jpg',
+        items: [
+            { name: 'Breaking Bad', img: 'https://image.tmdb.org/t/p/w500/hVVxgGZFR3JaXmkstnG1IR9Qbt6.jpg' },
+            { name: 'Game of Thrones', img: 'https://image.tmdb.org/t/p/w500/eRMfekBOnwyE9G0ffyEJIBOjX2n.jpg' },
+            { name: 'Stranger Things', img: 'https://image.tmdb.org/t/p/w500/iGZkjG3BDTuWsWu9Cdmh2jh3q7d.jpg' },
+            { name: 'The Last of Us', img: 'https://image.tmdb.org/t/p/w500/4pMd9VAdqm96KA2W4X8yetgc7EF.jpg' },
+            { name: 'The Office', img: 'https://image.tmdb.org/t/p/w500/2dApsoX4bd98szjrbj5i3syYOh2.jpg' },
+            { name: 'Friends', img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg' },
+            { name: 'Peaky Blinders', img: 'https://image.tmdb.org/t/p/w500/wfD5hDb61sS203D0te7JbIzeyQe.jpg' },
+            { name: 'La Casa de Papel', img: 'https://image.tmdb.org/t/p/w500/u5Ye3LqV5LqTGjLqtkTCkA4m63W.jpg' },
+            { name: 'The Witcher', img: 'https://image.tmdb.org/t/p/w500/rhErSlk0M236rNFertVAZa9lz9S.jpg' },
+            { name: 'Wednesday', img: 'https://image.tmdb.org/t/p/w500/1UzED7WZJgzEIeVz1xiuZ1529nb.jpg' },
+            { name: 'Dark', img: 'https://image.tmdb.org/t/p/w500/vbG0zu0lIVDZZaUVOZuBIE9kno3.jpg' },
+            { name: 'Lupin', img: 'https://image.tmdb.org/t/p/w500/sOUWRai0215iUSMackrZx3Y1j05.jpg' },
+            { name: 'The Walking Dead', img: 'https://image.tmdb.org/t/p/w500/cVDzRylKifHGS1PFNlePfJ8sxUj.jpg' },
+            { name: 'Squid Game', img: 'https://image.tmdb.org/t/p/w500/heV89pC6pv5fz1plikfyQxYuE4L.jpg' },
+            { name: 'Chernobyl', img: 'https://image.tmdb.org/t/p/w500/hlLXt2tOPT6RRnjiUmoxyG1LTFi.jpg' },
+        ],
+    },
 ];
 
 export const isEmoji = (img: string) => !!img && !img.startsWith('http');
