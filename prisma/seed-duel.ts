@@ -450,10 +450,12 @@ export async function seedDuelDecks(prisma: PrismaClient, ownerId: string) {
             imageUrl: isEmoji(it.img) ? null : (it.img || null),
             position: i,
         }));
+        // Cover : champ img explicite, sinon 1re image d'item (comme categoryImage).
+        const cover = cat.img ?? cat.items.find(it => !isEmoji(it.img))?.img ?? null;
         const base = {
             title: cat.title,
             emoji: cat.emoji,
-            imageUrl: cat.img ?? null,
+            imageUrl: cover,
             isPublic: true,
             isBuiltin: true,
             creatorId: ownerId,
