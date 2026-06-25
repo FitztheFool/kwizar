@@ -136,7 +136,7 @@ export default function DuelPage() {
     // Chargement server-side : pagination + recherche (titre OU item, ex. « Pika »).
     const loadDecks = useCallback(async (p: number, search: string) => {
         try {
-            const params = new URLSearchParams({ page: String(p) });
+            const params = new URLSearchParams({ page: String(p), pageSize: '10' });
             if (search.trim()) params.set('search', search.trim());
             const res = await fetch(`/api/duel?${params}`);
             if (!res.ok) return;

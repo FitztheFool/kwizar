@@ -50,7 +50,10 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                             {duels.length === 0 && (
                                 <tr><td colSpan={7} className="px-3 py-6 text-xs text-center text-gray-400 dark:text-gray-500">Aucun Duel trouvé.</td></tr>
                             )}
-                            {duels.map(deck => (
+                            {duels.map(deck => {
+                                const term = searchRef.current.trim().toLowerCase();
+                                const matched = term ? deck.items.filter(i => i.name.toLowerCase().includes(term)).map(i => i.name) : [];
+                                return (
                                 <tr key={deck.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
                                     <td className="px-3 py-2">
                                         <div className="h-9 w-12 overflow-hidden rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -62,8 +65,13 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-3 py-2 font-medium max-w-[200px]">
+                                    <td className="px-3 py-2 font-medium max-w-[220px]">
                                         <span className="text-xs truncate block">{deck.title}</span>
+                                        {matched.length > 0 && (
+                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 truncate block" title={matched.join(', ')}>
+                                                ({matched.slice(0, 3).join(', ')}{matched.length > 3 ? `, +${matched.length - 3}` : ''})
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{deck.creator.username}</td>
                                     <td className="px-3 py-2 text-xs text-gray-700 dark:text-gray-300 font-semibold">{deck._count.items}</td>
@@ -84,7 +92,8 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
