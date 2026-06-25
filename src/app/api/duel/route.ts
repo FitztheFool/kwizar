@@ -13,15 +13,20 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const search = (searchParams.get('search') ?? '').trim();
         const onlyMine = searchParams.get('onlyMine') === 'true';
+        const creatorId = searchParams.get('creatorId');
         const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
         const pageSize = Math.min(60, Math.max(1, parseInt(searchParams.get('pageSize') ?? '18', 10) || 18));
 
-        // Connecté : decks publics + ses propres decks (même privés). Sinon : publics seuls.
-        const visibility: any = onlyMine && session?.user?.id
-            ? { creatorId: session.user.id }
-            : session?.user?.id
-                ? { OR: [{ isPublic: true }, { creatorId: session.user.id }] }
-                : { isPublic: true };
+        // creatorId : decks d'un utilisateur (tous si c'est soi, publics sinon).
+        // Sinon connecté : decks publics + les siens (même privés). Sinon : publics.
+        const uid = session?.user?.id;
+        const visibility: any = creatorId
+            ? { creatorId, ...(uid === creatorId ? {} : { isPublic: true }) }
+            : onlyMine && uid
+                ? { creatorId: uid }
+                : uid
+                    ? { OR: [{ isPublic: true }, { creatorId: uid }] }
+                    : { isPublic: true };
         // Recherche : par titre OU par nom d'item (ex. « Pika » → deck Pokémon).
         const filter = search
             ? {

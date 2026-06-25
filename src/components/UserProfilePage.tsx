@@ -7,11 +7,12 @@ import { fetcher } from '@/lib/swr';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import MyQuizzesPanel from '@/components/Quiz/MyQuizzesPanel';
+import MyDuelsPanel from '@/components/Duel/MyDuelsPanel';
 import UserStats from '@/components/UserStats';
 import { MembersOnlyBanner } from '@/components/MembersOnlyBanner';
 import UserAvatar from '@/components/UserAvatar';
 import FriendButton from '@/components/Friends/FriendButton';
-import { ChartBarIcon, BookOpenIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, BookOpenIcon, BoltIcon, Cog6ToothIcon, EnvelopeIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 // ── Bloc finaliser le compte ───────────────────────────────────────────────────
 
@@ -181,8 +182,8 @@ interface ProfileData {
     quizzes: Quiz[];
 }
 
-type TabType = 'stats' | 'quizzes';
-const VALID_TABS: TabType[] = ['stats', 'quizzes'];
+type TabType = 'stats' | 'quizzes' | 'duels';
+const VALID_TABS: TabType[] = ['stats', 'quizzes', 'duels'];
 const isTabType = (v: string): v is TabType => (VALID_TABS as string[]).includes(v);
 
 interface Props {
@@ -277,7 +278,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                         <div className="hidden sm:flex shrink-0 items-center gap-2">
                             {/* Tabs */}
                             <div className="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
-                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
+                                {(['stats', 'quizzes', 'duels'] as TabType[]).map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => handleTabChange(tab)}
@@ -286,7 +287,11 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                             }`}
                                     >
-                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
+                                        {tab === 'stats'
+                                            ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</>
+                                            : tab === 'quizzes'
+                                                ? <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>
+                                                : <><BoltIcon className="w-3.5 h-3.5 inline mr-1" />Duels</>}
                                     </button>
                                 ))}
                             </div>
@@ -311,7 +316,7 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                         {/* Tabs + action (mobile : deuxième ligne) */}
                         <div className="flex sm:hidden w-full items-center gap-2 mt-2">
                             <div className="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
-                                {(['stats', 'quizzes'] as TabType[]).map(tab => (
+                                {(['stats', 'quizzes', 'duels'] as TabType[]).map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => handleTabChange(tab)}
@@ -320,7 +325,11 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                             }`}
                                     >
-                                        {tab === 'stats' ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</> : <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>}
+                                        {tab === 'stats'
+                                            ? <><ChartBarIcon className="w-3.5 h-3.5 inline mr-1" />Stats</>
+                                            : tab === 'quizzes'
+                                                ? <><BookOpenIcon className="w-3.5 h-3.5 inline mr-1" />Quiz</>
+                                                : <><BoltIcon className="w-3.5 h-3.5 inline mr-1" />Duels</>}
                                     </button>
                                 ))}
                             </div>
@@ -357,6 +366,18 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
                             title={`Quiz de ${displayName}`}
                             emptyTitle="Aucun quiz public"
                             emptySubtitle=""
+                        />
+                    )
+                )}
+
+                {activeTab === 'duels' && (
+                    isOwnProfile ? (
+                        <MyDuelsPanel />
+                    ) : (
+                        <MyDuelsPanel
+                            creatorId={profile.id}
+                            title={`Duels de ${displayName}`}
+                            emptyTitle="Aucun Duel public"
                         />
                     )
                 )}
