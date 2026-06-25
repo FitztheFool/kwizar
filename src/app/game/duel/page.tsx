@@ -59,12 +59,13 @@ function ItemVisual({ item, big, thumb }: { item: DuelItem; big?: boolean; thumb
 }
 
 /** Carte de catégorie façon TierMaker : image plein cadre + bandeau-titre noir en bas. */
-function CategoryCard({ category, matchedItems, onClick, badge, onDelete }: {
+function CategoryCard({ category, matchedItems, onClick, badge, onDelete, author }: {
     category: DuelCategory;
     matchedItems: string[];
     onClick: () => void;
     badge?: string;
     onDelete?: () => void;
+    author?: string;
 }) {
     const [broken, setBroken] = useState(false);
     const src = categoryImage(category);
@@ -112,6 +113,11 @@ function CategoryCard({ category, matchedItems, onClick, badge, onDelete }: {
                     </div>
                 ) : (
                     <div className="text-[10px] text-gray-400">{category.items.length} items</div>
+                )}
+                {author && (
+                    <div className="text-[10px] text-gray-400 truncate" title={`Créé par ${author}`}>
+                        créé par <span className="text-gray-300 font-semibold">{author}</span>
+                    </div>
                 )}
             </div>
         </button>
@@ -226,6 +232,7 @@ export default function DuelPage() {
                                         onClick={() => start(c)}
                                         badge={isUserDeck ? 'Custom' : undefined}
                                         onDelete={canDelete ? () => handleDelete(deck.deckId!) : undefined}
+                                        author={isUserDeck ? deck.creatorName : undefined}
                                     />
                                 );
                             })}
