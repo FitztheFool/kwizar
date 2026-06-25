@@ -132,6 +132,7 @@ export default function DuelPage() {
     const [decks, setDecks] = useState<DeckCategory[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
 
     // Chargement server-side : pagination + recherche (titre OU item, ex. « Pika »).
     const loadDecks = useCallback(async (p: number, search: string) => {
@@ -143,6 +144,7 @@ export default function DuelPage() {
             const data = await res.json();
             setDecks(((data.decks ?? []) as DeckDTO[]).map(deckToCategory));
             setTotalPages(data.totalPages ?? 1);
+            setTotal(data.total ?? 0);
             setPage(data.page ?? p);
         } catch { /* hors-ligne : rien à afficher */ }
     }, []);
@@ -209,7 +211,7 @@ export default function DuelPage() {
 
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-bold">
-                            Catégories <span className="text-gray-500 font-normal text-sm">· {filtered.length}</span>
+                            Catégories <span className="text-gray-500 font-normal text-sm">· {total}</span>
                         </h2>
                         <Link
                             href="/game/duel/create"
