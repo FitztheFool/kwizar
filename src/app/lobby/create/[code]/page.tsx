@@ -854,7 +854,7 @@ export default function LobbyCodePage() {
 
                             {/* Temps pour jouer (timeout AFK) */}
                             <div className="mt-4 space-y-1.5">
-                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <label className="flex text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider items-center gap-1.5">
                                     <ClockIcon className="w-3.5 h-3.5" /> Temps pour jouer
                                 </label>
                                 {isHost ? (
