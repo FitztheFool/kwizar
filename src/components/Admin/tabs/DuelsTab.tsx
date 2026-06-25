@@ -53,15 +53,26 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                             {duels.map(deck => {
                                 const term = searchRef.current.trim().toLowerCase();
                                 const matched = term ? deck.items.filter(i => i.name.toLowerCase().includes(term)).map(i => i.name) : [];
+                                const missing = deck.items.filter(i => !i.imageUrl).length;
                                 return (
                                 <tr key={deck.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
                                     <td className="px-3 py-2">
-                                        <div className="h-9 w-12 overflow-hidden rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                            {deck.imageUrl ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={deck.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <span className="text-base">{deck.emoji}</span>
+                                        <div className="relative h-9 w-12">
+                                            <div className="h-9 w-12 overflow-hidden rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                {deck.imageUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={deck.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <span className="text-base">{deck.emoji}</span>
+                                                )}
+                                            </div>
+                                            {missing > 0 && (
+                                                <span
+                                                    className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white"
+                                                    title={`${missing} image(s) manquante(s)`}
+                                                >
+                                                    {missing}
+                                                </span>
                                             )}
                                         </div>
                                     </td>

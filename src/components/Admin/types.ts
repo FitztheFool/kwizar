@@ -39,7 +39,7 @@ export interface AdminDuel {
     isBuiltin: boolean;
     createdAt: string;
     creator: { username: string };
-    items: { name: string }[];
+    items: { name: string; imageUrl: string | null }[];
     _count: { items: number };
 }
 

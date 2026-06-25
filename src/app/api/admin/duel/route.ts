@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
                 isBuiltin: true,
                 createdAt: true,
                 creator: { select: { username: true } },
-                items: { select: { name: true }, orderBy: { position: 'asc' } },
+                items: { select: { name: true, imageUrl: true }, orderBy: { position: 'asc' } },
                 _count: { select: { items: true } },
             },
             orderBy: [{ isBuiltin: 'desc' }, { createdAt: 'desc' }],
