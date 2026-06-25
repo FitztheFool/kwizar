@@ -30,7 +30,10 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.discordapp.com https://lh3.googleusercontent.com https://images.unsplash.com https://upload.wikimedia.org https://raw.githubusercontent.com https://flagcdn.com https://static.wikia.nocookie.net https://image.tmdb.org",  // + sources d'images du jeu Ceci ou Cela (Wikimedia, PokeAPI, drapeaux, Fandom, TMDB)
+              // img-src large (tout https) : le jeu "Ceci ou Cela" laisse les
+              // utilisateurs coller l'URL d'image de n'importe quel domaine. img-src
+              // n'autorise pas l'exécution de code, le risque reste faible.
+              "img-src 'self' data: blob: https:",
               "font-src 'self'",
               "connect-src 'self' wss: ws: https://*.onrender.com http://localhost:10000 ws://localhost:10000 https://api.cloudinary.com",
               "frame-ancestors 'none'",

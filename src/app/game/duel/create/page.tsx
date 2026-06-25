@@ -138,7 +138,7 @@ export default function DuelCreatePage() {
                             <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-zinc-700 flex items-center justify-center">
                                 {it.imageUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={it.imageUrl} alt="" className="h-full w-full object-cover" />
+                                    <img src={it.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                                 ) : (
                                     <PhotoIcon className="h-5 w-5 text-gray-500" />
                                 )}

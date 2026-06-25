@@ -45,7 +45,7 @@ function ItemVisual({ item, big, thumb }: { item: DuelItem; big?: boolean; thumb
         <div className={`${size} rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900`}>
             {showImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.img} alt={item.name} onError={() => setBroken(true)}
+                <img src={item.img} alt={item.name} onError={() => setBroken(true)} referrerPolicy="no-referrer"
                     className={`w-full h-full ${thumb ? 'object-cover' : 'object-contain p-2'}`} loading="lazy" />
             ) : emoji ? (
                 <span className={thumb ? 'text-xl' : 'text-7xl sm:text-8xl'}>{item.img}</span>
@@ -74,7 +74,7 @@ function CategoryCard({ category, matchedItems, onClick, badge, onDelete }: {
         >
             {src && !broken ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={src} alt={category.title} onError={() => setBroken(true)}
+                <img src={src} alt={category.title} onError={() => setBroken(true)} referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy" />
             ) : (
