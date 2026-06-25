@@ -434,6 +434,7 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'The Walking Dead', img: 'https://image.tmdb.org/t/p/w500/cVDzRylKifHGS1PFNlePfJ8sxUj.jpg' },
             { name: 'Squid Game', img: 'https://image.tmdb.org/t/p/w500/heV89pC6pv5fz1plikfyQxYuE4L.jpg' },
             { name: 'Chernobyl', img: 'https://image.tmdb.org/t/p/w500/hlLXt2tOPT6RRnjiUmoxyG1LTFi.jpg' },
+            { name: 'The Wire', img: 'https://image.tmdb.org/t/p/w500/efV8dprxpU1JXNGqepVY68ZaHKZ.jpg' },
         ],
     },
 ];
