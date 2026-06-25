@@ -1,5 +1,5 @@
 // src/app/api/duel/[id]/route.ts
-// Récupère un "Ceci ou Cela" (lecture publique/propriétaire) ou le supprime (propriétaire).
+// Récupère un Duel (lecture publique/propriétaire) ou le supprime (propriétaire).
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';

@@ -8,7 +8,7 @@ import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/categ
 import { ArrowLeftIcon, TrophyIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { MagnifyingGlassIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-/** Catégorie issue d'un "Ceci ou Cela" créé par un utilisateur. */
+/** Catégorie issue d'un Duel créé par un utilisateur. */
 type CustomCategory = DuelCategory & { deckId: string; ownerId: string; creatorName: string };
 
 interface DeckDTO {
@@ -133,7 +133,7 @@ export default function DuelPage() {
     useEffect(() => { loadDecks(); }, [loadDecks]);
 
     const handleDelete = useCallback(async (deckId: string) => {
-        if (!confirm('Supprimer ce Ceci ou Cela ?')) return;
+        if (!confirm('Supprimer ce Duel ?')) return;
         const res = await fetch(`/api/duel/${deckId}`, { method: 'DELETE' });
         if (res.ok) setCustomDecks(d => d.filter(c => c.deckId !== deckId));
     }, []);

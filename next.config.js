@@ -30,7 +30,7 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
               "style-src 'self' 'unsafe-inline'",
-              // img-src large (tout https) : le jeu "Ceci ou Cela" laisse les
+              // img-src large (tout https) : le jeu Duel laisse les
               // utilisateurs coller l'URL d'image de n'importe quel domaine. img-src
               // n'autorise pas l'exécution de code, le risque reste faible.
               "img-src 'self' data: blob: https:",

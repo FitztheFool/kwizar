@@ -95,7 +95,7 @@ export default function DuelCreatePage() {
     if (status === 'unauthenticated') {
         return (
             <div className="min-h-screen bg-zinc-900 text-white flex flex-col items-center justify-center gap-4 px-4">
-                <p className="text-gray-300">Connecte-toi pour créer ton Ceci ou Cela.</p>
+                <p className="text-gray-300">Connecte-toi pour créer ton Duel.</p>
                 <Link href="/login?callbackUrl=/game/duel/create" className="rounded-lg bg-amber-500 px-4 py-2 font-bold text-white hover:bg-amber-400">
                     Se connecter
                 </Link>
@@ -110,7 +110,7 @@ export default function DuelCreatePage() {
                     <ArrowLeftIcon className="w-4 h-4" /> Retour aux catégories
                 </Link>
 
-                <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Crée ton Ceci ou Cela</h1>
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Crée ton Duel</h1>
                 <p className="text-gray-400 mb-8">Ajoute un thème et les items à départager. Minimum {MIN_ITEMS}, maximum {MAX_ITEMS}.</p>
 
                 {/* Réglages du deck */}

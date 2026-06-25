@@ -373,7 +373,7 @@ model AppSetting {
   @@map("app_settings")
 }
 
-// "Ceci ou Cela" (Duel) créé par un utilisateur : un thème + ses items à départager.
+// Duel créé par un utilisateur : un thème + ses items à départager.
 model DuelDeck {
   id        String   @id @default(cuid())
   title     String

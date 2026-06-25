@@ -1,5 +1,5 @@
 // src/app/api/duel/route.ts
-// "Ceci ou Cela" (Duel) créés par les utilisateurs : liste + création.
+// Duels créés par les utilisateurs : liste + création.
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
