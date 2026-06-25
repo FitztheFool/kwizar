@@ -21,10 +21,25 @@ export default function DuelCreatePage() {
     const [title, setTitle] = useState('');
     const [emoji, setEmoji] = useState('🆚');
     const [isPublic, setIsPublic] = useState(true);
+    const [cover, setCover] = useState('');
+    const [coverUploading, setCoverUploading] = useState(false);
     const [items, setItems] = useState<ItemForm[]>([emptyItem(), emptyItem(), emptyItem(), emptyItem()]);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const fileInputs = useRef<(HTMLInputElement | null)[]>([]);
+    const coverInput = useRef<HTMLInputElement | null>(null);
+
+    const onPickCover = async (file: File | undefined) => {
+        if (!file) return;
+        setCoverUploading(true);
+        try {
+            setCover(await uploadToCloudinary(file, 'duel'));
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Échec de l'upload");
+        } finally {
+            setCoverUploading(false);
+        }
+    };
 
     const setItem = useCallback((idx: number, patch: Partial<ItemForm>) => {
         setItems(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -62,6 +77,7 @@ export default function DuelCreatePage() {
                     title: title.trim(),
                     emoji: emoji.trim() || '🆚',
                     isPublic,
+                    imageUrl: cover.trim() || null,
                     items: valid.map(i => ({ name: i.name.trim(), imageUrl: i.imageUrl.trim() || null })),
                 }),
             });
@@ -120,6 +136,39 @@ export default function DuelCreatePage() {
                             />
                         </div>
                     </div>
+                    {/* Cover (optionnel) — sinon la 1re image d'item sert de couverture */}
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">
+                            Image de couverture <span className="text-gray-500 normal-case font-normal">(optionnel)</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <div className="h-12 w-16 shrink-0 overflow-hidden rounded bg-zinc-700 flex items-center justify-center">
+                                {cover ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={cover} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                                ) : (
+                                    <PhotoIcon className="h-5 w-5 text-gray-500" />
+                                )}
+                            </div>
+                            <input
+                                value={cover}
+                                onChange={e => setCover(e.target.value)}
+                                placeholder="URL de l'image (sinon, 1er item)"
+                                className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1.5 text-xs text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            />
+                            <input ref={coverInput} type="file" accept="image/*" className="hidden" onChange={e => onPickCover(e.target.files?.[0])} />
+                            <button
+                                type="button"
+                                onClick={() => coverInput.current?.click()}
+                                disabled={coverUploading}
+                                className="shrink-0 rounded bg-zinc-700 px-2 py-2 text-xs font-semibold hover:bg-zinc-600 disabled:opacity-50"
+                                title="Uploader une couverture"
+                            >
+                                {coverUploading ? '…' : <PhotoIcon className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+
                     <label className="flex items-center gap-2 text-sm">
                         <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="h-4 w-4 accent-amber-500" />
                         <span>Public <span className="text-gray-500">— visible par tous dans la liste du Duel</span></span>
