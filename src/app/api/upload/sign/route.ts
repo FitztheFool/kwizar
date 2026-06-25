@@ -8,7 +8,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const ALLOWED_FOLDERS = ['quiz', 'avatar'] as const;
+const ALLOWED_FOLDERS = ['quiz', 'avatar', 'duel'] as const;
 const ALLOWED_FORMATS = 'jpg,jpeg,png,webp,gif';
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const baseFolder = ALLOWED_FOLDERS.includes(requestedFolder as typeof ALLOWED_FOLDERS[number])
         ? requestedFolder
         : 'quiz';
-    const folder = baseFolder === 'avatar' ? `avatar/${session!.user.id}` : `quiz/${session!.user.id}`;
+    const folder = `${baseFolder}/${session!.user.id}`;
     const timestamp = Math.round(Date.now() / 1000);
     const signedParams = {
         timestamp,

@@ -1,11 +1,38 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useDuel } from '@/hooks/useDuel';
 import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/categories';
-import { ArrowLeftIcon, TrophyIcon } from '@heroicons/react/24/solid';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, TrophyIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { MagnifyingGlassIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+
+/** Catégorie issue d'un "Ceci ou Cela" créé par un utilisateur. */
+type CustomCategory = DuelCategory & { deckId: string; ownerId: string; creatorName: string };
+
+interface DeckDTO {
+    id: string;
+    title: string;
+    emoji: string;
+    imageUrl: string | null;
+    isPublic: boolean;
+    creator: { id: string; username: string };
+    items: { name: string; imageUrl: string | null }[];
+}
+
+function deckToCategory(d: DeckDTO): CustomCategory {
+    return {
+        id: `custom:${d.id}`,
+        title: d.title,
+        emoji: d.emoji || '🆚',
+        img: d.imageUrl ?? undefined,
+        items: d.items.map((i) => ({ name: i.name, img: i.imageUrl ?? '' })),
+        deckId: d.id,
+        ownerId: d.creator.id,
+        creatorName: d.creator.username,
+    };
+}
 
 /** Visuel d'un item : image web, emoji, ou repli sur le nom si l'image casse.
  *  `thumb` = petite vignette (podium) : remplit le parent, image rognée. */
@@ -30,10 +57,12 @@ function ItemVisual({ item, big, thumb }: { item: DuelItem; big?: boolean; thumb
 }
 
 /** Carte de catégorie façon TierMaker : image plein cadre + bandeau-titre noir en bas. */
-function CategoryCard({ category, matchedItems, onClick }: {
+function CategoryCard({ category, matchedItems, onClick, badge, onDelete }: {
     category: DuelCategory;
     matchedItems: string[];
     onClick: () => void;
+    badge?: string;
+    onDelete?: () => void;
 }) {
     const [broken, setBroken] = useState(false);
     const src = categoryImage(category);
@@ -54,6 +83,24 @@ function CategoryCard({ category, matchedItems, onClick }: {
                 </div>
             )}
 
+            {badge && (
+                <span className="absolute top-1.5 left-1.5 rounded bg-amber-500/90 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">
+                    {badge}
+                </span>
+            )}
+            {onDelete && (
+                <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onDelete(); } }}
+                    className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded bg-black/60 text-gray-300 hover:bg-red-600 hover:text-white"
+                    title="Supprimer"
+                >
+                    <TrashIcon className="h-3.5 w-3.5" />
+                </span>
+            )}
+
             {/* Bandeau-titre noir en bas, comme TierMaker */}
             <div className="absolute inset-x-0 bottom-0 bg-black/85 px-2 py-2 text-center">
                 <div className="text-sm font-bold text-white leading-tight truncate">{category.title}</div>
@@ -71,14 +118,35 @@ function CategoryCard({ category, matchedItems, onClick }: {
 
 export default function DuelPage() {
     const { phase, categories, category, start, choose, reset, podium, currentMatch, roundLabel } = useDuel();
+    const { data: session } = useSession();
     const [query, setQuery] = useState('');
+    const [customDecks, setCustomDecks] = useState<CustomCategory[]>([]);
+
+    const loadDecks = useCallback(async () => {
+        try {
+            const res = await fetch('/api/duel');
+            if (!res.ok) return;
+            const data = await res.json();
+            setCustomDecks(((data.decks ?? []) as DeckDTO[]).map(deckToCategory));
+        } catch { /* hors-ligne : on garde juste les catégories de base */ }
+    }, []);
+    useEffect(() => { loadDecks(); }, [loadDecks]);
+
+    const handleDelete = useCallback(async (deckId: string) => {
+        if (!confirm('Supprimer ce Ceci ou Cela ?')) return;
+        const res = await fetch(`/api/duel/${deckId}`, { method: 'DELETE' });
+        if (res.ok) setCustomDecks(d => d.filter(c => c.deckId !== deckId));
+    }, []);
+
+    // Catégories de base + créations des utilisateurs.
+    const allCategories = useMemo<DuelCategory[]>(() => [...customDecks, ...categories], [customDecks, categories]);
 
     // Recherche : on garde une catégorie si son titre OU l'un de ses items correspond.
     // Pour chaque résultat, on retient les items qui matchent (affichés en aperçu).
     const q = query.trim().toLowerCase();
     const filtered = useMemo(() => {
-        if (!q) return categories.map(c => ({ category: c, matchedItems: [] as string[] }));
-        return categories
+        if (!q) return allCategories.map(c => ({ category: c, matchedItems: [] as string[] }));
+        return allCategories
             .map(c => {
                 const titleMatch = c.title.toLowerCase().includes(q);
                 const matchedItems = c.items.filter(i => i.name.toLowerCase().includes(q)).map(i => i.name);
@@ -86,7 +154,7 @@ export default function DuelPage() {
             })
             .filter(r => r.keep)
             .map(({ category, matchedItems }) => ({ category, matchedItems }));
-    }, [categories, q]);
+    }, [allCategories, q]);
 
     // Phase « catégorie » : page sombre type TierMaker, pleine largeur.
     if (phase === 'category') {
@@ -126,9 +194,17 @@ export default function DuelPage() {
                         )}
                     </div>
 
-                    <h2 className="text-lg font-bold mb-4">
-                        Catégories <span className="text-gray-500 font-normal text-sm">· {filtered.length}</span>
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold">
+                            Catégories <span className="text-gray-500 font-normal text-sm">· {filtered.length}</span>
+                        </h2>
+                        <Link
+                            href="/game/duel/create"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-sm font-bold text-white hover:bg-amber-400"
+                        >
+                            <PlusIcon className="w-4 h-4" /> Créer le mien
+                        </Link>
+                    </div>
 
                     {filtered.length === 0 ? (
                         <p className="py-16 text-sm text-center text-gray-500">
@@ -136,9 +212,21 @@ export default function DuelPage() {
                         </p>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                            {filtered.map(({ category: c, matchedItems }) => (
-                                <CategoryCard key={c.id} category={c} matchedItems={matchedItems} onClick={() => start(c)} />
-                            ))}
+                            {filtered.map(({ category: c, matchedItems }) => {
+                                const custom = c as Partial<CustomCategory>;
+                                const isCustom = !!custom.deckId;
+                                const canDelete = isCustom && !!session?.user?.id && custom.ownerId === session.user.id;
+                                return (
+                                    <CategoryCard
+                                        key={c.id}
+                                        category={c}
+                                        matchedItems={matchedItems}
+                                        onClick={() => start(c)}
+                                        badge={isCustom ? 'Custom' : undefined}
+                                        onDelete={canDelete ? () => handleDelete(custom.deckId!) : undefined}
+                                    />
+                                );
+                            })}
                         </div>
                     )}
                 </div>
