@@ -47,7 +47,6 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Danzō (intérim)', img: 'https://static.wikia.nocookie.net/naruto/images/1/17/Danz%C5%8D.png/revision/latest?cb=20171028185149' },
             // Ajouts
             { name: 'Itachi Uchiha (intérim)', img: 'https://static.wikia.nocookie.net/naruto/images/2/2e/Itachi_Part_1.png/revision/latest' },
-            { name: 'Kakashi (jeune)', img: 'https://static.wikia.nocookie.net/naruto/images/0/0f/Kakashi_Young.png/revision/latest' },
         ],
     },
     {
@@ -208,6 +207,14 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Rogue One', img: 'https://upload.wikimedia.org/wikipedia/en/d/d4/Rogue_One%2C_A_Star_Wars_Story_poster.png' },
             { name: 'Andor', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Andor.svg/960px-Andor.svg.png' },
             { name: 'The Mandalorian', img: 'https://upload.wikimedia.org/wikipedia/en/0/04/The_Mandalorian_season_1_poster.jpg' },
+            // Ajouts : préquelles + postlogie + spin-off
+            { name: 'La Menace fantôme', img: 'https://upload.wikimedia.org/wikipedia/en/4/40/Star_Wars_Phantom_Menace_poster.jpg' },
+            { name: 'L\'Attaque des clones', img: 'https://upload.wikimedia.org/wikipedia/en/3/32/Star_Wars_-_Episode_II_Attack_of_the_Clones_%28movie_poster%29.jpg' },
+            { name: 'La Revanche des Sith', img: 'https://upload.wikimedia.org/wikipedia/en/9/93/Star_Wars_Episode_III_Revenge_of_the_Sith_poster.jpg' },
+            { name: 'Le Réveil de la Force', img: 'https://upload.wikimedia.org/wikipedia/en/a/a2/Star_Wars_The_Force_Awakens_Theatrical_Poster.jpg' },
+            { name: 'Les Derniers Jedi', img: 'https://upload.wikimedia.org/wikipedia/en/7/7f/Star_Wars_The_Last_Jedi.jpg' },
+            { name: 'L\'Ascension de Skywalker', img: 'https://upload.wikimedia.org/wikipedia/en/a/af/Star_Wars_The_Rise_of_Skywalker_poster.jpg' },
+            { name: 'Solo', img: 'https://upload.wikimedia.org/wikipedia/en/5/54/Solo_A_Star_Wars_Story_poster.jpg' },
         ],
     },
     {
