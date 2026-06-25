@@ -380,6 +380,7 @@ model DuelDeck {
   emoji     String   @default("🆚")
   imageUrl  String?
   isPublic  Boolean  @default(true)
+  isBuiltin Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

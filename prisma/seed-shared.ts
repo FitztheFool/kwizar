@@ -1,6 +1,7 @@
 // prisma/seed-shared.ts
 import { PrismaClient } from '../src/generated/prisma/client';
 import { seedQuizzes } from './seed-quiz';
+import { seedDuelDecks } from './seed-duel';
 
 export const wordGroups: Record<string, string[]> = {
     'Éclairage': [
@@ -212,6 +213,9 @@ export async function seedShared(prisma: PrismaClient, randomUserId: string) {
         cultureGenerale, sciences, sports, artsCulture,
         technologie, popCulture, musique, videogames, litterature, cinema, other,
     });
+
+    // Duels intégrés ("Ceci ou Cela" de base)
+    await seedDuelDecks(prisma, randomUserId);
 }
 
 export async function cleanDatabase(prisma: PrismaClient) {

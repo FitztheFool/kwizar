@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useDuel } from '@/hooks/useDuel';
-import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/categories';
+import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/types';
 import { ArrowLeftIcon, TrophyIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { MagnifyingGlassIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-/** Catégorie issue d'un Duel créé par un utilisateur. */
-type CustomCategory = DuelCategory & { deckId: string; ownerId: string; creatorName: string };
+/** Catégorie issue d'un Duel en DB (intégré ou créé par un utilisateur). */
+type DeckCategory = DuelCategory & { deckId: string; ownerId: string; creatorName: string; isBuiltin: boolean };
 
 interface DeckDTO {
     id: string;
@@ -17,13 +17,14 @@ interface DeckDTO {
     emoji: string;
     imageUrl: string | null;
     isPublic: boolean;
+    isBuiltin: boolean;
     creator: { id: string; username: string };
     items: { name: string; imageUrl: string | null }[];
 }
 
-function deckToCategory(d: DeckDTO): CustomCategory {
+function deckToCategory(d: DeckDTO): DeckCategory {
     return {
-        id: `custom:${d.id}`,
+        id: `deck:${d.id}`,
         title: d.title,
         emoji: d.emoji || '🆚',
         img: d.imageUrl ?? undefined,
@@ -31,6 +32,7 @@ function deckToCategory(d: DeckDTO): CustomCategory {
         deckId: d.id,
         ownerId: d.creator.id,
         creatorName: d.creator.username,
+        isBuiltin: d.isBuiltin,
     };
 }
 
@@ -117,29 +119,29 @@ function CategoryCard({ category, matchedItems, onClick, badge, onDelete }: {
 }
 
 export default function DuelPage() {
-    const { phase, categories, category, start, choose, reset, podium, currentMatch, roundLabel } = useDuel();
+    const { phase, category, start, choose, reset, podium, currentMatch, roundLabel } = useDuel();
     const { data: session } = useSession();
     const [query, setQuery] = useState('');
-    const [customDecks, setCustomDecks] = useState<CustomCategory[]>([]);
+    const [decks, setDecks] = useState<DeckCategory[]>([]);
 
     const loadDecks = useCallback(async () => {
         try {
             const res = await fetch('/api/duel');
             if (!res.ok) return;
             const data = await res.json();
-            setCustomDecks(((data.decks ?? []) as DeckDTO[]).map(deckToCategory));
-        } catch { /* hors-ligne : on garde juste les catégories de base */ }
+            setDecks(((data.decks ?? []) as DeckDTO[]).map(deckToCategory));
+        } catch { /* hors-ligne : rien à afficher */ }
     }, []);
     useEffect(() => { loadDecks(); }, [loadDecks]);
 
     const handleDelete = useCallback(async (deckId: string) => {
         if (!confirm('Supprimer ce Duel ?')) return;
         const res = await fetch(`/api/duel/${deckId}`, { method: 'DELETE' });
-        if (res.ok) setCustomDecks(d => d.filter(c => c.deckId !== deckId));
+        if (res.ok) setDecks(d => d.filter(c => c.deckId !== deckId));
     }, []);
 
-    // Catégories de base + créations des utilisateurs.
-    const allCategories = useMemo<DuelCategory[]>(() => [...customDecks, ...categories], [customDecks, categories]);
+    // Tout vient de la DB : Duels intégrés (isBuiltin) + créations des utilisateurs.
+    const allCategories = useMemo<DuelCategory[]>(() => decks, [decks]);
 
     // Recherche : on garde une catégorie si son titre OU l'un de ses items correspond.
     // Pour chaque résultat, on retient les items qui matchent (affichés en aperçu).
@@ -213,17 +215,17 @@ export default function DuelPage() {
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                             {filtered.map(({ category: c, matchedItems }) => {
-                                const custom = c as Partial<CustomCategory>;
-                                const isCustom = !!custom.deckId;
-                                const canDelete = isCustom && !!session?.user?.id && custom.ownerId === session.user.id;
+                                const deck = c as Partial<DeckCategory>;
+                                const isUserDeck = !!deck.deckId && !deck.isBuiltin;
+                                const canDelete = isUserDeck && !!session?.user?.id && deck.ownerId === session.user.id;
                                 return (
                                     <CategoryCard
                                         key={c.id}
                                         category={c}
                                         matchedItems={matchedItems}
                                         onClick={() => start(c)}
-                                        badge={isCustom ? 'Custom' : undefined}
-                                        onDelete={canDelete ? () => handleDelete(custom.deckId!) : undefined}
+                                        badge={isUserDeck ? 'Custom' : undefined}
+                                        onDelete={canDelete ? () => handleDelete(deck.deckId!) : undefined}
                                     />
                                 );
                             })}

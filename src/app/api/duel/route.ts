@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
         const decks = await prisma.duelDeck.findMany({
             where,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ isBuiltin: 'desc' }, { createdAt: 'desc' }],
             include: {
                 items: { orderBy: { position: 'asc' } },
                 creator: { select: { id: true, username: true, email: true } },
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
                 emoji: d.emoji,
                 imageUrl: d.imageUrl,
                 isPublic: d.isPublic,
+                isBuiltin: d.isBuiltin,
                 creator: {
                     id: d.creator.id,
                     username: d.creator.username || d.creator.email?.split('@')[0] || 'Anonyme',

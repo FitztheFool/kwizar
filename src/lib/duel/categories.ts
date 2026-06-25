@@ -1,8 +1,11 @@
 // Catégories du jeu "Duel" — tournoi d'élimination par préférence.
 // Chaque item = { name, img } (image web). Si l'image casse, l'UI affiche le nom.
+// ⚠️ Source de vérité du SEED des Duels intégrés (importée côté serveur/seed
+// uniquement). Au runtime, le jeu lit les Duels depuis la DB via /api/duel.
 
-export interface DuelItem { name: string; img: string; }
-export interface DuelCategory { id: string; title: string; emoji: string; img?: string; items: DuelItem[]; }
+import { DuelItem, DuelCategory } from './types';
+export type { DuelItem, DuelCategory } from './types';
+export { isEmoji, categoryImage } from './types';
 
 // Helpers
 const poke = (id: number, name: string): DuelItem => ({
@@ -438,12 +441,3 @@ export const CATEGORIES: DuelCategory[] = [
         ],
     },
 ];
-
-export const isEmoji = (img: string) => !!img && !img.startsWith('http');
-
-/** Image d'icône d'une catégorie : champ `img` explicite, sinon 1ʳᵉ image d'item utilisable. */
-export function categoryImage(c: DuelCategory): string | null {
-    if (c.img && !isEmoji(c.img)) return c.img;
-    const item = c.items.find(i => i.img && !isEmoji(i.img));
-    return item ? item.img : null;
-}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { CATEGORIES, DuelCategory, DuelItem } from '@/lib/duel/categories';
+import { DuelCategory, DuelItem } from '@/lib/duel/types';
 
 type Phase = 'category' | 'duel' | 'podium';
 
@@ -70,7 +70,7 @@ export function useDuel() {
     const reset = useCallback(() => { setPhase('category'); setCategory(null); setPodium(null); }, []);
 
     return {
-        phase, categories: CATEGORIES, category, start, choose, reset, podium,
+        phase, category, start, choose, reset, podium,
         currentMatch: queue[matchIndex] ?? null,
         roundNo, totalRounds,
         roundLabel: roundSize === 2 ? 'Finale' : roundSize === 4 ? 'Demi-finale' : roundSize === 8 ? 'Quart de finale' : 'Tour',
