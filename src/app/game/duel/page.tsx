@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useDuel } from '@/hooks/useDuel';
+import Pagination from '@/components/Pagination';
 import { isEmoji, categoryImage, DuelItem, DuelCategory } from '@/lib/duel/types';
 import { ArrowLeftIcon, TrophyIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { MagnifyingGlassIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -129,16 +130,28 @@ export default function DuelPage() {
     const { data: session } = useSession();
     const [query, setQuery] = useState('');
     const [decks, setDecks] = useState<DeckCategory[]>([]);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-    const loadDecks = useCallback(async () => {
+    // Chargement server-side : pagination + recherche (titre OU item, ex. « Pika »).
+    const loadDecks = useCallback(async (p: number, search: string) => {
         try {
-            const res = await fetch('/api/duel');
+            const params = new URLSearchParams({ page: String(p) });
+            if (search.trim()) params.set('search', search.trim());
+            const res = await fetch(`/api/duel?${params}`);
             if (!res.ok) return;
             const data = await res.json();
             setDecks(((data.decks ?? []) as DeckDTO[]).map(deckToCategory));
+            setTotalPages(data.totalPages ?? 1);
+            setPage(data.page ?? p);
         } catch { /* hors-ligne : rien à afficher */ }
     }, []);
-    useEffect(() => { loadDecks(); }, [loadDecks]);
+
+    // Recherche debouncée → recharge page 1 (et chargement initial avec query='').
+    useEffect(() => {
+        const t = setTimeout(() => loadDecks(1, query), 300);
+        return () => clearTimeout(t);
+    }, [query, loadDecks]);
 
     const handleDelete = useCallback(async (deckId: string) => {
         if (!confirm('Supprimer ce Duel ?')) return;
@@ -146,23 +159,15 @@ export default function DuelPage() {
         if (res.ok) setDecks(d => d.filter(c => c.deckId !== deckId));
     }, []);
 
-    // Tout vient de la DB : Duels intégrés (isBuiltin) + créations des utilisateurs.
-    const allCategories = useMemo<DuelCategory[]>(() => decks, [decks]);
-
-    // Recherche : on garde une catégorie si son titre OU l'un de ses items correspond.
-    // Pour chaque résultat, on retient les items qui matchent (affichés en aperçu).
+    // Items à mettre en avant quand la recherche matche un item (aperçu sur la carte).
     const q = query.trim().toLowerCase();
-    const filtered = useMemo(() => {
-        if (!q) return allCategories.map(c => ({ category: c, matchedItems: [] as string[] }));
-        return allCategories
-            .map(c => {
-                const titleMatch = c.title.toLowerCase().includes(q);
-                const matchedItems = c.items.filter(i => i.name.toLowerCase().includes(q)).map(i => i.name);
-                return { category: c, matchedItems, keep: titleMatch || matchedItems.length > 0 };
-            })
-            .filter(r => r.keep)
-            .map(({ category, matchedItems }) => ({ category, matchedItems }));
-    }, [allCategories, q]);
+    const filtered = useMemo(
+        () => decks.map(c => ({
+            category: c,
+            matchedItems: q ? c.items.filter(i => i.name.toLowerCase().includes(q)).map(i => i.name) : [],
+        })),
+        [decks, q],
+    );
 
     // Phase « catégorie » : page sombre type TierMaker, pleine largeur.
     if (phase === 'category') {
@@ -238,6 +243,8 @@ export default function DuelPage() {
                             })}
                         </div>
                     )}
+
+                    <Pagination currentPage={page} totalPages={totalPages} onPageChange={p => loadDecks(p, query)} />
                 </div>
             </div>
         );

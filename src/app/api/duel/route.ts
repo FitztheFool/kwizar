@@ -13,23 +13,39 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const search = (searchParams.get('search') ?? '').trim();
         const onlyMine = searchParams.get('onlyMine') === 'true';
+        const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
+        const pageSize = Math.min(60, Math.max(1, parseInt(searchParams.get('pageSize') ?? '18', 10) || 18));
 
         // Connecté : decks publics + ses propres decks (même privés). Sinon : publics seuls.
-        const where: any = onlyMine && session?.user?.id
+        const visibility: any = onlyMine && session?.user?.id
             ? { creatorId: session.user.id }
             : session?.user?.id
                 ? { OR: [{ isPublic: true }, { creatorId: session.user.id }] }
                 : { isPublic: true };
-        if (search) where.title = { contains: search, mode: 'insensitive' };
+        // Recherche : par titre OU par nom d'item (ex. « Pika » → deck Pokémon).
+        const filter = search
+            ? {
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' as const } },
+                    { items: { some: { name: { contains: search, mode: 'insensitive' as const } } } },
+                ],
+            }
+            : {};
+        const where = { AND: [visibility, filter] };
 
-        const decks = await prisma.duelDeck.findMany({
-            where,
-            orderBy: [{ isBuiltin: 'desc' }, { createdAt: 'desc' }],
-            include: {
-                items: { orderBy: { position: 'asc' } },
-                creator: { select: { id: true, username: true, email: true } },
-            },
-        });
+        const [decks, total] = await Promise.all([
+            prisma.duelDeck.findMany({
+                where,
+                orderBy: [{ isBuiltin: 'desc' }, { createdAt: 'desc' }],
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+                include: {
+                    items: { orderBy: { position: 'asc' } },
+                    creator: { select: { id: true, username: true, email: true } },
+                },
+            }),
+            prisma.duelDeck.count({ where }),
+        ]);
 
         return NextResponse.json({
             decks: decks.map((d) => ({
@@ -46,6 +62,10 @@ export async function GET(request: NextRequest) {
                 items: d.items.map((i) => ({ name: i.name, imageUrl: i.imageUrl })),
                 createdAt: d.createdAt,
             })),
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize),
         });
     } catch (error) {
         console.error('Erreur GET /api/duel:', error);

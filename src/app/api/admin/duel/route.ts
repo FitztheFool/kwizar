@@ -13,7 +13,11 @@ export async function GET(req: NextRequest) {
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20', 10) || 20));
     const q = searchParams.get('q')?.trim() ?? '';
     const where: NonNullable<NonNullable<Parameters<typeof prisma.duelDeck.findMany>[0]>['where']> = {};
-    if (q) where.title = { contains: q, mode: 'insensitive' };
+    // Recherche par titre OU par nom d'item (ex. « Pika » → deck Pokémon).
+    if (q) where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { items: { some: { name: { contains: q, mode: 'insensitive' } } } },
+    ];
 
     const [decks, total] = await Promise.all([
         prisma.duelDeck.findMany({
