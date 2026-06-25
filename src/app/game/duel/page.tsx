@@ -232,7 +232,7 @@ export default function DuelPage() {
                                         onClick={() => start(c)}
                                         badge={isUserDeck ? 'Custom' : undefined}
                                         onDelete={canDelete ? () => handleDelete(deck.deckId!) : undefined}
-                                        author={isUserDeck ? deck.creatorName : undefined}
+                                        author={deck.creatorName}
                                     />
                                 );
                             })}
