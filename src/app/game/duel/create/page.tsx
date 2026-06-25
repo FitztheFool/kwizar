@@ -68,6 +68,9 @@ export default function DuelCreatePage() {
         const valid = items.filter(i => i.name.trim());
         if (valid.length < MIN_ITEMS) { setError(`Il faut au moins ${MIN_ITEMS} items avec un nom.`); return; }
 
+        // Pas de couverture explicite → on prend la 1re image d'item disponible.
+        const coverUrl = cover.trim() || valid.find(i => i.imageUrl.trim())?.imageUrl.trim() || null;
+
         setSaving(true);
         try {
             const res = await fetch('/api/duel', {
@@ -77,7 +80,7 @@ export default function DuelCreatePage() {
                     title: title.trim(),
                     emoji: emoji.trim() || '🆚',
                     isPublic,
-                    imageUrl: cover.trim() || null,
+                    imageUrl: coverUrl,
                     items: valid.map(i => ({ name: i.name.trim(), imageUrl: i.imageUrl.trim() || null })),
                 }),
             });
