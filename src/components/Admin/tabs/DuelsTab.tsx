@@ -63,7 +63,7 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 font-medium max-w-[200px]">
-                                        <span className="text-xs truncate block">{deck.emoji} {deck.title}</span>
+                                        <span className="text-xs truncate block">{deck.title}</span>
                                     </td>
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{deck.creator.username}</td>
                                     <td className="px-3 py-2 text-xs text-gray-700 dark:text-gray-300 font-semibold">{deck._count.items}</td>
