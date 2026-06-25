@@ -34,6 +34,7 @@ export interface AdminDuel {
     id: string;
     title: string;
     emoji: string;
+    imageUrl: string | null;
     isPublic: boolean;
     isBuiltin: boolean;
     createdAt: string;

@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
                 id: true,
                 title: true,
                 emoji: true,
+                imageUrl: true,
                 isPublic: true,
                 isBuiltin: true,
                 createdAt: true,

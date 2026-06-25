@@ -41,17 +41,27 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                     <table className="w-full text-sm">
                         <thead className="bg-white dark:bg-gray-900">
                             <tr className="text-left">
-                                {['Titre', 'Créateur', 'Items', 'Type', 'Visibilité', 'Actions'].map(h => (
-                                    <th key={h} className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
+                                {['', 'Titre', 'Créateur', 'Items', 'Type', 'Visibilité', 'Actions'].map((h, i) => (
+                                    <th key={i} className="px-3 py-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                             {duels.length === 0 && (
-                                <tr><td colSpan={6} className="px-3 py-6 text-xs text-center text-gray-400 dark:text-gray-500">Aucun Duel trouvé.</td></tr>
+                                <tr><td colSpan={7} className="px-3 py-6 text-xs text-center text-gray-400 dark:text-gray-500">Aucun Duel trouvé.</td></tr>
                             )}
                             {duels.map(deck => (
                                 <tr key={deck.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
+                                    <td className="px-3 py-2">
+                                        <div className="h-9 w-12 overflow-hidden rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                            {deck.imageUrl ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={deck.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <span className="text-base">{deck.emoji}</span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="px-3 py-2 font-medium max-w-[200px]">
                                         <span className="text-xs truncate block">{deck.emoji} {deck.title}</span>
                                     </td>
