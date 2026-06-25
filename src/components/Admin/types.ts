@@ -1,5 +1,5 @@
 export type UserSort = 'createdAt_desc' | 'createdAt_asc' | 'username_asc' | 'username_desc';
-export type AdminTab = 'stats' | 'users' | 'quizzes' | 'categories' | 'words' | 'wordGroups' | 'games' | 'lobbies' | 'features';
+export type AdminTab = 'stats' | 'users' | 'quizzes' | 'duels' | 'categories' | 'words' | 'wordGroups' | 'games' | 'lobbies' | 'features';
 
 export interface AdminUser {
     status: 'ACTIVE' | 'BANNED' | 'DEACTIVATED' | 'PENDING';
@@ -28,6 +28,17 @@ export interface AdminQuiz {
         questions: number;
         attempts: number
     };
+}
+
+export interface AdminDuel {
+    id: string;
+    title: string;
+    emoji: string;
+    isPublic: boolean;
+    isBuiltin: boolean;
+    createdAt: string;
+    creator: { username: string };
+    _count: { items: number };
 }
 
 export interface AdminWordGroup {

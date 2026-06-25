@@ -10,13 +10,14 @@ import { useAdminWords } from './hooks/useAdminWords';
 import StatsTab from './tabs/StatsTab';
 import UsersTab from './tabs/UsersTab';
 import QuizzesTab from './tabs/QuizzesTab';
+import DuelsTab from './tabs/DuelsTab';
 import CategoriesTab from './tabs/CategoriesTab';
 import WordsTab from './tabs/WordsTab';
 import WordGroupsTab from './tabs/WordGroupsTab';
 import GamesTab from './tabs/GamesTab';
 import LobbiesTab from './tabs/LobbiesTab';
 import FeaturesTab from './tabs/FeaturesTab';
-import type { AdminTab, AdminQuiz, AdminCategory, AdminWordGroup } from './types';
+import type { AdminTab, AdminQuiz, AdminDuel, AdminCategory, AdminWordGroup } from './types';
 import {
     ChartBarIcon,
     UsersIcon,
@@ -28,11 +29,12 @@ import {
     ChevronDownIcon,
     AdjustmentsHorizontalIcon,
     SignalIcon,
+    BoltIcon,
 } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 20;
 const SECTION_ID: Record<AdminTab, string> = {
-    stats: 'stats', users: 'users', quizzes: 'quizzes',
+    stats: 'stats', users: 'users', quizzes: 'quizzes', duels: 'duels',
     categories: 'categories', words: 'words', wordGroups: 'word-groups',
     games: 'games', lobbies: 'lobbies', features: 'features',
 };
@@ -41,6 +43,7 @@ const hashToTab = (hash: string): AdminTab => ({
     '#stats': 'stats',
     '#users': 'users',
     '#quizzes': 'quizzes',
+    '#duels': 'duels',
     '#categories': 'categories',
     '#words': 'words',
     '#word-groups': 'wordGroups',
@@ -56,6 +59,7 @@ const TAB_CONFIG: { key: AdminTab; label: string; icon: React.FC<{ className?: s
     { key: 'users', label: 'Utilisateurs', icon: UsersIcon },
     { key: 'categories', label: 'Catégories', icon: TagIcon },
     { key: 'quizzes', label: 'Quiz', icon: QuestionMarkCircleIcon },
+    { key: 'duels', label: 'Duels', icon: BoltIcon },
     { key: 'wordGroups', label: 'Groupes de mots', icon: FolderOpenIcon },
     { key: 'words', label: 'Mots', icon: BookOpenIcon },
     { key: 'games', label: 'Jeux', icon: PuzzlePieceIcon },
@@ -76,6 +80,9 @@ export default function AdminPanel() {
     const [quizzes, setQuizzes] = useState<AdminQuiz[]>([]);
     const [quizPage, setQuizPage] = useState(1);
     const [quizTotalPages, setQuizTotalPages] = useState(1);
+    const [duels, setDuels] = useState<AdminDuel[]>([]);
+    const [duelPage, setDuelPage] = useState(1);
+    const [duelTotalPages, setDuelTotalPages] = useState(1);
 
     const [categories, setCategories] = useState<AdminCategory[]>([]);
     const [categoriesPage, setCategoriesPage] = useState(1);
@@ -112,6 +119,17 @@ export default function AdminPanel() {
         setQuizzes(data.quizzes ?? []);
         setQuizTotalPages(data.totalPages ?? 1);
         setQuizPage(page);
+    }, []);
+
+    const fetchDuels = useCallback(async (page: number, search: string) => {
+        const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+        if (search.trim()) params.set('q', search.trim());
+        const res = await fetch(`/api/admin/duel?${params}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        setDuels(data.decks ?? []);
+        setDuelTotalPages(data.totalPages ?? 1);
+        setDuelPage(page);
     }, []);
 
     const fetchCategoriesForSelect = useCallback(async () => {
@@ -167,12 +185,13 @@ export default function AdminPanel() {
             switch (tab) {
                 case 'users': await usersHook.fetchUsers(1); break;
                 case 'quizzes': await Promise.all([fetchQuizzes(1, ''), fetchCategoriesForSelect()]); break;
+                case 'duels': await fetchDuels(1, ''); break;
                 case 'categories': await fetchCategories(1, ''); break;
                 case 'wordGroups': await fetchWordGroups(1, ''); break;
                 case 'words': await Promise.all([wordsHook.fetchWordIndex(), fetchWordGroupsForSelect()]); break;
             }
         } finally { setLoading(false); }
-    }, [usersHook.fetchUsers, wordsHook.fetchWordIndex, fetchQuizzes, fetchCategoriesForSelect, fetchCategories, fetchWordGroups, fetchWordGroupsForSelect]);
+    }, [usersHook.fetchUsers, wordsHook.fetchWordIndex, fetchQuizzes, fetchDuels, fetchCategoriesForSelect, fetchCategories, fetchWordGroups, fetchWordGroupsForSelect]);
 
     useEffect(() => {
         if (activeTab === 'stats') {
@@ -321,6 +340,18 @@ export default function AdminPanel() {
                                         if (!confirm(`Supprimer "${title}" ?`)) return;
                                         const res = await fetch('/api/admin/quiz', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: id }) });
                                         if (res.ok) fetchQuizzes(quizPage, '');
+                                        else alert((await res.json())?.error ?? 'Erreur');
+                                    }}
+                                />
+                            )}
+                            {activeTab === 'duels' && (
+                                <DuelsTab
+                                    duels={duels} page={duelPage} totalPages={duelTotalPages}
+                                    onFetch={fetchDuels}
+                                    onDelete={async (id, title) => {
+                                        if (!confirm(`Supprimer "${title}" ?`)) return;
+                                        const res = await fetch('/api/admin/duel', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deckId: id }) });
+                                        if (res.ok) fetchDuels(duelPage, '');
                                         else alert((await res.json())?.error ?? 'Erreur');
                                     }}
                                 />
