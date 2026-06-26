@@ -8,7 +8,7 @@ import Pagination from '@/components/Pagination';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
 
 interface Deck {
     id: string;
