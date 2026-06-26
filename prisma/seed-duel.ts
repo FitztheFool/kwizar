@@ -191,9 +191,6 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Captain Marvel', img: 'https://upload.wikimedia.org/wikipedia/en/4/4e/Captain_Marvel_%28film%29_poster.jpg' },
         ],
     },
-
-    // ==================== NOUVELLES CATÉGORIES ====================
-
     {
         id: 'dc',
         title: 'Le meilleur film DC',
@@ -657,6 +654,8 @@ export const CATEGORIES: DuelCategory[] = [
         img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg',
         items: [
             { name: 'Friends', img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg' },
+            { name: 'Malcolm', img: 'https://www.themoviedb.org/t/p/w1280/aRd5NJafhAAPXupmTamJGBXonSq.jpg' },
+            { name: 'Ma famille d\'abord', img: 'https://www.themoviedb.org/t/p/w1280/9xIwhzgBoTejiN1zv9VRHUKkpBt.jpg' },
             { name: 'The Office', img: 'https://image.tmdb.org/t/p/w500/2dApsoX4bd98szjrbj5i3syYOh2.jpg' },
             { name: 'Brooklyn Nine-Nine', img: 'https://image.tmdb.org/t/p/w500/A3SymGlOHefSKbz1bCOz56moupS.jpg' },
             { name: 'How I Met Your Mother', img: 'https://image.tmdb.org/t/p/w500/e6PuvBDHqUrJ3dRI2co1G4WXVWf.jpg' },

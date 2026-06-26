@@ -93,32 +93,30 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-stretch">
                         {decks.map(deck => {
                             const cover = deck.imageUrl ?? deck.items.find(i => i.imageUrl)?.imageUrl ?? null;
                             return (
-                                <div key={deck.id} className="group relative overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                                    <Link href="/game/duel" className="block">
-                                        <div className="aspect-[16/9] bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                                            {cover ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={cover} alt={deck.title} referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <span className="text-5xl">{deck.emoji}</span>
-                                            )}
-                                        </div>
-                                        <div className="p-3">
-                                            <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{deck.title}</div>
-                                            <div className="text-xs text-gray-500 dark:text-gray-400">{deck.items.length} items · {deck.isPublic ? 'Public' : 'Privé'}</div>
+                                <div key={deck.id} className="group relative aspect-[4/3] overflow-hidden rounded-md bg-zinc-800 ring-1 ring-black/5 dark:ring-white/5">
+                                    <Link href="/game/duel" className="block h-full w-full" title={deck.title}>
+                                        {cover ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={cover} alt={deck.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-zinc-700 to-zinc-900">{deck.emoji}</div>
+                                        )}
+                                        <div className="absolute inset-x-0 bottom-0 bg-black/85 px-2 py-2 text-center">
+                                            <div className="text-sm font-bold text-white leading-tight truncate">{deck.title}</div>
+                                            <div className="text-[10px] text-gray-400">{deck.items.length} items · {deck.isPublic ? 'Public' : 'Privé'}</div>
                                         </div>
                                     </Link>
                                     {isOwn && (
-                                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => router.push(`/game/duel/${deck.id}/edit`)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-blue-600" title="Modifier">
-                                                <PencilSquareIcon className="h-4 w-4" />
+                                        <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => router.push(`/game/duel/${deck.id}/edit`)} className="flex h-6 w-6 items-center justify-center rounded bg-black/60 text-white hover:bg-blue-600" title="Modifier">
+                                                <PencilSquareIcon className="h-3.5 w-3.5" />
                                             </button>
-                                            <button onClick={() => handleDelete(deck.id)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-red-600" title="Supprimer">
-                                                <TrashIcon className="h-4 w-4" />
+                                            <button onClick={() => handleDelete(deck.id)} className="flex h-6 w-6 items-center justify-center rounded bg-black/60 text-white hover:bg-red-600" title="Supprimer">
+                                                <TrashIcon className="h-3.5 w-3.5" />
                                             </button>
                                         </div>
                                     )}
