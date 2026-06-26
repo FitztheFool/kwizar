@@ -42,11 +42,13 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const fetchDecks = useCallback(async (p = 1) => {
+    const fetchDecks = useCallback(async (p = 1, s = '') => {
         if (!targetUserId) return;
         const params = new URLSearchParams({ page: String(p), pageSize: String(PAGE_SIZE), creatorId: targetUserId });
+        if (s.trim()) params.set('search', s.trim());
         const res = await fetch(`/api/duel?${params}`);
         if (!res.ok) return;
         const data = await res.json();
@@ -59,8 +61,9 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
     useEffect(() => {
         if (status === 'loading') return;
         if (!targetUserId) { setLoading(false); return; }
-        fetchDecks(1).finally(() => setLoading(false));
-    }, [status, fetchDecks, targetUserId]);
+        const t = setTimeout(() => fetchDecks(1, search).finally(() => setLoading(false)), search ? 300 : 0);
+        return () => clearTimeout(t);
+    }, [status, fetchDecks, targetUserId, search]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Supprimer ce Duel ?')) return;
@@ -79,10 +82,18 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{resolvedTitle}</h2>
                 <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{total}</span>
             </div>
+
+            <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un Duel ou un item…"
+                className="w-full mb-6 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
 
             {decks.length === 0 ? (
                 <div className="text-center py-16">
@@ -126,7 +137,7 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                             );
                         })}
                     </div>
-                    <Pagination currentPage={page} totalPages={totalPages} onPageChange={fetchDecks} />
+                    <Pagination currentPage={page} totalPages={totalPages} onPageChange={p => fetchDecks(p, search)} />
                 </>
             )}
         </div>
