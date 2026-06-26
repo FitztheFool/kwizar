@@ -6,6 +6,7 @@ import { fetcher } from '@/lib/swr';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
+import TrendingCarousel from '@/components/TrendingCarousel';
 import { PlayIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 type Stats = { parties: number; points: number };
@@ -143,6 +144,8 @@ export default function HomePage() {
 
             {/* ── Games by mode ──────────────────────────────────────────────── */}
             <section className="max-w-5xl mx-auto px-6 py-10">
+                <TrendingCarousel />
+
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-8">Nos jeux</h2>
 
                 {/* Solo */}

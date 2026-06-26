@@ -109,6 +109,9 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-stretch">
                         {decks.map(deck => {
                             const cover = deck.imageUrl ?? deck.items.find(i => i.imageUrl)?.imageUrl ?? null;
+                            // Items mis en avant quand la recherche matche un item (comme /game/duel).
+                            const q = search.trim().toLowerCase();
+                            const matchedItems = q ? deck.items.filter(i => i.name.toLowerCase().includes(q)).map(i => i.name) : [];
                             return (
                                 <div key={deck.id} className="group relative aspect-[4/3] overflow-hidden rounded-md bg-zinc-800 ring-1 ring-black/5 dark:ring-white/5">
                                     <Link href={`/game/duel?play=${deck.id}`} className="block h-full w-full" title={deck.title}>
@@ -120,7 +123,13 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                                         )}
                                         <div className="absolute inset-x-0 bottom-0 bg-black/85 px-2 py-2 text-center">
                                             <div className="text-sm font-bold text-white leading-tight truncate">{deck.title}</div>
-                                            <div className="text-[10px] text-gray-400">{deck.items.length} items · {deck.isPublic ? 'Public' : 'Privé'}</div>
+                                            {matchedItems.length > 0 ? (
+                                                <div className="text-[10px] text-amber-400 truncate" title={matchedItems.join(', ')}>
+                                                    ✓ {matchedItems.slice(0, 3).join(', ')}{matchedItems.length > 3 ? `, +${matchedItems.length - 3}` : ''}
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-gray-400">{deck.items.length} items · {deck.isPublic ? 'Public' : 'Privé'}</div>
+                                            )}
                                         </div>
                                     </Link>
                                     {canManage && (

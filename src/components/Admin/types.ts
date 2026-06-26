@@ -1,5 +1,5 @@
 export type UserSort = 'createdAt_desc' | 'createdAt_asc' | 'username_asc' | 'username_desc';
-export type AdminTab = 'stats' | 'users' | 'quizzes' | 'duels' | 'categories' | 'words' | 'wordGroups' | 'games' | 'lobbies' | 'features';
+export type AdminTab = 'stats' | 'users' | 'quizzes' | 'duels' | 'categories' | 'words' | 'wordGroups' | 'games' | 'trending' | 'lobbies' | 'features';
 
 export interface AdminUser {
     status: 'ACTIVE' | 'BANNED' | 'DEACTIVATED' | 'PENDING';

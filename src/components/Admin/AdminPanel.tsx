@@ -11,6 +11,7 @@ import StatsTab from './tabs/StatsTab';
 import UsersTab from './tabs/UsersTab';
 import QuizzesTab from './tabs/QuizzesTab';
 import DuelsTab from './tabs/DuelsTab';
+import TrendingTab from './tabs/TrendingTab';
 import CategoriesTab from './tabs/CategoriesTab';
 import WordsTab from './tabs/WordsTab';
 import WordGroupsTab from './tabs/WordGroupsTab';
@@ -30,13 +31,14 @@ import {
     AdjustmentsHorizontalIcon,
     SignalIcon,
     BoltIcon,
+    FireIcon,
 } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 20;
 const SECTION_ID: Record<AdminTab, string> = {
     stats: 'stats', users: 'users', quizzes: 'quizzes', duels: 'duels',
     categories: 'categories', words: 'words', wordGroups: 'word-groups',
-    games: 'games', lobbies: 'lobbies', features: 'features',
+    games: 'games', trending: 'trending', lobbies: 'lobbies', features: 'features',
 };
 
 const hashToTab = (hash: string): AdminTab => ({
@@ -48,6 +50,7 @@ const hashToTab = (hash: string): AdminTab => ({
     '#words': 'words',
     '#word-groups': 'wordGroups',
     '#games': 'games',
+    '#trending': 'trending',
     '#lobbies': 'lobbies',
     '#features': 'features',
 } as Record<string, AdminTab>)[hash] ?? 'stats';
@@ -63,6 +66,7 @@ const TAB_CONFIG: { key: AdminTab; label: string; icon: React.FC<{ className?: s
     { key: 'wordGroups', label: 'Groupes de mots', icon: FolderOpenIcon },
     { key: 'words', label: 'Mots', icon: BookOpenIcon },
     { key: 'games', label: 'Jeux', icon: PuzzlePieceIcon },
+    { key: 'trending', label: 'Jeux tendances', icon: FireIcon },
     { key: 'lobbies', label: 'Lobbies', icon: SignalIcon },
     { key: 'features', label: 'Fonctionnalités', icon: AdjustmentsHorizontalIcon },
 ];
@@ -414,6 +418,7 @@ export default function AdminPanel() {
                                 />
                             )}
                             {activeTab === 'games' && <GamesTab />}
+                            {activeTab === 'trending' && <TrendingTab />}
                             {activeTab === 'lobbies' && <LobbiesTab />}
                             {activeTab === 'features' && <FeaturesTab />}
                         </>
