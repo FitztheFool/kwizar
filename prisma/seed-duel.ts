@@ -654,8 +654,8 @@ export const CATEGORIES: DuelCategory[] = [
         img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg',
         items: [
             { name: 'Friends', img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg' },
-            { name: 'Malcolm', img: 'https://www.themoviedb.org/t/p/w1280/aRd5NJafhAAPXupmTamJGBXonSq.jpg' },
-            { name: 'Ma famille d\'abord', img: 'https://www.themoviedb.org/t/p/w1280/9xIwhzgBoTejiN1zv9VRHUKkpBt.jpg' },
+            { name: 'Malcolm', img: 'https://image.tmdb.org/t/p/w500/aRd5NJafhAAPXupmTamJGBXonSq.jpg' },
+            { name: 'Ma famille d\'abord', img: 'https://image.tmdb.org/t/p/w500/9xIwhzgBoTejiN1zv9VRHUKkpBt.jpg' },
             { name: 'The Office', img: 'https://image.tmdb.org/t/p/w500/2dApsoX4bd98szjrbj5i3syYOh2.jpg' },
             { name: 'Brooklyn Nine-Nine', img: 'https://image.tmdb.org/t/p/w500/A3SymGlOHefSKbz1bCOz56moupS.jpg' },
             { name: 'How I Met Your Mother', img: 'https://image.tmdb.org/t/p/w500/e6PuvBDHqUrJ3dRI2co1G4WXVWf.jpg' },
