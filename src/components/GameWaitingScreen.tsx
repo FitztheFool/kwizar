@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import GameIcon from './GameIcon';
@@ -25,7 +24,6 @@ interface GameWaitingScreenProps {
 const isBot = (id: string) => id.startsWith('bot-');
 
 export default function GameWaitingScreen({ gameType, gameName, lobbyId, players, myUserId, hostId }: GameWaitingScreenProps) {
-    const router = useRouter();
     const [cachedPlayers] = useState<Player[]>(() => {
         try {
             const cached = sessionStorage.getItem(`lobby_players_${lobbyId}`);
@@ -180,22 +178,6 @@ export default function GameWaitingScreen({ gameType, gameName, lobbyId, players
                     <div className="flex items-center gap-2 -mt-2 text-[11px] font-medium text-gray-400 dark:text-white/40">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" style={{ animation: 'gws-live 1.4s ease-in-out infinite' }} />
                         Connexion au serveur de jeu…
-                    </div>
-
-                    {/* Actions */}
-                    <div className="w-full flex flex-col gap-2">
-                        <button
-                            onClick={() => router.push(`/lobby/create/${lobbyId}`)}
-                            className="w-full py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm hover:bg-gray-700 dark:hover:bg-gray-100 active:scale-[0.98] transition-all"
-                        >
-                            Retour au lobby
-                        </button>
-                        <button
-                            onClick={() => router.push('/')}
-                            className="w-full py-3 rounded-xl bg-white/60 dark:bg-white/[0.04] border border-gray-200/70 dark:border-white/[0.08] text-gray-500 dark:text-white/60 font-semibold text-sm hover:bg-gray-100 dark:hover:bg-white/[0.08] active:scale-[0.98] transition-all"
-                        >
-                            Quitter
-                        </button>
                     </div>
                 </div>
             </main>

@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
+import GameIcon from '@/components/GameIcon';
 import TrendingCarousel from '@/components/TrendingCarousel';
-import { PlayIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { PlayIcon, PlusIcon, ChevronDownIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 type Stats = { parties: number; points: number };
+
+/** Normalise pour une recherche insensible aux accents/casse (comme admin#games). */
+const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 // ── Derived from GAME_CONFIG — single source of truth ────────────────────────
 
@@ -26,6 +30,16 @@ const MODE_DOT: Record<GameMode, string> = {
     both: 'bg-clay-500',
     multi: 'bg-felt-600',
 };
+
+// ── Filtre par mode (onglets) ─────────────────────────────────────────────────
+type Filter = GameMode | 'all';
+
+const FILTERS: { key: Filter; label: string }[] = [
+    { key: 'all', label: 'Tous' },
+    { key: 'solo', label: 'Solo' },
+    { key: 'both', label: 'Mixte' },
+    { key: 'multi', label: 'Multi' },
+];
 
 function GameSection({
     label,
@@ -90,6 +104,58 @@ export default function HomePage() {
     };
     const nbJeux = visibleByMode.solo.length + visibleByMode.both.length + visibleByMode.multi.length;
 
+    // ── Filtre par mode (onglets) — état synchronisé avec l'URL (?mode=…) ──────
+    const [filter, setFilter] = useState<Filter>('all');
+    const counts: Record<Filter, number> = {
+        all: nbJeux,
+        solo: visibleByMode.solo.length,
+        both: visibleByMode.both.length,
+        multi: visibleByMode.multi.length,
+    };
+
+    // Initialise depuis l'URL (liens partageables : /?mode=solo).
+    useEffect(() => {
+        const m = new URLSearchParams(window.location.search).get('mode');
+        if (m === 'solo' || m === 'both' || m === 'multi') setFilter(m);
+    }, []);
+
+    const changeFilter = (f: Filter) => {
+        setFilter(f);
+        window.history.replaceState(null, '', f === 'all' ? '/' : `/?mode=${f}`);
+    };
+
+    // ── Recherche de jeu (combobox autocomplétée, comme admin#games) ───────────
+    const [search, setSearch] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!searchOpen) return;
+        const onClick = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSearchOpen(false); };
+        document.addEventListener('mousedown', onClick);
+        document.addEventListener('keydown', onKey);
+        return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+    }, [searchOpen]);
+
+    // Filtrage combiné : onglet (mode) ET recherche par nom. Ce qu'on peut voir = ce qu'on peut chercher.
+    const q = norm(search.trim());
+    const inTab = (mode: GameMode) => filter === 'all' || filter === mode;
+    const matchesQ = ([key, g]: [string, { label: string }]) => !q || norm(g.label).includes(q) || norm(key).includes(q);
+    const shownByMode: Record<GameMode, [string, { label: string }][]> = {
+        solo: inTab('solo') ? visibleByMode.solo.filter(matchesQ) : [],
+        both: inTab('both') ? visibleByMode.both.filter(matchesQ) : [],
+        multi: inTab('multi') ? visibleByMode.multi.filter(matchesQ) : [],
+    };
+    const totalShown = shownByMode.solo.length + shownByMode.both.length + shownByMode.multi.length;
+
+    // Suggestions du dropdown : jeux du périmètre de l'onglet courant, filtrés par la saisie, triés.
+    const suggestions = [
+        ...(inTab('solo') ? visibleByMode.solo : []),
+        ...(inTab('both') ? visibleByMode.both : []),
+        ...(inTab('multi') ? visibleByMode.multi : []),
+    ].filter(matchesQ).sort((a, b) => a[1].label.localeCompare(b[1].label, 'fr'));
+
     useEffect(() => { setCode(crypto.randomUUID()); }, []);
 
     return (
@@ -146,28 +212,95 @@ export default function HomePage() {
             <section className="max-w-5xl mx-auto px-6 py-10">
                 <TrendingCarousel />
 
-                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-8">Nos jeux</h2>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-5">Nos jeux</h2>
 
-                {/* Solo */}
-                {visibleByMode.solo.length > 0 && (
-                    <div className="mt-4">
-                        <GameSection label="Solo uniquement" badge="1 joueur" mode="solo" games={visibleByMode.solo} />
+                {/* Recherche (combobox autocomplétée) + onglets de filtre par mode */}
+                <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div ref={searchRef} className="relative w-full sm:max-w-xs">
+                        <MagnifyingGlassIcon className="absolute inset-y-0 left-3 my-auto w-4 h-4 text-gray-400 pointer-events-none" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setSearchOpen(true); }}
+                            onFocus={() => setSearchOpen(true)}
+                            placeholder="Rechercher un jeu…"
+                            className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 backdrop-blur-xl"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearch(''); setSearchOpen(false); }}
+                                className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                title="Effacer"
+                            >
+                                <XMarkIcon className="w-4 h-4" />
+                            </button>
+                        )}
+                        {searchOpen && suggestions.length > 0 && (
+                            <ul role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-stone-900 shadow-xl py-1">
+                                {suggestions.map(([key, g]) => (
+                                    <li key={key}>
+                                        <button
+                                            type="button"
+                                            role="option"
+                                            aria-selected={norm(search) === norm(g.label)}
+                                            onClick={() => { setSearch(g.label); setSearchOpen(false); }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition-colors"
+                                        >
+                                            <GameIcon gameType={g.gameType} className="w-5 h-5 shrink-0 rounded" />
+                                            <span className="flex-1 truncate">{g.label}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
+
+                    {/* Onglets de filtre par mode — n'affiche qu'un mode à la fois */}
+                    <div className="inline-flex flex-wrap gap-1 rounded-xl border border-black/5 dark:border-white/10 bg-gray-100 dark:bg-white/[0.06] p-1 backdrop-blur-xl">
+                        {FILTERS.map(({ key, label }) => {
+                            const active = filter === key;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => changeFilter(key)}
+                                    aria-pressed={active}
+                                    className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-bold transition-colors ${active
+                                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                                        : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'}`}
+                                >
+                                    {label}
+                                    <span className={`text-[10px] font-semibold ${active ? 'text-gray-400 dark:text-gray-500' : 'text-gray-400/70 dark:text-gray-500/70'}`}>
+                                        {counts[key]}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {search.trim() && totalShown === 0 && (
+                    <p className="px-4 py-10 text-sm text-center text-gray-400 dark:text-gray-500">
+                        Aucun jeu ne correspond à « {search} ».
+                    </p>
                 )}
 
-                {/* Solo + Multi */}
-                {visibleByMode.both.length > 0 && (
-                    <div className="mt-12">
-                        <GameSection label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" games={visibleByMode.both} />
-                    </div>
-                )}
+                <div className="space-y-12">
+                    {/* Solo */}
+                    {shownByMode.solo.length > 0 && (
+                        <GameSection label="Solo uniquement" badge="1 joueur" mode="solo" games={shownByMode.solo} />
+                    )}
 
-                {/* Multi only */}
-                {visibleByMode.multi.length > 0 && (
-                    <div className="mt-12">
-                        <GameSection label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" games={visibleByMode.multi} />
-                    </div>
-                )}
+                    {/* Solo + Multi */}
+                    {shownByMode.both.length > 0 && (
+                        <GameSection label="Solo ou multijoueur" badge="1 – 8 joueurs" mode="both" games={shownByMode.both} />
+                    )}
+
+                    {/* Multi only */}
+                    {shownByMode.multi.length > 0 && (
+                        <GameSection label="Multijoueur uniquement" badge="3+ joueurs" mode="multi" games={shownByMode.multi} />
+                    )}
+                </div>
 
             </section>
 
