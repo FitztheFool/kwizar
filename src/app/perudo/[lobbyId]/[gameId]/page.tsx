@@ -7,7 +7,6 @@ import GameUnavailable from '@/components/GameUnavailable';
 import { useEloUpdate } from '@/hooks/useEloUpdate';
 import { usePerudo, isBot } from '@/hooks/usePerudo';
 import GameOverModal from '@/components/GameOverModal';
-import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
@@ -271,37 +270,49 @@ export default function PerudoPage() {
                     asModal
                     dismissable={false}
                 >
-                    {state.lastReveal && state.lastReveal.revealedDice.length > 0 && (
-                        <div className="space-y-1.5 text-left rounded-xl bg-black/5 dark:bg-white/[0.04] p-3">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Dés finaux</p>
-                            {state.lastReveal.revealedDice.map(r => {
-                                const idx = state.players.findIndex(p => p.userId === r.userId);
-                                const color = colorForIndex(idx >= 0 ? idx : 0);
-                                return (
-                                    <div key={r.userId} className="flex items-center gap-2">
-                                        <span className={`text-xs font-bold truncate w-24 shrink-0 ${color.text}`}>{r.username}</span>
-                                        <div className="flex flex-wrap gap-1">
-                                            {r.dice.map((v, i) => <Die key={i} value={v} size={22} />)}
+                    {(() => {
+                        const diceMap = new Map((state.lastReveal?.revealedDice ?? []).map(r => [r.userId, r.dice]));
+                        const MEDAL = ['🥇', '🥈', '🥉'];
+                        return (
+                            <div className="space-y-2 text-left">
+                                {allEntries.map((row, i) => {
+                                    const idx = state.players.findIndex(p => p.userId === row.userId);
+                                    const color = colorForIndex(idx >= 0 ? idx : 0);
+                                    const dice = diceMap.get(row.userId);
+                                    const isForfeit = !!row.afk || !!row.abandon;
+                                    return (
+                                        <div key={row.userId} className={`rounded-xl border px-4 py-3 ${row.placement === 1 && !isForfeit
+                                            ? 'bg-amber-400/20 border-amber-400/50'
+                                            : isForfeit
+                                                ? 'bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60'
+                                                : row.isMe
+                                                    ? 'bg-sky-900/40 border-sky-500/40'
+                                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className="font-medium flex items-center gap-2 min-w-0">
+                                                    <span className="shrink-0">{isForfeit ? '🚫' : (MEDAL[i] ?? `${i + 1}.`)}</span>
+                                                    <span className={`truncate ${row.isMe ? 'text-amber-600 dark:text-amber-300 font-bold' : color.text}`}>
+                                                        {row.username}{row.isMe && ' (moi)'}
+                                                    </span>
+                                                    {row.bot && <span className="text-[10px] bg-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded shrink-0">Bot</span>}
+                                                    {row.abandon && <span className="text-[10px] bg-orange-500/30 text-orange-400 px-1.5 py-0.5 rounded shrink-0">Abandon</span>}
+                                                    {row.afk && <span className="text-[10px] bg-gray-500/30 text-gray-300 px-1.5 py-0.5 rounded shrink-0">AFK</span>}
+                                                </span>
+                                                <span className="text-sm font-bold text-amber-500 shrink-0">
+                                                    {row.placement === 1 ? '🏆 Victoire' : (row.placement ? `${row.placement}ᵉ` : '—')}
+                                                </span>
+                                            </div>
+                                            {dice && dice.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {dice.map((v, di) => <Die key={di} value={v} size={26} />)}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                    <GameScoreLeaderboard
-                        myUserId={me.userId}
-                        entries={allEntries.map(row => ({
-                            userId: row.userId,
-                            username: row.username,
-                            score: row.placement === 1 ? '🏆 Victoire' : (row.placement ? `${row.placement}ᵉ` : '—'),
-                            badges: [
-                                ...(row.bot ? ['Bot'] : []),
-                                ...(row.abandon ? ['Abandon'] : []),
-                                ...(row.afk ? ['AFK'] : []),
-                            ],
-                            disqualified: !!row.abandon || !!row.afk,
-                        }))}
-                    />
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
                 </GameOverModal>
             )}
         </div>
