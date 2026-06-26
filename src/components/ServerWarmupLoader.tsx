@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import GameIcon from '@/components/GameIcon';
 
-const EST_DURATION_S = 75;
+const EST_DURATION_S = 35;
 
 const CAROUSEL_GAMES: { type: string; label: string }[] = [
     { type: 'UNO',          label: 'UNO' },
