@@ -268,7 +268,6 @@ export default function PerudoPage() {
                     subtitle={isWinner ? 'Dernier joueur avec des dés' : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
-                    asModal
                 >
                     <GameScoreLeaderboard
                         myUserId={me.userId}
