@@ -269,7 +269,25 @@ export default function PerudoPage() {
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                     asModal
+                    dismissable={false}
                 >
+                    {state.lastReveal && state.lastReveal.revealedDice.length > 0 && (
+                        <div className="space-y-1.5 text-left rounded-xl bg-black/5 dark:bg-white/[0.04] p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Dés finaux</p>
+                            {state.lastReveal.revealedDice.map(r => {
+                                const idx = state.players.findIndex(p => p.userId === r.userId);
+                                const color = colorForIndex(idx >= 0 ? idx : 0);
+                                return (
+                                    <div key={r.userId} className="flex items-center gap-2">
+                                        <span className={`text-xs font-bold truncate w-24 shrink-0 ${color.text}`}>{r.username}</span>
+                                        <div className="flex flex-wrap gap-1">
+                                            {r.dice.map((v, i) => <Die key={i} value={v} size={22} />)}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                     <GameScoreLeaderboard
                         myUserId={me.userId}
                         entries={allEntries.map(row => ({

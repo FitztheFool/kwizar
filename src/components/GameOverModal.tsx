@@ -16,6 +16,8 @@ interface GameOverModalProps {
     onClose?: () => void;
     lobbyLabel?: string;
     asModal?: boolean;
+    /** Modal en overlay mais NON fermable (pas de ×, pas de clic-extérieur ni Échap). */
+    dismissable?: boolean;
     /** Raison de fin (forfait) — affichée de façon uniforme, prioritaire sur `subtitle`. */
     reason?: 'afk' | 'surrender' | 'disconnect' | null;
     elo?: { userId: string; username?: string | null; after: number; delta: number }[] | null;
@@ -38,6 +40,7 @@ export default function GameOverModal({
     onClose,
     lobbyLabel,
     asModal = false,
+    dismissable = true,
     reason,
     elo,
 }: GameOverModalProps) {
@@ -45,9 +48,9 @@ export default function GameOverModal({
     // Toujours fermable quand affiché en modal (état interne), même si la page ne passe pas onClose.
     const [dismissed, setDismissed] = useState(false);
     const close = () => { setDismissed(true); onClose?.(); };
-    const closable = asModal;
+    const closable = asModal && dismissable;
     // ⚠️ tous les hooks AVANT tout return conditionnel (règles des hooks).
-    const trapRef = useFocusTrap<HTMLDivElement>(asModal && !dismissed, close);
+    const trapRef = useFocusTrap<HTMLDivElement>(asModal && dismissable && !dismissed, close);
 
     if (asModal && dismissed) return null;
     const card = (
@@ -99,7 +102,7 @@ export default function GameOverModal({
         return (
             <div
                 className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto p-4"
-                onClick={(e) => { if (e.target === e.currentTarget) close(); }}
+                onClick={(e) => { if (closable && e.target === e.currentTarget) close(); }}
             >
                 {card}
             </div>
