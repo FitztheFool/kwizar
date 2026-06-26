@@ -32,6 +32,8 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
 
     const targetUserId = creatorId ?? session?.user?.id;
     const isOwn = !!targetUserId && targetUserId === session?.user?.id;
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const canManage = isOwn || isAdmin;
 
     const resolvedTitle = title ?? (isOwn ? 'Mes Duels' : 'Duels');
     const resolvedEmpty = emptyTitle ?? (isOwn ? 'Aucun Duel créé' : 'Aucun Duel public');
@@ -98,7 +100,7 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                             const cover = deck.imageUrl ?? deck.items.find(i => i.imageUrl)?.imageUrl ?? null;
                             return (
                                 <div key={deck.id} className="group relative aspect-[4/3] overflow-hidden rounded-md bg-zinc-800 ring-1 ring-black/5 dark:ring-white/5">
-                                    <Link href="/game/duel" className="block h-full w-full" title={deck.title}>
+                                    <Link href={`/game/duel?play=${deck.id}`} className="block h-full w-full" title={deck.title}>
                                         {cover ? (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={cover} alt={deck.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -110,7 +112,7 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                                             <div className="text-[10px] text-gray-400">{deck.items.length} items · {deck.isPublic ? 'Public' : 'Privé'}</div>
                                         </div>
                                     </Link>
-                                    {isOwn && (
+                                    {canManage && (
                                         <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => router.push(`/game/duel/${deck.id}/edit`)} className="flex h-6 w-6 items-center justify-center rounded bg-black/60 text-white hover:bg-blue-600" title="Modifier">
                                                 <PencilSquareIcon className="h-3.5 w-3.5" />

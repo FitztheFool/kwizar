@@ -155,6 +155,19 @@ export default function DuelPage() {
         return () => clearTimeout(t);
     }, [query, loadDecks]);
 
+    // Lancement direct d'un Duel via ?play=<id> (depuis un profil par ex.).
+    useEffect(() => {
+        const playId = new URLSearchParams(window.location.search).get('play');
+        if (!playId) return;
+        (async () => {
+            const res = await fetch(`/api/duel/${playId}`);
+            if (!res.ok) return;
+            const d = await res.json();
+            start(deckToCategory(d as DeckDTO));
+            window.history.replaceState(null, '', '/game/duel');
+        })();
+    }, [start]);
+
     const handleDelete = useCallback(async (deckId: string) => {
         if (!confirm('Supprimer ce Duel ?')) return;
         const res = await fetch(`/api/duel/${deckId}`, { method: 'DELETE' });
