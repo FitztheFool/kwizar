@@ -121,9 +121,10 @@ export default function AdminPanel() {
         setQuizPage(page);
     }, []);
 
-    const fetchDuels = useCallback(async (page: number, search: string) => {
+    const fetchDuels = useCallback(async (page: number, search: string, missingOnly = false) => {
         const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
         if (search.trim()) params.set('q', search.trim());
+        if (missingOnly) params.set('missingImages', 'true');
         const res = await fetch(`/api/admin/duel?${params}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();

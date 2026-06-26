@@ -9,21 +9,24 @@ interface Props {
     duels: AdminDuel[];
     page: number;
     totalPages: number;
-    onFetch: (page: number, search: string) => void;
+    onFetch: (page: number, search: string, missingOnly: boolean) => void;
     onDelete: (deckId: string, title: string) => void;
 }
 
 export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }: Props) {
     const [search, setSearch] = useState('');
+    const [missingOnly, setMissingOnly] = useState(false);
     const searchRef = useRef('');
+    const missingRef = useRef(false);
     const isFirstRender = useRef(true);
 
     useEffect(() => {
         searchRef.current = search;
+        missingRef.current = missingOnly;
         if (isFirstRender.current) { isFirstRender.current = false; return; }
-        const t = setTimeout(() => onFetch(1, search), 400);
+        const t = setTimeout(() => onFetch(1, search, missingOnly), 400);
         return () => clearTimeout(t);
-    }, [search]);
+    }, [search, missingOnly]);
 
     return (
         <div id="duels" className="scroll-mt-24 space-y-4">
@@ -32,9 +35,19 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Rechercher par titre…"
+                    placeholder="Rechercher par titre ou item…"
                     className="flex-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-400"
                 />
+                <button
+                    type="button"
+                    onClick={() => setMissingOnly(v => !v)}
+                    className={`shrink-0 text-xs font-semibold rounded-lg px-3 py-1.5 border transition-colors ${missingOnly
+                        ? 'bg-red-500 border-red-500 text-white'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                    title="N'afficher que les Duels avec au moins une image manquante"
+                >
+                    🖼️ Images manquantes
+                </button>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
                 <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
@@ -108,7 +121,7 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                         </tbody>
                     </table>
                 </div>
-                <Pagination currentPage={page} totalPages={totalPages} onPageChange={p => onFetch(p, searchRef.current)} />
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={p => onFetch(p, searchRef.current, missingRef.current)} />
             </div>
         </div>
     );

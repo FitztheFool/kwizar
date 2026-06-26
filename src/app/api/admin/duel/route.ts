@@ -12,12 +12,18 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20', 10) || 20));
     const q = searchParams.get('q')?.trim() ?? '';
-    const where: NonNullable<NonNullable<Parameters<typeof prisma.duelDeck.findMany>[0]>['where']> = {};
+    const missingImages = searchParams.get('missingImages') === 'true';
+    const conditions: NonNullable<NonNullable<Parameters<typeof prisma.duelDeck.findMany>[0]>['where']>[] = [];
     // Recherche par titre OU par nom d'item (ex. « Pika » → deck Pokémon).
-    if (q) where.OR = [
-        { title: { contains: q, mode: 'insensitive' } },
-        { items: { some: { name: { contains: q, mode: 'insensitive' } } } },
-    ];
+    if (q) conditions.push({
+        OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { items: { some: { name: { contains: q, mode: 'insensitive' } } } },
+        ],
+    });
+    // Filtre : Duels avec au moins un item sans image.
+    if (missingImages) conditions.push({ items: { some: { imageUrl: null } } });
+    const where = conditions.length ? { AND: conditions } : {};
 
     const [decks, total] = await Promise.all([
         prisma.duelDeck.findMany({
