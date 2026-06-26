@@ -271,7 +271,8 @@ export default function PerudoPage() {
                     dismissable={false}
                 >
                     {(() => {
-                        const diceMap = new Map((state.lastReveal?.revealedDice ?? []).map(r => [r.userId, r.dice]));
+                        const diceSource = (state.lastReveal?.revealedDice?.length ? state.lastReveal.revealedDice : finished.finalDice) ?? [];
+                        const diceMap = new Map(diceSource.map(r => [r.userId, r.dice]));
                         const MEDAL = ['🥇', '🥈', '🥉'];
                         return (
                             <div className="space-y-2 text-left">

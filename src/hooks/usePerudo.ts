@@ -60,6 +60,8 @@ export interface PerudoFinished {
     winner: { userId: string; username: string } | null;
     eliminated: EliminatedEntry[];
     gameId: string;
+    /** Dés finaux de chaque joueur (révélés en fin de partie). */
+    finalDice?: { userId: string; username: string; dice: number[] }[];
 }
 
 export function isBot(player: { userId?: string } | null | undefined): boolean {
