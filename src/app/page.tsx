@@ -92,6 +92,7 @@ function fmt(n: number): string {
 export default function HomePage() {
     const [lobbyCode, setCode] = useState('');
     const { data: stats } = useSWR<Stats>('/api/stats', fetcher);
+    const { data: lobbyCount } = useSWR<{ count: number | null }>('/api/lobby/count', fetcher, { refreshInterval: 15_000 });
     const { data: enabledData } = useSWR<{ enabled: string[] }>('/api/games/enabled', fetcher);
 
     // Tant que la liste n'est pas chargée, on n'exclut rien (évite un flash vide).
@@ -190,8 +191,9 @@ export default function HomePage() {
                             </div>
                         </div>
                         {/* Right: live stats — glass tokens */}
-                        <div className="grid grid-cols-3 gap-2.5 md:shrink-0">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:shrink-0">
                             {([
+                                { value: lobbyCount?.count != null ? fmt(lobbyCount.count) : null, label: 'lobbies en cours' },
                                 { value: fmt(nbJeux), label: 'jeux' },
                                 { value: stats ? fmt(stats.parties) : null, label: 'parties' },
                                 { value: stats ? fmt(stats.points) : null, label: 'points' },
