@@ -82,6 +82,7 @@ export interface AtlantideState {
     creatures: AtlantideCreature[];
     players: AtlantidePlayer[];
     legal: AtlantideLegal | null;
+    spectator?: boolean;
 }
 
 export function isBot(p: { userId: string } | null | undefined): boolean {
@@ -156,7 +157,6 @@ export function useAtlantide({
     const moveCreature = useCallback((creatureId: number, q: number, r: number) => socket?.emit('atlantide:moveCreature', { creatureId, q, r }), [socket]);
     const skipCreature = useCallback(() => socket?.emit('atlantide:skipCreature'), [socket]);
     const surrender = useCallback(() => socket?.emit('atlantide:surrender'), [socket]);
-    const rematch = useCallback(() => socket?.emit('atlantide:rematch'), [socket]);
 
     const myIdx = state?.players.findIndex(p => p.userId === userId) ?? -1;
     const me = myIdx >= 0 ? state?.players[myIdx] ?? null : null;
@@ -180,6 +180,5 @@ export function useAtlantide({
         moveCreature,
         skipCreature,
         surrender,
-        rematch,
     };
 }

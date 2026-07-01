@@ -39,6 +39,7 @@ type FinalScore = {
     username: string;
     cardsLeft: number;
     pointsInHand: number;
+    hand: Card[];
     score: number;
     rank: number;
     kicked: boolean;
@@ -217,37 +218,46 @@ export default function UnoPage() {
 
                     <div className="space-y-2 text-left">
                         {scores.map(s => (
-                            <div key={s.userId} className={`flex items-center justify-between rounded-lg px-4 py-3
+                            <div key={s.userId} className={`rounded-lg px-4 py-3
                             ${s.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-white/15 border border-white/20'}
                             ${s.kicked ? 'opacity-60' : ''}`}>
-                                <div className="flex items-center gap-3">
-                                    <RankBadge rank={s.rank} size="sm" />
-                                    <div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="font-semibold">{s.username}</span>
-                                            {s.userId === me.userId && !gameState.spectator && (
-                                                <span className="text-emerald-200 dark:text-emerald-300 text-xs">(moi)</span>
-                                            )}
-                                            {s.abandon && (
-                                                <span className="text-xs bg-orange-500/25 text-orange-300 border border-orange-500/40 px-1.5 py-0.5 rounded">Abandon</span>
-                                            )}
-                                            {!s.abandon && s.kicked && (
-                                                <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>
-                                            )}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <RankBadge rank={s.rank} size="sm" />
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-semibold">{s.username}</span>
+                                                {s.userId === me.userId && !gameState.spectator && (
+                                                    <span className="text-emerald-200 dark:text-emerald-300 text-xs">(moi)</span>
+                                                )}
+                                                {s.abandon && (
+                                                    <span className="text-xs bg-orange-500/25 text-orange-300 border border-orange-500/40 px-1.5 py-0.5 rounded">Abandon</span>
+                                                )}
+                                                {!s.abandon && s.kicked && (
+                                                    <span className="text-xs bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded">AFK</span>
+                                                )}
+                                            </div>
+                                            <span className="text-xs text-emerald-200 dark:text-emerald-300">
+                                                {s.cardsLeft === 0
+                                                    ? '0 carte restante'
+                                                    : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
+                                            </span>
                                         </div>
-                                        <span className="text-xs text-emerald-200 dark:text-emerald-300">
-                                            {s.cardsLeft === 0
-                                                ? '0 carte restante'
-                                                : `${s.cardsLeft} carte${s.cardsLeft > 1 ? 's' : ''} — ${s.pointsInHand} pts en main`}
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-300 dark:text-slate-400'}`}>
+                                            {s.score > 0 ? `+${s.score}` : '0'}
                                         </span>
+                                        <div className="text-xs text-slate-300 dark:text-slate-400">pts</div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className={`font-bold text-lg ${s.score > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-300 dark:text-slate-400'}`}>
-                                        {s.score > 0 ? `+${s.score}` : '0'}
-                                    </span>
-                                    <div className="text-xs text-slate-300 dark:text-slate-400">pts</div>
-                                </div>
+                                {s.hand?.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2.5">
+                                        {s.hand.map(card => (
+                                            <UnoCard key={card.id} card={card} size="sm" />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

@@ -15,9 +15,10 @@ import GameIcon from '@/components/GameIcon';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 const SIZE = 8;
 const coordKey = ([r, c]: Coord) => `${r}-${c}`;
@@ -62,7 +63,7 @@ export default function DamesPage() {
     const gameGuard = useGameEnabledGuard('dames');
     const myElo = useEloUpdate('dames', me.userId);
 
-    const { players, gameState, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useDames({
+    const { players, gameState, myColorIndex, isMyTurn, spectator, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useDames({
         lobbyId,
         userId: me.userId,
         username: me.username ?? '',
@@ -107,7 +108,7 @@ export default function DamesPage() {
         : null;
     const player0 = players.find(p => p.colorIndex === 0);
     const player1 = players.find(p => p.colorIndex === 1);
-    const showSurrender = gameState.status === 'playing';
+    const showSurrender = gameState.status === 'playing' && !spectator;
 
     const selKey = selected ? coordKey(selected) : null;
     const destinations = selKey ? (movesByFrom.get(selKey) ?? []) : [];
@@ -128,7 +129,7 @@ export default function DamesPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="dames" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Dames{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
+                left={<><GameIcon gameType="dames" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Dames{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={
                     <div className="flex items-center gap-2 text-sm">
                         {players.length === 2 && player0 && player1 ? (
@@ -203,16 +204,18 @@ export default function DamesPage() {
 
             {gameState.status === 'finished' && !modalDismissed && (
                 <GameOverModal
-                    elo={myElo}
-                    icon={gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    elo={spectator ? null : myElo}
+                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
                     title={
-                        gameState.winner === 'draw'
-                            ? 'Match nul !'
-                            : winnerPlayer?.userId === me.userId
-                                ? 'Vous avez gagné !'
-                                : isBot(winnerPlayer)
-                                    ? 'Le bot gagne !'
-                                    : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`
+                        spectator
+                            ? 'Vous avez observé cette partie'
+                            : gameState.winner === 'draw'
+                                ? 'Match nul !'
+                                : winnerPlayer?.userId === me.userId
+                                    ? 'Vous avez gagné !'
+                                    : isBot(winnerPlayer)
+                                        ? 'Le bot gagne !'
+                                        : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`
                     }
                     reason={gameState.reason ?? undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

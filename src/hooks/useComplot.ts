@@ -30,6 +30,7 @@ export interface ComplotState {
     players: ComplotPlayer[];
     pending: Pending | null;
     exchangeDraw: Character[];
+    spectator?: boolean;
 }
 
 export function useComplot({ lobbyId, userId, onNotFound }: { lobbyId: string; userId: string; onNotFound: () => void; }) {

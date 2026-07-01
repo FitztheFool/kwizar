@@ -7,6 +7,7 @@ import QuizCard from '@/components/Quiz/QuizCard';
 import QuizFilters from '@/components/Quiz/QuizFilters';
 import Pagination from '@/components/Pagination';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { SparklesIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 6;
 
@@ -22,6 +23,7 @@ interface Quiz {
     isPublic: boolean;
     imageUrl?: string | null;
     createdAt?: string;
+    generatedWithModel?: string | null;
     _count: { questions: number };
     creatorId?: string;
     category?: { name: string } | null;
@@ -52,7 +54,7 @@ export default function MyQuizzesPanel({ creatorId, title, emptyTitle, emptySubt
 
     const resolvedTitle = title ?? (isOwn ? 'Mes quizzes' : 'Quiz');
     const resolvedEmptyTitle = emptyTitle ?? (isOwn ? 'Aucun quiz créé' : 'Aucun quiz public');
-    const resolvedEmptySubtitle = emptySubtitle ?? (isOwn ? 'Créez votre premier quiz personnalisé' : '');
+    const resolvedEmptySubtitle = emptySubtitle ?? (isOwn ? 'Créez votre premier quiz' : '');
 
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [total, setTotal] = useState(0);
@@ -117,13 +119,29 @@ export default function MyQuizzesPanel({ creatorId, title, emptyTitle, emptySubt
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {resolvedTitle}
                 </h2>
                 <span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
                     {total}
                 </span>
+                {isOwn && (
+                    <div className="ml-auto flex items-center gap-2">
+                        <button
+                            onClick={() => router.push('/quiz/generate')}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-500 transition-colors"
+                        >
+                            <SparklesIcon className="w-4 h-4" /> Générer
+                        </button>
+                        <button
+                            onClick={() => router.push('/quiz/create')}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-purple-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-800 transition-colors"
+                        >
+                            <PlusIcon className="w-4 h-4" /> Créer
+                        </button>
+                    </div>
+                )}
             </div>
             <div className="mb-6">
                 <QuizFilters
@@ -152,8 +170,8 @@ export default function MyQuizzesPanel({ creatorId, title, emptyTitle, emptySubt
                                 key={quiz.id}
                                 quiz={quiz}
                                 currentUserId={session?.user?.id}
+                                isAdmin={session?.user?.role === 'ADMIN'}
                                 totalPoints={quizPoints[quiz.id] || 0}
-                                showActions={isOwn}
                                 onEdit={() => router.push(`/quiz/${quiz.id}/edit`)}
                                 onDelete={() => handleDeleteQuiz(quiz.id)}
                             />

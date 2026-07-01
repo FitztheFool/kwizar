@@ -16,7 +16,8 @@ import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, CpuChipIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, CpuChipIcon, CheckCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function SixQuiPrendPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -58,9 +59,9 @@ export default function SixQuiPrendPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="six_qui_prend" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">6 qui prend!{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
+                left={<><GameIcon gameType="six_qui_prend" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">6 qui prend!{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{state.spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60vw]">{players.map(p => <PlayerTag key={p.colorIndex} p={p} />)}</div>}
-                right={state.phase !== 'finished' && <SurrenderButton onSurrender={surrender} />}
+                right={state.phase !== 'finished' && !state.spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {state.phase !== 'finished' && state.turnDuration > 0 && (
@@ -81,10 +82,10 @@ export default function SixQuiPrendPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={myElo}
-                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
-                    subtitle={`Tu finis avec ${state.penalty[myColorIndex ?? 0]} têtes de bœuf`}
+                    elo={state.spectator ? null : myElo}
+                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={state.spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
+                    subtitle={state.spectator ? undefined : `Tu finis avec ${state.penalty[myColorIndex ?? 0]} têtes de bœuf`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >

@@ -53,6 +53,7 @@ export function useBlokus({
     // Couleur active à jouer : celle du tour quand c'est à moi (duo), sinon ma 1ʳᵉ couleur.
     const myColorIndex = isMyTurn && state ? state.currentTurn : (myColorIndices[0] ?? null);
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
+    const spectator = !!state && players.length > 0 && !myPlayer;
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -100,7 +101,7 @@ export function useBlokus({
     const surrender = useCallback(() => { socket?.emit('blokus:surrender'); }, [socket]);
 
     return {
-        players, state, myColorIndex, myColorIndices, isMyTurn, vsBot,
+        players, state, myColorIndex, myColorIndices, isMyTurn, spectator, vsBot,
         inactivityUserId, inactivityEndsAt,
         move, pass, surrender,
     };

@@ -48,6 +48,8 @@ export default function RoundRecap({ state, onClose }: Props) {
     const reveal = state.lastReveal;
     if (!reveal) return null;
     const { bid, actualCount, loserUserId, challengerUserId, revealedDice, pacosWild } = reveal;
+    const isCalza = reveal.kind === 'calza';
+    const challengerName = state.players.find(p => p.userId === challengerUserId)?.username ?? '?';
 
     // Map userId → revealed dice
     const diceMap = new Map(revealedDice.map(r => [r.userId, r.dice]));
@@ -101,7 +103,7 @@ export default function RoundRecap({ state, onClose }: Props) {
                             </div>
                             <div className="border-b border-gray-700/15 py-1.5">
                                 {isChallenger ? (
-                                    <span className="font-bold text-gray-800">Dudo</span>
+                                    <span className="font-bold text-gray-800">{isCalza ? 'Calza' : 'Dudo'}</span>
                                 ) : isBidder ? (
                                     <span className="inline-flex items-center gap-1.5 font-mono font-bold text-gray-900">
                                         {bid.count}
@@ -112,7 +114,9 @@ export default function RoundRecap({ state, onClose }: Props) {
                                 )}
                             </div>
                             <div className="border-b border-gray-700/15 py-1.5 text-center font-black text-lg">
-                                {isLoser ? <span className="text-red-700">X</span> : <span className="text-gray-400">—</span>}
+                                {isLoser ? <span className="text-red-700">X</span>
+                                    : (isCalza && reveal.calzaExact && isChallenger) ? <span className="text-green-700">+1</span>
+                                    : <span className="text-gray-400">—</span>}
                             </div>
                         </div>
                     );
@@ -122,9 +126,17 @@ export default function RoundRecap({ state, onClose }: Props) {
                 <span className="text-sm font-bold text-gray-800">Total compté</span>
                 <span className="font-mono text-xl font-black text-gray-900">{actualCount}</span>
             </div>
-            <p className={`mt-1 text-xs font-bold ${actualCount >= bid.count ? 'text-green-700' : 'text-red-700'}`}>
-                {actualCount >= bid.count ? 'Annonce tenue — défi perdu !' : 'Bluff démasqué !'}
-            </p>
+            {isCalza ? (
+                <p className={`mt-1 text-xs font-bold ${reveal.calzaExact ? 'text-green-700' : 'text-red-700'}`}>
+                    {reveal.calzaExact
+                        ? `Calza exact ! ${challengerName} récupère un dé.`
+                        : `Calza raté — ${challengerName} perd un dé.`}
+                </p>
+            ) : (
+                <p className={`mt-1 text-xs font-bold ${actualCount >= bid.count ? 'text-green-700' : 'text-red-700'}`}>
+                    {actualCount >= bid.count ? 'Annonce tenue — défi perdu !' : 'Bluff démasqué !'}
+                </p>
+            )}
         </div>
     );
 }

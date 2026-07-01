@@ -15,12 +15,13 @@ import GameIcon from '@/components/GameIcon';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import LudoBoard from '@/components/Ludo/Board';
 import Dice from '@/components/Ludo/Dice';
 import { COLOR_CLASSES } from '@/components/Ludo/boardLayout';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 export default function LudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
@@ -28,7 +29,7 @@ export default function LudoPage() {
     const myElo = useEloUpdate('ludo', me.userId);
 
     const {
-        state, myColorIndex, currentPlayer, isMyTurn, canRoll, canMove,
+        state, myColorIndex, currentPlayer, isMyTurn, canRoll, canMove, spectator,
         inactivityUserId, inactivityEndsAt,
         roll, move, surrender,
     } = useLudo({
@@ -53,7 +54,7 @@ export default function LudoPage() {
     );
 
     const vsBot = state.players.some(p => isBot(p) && p.userId !== me.userId);
-    const showSurrender = state.phase !== 'finished';
+    const showSurrender = state.phase !== 'finished' && !spectator;
 
     // Game over computation
     const winnerLabel = (() => {
@@ -78,6 +79,7 @@ export default function LudoPage() {
                     <>
                         <GameIcon gameType="ludo" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                         <span className="font-bold">Ludo{vsBot && <span className="ml-2 text-xs font-normal text-indigo-400">vs Bot</span>}</span>
+                        {spectator && <SpectatorBadge className="ml-2" />}
                     </>
                 }
                 center={
@@ -155,13 +157,14 @@ export default function LudoPage() {
 
             {state.phase === 'finished' && winnerLabel && !modalDismissed && (
                 <GameOverModal
-                    elo={myElo}
+                    elo={spectator ? null : myElo}
                     icon={
-                        winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                        spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
+                        : winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : (typeof state.winner === 'number' && isBot(state.players[state.winner])) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                         : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={winnerLabel.title}
+                    title={spectator ? 'Vous avez observé cette partie' : winnerLabel.title}
                     subtitle={winnerLabel.members}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

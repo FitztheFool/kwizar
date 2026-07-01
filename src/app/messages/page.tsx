@@ -1,5 +1,6 @@
-import MessagesPageView from '@/components/Messages/MessagesPageView';
+import SocialView from '@/components/Social/SocialView';
 
-export default function MessagesPage() {
-    return <MessagesPageView />;
+export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+    const { tab } = await searchParams;
+    return <SocialView initialPanel="messages" initialTab={tab} />;
 }

@@ -14,6 +14,7 @@ import GameIcon from '@/components/GameIcon';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import AtlantideBoard from '@/components/Atlantide/Board';
 import { COLOR_CLASSES, CREATURE_EMOJI, CREATURE_LABELS, LEVEL_LABELS, WHEEL_SPRITE, TOKEN_DEAD_SPRITE } from '@/components/Atlantide/boardLayout';
 import PlayerLabel from '@/components/shared/PlayerLabel';
@@ -51,7 +52,8 @@ export default function AtlantidePage() {
     );
 
     const vsBot = state.players.some(p => isBot(p) && p.userId !== me.userId);
-    const showSurrender = state.phase !== 'finished';
+    const spectator = !!state.spectator;
+    const showSurrender = state.phase !== 'finished' && !spectator;
     const currentIsBot = isBot(currentPlayer);
 
     const tilesLeft = (level: string) => state.tiles.filter(t => !t.removed && t.level === level).length;
@@ -84,6 +86,7 @@ export default function AtlantidePage() {
                     <>
                         <GameIcon gameType="atlantide" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                         <span className="font-bold">Les Rescapés de l&apos;Atlantide{vsBot && <span className="ml-2 text-xs font-normal text-indigo-400">vs Bot</span>}</span>
+                        {spectator && <SpectatorBadge />}
                     </>
                 }
                 center={
@@ -197,7 +200,7 @@ export default function AtlantidePage() {
 
             {state.phase === 'finished' && winnerLabel && !modalDismissed && (
                 <GameOverModal
-                    elo={myElo}
+                    elo={spectator ? null : myElo}
                     icon={
                         winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : (typeof state.winner === 'number' && isBot(state.players[state.winner])) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />

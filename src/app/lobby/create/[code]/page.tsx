@@ -68,7 +68,7 @@ type LobbyMeta = {
     impostorOptions?: { rounds: number; timePerRound: number; misterWhite?: boolean };
     spyfallOptions?: { exchangesPerPlayer: number; turnTime: number };
     ludoOptions?: { pawnExit: '6' | '6_or_1' | 'any'; bonusOn6: 'unlimited' | 'triple_lose' | 'none'; winMode: 'first_done' | 'full_ranking'; teamMode: 'none' | '2v2' };
-    perudoOptions?: { initialDice: number };
+    perudoOptions?: { initialDice: number; calza?: boolean };
     cantStopOptions?: { columnsToWin: number };
     mbOptions?: { target: number; teamMode?: 'none' | '2v2'; teamDistance?: 'individual' | 'shared' };
 };
@@ -93,7 +93,7 @@ type LobbyState = {
     impostorOptions?: { rounds: number; timePerRound: number; misterWhite?: boolean };
     spyfallOptions?: { exchangesPerPlayer: number; turnTime: number };
     ludoOptions?: { pawnExit: '6' | '6_or_1' | 'any'; bonusOn6: 'unlimited' | 'triple_lose' | 'none'; winMode: 'first_done' | 'full_ranking'; teamMode: 'none' | '2v2' };
-    perudoOptions?: { initialDice: number };
+    perudoOptions?: { initialDice: number; calza?: boolean };
     cantStopOptions?: { columnsToWin: number };
     mbOptions?: { target: number; teamMode?: 'none' | '2v2'; teamDistance?: 'individual' | 'shared' };
     timeMode?: string;
@@ -136,6 +136,10 @@ export default function LobbyCodePage() {
     const { status: warmupStatus } = useServerWarmup(process.env.NEXT_PUBLIC_LOBBY_SERVER_URL);
     const socket = useMemo(() => getLobbySocket(), []);
     const joinedRef = useRef(false);
+    // Statut du lobby reçu au tour précédent : sert à distinguer un *lancement*
+    // (WAITING → PLAYING alors qu'on est déjà présent) d'une *partie déjà en
+    // cours* qu'on rejoint (premier état déjà PLAYING).
+    const prevStatusRef = useRef<string | null>(null);
     const playersRef = useRef<Player[]>([]);
     const botCountRef = useRef(0);
     const botSlotsRef = useRef<Array<{ userId: string; username: string }>>([]);
@@ -192,6 +196,7 @@ export default function LobbyCodePage() {
     const [ludoWinMode, setLudoWinMode] = useState<'first_done' | 'full_ranking'>('first_done');
     const [ludoTeamMode, setLudoTeamMode] = useState<'none' | '2v2'>('none');
     const [perudoInitialDice, setPerudoInitialDice] = useState<number>(5);
+    const [perudoCalza, setPerudoCalza] = useState<boolean>(false);
     const [cantStopColumnsToWin, setCantStopColumnsToWin] = useState<number>(3);
     const [mbTarget, setMbTarget] = useState<number>(1000);
     const [mbTeamMode, setMbTeamMode] = useState<'none' | '2v2'>('none');
@@ -302,11 +307,7 @@ export default function LobbyCodePage() {
     const emitTitle = useDebounce((title: string) => socket?.emit('lobby:setMeta', { title }), 500);
     const emitDescription = useDebounce((description: string) => socket?.emit('lobby:setMeta', { description }), 500);
 
-    useEffect(() => {
-        if (!lobbyId) return;
-        if (status === 'unauthenticated') router.replace(`/login?callbackUrl=${encodeURIComponent(`/lobby/create/${lobbyId}`)}`);
-    }, [status, router, lobbyId]);
-
+    // (redirect logged-out → géré centralement par proxy.ts)
     useEffect(() => {
         if (!socket || !lobbyId || status !== 'authenticated' || !session?.user?.id) return;
         const meUserId = session.user.id;
@@ -374,9 +375,10 @@ export default function LobbyCodePage() {
                 setLudoWinMode(state.ludoOptions.winMode ?? 'first_done');
                 setLudoTeamMode(state.ludoOptions.teamMode ?? 'none');
             }
-            if ((state as { perudoOptions?: { initialDice?: number } }).perudoOptions) {
-                const opt = (state as { perudoOptions?: { initialDice?: number } }).perudoOptions!;
+            if ((state as { perudoOptions?: { initialDice?: number; calza?: boolean } }).perudoOptions) {
+                const opt = (state as { perudoOptions?: { initialDice?: number; calza?: boolean } }).perudoOptions!;
                 setPerudoInitialDice(opt.initialDice ?? 5);
+                setPerudoCalza(opt.calza ?? false);
             }
             if ((state as { cantStopOptions?: { columnsToWin?: number } }).cantStopOptions) {
                 const opt = (state as { cantStopOptions?: { columnsToWin?: number } }).cantStopOptions!;
@@ -396,10 +398,18 @@ export default function LobbyCodePage() {
                 // For quiz, the second URL segment is the quizId, not the gameId UUID
                 setActiveGameId(state.gameType === 'quiz' ? (state.quizId ?? null) : (state.gameId ?? null));
                 setActiveGameType(state.gameType ?? null);
+                // Lancement en cours : on était dans le lobby (état précédent non
+                // PLAYING) et il passe à PLAYING. `game:start` arrive juste après ;
+                // on affiche le loader tout de suite pour éviter un flash du lobby
+                // (bandeau « Partie en cours ») entre les deux événements socket.
+                if (prevStatusRef.current && prevStatusRef.current !== 'PLAYING') {
+                    setIsLaunching(true);
+                }
             } else {
                 setActiveGameId(null);
                 setActiveGameType(null);
             }
+            prevStatusRef.current = state.status;
 
             // ── canStart via GAME_CONFIG ──────────────────────────────────
             const count = (state.players?.length ?? 0) + (state.bots ?? 0);
@@ -491,7 +501,7 @@ export default function LobbyCodePage() {
                 if (m.impostorOptions) { setImpostorRounds(m.impostorOptions.rounds ?? 1); setImpostorTime(m.impostorOptions.timePerRound ?? 60); setImpostorMisterWhite(m.impostorOptions.misterWhite ?? false); }
                 if (m.spyfallOptions) { setSpyfallExchanges(m.spyfallOptions.exchangesPerPlayer ?? 2); setSpyfallTurnTime(m.spyfallOptions.turnTime ?? 60); }
                 if (m.ludoOptions) { setLudoPawnExit(m.ludoOptions.pawnExit); setLudoBonusOn6(m.ludoOptions.bonusOn6); setLudoWinMode(m.ludoOptions.winMode); setLudoTeamMode(m.ludoOptions.teamMode); }
-                if (m.perudoOptions) setPerudoInitialDice(m.perudoOptions.initialDice ?? 5);
+                if (m.perudoOptions) { setPerudoInitialDice(m.perudoOptions.initialDice ?? 5); setPerudoCalza(m.perudoOptions.calza ?? false); }
                 if (m.cantStopOptions) setCantStopColumnsToWin(m.cantStopOptions.columnsToWin ?? 3);
                 if (m.mbOptions) { setMbTarget(m.mbOptions.target ?? 1000); setMbTeamMode(m.mbOptions.teamMode ?? 'none'); setMbTeamDistance(m.mbOptions.teamDistance ?? 'individual'); }
             }
@@ -545,7 +555,7 @@ export default function LobbyCodePage() {
 
     if (warmupStatus === 'warming' || warmupStatus === 'checking') return <ServerWarmupLoader />;
     if (warmupStatus === 'error') return <ServerWarmupLoader error />;
-    if (isWarming) return <ServerWarmupLoader />;
+    if (isWarming || isLaunching) return <ServerWarmupLoader />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (status !== 'authenticated' || !session?.user?.id) return null;
 
@@ -795,7 +805,8 @@ export default function LobbyCodePage() {
 
                         {gameType === 'perudo' && (
                             <PerudoOptions isHost={isHost} socket={socket}
-                                perudoInitialDice={perudoInitialDice} setPerudoInitialDice={setPerudoInitialDice} />
+                                perudoInitialDice={perudoInitialDice} setPerudoInitialDice={setPerudoInitialDice}
+                                perudoCalza={perudoCalza} setPerudoCalza={setPerudoCalza} />
                         )}
 
                         {gameType === 'cant_stop' && (

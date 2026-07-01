@@ -38,6 +38,7 @@ export function useJustOne({
     const [players, setPlayers] = useState<Player[]>([]);
     const [guesserId, setGuesserId] = useState<string | null>(null);
     const [guesserName, setGuesserName] = useState('');
+    const [spectator, setSpectator] = useState(false);
     const [roundState, setRoundState] = useState<RoundState>('WAITING');
     const [card, setCard] = useState<{ words: string[] } | null>(null);
     const [score, setScore] = useState(0);
@@ -84,6 +85,7 @@ export function useJustOne({
         socket.emit('just_one:join', { lobbyId, playerName: username, userId });
 
         socket.on('notFound', onNotFound);
+        socket.on('just_one:spectator', () => setSpectator(true));
         socket.on('just_one:players', ({ players: ps }: { players: Player[] }) => {
             playersRef.current = ps;
             setPlayers(ps);
@@ -210,6 +212,7 @@ export function useJustOne({
         players,
         guesserId,
         guesserName,
+        spectator,
         roundState,
         card,
         score,

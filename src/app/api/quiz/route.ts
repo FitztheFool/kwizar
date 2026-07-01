@@ -1,7 +1,14 @@
 // src/app/api/quiz/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { AI_MODELS } from '@/lib/aiModels';
+import { generateQuestionImage } from '@/lib/quizImages';
+
+const VALID_MODEL_IDS = new Set<string>(AI_MODELS.map(m => m.id));
+
+// after() peut générer des images Flux (~25 s) post-réponse → on étend la durée max serverless.
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,6 +68,7 @@ export async function GET(request: NextRequest) {
           attempts: q._count.attempts,
         },
         createdAt: q.createdAt,
+        generatedWithModel: q.generatedWithModel ?? null,
       })),
       total,
       page,
@@ -82,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, isPublic, isDraft, randomizeQuestions, categoryId, imageUrl, questions, creatorRole } = body;
+    const { title, description, isPublic, isDraft, randomizeQuestions, categoryId, imageUrl, questions, creatorRole, generatedWithModel } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Titre requis' }, { status: 400 });
@@ -127,6 +135,7 @@ export async function POST(request: NextRequest) {
         isDraft: !!isDraft,
         randomizeQuestions: randomizeQuestions ?? false,
         imageUrl: imageUrl || '/quiz/default-cover.svg',
+        generatedWithModel: VALID_MODEL_IDS.has(generatedWithModel) ? generatedWithModel : null,
         creatorId,
         categoryId: safeCategoryId,
         questions: {
@@ -150,6 +159,40 @@ export async function POST(request: NextRequest) {
         questions: { include: { answers: true } },
       },
     });
+
+    // Fallback images de questions (async) : pour chaque question marquée d'un `imageQuery`
+    // par le LLM mais restée SANS image (Unsplash n'a rien trouvé), on génère une image Flux
+    // après la réponse, puis on met à jour la ligne en DB. La création du quiz n'est pas ralentie.
+    // Corrélation par contenu (pas de champ d'ordre fiable sur Question).
+    const createdByContent = new Map<string, { id: string; imageUrl: string | null }[]>();
+    for (const c of quiz.questions) {
+      const arr = createdByContent.get(c.content) ?? [];
+      arr.push({ id: c.id, imageUrl: c.imageUrl });
+      createdByContent.set(c.content, arr);
+    }
+    const toIllustrate: { id: string; query: string }[] = [];
+    for (const input of questionList as any[]) {
+      const query = typeof input?.imageQuery === 'string' ? input.imageQuery.trim() : '';
+      if (!query) continue;
+      const match = createdByContent.get(input.text)?.find(c => !c.imageUrl);
+      if (match) {
+        toIllustrate.push({ id: match.id, query });
+        match.imageUrl = 'pending'; // marque comme consommée (évite un double-match sur contenu identique)
+      }
+    }
+
+    if (toIllustrate.length > 0) {
+      after(async () => {
+        await Promise.all(toIllustrate.map(async ({ id, query }) => {
+          try {
+            const url = await generateQuestionImage(query);
+            if (url) await prisma.question.update({ where: { id }, data: { imageUrl: url } });
+          } catch (e) {
+            console.error('[quiz] fallback image question échoué:', e);
+          }
+        }));
+      });
+    }
 
     return NextResponse.json(quiz, { status: 201 });
   } catch (error) {

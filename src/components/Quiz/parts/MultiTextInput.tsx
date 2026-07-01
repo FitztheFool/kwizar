@@ -9,9 +9,11 @@ interface Props {
     disabled: boolean;
     feedback: Feedback | null;
     showFeedback: boolean;
+    /** Entrée → valider la réponse. */
+    onEnter?: () => void;
 }
 
-export default function MultiTextInput({ values, count, onChange, disabled, feedback, showFeedback }: Props) {
+export default function MultiTextInput({ values, count, onChange, disabled, feedback, showFeedback, onEnter }: Props) {
     const correctParts = feedback?.correctAnswerText?.split(', ') ?? [];
 
     return (
@@ -36,7 +38,9 @@ export default function MultiTextInput({ values, count, onChange, disabled, feed
                             type="text"
                             value={userVal}
                             onChange={e => onChange(i, e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter' && !disabled) { e.preventDefault(); onEnter?.(); } }}
                             disabled={disabled}
+                            autoFocus={i === 0}
                             placeholder={`Réponse ${i + 1}…`}
                             className={`flex-1 px-4 py-3 rounded-xl border-2 text-amber-950 dark:text-amber-100 placeholder-amber-700/50 dark:placeholder-amber-200/40 focus:outline-none transition-colors disabled:opacity-60
                                 ${isFieldCorrect ? 'border-felt-500 bg-felt-500/20'

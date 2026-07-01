@@ -16,7 +16,8 @@ import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
 import AfkCountdown from '@/components/AfkCountdown';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, EyeSlashIcon, MapPinIcon, UserIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, EyeSlashIcon, EyeIcon, MapPinIcon, UserIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function SpyfallPage() {
     const { session, status, me, router, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -43,6 +44,7 @@ export default function SpyfallPage() {
     if (isNotFound) notFound();
 
     const isSpy = role === 'spy';
+    const spectator = role === 'spectator';
 
     // ─── Fin de partie ────────────────────────────────────────────────────────
 
@@ -53,7 +55,7 @@ export default function SpyfallPage() {
             .map(([id, pts]) => ({ id, pts, name: players.find(p => p.id === id)?.name ?? id }));
         return (
             <GameOverModal
-                elo={myElo}
+                elo={spectator ? null : myElo}
                 icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <FaceFrownIcon className="w-8 h-8 text-gray-400" />}
                 title={gameEnd.winner === 'civilians' ? 'Les civils ont gagné !' : "L'espion a gagné !"}
                 subtitle={`Lieu : "${gameEnd.location}" — Espion : ${gameEnd.spyName ?? '?'}`}
@@ -108,19 +110,27 @@ export default function SpyfallPage() {
                 <span>{phaseLabel[roundState]}</span>
             </div>}
             right={<>
-                {role && (
+                {spectator ? <SpectatorBadge /> : role && (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${isSpy ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30' : 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'}`}>
                         {isSpy ? <><EyeSlashIcon className="w-3.5 h-3.5 inline mr-1" />Espion</> : <><UserIcon className="w-3.5 h-3.5 inline mr-1" />Civil</>}
                     </span>
                 )}
-                {roundState !== 'WAITING' && roundState !== 'END' && <SurrenderButton onSurrender={surrender} />}
+                {roundState !== 'WAITING' && roundState !== 'END' && !spectator && <SurrenderButton onSurrender={surrender} />}
             </>}
         />
     );
 
     // ─── Rôle banner ──────────────────────────────────────────────────────────
 
-    const roleBanner = role && (
+    const roleBanner = spectator ? (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400">
+            <EyeIcon className="w-8 h-8 flex-shrink-0" />
+            <div>
+                <div className="font-bold">Vous observez la partie</div>
+                <div>Le lieu et les rôles restent cachés.</div>
+            </div>
+        </div>
+    ) : role && (
         <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
             ${isSpy
                 ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
@@ -214,6 +224,7 @@ export default function SpyfallPage() {
 
                         {boardCard(false)}
 
+                        {!spectator && (
                         <div className="glass rounded-xl p-4 space-y-3">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1">
@@ -235,6 +246,7 @@ export default function SpyfallPage() {
                                 </button>
                             )}
                         </div>
+                        )}
 
                         {(inactivityUserId && inactivityEndsAt != null) && (
                             <div className="text-center text-xs text-amber-300/80">
@@ -270,8 +282,8 @@ export default function SpyfallPage() {
                                         const isPending = pendingVoteFor === p.id;
                                         const isConfirmed = votedFor === p.id;
                                         return (
-                                            <button key={p.id} disabled={!!votedFor || kicked}
-                                                onClick={() => !kicked && vote(p.id)}
+                                            <button key={p.id} disabled={!!votedFor || kicked || spectator}
+                                                onClick={() => !kicked && !spectator && vote(p.id)}
                                                 className={`w-full py-3 px-4 rounded-xl font-medium transition-all text-left
                                                     ${kicked ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-400'
                                                         : isConfirmed ? 'bg-red-500 text-white cursor-not-allowed'
@@ -289,7 +301,7 @@ export default function SpyfallPage() {
                                 </div>
                             </div>
                             {!votedFor ? (
-                                <button disabled={!pendingVoteFor} onClick={confirmVote}
+                                <button disabled={!pendingVoteFor || spectator} onClick={confirmVote}
                                     className="w-full py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">
                                     Valider mon vote
                                 </button>

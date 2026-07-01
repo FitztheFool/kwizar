@@ -57,6 +57,7 @@ export function useTanks({ lobbyId, userId, username, onNotFound }: {
     const myColorIndex = myPlayer?.colorIndex ?? null;
     const isMyTurn = state?.phase === 'playing' && state.currentTurn === myColorIndex;
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
+    const spectator = !!state && players.length > 0 && !myPlayer;
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -94,11 +95,10 @@ export function useTanks({ lobbyId, userId, username, onNotFound }: {
     }, [isMyTurn, socket]);
 
     const surrender = useCallback(() => { socket?.emit('tanks:surrender'); }, [socket]);
-    const rematch = useCallback(() => { socket?.emit('tanks:rematch'); }, [socket]);
     const clearShot = useCallback(() => setShot(null), []);
 
     return {
-        players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot,
-        inactivityUserId, inactivityEndsAt, fire, move, surrender, rematch,
+        players, state, shot, clearShot, myColorIndex, isMyTurn, spectator, vsBot,
+        inactivityUserId, inactivityEndsAt, fire, move, surrender,
     };
 }

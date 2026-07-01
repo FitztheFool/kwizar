@@ -12,10 +12,7 @@ import { FriendsProvider } from '@/context/FriendsContext';
 import { MessagesProvider } from '@/context/MessagesContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { CommandPaletteProvider } from '@/context/CommandPaletteContext';
-import CommandPalette from '@/components/CommandPalette';
-import FloatingChat from '@/components/Chat/FloatingChat';
-import MessagesDock from '@/components/Messages/MessagesDock';
-import Toasts from '@/components/Notifications/Toasts';
+import DeferredOverlays from '@/components/Layout/DeferredOverlays';
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ['latin'],
@@ -56,12 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                         <Header />
                                         <AppLayout>{children}</AppLayout>
                                         <Footer />
-                                        <div data-print-hide>
-                                            <FloatingChat />
-                                            <MessagesDock />
-                                            <Toasts />
-                                            <CommandPalette />
-                                        </div>
+                                        <DeferredOverlays />
                                     </CommandPaletteProvider>
                                 </ChatProvider>
                             </NotificationsProvider>

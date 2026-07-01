@@ -1,0 +1,231 @@
+// src/lib/leaderboard.ts
+// Logique de classement partagée : utilisée par l'API (/api/leaderboard/games)
+// ET par le rendu serveur de la page /leaderboard/[game] (SSR, données initiales).
+import prisma from '@/lib/prisma';
+import { GameType } from '@/generated/prisma/client';
+import { GAME_CONFIG } from '@/lib/gameConfig';
+import { getGameConfig } from '@/lib/gameSettings';
+import { ELO_GAME_TYPES } from '@/lib/elo';
+
+export interface LeaderboardRow {
+    rank: number;
+    userId: string;
+    username: string;
+    score: number;
+    gamesPlayed: number;
+    wins?: number;
+    detail: string;
+    bestLevel?: number;
+    elo?: number | null;
+}
+
+export interface LeaderboardData {
+    leaderboard: LeaderboardRow[];
+    config: Awaited<ReturnType<typeof getGameConfig>>;
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/** Renvoie le classement d'un jeu, ou `null` si le jeu est invalide. */
+export async function getLeaderboardData(
+    gameRaw: string,
+    pageRaw = 1,
+    limitRaw = 20,
+): Promise<LeaderboardData | null> {
+    const game = gameRaw as keyof typeof GAME_CONFIG;
+    if (!game || !GAME_CONFIG[game]) return null;
+
+    const page = Math.max(1, Math.floor(pageRaw) || 1);
+    const limit = Math.min(50, Math.max(1, Math.floor(limitRaw) || 20));
+    const skip = (page - 1) * limit;
+
+    // Config fusionnée avec les overrides admin (nom, description, règles, points, libellé de score…).
+    const config = await getGameConfig(game);
+
+    const eligibleUsers = await prisma.user.findMany({
+        where: { role: { notIn: ['RANDOM'] } },
+        select: { id: true, username: true },
+    });
+    const eligibleUserIds = eligibleUsers.map(u => u.id);
+
+    // Note ELO par joueur pour ce jeu (vide si le jeu n'est pas noté à l'ELO).
+    const eloRatings = await prisma.gameRating.findMany({
+        where: { gameType: config.gameType as GameType, userId: { in: eligibleUserIds } },
+        select: { userId: true, rating: true },
+    });
+    const eloByUser = new Map(eloRatings.map(r => [r.userId, r.rating]));
+    // Jeux notés (hors quiz, géré à part) → classés par ELO, score en secondaire.
+    const isEloGame = game !== 'quiz' && ELO_GAME_TYPES.has(config.gameType as GameType);
+
+    if (game === 'quiz') {
+        const allAttempts = await prisma.attempt.findMany({
+            where: { userId: { in: eligibleUserIds }, gameType: 'QUIZ' },
+            select: { userId: true, quizId: true, score: true },
+        });
+
+        const bestScores = new Map<string, Map<string, number>>();
+        for (const attempt of allAttempts) {
+            if (!attempt.quizId) continue;
+            if (!bestScores.has(attempt.userId)) bestScores.set(attempt.userId, new Map());
+            const byQuiz = bestScores.get(attempt.userId)!;
+            byQuiz.set(attempt.quizId, Math.max(byQuiz.get(attempt.quizId) ?? 0, attempt.score));
+        }
+
+        const sorted = Array.from(bestScores.entries())
+            .map(([userId, byQuiz]) => {
+                const total = Array.from(byQuiz.values()).reduce((sum, s) => sum + s, 0);
+                const quizCount = byQuiz.size;
+                return {
+                    userId,
+                    username: eligibleUsers.find(u => u.id === userId)?.username ?? '?',
+                    score: total,
+                    gamesPlayed: quizCount,
+                    detail: `${quizCount} quiz complété${quizCount > 1 ? 's' : ''}`,
+                    elo: eloByUser.get(userId) ?? null,
+                };
+            })
+            .sort((a, b) => b.score - a.score);
+
+        const total = sorted.length;
+        const leaderboard = sorted
+            .slice(skip, skip + limit)
+            .map((e, i) => ({ rank: skip + i + 1, ...e }));
+
+        return {
+            leaderboard,
+            config,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        };
+    }
+
+    // UNO, SKYJOW, TABOO, PUISSANCE4, ...
+    const attempts = await prisma.attempt.findMany({
+        where: { userId: { in: eligibleUserIds }, gameType: config.gameType as GameType },
+        select: { userId: true, score: true, trapScore: true, placement: true, gameId: true, rounds: true },
+    });
+
+    // Pour Taboo : 1 valeur de rounds par partie (distinct sur userId+gameId), puis somme par userId
+    const tabooRoundsByUser: { userId: string; total_rounds: number }[] = [];
+    if (game === 'taboo') {
+        const tabooAttempts = await prisma.attempt.findMany({
+            where: { gameType: 'TABOO', userId: { in: eligibleUserIds } },
+            select: { userId: true, gameId: true, rounds: true },
+            distinct: ['userId', 'gameId'],
+        });
+        const sumByUser = new Map<string, number>();
+        for (const a of tabooAttempts) {
+            sumByUser.set(a.userId, (sumByUser.get(a.userId) ?? 0) + (a.rounds ?? 0));
+        }
+        for (const [userId, total_rounds] of sumByUser) {
+            tabooRoundsByUser.push({ userId, total_rounds });
+        }
+    }
+
+    const roundsByUser = new Map<string, number>(
+        tabooRoundsByUser.map(r => [r.userId, r.total_rounds])
+    );
+
+    const byUser = new Map<string, { scores: number[]; trapScores: number[]; placements: number[]; draws: number; gameIds: Set<string>; rounds: number[] }>();
+    for (const a of attempts) {
+        if (!byUser.has(a.userId)) byUser.set(a.userId, { scores: [], trapScores: [], placements: [], draws: 0, gameIds: new Set(), rounds: [] });
+        const u = byUser.get(a.userId)!;
+        u.scores.push(a.score);
+        u.trapScores.push(a.trapScore ?? 0);
+        if (a.placement === null) {
+            u.draws += 1;
+        } else {
+            u.placements.push(a.placement);
+        }
+        if (a.gameId) u.gameIds.add(a.gameId);
+        if (a.rounds != null) u.rounds.push(a.rounds);
+    }
+
+    const sorted = Array.from(byUser.entries())
+        .map(([userId, data]) => {
+            const gamesPlayed = data.scores.length;
+
+            const totalScore = data.scores.reduce((s, v) => s + v, 0);
+            const totalTrapScore = data.trapScores.reduce((s, v) => s + v, 0);
+            const avgScore = gamesPlayed > 0 ? Math.round(totalScore / gamesPlayed) : 0;
+            const wins = data.placements.filter(p => p === 1).length;
+            const draws = data.draws;
+            const score = game === 'skyjow' || game === 'just_one' ? avgScore
+                : game === 'puissance4' || game === 'battleship' || game === 'ludo' ? wins
+                : (game === 'snake' || game === 'tetris' || game === 'pacman' || game === 'breakout' || game === 'sutom' || game === 'space_invaders' || game === '2048' || game === 'flappy_bird' || game === 'plumber') ? Math.max(...data.scores)
+                    : totalScore;
+            const totalRounds = roundsByUser.get(userId) ?? 0;
+            const bestLevel = (game === 'pacman' || game === 'breakout') && data.rounds.length > 0
+                ? Math.max(...data.rounds)
+                : undefined;
+
+            let detail: string;
+            switch (game) {
+                case 'skyjow':
+                    detail = `Moy. ${avgScore} pts · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'taboo':
+                    detail = `${totalScore - totalTrapScore} trouvé${totalScore - totalTrapScore > 1 ? 's' : ''} · ${totalTrapScore} piégé${totalTrapScore > 1 ? 's' : ''} · ${totalRounds} manche${totalRounds > 1 ? 's' : ''}`;
+                    break;
+                case 'yahtzee':
+                    detail = `Moy. ${avgScore} pts · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'puissance4':
+                    detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${draws} nul${draws > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'just_one':
+                    detail = `Score moyen ${avgScore}/13 · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'battleship':
+                    detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'impostor':
+                case 'spyfall':
+                    detail = `${totalScore} pt${totalScore > 1 ? 's' : ''} · ${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'tetris':
+                case 'snake':
+                case 'sutom':
+                case 'space_invaders':
+                case '2048':
+                case 'flappy_bird':
+                case 'plumber':
+                    detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+                    break;
+                case 'pacman':
+                case 'breakout': {
+                    detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}${bestLevel != null ? ` · meilleur niv. ${bestLevel}` : ''}`;
+                    break;
+                }
+                default:
+                    detail = `${wins} victoire${wins > 1 ? 's' : ''} · ${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
+            }
+
+            return {
+                userId,
+                username: eligibleUsers.find(u => u.id === userId)?.username ?? '?',
+                score,
+                gamesPlayed,
+                wins,
+                detail,
+                bestLevel,
+                elo: eloByUser.get(userId) ?? null,
+            };
+        })
+        .sort((a, b) => {
+            const scoreCmp = config.higherIsBetter ? b.score - a.score : a.score - b.score;
+            if (!isEloGame) return scoreCmp;
+            // Classement par ELO (note de niveau) ; les non-notés (null) en bas ; score en départage.
+            const ea = a.elo ?? -Infinity, eb = b.elo ?? -Infinity;
+            return eb - ea || scoreCmp;
+        });
+
+    const total = sorted.length;
+    const leaderboard = sorted
+        .slice(skip, skip + limit)
+        .map((e, i) => ({ rank: skip + i + 1, ...e }));
+
+    return {
+        leaderboard,
+        config,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+}

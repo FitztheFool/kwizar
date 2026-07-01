@@ -25,7 +25,8 @@ export default function MessagesDock() {
     const isGuest = (session?.user?.isAnonymous ?? false) || session?.user?.role === 'GUEST';
     if (!session?.user?.id || isGuest || !messagesEnabled) return null;
     if (!dockOpen) return null;
-    if (pathname?.startsWith('/messages')) return null;
+    // The unified Social view (rendered at /messages and /friends) hosts DMs inline.
+    if (pathname?.startsWith('/messages') || pathname?.startsWith('/friends')) return null;
     // In a lobby the unified FloatingChat panel hosts DMs (its "Messages" tab),
     // so the standalone dock stays out of the way.
     if (lobbyId) return null;

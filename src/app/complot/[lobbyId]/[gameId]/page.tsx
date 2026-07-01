@@ -13,11 +13,12 @@ import GameWaitingScreen from '@/components/GameWaitingScreen';
 import GameIcon from '@/components/GameIcon';
 import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 const PCOLOR = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#0891b2'];
 
@@ -47,7 +48,7 @@ export default function ComplotPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="complot" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Complot</span></>}
+                left={<><GameIcon gameType="complot" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Complot</span>{state.spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60vw]">
                     {players.map(p => (
                         <span key={p.colorIndex} className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${state.currentTurn === p.colorIndex && state.phase === 'action' ? 'ring-1 ring-amber-400 bg-amber-100 dark:bg-amber-900/40' : 'text-gray-500 dark:text-gray-400'} ${!p.alive ? 'opacity-50 line-through' : ''}`}>
@@ -57,7 +58,7 @@ export default function ComplotPage() {
                         </span>
                     ))}
                 </div>}
-                right={state.phase !== 'finished' && <SurrenderButton onSurrender={surrender} />}
+                right={state.phase !== 'finished' && !state.spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {state.phase !== 'finished' && state.turnDuration > 0 && (
@@ -79,9 +80,9 @@ export default function ComplotPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={myElo}
-                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={iWon ? 'Victoire !' : `${winnerName ?? 'Quelqu\'un'} gagne !`}
+                    elo={state.spectator ? null : myElo}
+                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={state.spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${winnerName ?? 'Quelqu\'un'} gagne !`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >

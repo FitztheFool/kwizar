@@ -16,7 +16,8 @@ import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
 import AfkCountdown from '@/components/AfkCountdown';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, ShieldExclamationIcon, UserIcon, EyeSlashIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, FaceFrownIcon, CheckCircleIcon, XCircleIcon, ShieldExclamationIcon, UserIcon, EyeSlashIcon, EyeIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -84,6 +85,8 @@ export default function ImpostorPage() {
 
     // ─── Fin de partie ────────────────────────────────────────────────────────
 
+    const spectator = role === 'spectator';
+
     if (roundState === 'END' && gameEnd) {
         const iWon = (gameEnd.winner === 'players' && role === 'player') ||
             (gameEnd.winner === 'impostor' && role === 'impostor');
@@ -92,7 +95,7 @@ export default function ImpostorPage() {
             .map(([id, pts]) => ({ id, pts, name: players.find(p => p.id === id)?.name ?? id }));
         return (
             <GameOverModal
-                elo={myElo}
+                elo={spectator ? null : myElo}
                 icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <FaceFrownIcon className="w-8 h-8 text-gray-400" />}
                 title={gameEnd.winner === 'players' ? 'Les joueurs ont gagné !' : "L'imposteur a gagné !"}
                 subtitle={`Mot secret : "${gameEnd.word}" — Imposteur : ${gameEnd.impostorName}`}
@@ -175,18 +178,27 @@ export default function ImpostorPage() {
             </div>}
             right={<>
                 {role && (
+                    spectator ? <SpectatorBadge /> : (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${role === 'impostor' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30' : 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'}`}>
                         {role === 'impostor' ? <><ShieldExclamationIcon className="w-3.5 h-3.5 inline mr-1" />Imposteur</> : <><UserIcon className="w-3.5 h-3.5 inline mr-1" />Joueur</>}
                     </span>
-                )}
-                {roundState !== 'WAITING' && roundState !== 'END' && <SurrenderButton onSurrender={surrender} />}
+                ))}
+                {roundState !== 'WAITING' && roundState !== 'END' && !spectator && <SurrenderButton onSurrender={surrender} />}
             </>}
         />
     );
 
     // ─── Rôle banner ──────────────────────────────────────────────────────────
 
-    const roleBanner = role && (
+    const roleBanner = spectator ? (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400">
+            <EyeIcon className="w-8 h-8 flex-shrink-0" />
+            <div>
+                <div className="font-bold">Vous observez la partie</div>
+                <div>Le mot secret et l&apos;imposteur restent cachés.</div>
+            </div>
+        </div>
+    ) : role && (
         <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
             ${role === 'impostor'
                 ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
@@ -307,7 +319,7 @@ export default function ImpostorPage() {
                                     )}
                                 </div>
                                 <button
-                                    disabled={hasVotedUnmask}
+                                    disabled={hasVotedUnmask || spectator}
                                     onClick={requestUnmask}
                                     className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors flex-shrink-0
                                         ${hasVotedUnmask
@@ -378,8 +390,8 @@ export default function ImpostorPage() {
                                         const isPending = pendingVoteFor === p.id;
                                         const isConfirmed = votedFor === p.id;
                                         return (
-                                            <button key={p.id} disabled={!!votedFor || kicked}
-                                                onClick={() => !kicked && vote(p.id)}
+                                            <button key={p.id} disabled={!!votedFor || kicked || spectator}
+                                                onClick={() => !kicked && !spectator && vote(p.id)}
                                                 className={`w-full py-3 px-4 rounded-xl font-medium transition-all text-left
                                                     ${kicked ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-400'
                                                         : isConfirmed ? 'bg-red-500 text-white cursor-not-allowed'
@@ -410,8 +422,8 @@ export default function ImpostorPage() {
                                             const isPending = pendingMrWhiteVotedFor === p.id;
                                             const isConfirmed = mrWhiteVotedFor === p.id;
                                             return (
-                                                <button key={p.id} disabled={!!mrWhiteVotedFor || kicked}
-                                                    onClick={() => !kicked && voteMrWhite(p.id)}
+                                                <button key={p.id} disabled={!!mrWhiteVotedFor || kicked || spectator}
+                                                    onClick={() => !kicked && !spectator && voteMrWhite(p.id)}
                                                     className={`w-full py-3 px-4 rounded-xl font-medium transition-all text-left
                                                         ${kicked ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-400'
                                                             : isConfirmed ? 'bg-orange-500 text-white cursor-not-allowed'
@@ -432,7 +444,7 @@ export default function ImpostorPage() {
                             {/* Confirm button */}
                             {!votedFor ? (
                                 <button
-                                    disabled={!pendingVoteFor}
+                                    disabled={!pendingVoteFor || spectator}
                                     onClick={confirmVote}
                                     className="w-full py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">
                                     Valider les votes

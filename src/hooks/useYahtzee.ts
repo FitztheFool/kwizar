@@ -73,6 +73,7 @@ export function useYahtzee({
         () => (game?.players ?? []).some(p => isBot(p) && p.userId !== userId),
         [game?.players, userId],
     );
+    const spectator = !!game && (game.players?.length ?? 0) > 0 && !game.players.some(p => p.userId === userId);
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -177,7 +178,7 @@ export function useYahtzee({
     return {
         game, results, eliminatedPlayers,
         rolling, timerEndsAt, toasts,
-        vsBot,
+        vsBot, spectator,
         inactivityUserId, inactivityEndsAt,
         roll, toggleHold, scoreCategory, forceScore, surrender,
     };

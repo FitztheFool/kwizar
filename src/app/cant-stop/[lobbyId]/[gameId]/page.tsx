@@ -19,7 +19,8 @@ import Board from '@/components/CantStop/Board';
 import SplitChoice from '@/components/CantStop/SplitChoice';
 import { colorForIndex } from '@/components/CantStop/colors';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function CantStopPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
@@ -56,6 +57,7 @@ export default function CantStopPage() {
                         <span className="font-bold">
                             Can&apos;t Stop
                             {vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}
+                            {state.spectator && <SpectatorBadge className="ml-2" />}
                         </span>
                     </>
                 }
@@ -152,12 +154,13 @@ export default function CantStopPage() {
 
             {state.phase === 'ended' && winner && !modalDismissed && (
                 <GameOverModal
-                    elo={myElo}
-                    icon={isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                    elo={state.spectator ? null : myElo}
+                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
+                        : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : isBot(winner) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                             : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={isWinner ? 'Vous avez gagné !' : isBot(winner) ? 'Le bot gagne !' : `${winner?.username} gagne !`}
+                    title={state.spectator ? 'Vous avez observé cette partie' : isWinner ? 'Vous avez gagné !' : isBot(winner) ? 'Le bot gagne !' : `${winner?.username} gagne !`}
                     subtitle={`${state.options.columnsToWin} colonnes revendiquées`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

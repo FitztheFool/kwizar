@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { buildMetadata } from '@/lib/seo';
+import SoloGameGuard from '@/components/SoloGameGuard';
 
 export const metadata: Metadata = buildMetadata({
     title: 'Jeux solo',
@@ -7,5 +8,5 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return children;
+    return <SoloGameGuard>{children}</SoloGameGuard>;
 }

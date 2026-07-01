@@ -29,7 +29,7 @@ export default function Board({ state }: Props) {
     return (
         <div className="relative w-full max-w-xl mx-auto">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cant-stop/board.png" alt="Plateau Can't Stop" className="w-full h-auto select-none" draggable={false} />
+            <img src="/cant-stop/board.svg" alt="Plateau Can't Stop" className="w-full h-auto select-none" draggable={false} />
 
             {pawns.map(pawn => {
                 const { x, y } = cellCenter(pawn.col, Math.min(pawn.pos, COLUMN_LENGTHS[pawn.col]));

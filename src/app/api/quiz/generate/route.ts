@@ -4,6 +4,10 @@ import { getClientForModel } from '@/lib/openai';
 import { AI_MODELS, DEFAULT_MODEL_ID, ModelId } from '@/lib/aiModels';
 import { buildPrompt, pointsFor } from '@/lib/prompt';
 import { requireRegistered } from '@/lib/authGuard';
+import { generateQuizBanner } from '@/lib/quizImages';
+
+// Le fallback bannière Flux peut prendre jusqu'à ~25 s : on étend la durée max serverless.
+export const maxDuration = 60;
 
 function validateQuizJSON(json: any): string | null {
     if (!json.title || typeof json.title !== 'string') return 'Champ "title" manquant';
@@ -135,13 +139,19 @@ export async function POST(req: NextRequest) {
                 )
             );
             for (const { i, url } of fetched) {
-                delete json.questions[i].imageQuery;
-                if (url) json.questions[i].imageUrl = url;
+                if (url) {
+                    json.questions[i].imageUrl = url;
+                    delete json.questions[i].imageQuery; // Unsplash a fourni → pas de fallback Flux
+                }
+                // sinon : on conserve imageQuery → fallback Flux async à la sauvegarde
             }
         }
 
         const selectedModel = AI_MODELS.find(m => m.id === modelId)!;
-        const finalImageUrl = imageUrl ?? DEFAULT_QUIZ_COVER;
+        // Bannière : Unsplash d'abord (rapide + factuel) ; sinon génération Flux hébergée
+        // sur Cloudinary (sur-mesure pour les sujets sans photo stock) ; sinon SVG par défaut.
+        const fluxBanner = imageUrl ? null : await generateQuizBanner(subject);
+        const finalImageUrl = imageUrl ?? fluxBanner ?? DEFAULT_QUIZ_COVER;
         return NextResponse.json({ ...json, imageUrl: finalImageUrl, provider: selectedModel.provider, model: modelId });
 
     } catch (e: any) {

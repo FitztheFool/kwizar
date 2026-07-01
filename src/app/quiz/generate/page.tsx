@@ -114,11 +114,14 @@ export default function GenerateQuizPage() {
                     categoryId,
                     creatorRole: 'RANDOM',
                     imageUrl: data.imageUrl || null,
+                    generatedWithModel: data.model ?? modelId,
                     questions: data.questions.map((q: any) => ({
                         text: q.text,
                         type: q.type,
                         points: q.points,
                         strictOrder: q.strictOrder ?? false,
+                        imageUrl: q.imageUrl ?? null,       // conserve l'image Unsplash de la question
+                        imageQuery: q.imageQuery ?? null,   // signal pour le fallback Flux async (sauvegarde)
                         answers: q.answers.map((a: any) => ({
                             content: a.text,
                             isCorrect: a.isCorrect,

@@ -15,8 +15,9 @@ import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { HeartIcon } from '@heroicons/react/24/solid';
 
 export default function TanksPage() {
@@ -24,7 +25,7 @@ export default function TanksPage() {
     const gameGuard = useGameEnabledGuard('tanks');
     const myElo = useEloUpdate('tanks', me.userId);
 
-    const { players, state, shot, clearShot, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, fire, move, surrender } = useTanks({
+    const { players, state, shot, clearShot, myColorIndex, isMyTurn, spectator, vsBot, inactivityUserId, inactivityEndsAt, fire, move, surrender } = useTanks({
         lobbyId, userId: me.userId, username: me.username ?? '', onNotFound: () => setIsNotFound(true),
     });
 
@@ -60,9 +61,9 @@ export default function TanksPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="tanks" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Tanks{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
+                left={<><GameIcon gameType="tanks" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Tanks{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="flex items-center gap-2"><PlayerTag idx={0} /><span className="text-gray-400 text-xs">vs</span><PlayerTag idx={1} /></div>}
-                right={state.phase === 'playing' && <SurrenderButton onSurrender={surrender} />}
+                right={state.phase === 'playing' && !spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {state.phase === 'playing' && state.turnDuration > 0 && (
@@ -75,8 +76,8 @@ export default function TanksPage() {
 
             <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
                 <div className="flex-1 flex justify-center min-w-0 w-full">
-                    {myColorIndex !== null && (
-                        <TanksBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} shot={shot} onClearShot={clearShot} onFire={fire} onMove={move} />
+                    {(myColorIndex !== null || spectator) && (
+                        <TanksBoard state={state} myColorIndex={myColorIndex ?? 0} isMyTurn={isMyTurn} shot={shot} onClearShot={clearShot} onFire={fire} onMove={move} />
                     )}
                 </div>
                 <GameLogSidebar entries={state.log ?? []} />
@@ -85,11 +86,11 @@ export default function TanksPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={myElo}
-                    icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
-                    title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
+                    elo={spectator ? null : myElo}
+                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    title={spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
                     reason={state.reason}
-                    subtitle={myEloResult ? `${myEloResult.delta >= 0 ? '+' : ''}${myEloResult.delta} ELO · ${myEloResult.after}` : undefined}
+                    subtitle={!spectator && myEloResult ? `${myEloResult.delta >= 0 ? '+' : ''}${myEloResult.delta} ELO · ${myEloResult.after}` : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >

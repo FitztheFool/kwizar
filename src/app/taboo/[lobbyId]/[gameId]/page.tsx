@@ -83,6 +83,8 @@ export default function TabooGamePage() {
     const isCurrentTeam = myTeam === game.currentTeam;
     const isGuesser = isCurrentTeam && !isOrator;
     const isAdversary = myTeam !== null && myTeam !== game.currentTeam;
+    // Spectateur : aucune équipe → vue Dieu (voit le mot, pas de contrôles).
+    const isSpectator = myTeam === null;
 
     const sendAttempt = () => {
         const w = attemptInput.trim();
@@ -472,7 +474,7 @@ export default function TabooGamePage() {
                     </div>
                 )}
 
-                {isAdversary && !isOrator && (
+                {(isAdversary || isSpectator) && !isOrator && (
                     <div className="w-full max-w-sm space-y-3">
                         <div className="glass rounded-xl p-4">
                             <div className="rounded-3xl border-2 border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/5 p-6 text-center">
@@ -502,6 +504,7 @@ export default function TabooGamePage() {
                             </p>
                             <AttemptsList attempts={game.attempts} refEl={attemptsEndRef} />
                         </div>
+                        {!isSpectator && (
                         <div className="flex gap-3 justify-center">
                             <button onClick={() => socketRef.current?.emit('taboo:pause', { lobbyId })}
                                 className="px-4 py-2 rounded-xl border border-gray-300 dark:border-white/20 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 font-semibold text-sm transition-colors text-gray-700 dark:text-white">
@@ -512,10 +515,11 @@ export default function TabooGamePage() {
                                 <span className="inline-flex items-center justify-center gap-1.5"><XCircleIcon className="w-4 h-4" />Mot interdit !</span>
                             </button>
                         </div>
+                        )}
                     </div>
                 )}
 
-                {myTeam === null && (
+                {isSpectator && (
                     <p className="text-gray-400 dark:text-white/30 text-sm">Vous observez la partie…</p>
                 )}
               </div>
@@ -529,7 +533,7 @@ export default function TabooGamePage() {
                 const winner = scores[0];
                 return (
                     <GameOverModal
-                        elo={myElo}
+                        elo={isSpectator ? null : myElo}
                         title="Fin de partie !"
                         subtitle={isDraw ? 'Égalité !' : `Victoire de l'équipe ${winner[0] === '0' ? 'Ambre' : 'Verte'} !`}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

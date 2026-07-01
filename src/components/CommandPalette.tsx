@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useCommandPalette } from '@/context/CommandPaletteContext';
 import { usePinnedQuizzes } from '@/hooks/usePinnedQuizzes';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import {
     MagnifyingGlassIcon,
     SignalIcon,
@@ -21,6 +22,7 @@ import {
     UserPlusIcon,
     ClockIcon,
     ChatBubbleLeftRightIcon,
+    PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -39,6 +41,7 @@ export default function CommandPalette() {
     const router = useRouter();
     const { data: session } = useSession();
     const { pinned } = usePinnedQuizzes();
+    const flags = useFeatureFlags();
     const [query, setQuery] = useState('');
     const [activeIdx, setActiveIdx] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -60,8 +63,10 @@ export default function CommandPalette() {
         }
         all.push({ id: 'leaderboard', label: 'Classement', hint: 'JOUER', Icon: TrophyIcon, keywords: 'leaderboard scores', onSelect: goto('/leaderboard/uno') });
         all.push({ id: 'quiz-available', label: 'Quiz disponibles', hint: 'JOUER', Icon: ListBulletIcon, keywords: 'jouer quiz disponibles', onSelect: goto('/quiz/available') });
+
+        all.push({ id: 'games', label: 'Jeux', hint: 'JOUER', Icon: PuzzlePieceIcon, keywords: 'jeux games jouer accueil', onSelect: goto('/') });
         if (canCreateQuiz) {
-            all.push({ id: 'quiz-mine', label: 'Mes quiz', hint: 'CRÉER', Icon: BookmarkIcon, onSelect: goto('/quiz/my-quizzes') });
+            all.push({ id: 'quiz-mine', label: 'Mes quiz', hint: 'CRÉER', Icon: BookmarkIcon, onSelect: goto('/dashboard#quizzes') });
             all.push({ id: 'quiz-gen', label: 'Générer (IA)', hint: 'CRÉER', Icon: SparklesIcon, keywords: 'ai generation', onSelect: goto('/quiz/generate') });
             all.push({ id: 'quiz-create', label: 'Créer un quiz', hint: 'CRÉER', Icon: PlusIcon, onSelect: goto('/quiz/create') });
         }
@@ -69,10 +74,16 @@ export default function CommandPalette() {
             all.push({ id: 'dashboard', label: 'Dashboard', hint: 'COMPTE', Icon: Squares2X2Icon, onSelect: goto('/dashboard') });
         }
         if (isAuth && !isGuest) {
-            all.push({ id: 'friends', label: 'Amis', hint: 'SOCIAL', Icon: UsersIcon, keywords: 'amis friends social', onSelect: goto('/friends#amis') });
-            all.push({ id: 'messages', label: 'Messages', hint: 'SOCIAL', Icon: ChatBubbleLeftRightIcon, keywords: 'messages dm conversations chat privé', onSelect: goto('/messages') });
-            all.push({ id: 'friends-requests', label: "Demandes d'ami", hint: 'SOCIAL', Icon: ClockIcon, keywords: 'demandes requests invitations amis pending', onSelect: goto('/friends#demandes') });
-            all.push({ id: 'friends-add', label: 'Ajouter un ami', hint: 'SOCIAL', Icon: UserPlusIcon, keywords: 'ajouter add rechercher chercher ami nouvel', onSelect: goto('/friends#ajouter') });
+            if (flags.friends) {
+                all.push({ id: 'friends', label: 'Amis', hint: 'SOCIAL', Icon: UsersIcon, keywords: 'amis friends social', onSelect: goto('/friends?tab=list') });
+            }
+            if (flags.messages) {
+                all.push({ id: 'messages', label: 'Messages', hint: 'SOCIAL', Icon: ChatBubbleLeftRightIcon, keywords: 'messages dm conversations chat privé', onSelect: goto('/messages') });
+            }
+            if (flags.friends) {
+                all.push({ id: 'friends-requests', label: "Demandes d'ami", hint: 'SOCIAL', Icon: ClockIcon, keywords: 'demandes requests invitations amis pending', onSelect: goto('/friends?tab=pending') });
+                all.push({ id: 'friends-add', label: 'Ajouter un ami', hint: 'SOCIAL', Icon: UserPlusIcon, keywords: 'ajouter add rechercher chercher ami nouvel', onSelect: goto('/friends?tab=add') });
+            }
         }
         all.push({ id: 'settings', label: 'Paramètres', hint: 'COMPTE', Icon: Cog6ToothIcon, keywords: 'settings preferences', onSelect: goto('/settings') });
         if (isAuth && isAdmin) {
@@ -93,7 +104,7 @@ export default function CommandPalette() {
             all.push({ id: 'signout', label: 'Déconnexion', hint: 'COMPTE', Icon: ArrowRightStartOnRectangleIcon, keywords: 'logout', onSelect: () => { close(); signOut({ callbackUrl: '/' }); } });
         }
         return all;
-    }, [isAuth, isAdmin, isGuest, canCreateQuiz, pinned, router, close]);
+    }, [isAuth, isAdmin, isGuest, canCreateQuiz, flags.friends, flags.messages, pinned, router, close]);
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();

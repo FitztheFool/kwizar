@@ -20,8 +20,9 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
     ChevronDownIcon,
-    UsersIcon,
     ChatBubbleLeftRightIcon,
+    UsersIcon,
+    PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 import PinnedQuizzes from '@/components/Sidebar/PinnedQuizzes';
 import SidebarSearch from '@/components/Sidebar/SidebarSearch';
@@ -158,7 +159,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
 
     useEffect(() => { setLobbyCode(crypto.randomUUID()); }, []);
 
-    const quizSectionActive = ['/quiz/available', '/quiz/my-quizzes', '/quiz/generate', '/quiz/create'].some(p => pathname.startsWith(p));
+    const quizSectionActive = ['/quiz/available', '/quiz/generate', '/quiz/create'].some(p => pathname.startsWith(p));
     const isCreatingLobby = pathname.startsWith('/lobby/create/');
     const lobbySectionActive = pathname.startsWith('/lobby/');
     const isAdmin = userRole === 'ADMIN';
@@ -265,6 +266,8 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                             </div>
                         )}
 
+                        <NavLink href="/" Icon={PuzzlePieceIcon} label="Jeux" isActive={pathname === '/'} collapsed={collapsed} color="purple" />
+
                         <NavLink href="/leaderboard/uno" Icon={TrophyIcon} label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
                     </>
                 )}
@@ -280,7 +283,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 {!collapsed && quizMenuOpen && (
                     <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
                         <SubNavLink href="/quiz/available" Icon={ListBulletIcon} label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
-                        {canCreateQuiz && <SubNavLink href="/quiz/my-quizzes" Icon={BookmarkIcon} label="Mes quiz" isActive={pathname === '/quiz/my-quizzes'} color="blue" />}
+                        {canCreateQuiz && <SubNavLink href="/dashboard#quizzes" Icon={BookmarkIcon} label="Mes quiz" isActive={pathname === '/dashboard'} color="blue" />}
                         {canCreateQuiz && (
                             <>
                                 <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
@@ -293,12 +296,25 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
 
                 <PinnedQuizzes collapsed={collapsed} />
 
-                {/* ── SOCIAL ── */}
+                {/* ── SOCIAL ── (page unifiée : amis + messages) */}
                 {showSocial && (showFriends || showMessages) && (
                     <>
                         <SectionHeader label="Social" collapsed={collapsed} />
-                        {showFriends && <NavLink href="/friends" Icon={UsersIcon} label="Amis" isActive={pathname.startsWith('/friends')} collapsed={collapsed} color="gray" badge={pendingCount} />}
-                        {showMessages && <NavLink href="/messages" Icon={ChatBubbleLeftRightIcon} label="Messages" isActive={pathname.startsWith('/messages')} collapsed={collapsed} color="gray" badge={totalUnread} />}
+                        <NavLink
+                            href={showMessages ? '/messages' : '/friends'}
+                            Icon={showMessages ? ChatBubbleLeftRightIcon : UsersIcon}
+                            label={
+                                showFriends && showMessages
+                                    ? 'Amis & messages'
+                                    : showMessages
+                                        ? 'Messagerie'
+                                        : 'Amis'
+                            }
+                            isActive={pathname.startsWith('/friends') || pathname.startsWith('/messages')}
+                            collapsed={collapsed}
+                            color="gray"
+                            badge={(showFriends ? pendingCount : 0) + (showMessages ? totalUnread : 0)}
+                        />
                     </>
                 )}
 

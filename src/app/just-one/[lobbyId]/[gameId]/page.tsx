@@ -13,6 +13,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import AfkCountdown from '@/components/AfkCountdown';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, StarIcon, FaceSmileIcon, ClockIcon, EyeIcon, EyeSlashIcon, CheckCircleIcon, XCircleIcon, ForwardIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -84,6 +85,7 @@ export default function JustOnePage() {
         inactivityEndsAt,
         kickedPlayers,
         isGuesser,
+        spectator,
         log,
         pickWord,
         submitClue,
@@ -223,7 +225,9 @@ export default function JustOnePage() {
                             {card && currentWordIndex !== null ? card.words[currentWordIndex] : '???'}
                         </p>
                     </div>
-                    {!clueSubmitted ? (
+                    {spectator ? (
+                        <p className="text-center text-xs text-gray-400 dark:text-gray-500">Vous observez la partie…</p>
+                    ) : !clueSubmitted ? (
                         <div className="space-y-3">
                             <input
                                 type="text"
@@ -358,12 +362,12 @@ export default function JustOnePage() {
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <GamePageHeader
-                left={<><GameIcon gameType="just_one" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Just One</span></>}
+                left={<><GameIcon gameType="just_one" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Just One</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="text-center leading-tight">
                     {round > 0 && <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">Manche {round}/13 · <span className="text-blue-500">{score} pt{score !== 1 ? 's' : ''}</span></p>}
                     {guesserName && <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">{isGuesser ? 'Tu devines' : <><EyeIcon className="w-3 h-3" /><span className="font-medium">{guesserName}</span> devine</>}</p>}
                 </div>}
-                right={roundState !== 'WAITING' && roundState !== 'END_GAME' && <SurrenderButton onSurrender={surrender} />}
+                right={roundState !== 'WAITING' && roundState !== 'END_GAME' && !spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             <TimerBar endsAt={timerEndsAt} duration={timerDuration} />

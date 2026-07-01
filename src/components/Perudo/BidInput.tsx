@@ -2,53 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import Die from './Die';
-import { MinusIcon, PlusIcon, ChatBubbleBottomCenterTextIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { MinusIcon, PlusIcon, ChatBubbleBottomCenterTextIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 interface Bid { count: number; face: number; userId?: string }
 
 interface Props {
     lastBid: Bid | null;
     pacosWild: boolean;
+    palifico: boolean;
     totalDice: number;
     disabled?: boolean;
     onBid: (count: number, face: number) => void;
     onDudo: () => void;
     canDudo: boolean;
+    onCalza: () => void;
+    canCalza: boolean;
 }
 
-function isBidValid(prev: Bid | null, next: Bid, pacosWild: boolean): boolean {
+// Miroir client de la validation serveur (game.ts) — pilote l'activation des boutons.
+function isBidValid(prev: Bid | null, next: Bid, palifico: boolean): boolean {
     if (next.count < 1) return false;
     if (next.face < 1 || next.face > 6) return false;
-    if (!prev) return true;
-    if (!pacosWild) {
-        if (next.face === prev.face) return next.count > prev.count;
-        if (next.face > prev.face) return next.count >= prev.count;
-        return false;
+    if (palifico) {
+        if (!prev) return true;                                    // ouverture libre du joueur palifico
+        return next.face === prev.face && next.count > prev.count; // valeur verrouillée
     }
+    if (!prev) return next.face !== 1;                             // interdit d'ouvrir sur les Paco
     if (prev.face !== 1 && next.face !== 1) {
         if (next.face === prev.face) return next.count > prev.count;
         if (next.face > prev.face) return next.count >= prev.count;
         return false;
     }
-    if (prev.face !== 1 && next.face === 1) {
-        return next.count >= Math.ceil(prev.count / 2);
-    }
-    if (prev.face === 1 && next.face === 1) {
-        return next.count > prev.count;
-    }
+    if (prev.face !== 1 && next.face === 1) return next.count >= Math.ceil(prev.count / 2);
+    if (prev.face === 1 && next.face === 1) return next.count > prev.count;
     return next.count >= 2 * prev.count + 1;
 }
 
-function minimalValidBid(prev: Bid | null, pacosWild: boolean): { count: number; face: number } {
+function minimalValidBid(prev: Bid | null, palifico: boolean): { count: number; face: number } {
     if (!prev) return { count: 1, face: 2 };
-    // Same face, +1
-    if (isBidValid(prev, { userId: '', count: prev.count + 1, face: prev.face }, pacosWild)) {
+    if (isBidValid(prev, { userId: '', count: prev.count + 1, face: prev.face }, palifico)) {
         return { count: prev.count + 1, face: prev.face };
     }
-    // Otherwise pick the first valid combination.
     for (let f = 1; f <= 6; f++) {
         for (let c = 1; c <= 30; c++) {
-            if (isBidValid(prev, { userId: '', count: c, face: f }, pacosWild)) {
+            if (isBidValid(prev, { userId: '', count: c, face: f }, palifico)) {
                 return { count: c, face: f };
             }
         }
@@ -56,19 +53,21 @@ function minimalValidBid(prev: Bid | null, pacosWild: boolean): { count: number;
     return { count: prev.count + 1, face: prev.face };
 }
 
-export default function BidInput({ lastBid, pacosWild, totalDice, disabled, onBid, onDudo, canDudo }: Props) {
-    const initial = minimalValidBid(lastBid, pacosWild);
+export default function BidInput({ lastBid, pacosWild, palifico, totalDice, disabled, onBid, onDudo, canDudo, onCalza, canCalza }: Props) {
+    const initial = minimalValidBid(lastBid, palifico);
     const [count, setCount] = useState<number>(initial.count);
     const [face, setFace] = useState<number>(initial.face);
 
     // Reset to minimal valid bid whenever lastBid changes.
     useEffect(() => {
-        const m = minimalValidBid(lastBid, pacosWild);
+        const m = minimalValidBid(lastBid, palifico);
         setCount(m.count);
         setFace(m.face);
-    }, [lastBid, pacosWild]);
+    }, [lastBid, palifico]);
 
-    const valid = isBidValid(lastBid, { userId: '', count, face }, pacosWild);
+    // En palifico, la valeur est verrouillée sur celle de la mise en cours.
+    const faceLocked = palifico && !!lastBid;
+    const valid = isBidValid(lastBid, { userId: '', count, face }, palifico);
     const overTotal = count > totalDice;
 
     return (
@@ -97,29 +96,32 @@ export default function BidInput({ lastBid, pacosWild, totalDice, disabled, onBi
                 </div>
                 <span className="text-gray-400 dark:text-gray-500 text-sm">×</span>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                    {[1, 2, 3, 4, 5, 6].map(f => (
-                        <button
-                            key={f}
-                            type="button"
-                            onClick={() => setFace(f)}
-                            disabled={disabled}
-                            className={`rounded-lg transition-all
-                                ${face === f
-                                    ? 'ring-2 ring-blue-500 dark:ring-blue-400'
-                                    : 'hover:opacity-80'}
-                                ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-                            aria-label={`Face ${f}`}
-                        >
-                            <Die value={f} size={36} highlighted={face === f && f === 1 && pacosWild} />
-                        </button>
-                    ))}
+                    {[1, 2, 3, 4, 5, 6].map(f => {
+                        const faceDisabled = disabled || (faceLocked && f !== lastBid!.face);
+                        return (
+                            <button
+                                key={f}
+                                type="button"
+                                onClick={() => setFace(f)}
+                                disabled={faceDisabled}
+                                className={`rounded-lg transition-all
+                                    ${face === f
+                                        ? 'ring-2 ring-blue-500 dark:ring-blue-400'
+                                        : 'hover:opacity-80'}
+                                    ${faceDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                                aria-label={`Face ${f}`}
+                            >
+                                <Die value={f} size={36} highlighted={face === f && f === 1 && pacosWild} />
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
-            {face === 1 && pacosWild && (
+            {faceLocked && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
-                    <ExclamationTriangleIcon className="inline-block w-3.5 h-3.5" />
-                    Bid sur les 1 : les Pacos ne seront plus wild pour le reste du round.
+                    <LockClosedIcon className="inline-block w-3.5 h-3.5" />
+                    Palifico : valeur verrouillée, vous ne pouvez que monter le nombre de dés.
                 </p>
             )}
             {overTotal && (
@@ -129,7 +131,7 @@ export default function BidInput({ lastBid, pacosWild, totalDice, disabled, onBi
             )}
             {!valid && !overTotal && lastBid && (
                 <p className="text-xs text-red-500 dark:text-red-400">
-                    Doit dépasser l'annonce précédente.
+                    Doit dépasser l&apos;annonce précédente.
                 </p>
             )}
 
@@ -151,6 +153,17 @@ export default function BidInput({ lastBid, pacosWild, totalDice, disabled, onBi
                 >
                     Mentir ! (Dudo)
                 </button>
+                {canCalza && (
+                    <button
+                        type="button"
+                        onClick={onCalza}
+                        disabled={disabled}
+                        title="Calza : la mise est-elle EXACTEMENT juste ? Si oui, vous récupérez un dé ; sinon vous en perdez un."
+                        className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-sm transition-all shadow-lg shadow-amber-500/30 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"
+                    >
+                        Pile ! (Calza)
+                    </button>
+                )}
             </div>
         </div>
     );

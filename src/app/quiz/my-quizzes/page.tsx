@@ -4,23 +4,21 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import MyQuizzesPanel from '@/components/Quiz/MyQuizzesPanel';
 
+// « Mes quiz » est désormais l'onglet #quizzes du dashboard.
+// On conserve cette route comme simple redirection pour les anciens liens / favoris.
 export default function MyQuizzesPage() {
     const { status } = useSession();
     const router = useRouter();
 
     useEffect(() => {
+        if (status === 'loading') return;
         if (status === 'unauthenticated') {
-            router.push('/login?callbackUrl=/quiz/my-quizzes');
+            router.replace('/login?callbackUrl=/dashboard%23quizzes');
+        } else {
+            router.replace('/dashboard#quizzes');
         }
     }, [status, router]);
 
-    if (status !== 'authenticated') return null;
-
-    return (
-        <main className="flex-1 p-4 md:p-8">
-            <MyQuizzesPanel />
-        </main>
-    );
+    return null;
 }

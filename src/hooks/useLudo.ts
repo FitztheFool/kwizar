@@ -107,7 +107,6 @@ export function useLudo({
     const roll = useCallback(() => socket?.emit('ludo:roll'), [socket]);
     const move = useCallback((pawnIdx: number) => socket?.emit('ludo:move', { pawnIdx }), [socket]);
     const surrender = useCallback(() => socket?.emit('ludo:surrender'), [socket]);
-    const rematch = useCallback(() => socket?.emit('ludo:rematch'), [socket]);
 
     const me = state?.players.find(p => p.userId === userId) ?? null;
     const myColorIndex = me?.colorIndex ?? null;
@@ -115,10 +114,12 @@ export function useLudo({
     const isMyTurn = !!state && state.phase !== 'finished' && state.phase !== 'waiting' && currentPlayer?.userId === userId;
     const canRoll = isMyTurn && state?.phase === 'rolling';
     const canMove = isMyTurn && state?.phase === 'moving';
+    const spectator = !!state && (state.players?.length ?? 0) > 0 && !me;
 
     return {
         state,
         me,
+        spectator,
         myColorIndex,
         currentPlayer,
         isMyTurn,
@@ -130,6 +131,5 @@ export function useLudo({
         roll,
         move,
         surrender,
-        rematch,
     };
 }

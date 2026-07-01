@@ -75,6 +75,8 @@ export function useSkyjow({
     const [flip2Duration, setFlip2Duration] = useState<number>(90);
 
     const isCurrent = players[currentPlayerIndex]?.userId === userId;
+    // Spectateur : la partie a des joueurs mais je n'en suis pas.
+    const spectator = players.length > 0 && !players.some(p => p.userId === userId);
 
     const notify = useCallback((msg: string, duration = 3000) => {
         setNotification(msg);
@@ -322,6 +324,7 @@ export function useSkyjow({
         inactivityEndsAt,
         inactivityUserId,
         isCurrent,
+        spectator,
         setDrawnAction,
         drawDeck,
         takeDiscard,

@@ -15,8 +15,9 @@ import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 const WIN_EJECTED = 6;
 
@@ -29,7 +30,7 @@ export default function AbalonePage() {
     const gameGuard = useGameEnabledGuard('abalone');
     const myElo = useEloUpdate('abalone', me.userId);
 
-    const { players, state, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useAbalone({
+    const { players, state, myColorIndex, isMyTurn, spectator, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useAbalone({
         lobbyId,
         userId: me.userId,
         username: me.username ?? '',
@@ -69,7 +70,7 @@ export default function AbalonePage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="abalone" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Abalone{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
+                left={<><GameIcon gameType="abalone" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Abalone{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={
                     <div className="flex items-center gap-2">
                         <PlayerTag idx={0} />
@@ -77,7 +78,7 @@ export default function AbalonePage() {
                         <PlayerTag idx={1} />
                     </div>
                 }
-                right={state.phase === 'playing' && <SurrenderButton onSurrender={surrender} />}
+                right={state.phase === 'playing' && !spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {state.phase === 'playing' && state.turnDuration > 0 && (
@@ -92,8 +93,8 @@ export default function AbalonePage() {
                 {/* Spacer équilibrant la sidebar pour centrer le plateau sur la page (desktop) */}
                 <div className="hidden lg:block lg:w-72 shrink-0" aria-hidden />
                 <div className="flex-1 flex flex-col items-center justify-center gap-4 min-w-0 w-full">
-                    {myColorIndex !== null && (
-                        <AbaloneBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
+                    {(myColorIndex !== null || spectator) && (
+                        <AbaloneBoard state={state} myColorIndex={myColorIndex ?? 0} isMyTurn={isMyTurn} onMove={move} />
                     )}
                     {isMyTurn && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-sm">
@@ -107,9 +108,9 @@ export default function AbalonePage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={myElo}
-                    icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
-                    title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
+                    elo={spectator ? null : myElo}
+                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    title={spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
                     reason={state.reason}
                     subtitle="6 billes éjectées"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

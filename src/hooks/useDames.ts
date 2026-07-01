@@ -61,6 +61,8 @@ export function useDames({
     const myColorIndex = myPlayer?.colorIndex ?? null;
     const isMyTurn = gameState?.status === 'playing' && gameState.currentTurn === myColorIndex;
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
+    // Spectateur : la partie a démarré (joueurs connus) mais je n'occupe aucun siège.
+    const spectator = !!gameState && players.length > 0 && !myPlayer;
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -112,18 +114,17 @@ export function useDames({
     }, [isMyTurn, socket]);
 
     const surrender = useCallback(() => { socket?.emit('dames:surrender'); }, [socket]);
-    const rematch = useCallback(() => { socket?.emit('dames:rematch'); }, [socket]);
 
     return {
         players,
         gameState,
         myColorIndex,
         isMyTurn,
+        spectator,
         vsBot,
         inactivityUserId,
         inactivityEndsAt,
         move,
         surrender,
-        rematch,
     };
 }

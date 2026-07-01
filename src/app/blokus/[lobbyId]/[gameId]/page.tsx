@@ -15,15 +15,16 @@ import TimerBar from '@/components/TimerBar';
 import SurrenderButton from '@/components/SurrenderButton';
 import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 export default function BlokusPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
     const gameGuard = useGameEnabledGuard('blokus');
     const myElo = useEloUpdate('blokus', me.userId);
 
-    const { players, state, myColorIndex, isMyTurn, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useBlokus({
+    const { players, state, myColorIndex, isMyTurn, spectator, vsBot, inactivityUserId, inactivityEndsAt, move, surrender } = useBlokus({
         lobbyId,
         userId: me.userId,
         onNotFound: () => setIsNotFound(true),
@@ -71,9 +72,9 @@ export default function BlokusPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="blokus" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Blokus{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span></>}
+                left={<><GameIcon gameType="blokus" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Blokus{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="flex items-center gap-1.5 flex-wrap justify-center">{Array.from({ length: numColors }, (_, ci) => <PlayerTag key={ci} colorIndex={ci} />)}</div>}
-                right={state.phase === 'playing' && <SurrenderButton onSurrender={surrender} />}
+                right={state.phase === 'playing' && !spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {state.phase === 'playing' && state.turnDuration > 0 && (
@@ -86,8 +87,8 @@ export default function BlokusPage() {
 
             <main className="flex-1 flex flex-col lg:flex-row items-start justify-center gap-4 p-3 min-w-0">
                 <div className="flex-1 flex justify-center min-w-0 w-full">
-                    {myColorIndex !== null && (
-                        <BlokusBoard state={state} myColorIndex={myColorIndex} isMyTurn={isMyTurn} onMove={move} />
+                    {(myColorIndex !== null || spectator) && (
+                        <BlokusBoard state={state} myColorIndex={myColorIndex ?? 0} isMyTurn={isMyTurn} onMove={move} />
                     )}
                 </div>
                 <GameLogSidebar entries={state.log ?? []} />
@@ -96,12 +97,11 @@ export default function BlokusPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={myElo}
-                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
-                    subtitle={`Tu poses ${myPlayer ? playerScore(myPlayer) : 0} cases`}
+                    elo={spectator ? null : myElo}
+                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
+                    subtitle={spectator ? undefined : `Tu poses ${myPlayer ? playerScore(myPlayer) : 0} cases`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
-                    lobbyLabel="Rejouer"
                     onLeave={() => router.push('/')}
                 >
                     <ol className="space-y-1.5 mt-1">

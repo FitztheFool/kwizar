@@ -338,13 +338,9 @@ export function useBattleship({
         socketRef.current?.emit('battleship:surrender', { lobbyId });
     }, [lobbyId]);
 
-    const rematch = useCallback(() => {
-        socketRef.current?.emit('battleship:rematch', { lobbyId });
-    }, [lobbyId]);
-
     const clearError = useCallback(() => {
         setState((prev) => ({ ...prev, error: null }));
     }, []);
 
-    return { state, placeShips, shoot, surrender, rematch, clearError, gameNotFound, inactivityUserId, inactivityEndsAt };
+    return { state, placeShips, shoot, surrender, clearError, gameNotFound, inactivityUserId, inactivityEndsAt };
 }

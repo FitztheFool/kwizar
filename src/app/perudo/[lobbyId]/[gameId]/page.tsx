@@ -21,7 +21,8 @@ import RoundRecap from '@/components/Perudo/RoundRecap';
 import { colorForIndex } from '@/components/Perudo/colors';
 import BotBadge from '@/components/shared/BotBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function PerudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -31,7 +32,7 @@ export default function PerudoPage() {
     const {
         state, finished, me: myPlayer, isMyTurn, vsBot,
         inactivityUserId, inactivityEndsAt,
-        bid, dudo, surrender,
+        bid, dudo, calza, surrender,
     } = usePerudo({
         lobbyId,
         userId: me.userId,
@@ -111,6 +112,7 @@ export default function PerudoPage() {
                         <span className="font-bold">
                             Perudo
                             {vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}
+                            {state.spectator && <SpectatorBadge className="ml-2" />}
                         </span>
                     </>
                 }
@@ -119,10 +121,13 @@ export default function PerudoPage() {
                         <span className="text-gray-500 dark:text-gray-400">Round {state.round}</span>
                         <span className="text-gray-400 dark:text-gray-600">·</span>
                         <span className="text-gray-500 dark:text-gray-400">{state.totalDice} dés en jeu</span>
-                        {!state.pacosWild && (
+                        {state.palifico && (
                             <>
                                 <span className="text-gray-400 dark:text-gray-600">·</span>
-                                <span className="text-amber-600 dark:text-amber-400">1 non-wild</span>
+                                <span title="Manche Palifico : les 1 (Paco) ne sont pas jokers et la valeur de la mise est verrouillée."
+                                    className="font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                                    Palifico
+                                </span>
                             </>
                         )}
                     </div>
@@ -165,7 +170,7 @@ export default function PerudoPage() {
                                             {isBot(p) && <BotBadge />}
                                             {inactivityUserId === p.userId && inactivityEndsAt != null && <AfkCountdown endsAt={inactivityEndsAt} />}
                                         </div>
-                                        {state.phase === 'reveal' && p.dice ? (
+                                        {(state.phase === 'reveal' || state.spectator) && p.dice ? (
                                             <div className="flex gap-1">
                                                 {p.dice.map((v, i) => (
                                                     <Die key={i} value={v} size={26} />
@@ -229,11 +234,14 @@ export default function PerudoPage() {
                             <BidInput
                                 lastBid={state.lastBid}
                                 pacosWild={state.pacosWild}
+                                palifico={state.palifico}
                                 totalDice={state.totalDice}
                                 disabled={!isMyTurn}
                                 onBid={(count, face) => bid(count, face)}
                                 onDudo={dudo}
                                 canDudo={isMyTurn && !!state.lastBid}
+                                onCalza={calza}
+                                canCalza={isMyTurn && !!state.lastBid && state.calzaEnabled}
                             />
                         </div>
                     )}
@@ -253,18 +261,20 @@ export default function PerudoPage() {
 
             {finished && (
                 <GameOverModal
-                    elo={myElo}
+                    elo={state.spectator ? null : myElo}
                     icon={
-                        isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                        state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
+                            : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : isBot(winnerEntry) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                                 : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
                     title={
-                        isWinner ? 'Vous avez gagné !'
+                        state.spectator ? 'Vous avez observé cette partie'
+                            : isWinner ? 'Vous avez gagné !'
                             : isBot(winnerEntry) ? 'Le bot gagne !'
                                 : `${winnerEntry?.username ?? 'Adversaire'} gagne !`
                     }
-                    subtitle={isWinner ? 'Dernier joueur avec des dés' : undefined}
+                    subtitle={!state.spectator && isWinner ? 'Dernier joueur avec des dés' : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                     asModal

@@ -32,3 +32,7 @@ export const AI_MODELS = [
 export type ModelId = typeof AI_MODELS[number]['id'];
 export type ModelProvider = typeof AI_MODELS[number]['provider'];
 export const DEFAULT_MODEL_ID: ModelId = 'llama-3.3-70b-versatile';
+
+/** Label affichable d'un modèle (id → "Llama 3.3 70B"). null/inconnu → null. */
+export const modelLabel = (id?: string | null): string | null =>
+    AI_MODELS.find(m => m.id === id)?.label ?? null;

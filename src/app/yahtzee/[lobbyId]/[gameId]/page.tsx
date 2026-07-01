@@ -6,6 +6,7 @@ import GameOverModal from '@/components/GameOverModal';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import { NoSymbolIcon, CpuChipIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import AfkCountdown from '@/components/AfkCountdown';
@@ -98,7 +99,7 @@ export default function YahtzeePage() {
     const myUsername = session?.user?.name ?? session?.user?.email ?? meInfo.username ?? 'Joueur';
     const myElo = useEloUpdate('yahtzee', myId);
 
-    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, inactivityUserId, inactivityEndsAt, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
+    const { game, results, eliminatedPlayers, rolling, timerEndsAt, toasts, vsBot, spectator, inactivityUserId, inactivityEndsAt, roll, toggleHold, scoreCategory, surrender } = useYahtzee({
         lobbyId,
         userId: myId,
         username: myUsername,
@@ -118,6 +119,8 @@ export default function YahtzeePage() {
     const isMyTurn = game?.currentUserId === myId;
     const myPlayer = game?.players.find(p => p.userId === myId);
     const currentPlayer = game ? game.players[game.currentIndex] : null;
+    // Spectateur : pas de siège → la feuille suit le joueur courant (les scores Yahtzee sont publics).
+    const viewPlayer = myPlayer ?? currentPlayer;
     const isBotTurn = vsBot && currentPlayer && isBot(currentPlayer);
     const canRoll = isMyTurn && game?.phase === 'rolling' && (myPlayer?.rollsLeft ?? 0) > 0 && !rolling;
     const canScore = isMyTurn && (myPlayer?.rollsLeft ?? 3) < 3;
@@ -135,7 +138,7 @@ export default function YahtzeePage() {
         let rankIdx = 0;
         return (
             <GameOverModal
-                elo={myElo}
+                elo={spectator ? null : myElo}
                 title="Partie terminée !"
                 subtitle={hasForfeits ? `${sorted.find(p => !p.abandon && !p.afk)?.username ?? '?'} remporte la victoire !` : 'Classement final'}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
@@ -206,11 +209,11 @@ export default function YahtzeePage() {
         );
     }
 
-    const upperTotal = UPPER_CATS.reduce((a, c) => a + (myPlayer?.scoreCard[c as keyof ScoreCard] as number ?? 0), 0);
+    const upperTotal = UPPER_CATS.reduce((a, c) => a + (viewPlayer?.scoreCard[c as keyof ScoreCard] as number ?? 0), 0);
     const upperNeeded = Math.max(0, 63 - upperTotal);
 
     const ScoreRow = ({ cat }: { cat: string }) => {
-        const val = myPlayer?.scoreCard[cat as keyof ScoreCard] as number | null ?? null;
+        const val = viewPlayer?.scoreCard[cat as keyof ScoreCard] as number | null ?? null;
         const preview = canScore && val === null && myPlayer ? previewScore(cat, myPlayer.dice) : null;
         const isHovered = hoveredCat === cat;
         return (
@@ -261,7 +264,7 @@ export default function YahtzeePage() {
                 left={
                     <><GameIcon gameType="yahtzee" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                         <div>
-                            <span className="font-bold leading-none">Yahtzee</span>
+                            <span className="font-bold leading-none">Yahtzee{spectator && <SpectatorBadge className="ml-2" />}</span>
                             <p className="text-xs text-gray-400 dark:text-gray-500 leading-none">Tour {game.turn} / 13</p>
                         </div></>
                 }
@@ -272,7 +275,7 @@ export default function YahtzeePage() {
                                 : `⏳ Tour de ${currentPlayer?.username}`}
                     </span>
                 }
-                right={game?.phase !== 'ended' && <SurrenderButton onSurrender={surrender} />}
+                right={game?.phase !== 'ended' && !spectator && <SurrenderButton onSurrender={surrender} />}
             />
 
             {game?.phase !== 'ended' && (

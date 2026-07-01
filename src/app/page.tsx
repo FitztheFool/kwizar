@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr';
 import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
-import GameIcon from '@/components/GameIcon';
+import GameCombobox from '@/components/GameCombobox';
 import TrendingCarousel from '@/components/TrendingCarousel';
-import { PlayIcon, PlusIcon, ChevronDownIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlayIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 type Stats = { parties: number; points: number };
 
@@ -125,19 +125,8 @@ export default function HomePage() {
         window.history.replaceState(null, '', f === 'all' ? '/' : `/?mode=${f}`);
     };
 
-    // ── Recherche de jeu (combobox autocomplétée, comme admin#games) ───────────
+    // ── Recherche de jeu (combobox partagé GameCombobox) ───────────────────────
     const [search, setSearch] = useState('');
-    const [searchOpen, setSearchOpen] = useState(false);
-    const searchRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!searchOpen) return;
-        const onClick = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false); };
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSearchOpen(false); };
-        document.addEventListener('mousedown', onClick);
-        document.addEventListener('keydown', onKey);
-        return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
-    }, [searchOpen]);
 
     // Filtrage combiné : onglet (mode) ET recherche par nom. Ce qu'on peut voir = ce qu'on peut chercher.
     const q = norm(search.trim());
@@ -150,12 +139,13 @@ export default function HomePage() {
     };
     const totalShown = shownByMode.solo.length + shownByMode.both.length + shownByMode.multi.length;
 
-    // Suggestions du dropdown : jeux du périmètre de l'onglet courant, filtrés par la saisie, triés.
-    const suggestions = [
+    // Options du combobox partagé : jeux du périmètre de l'onglet courant, triés (filtre interne par saisie).
+    const comboOptions = [
         ...(inTab('solo') ? visibleByMode.solo : []),
         ...(inTab('both') ? visibleByMode.both : []),
         ...(inTab('multi') ? visibleByMode.multi : []),
-    ].filter(matchesQ).sort((a, b) => a[1].label.localeCompare(b[1].label, 'fr'));
+    ].map(([key, g]) => ({ key, label: g.label, gameType: g.gameType }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
     useEffect(() => { setCode(crypto.randomUUID()); }, []);
 
@@ -218,45 +208,17 @@ export default function HomePage() {
 
                 {/* Recherche (combobox autocomplétée) + onglets de filtre par mode */}
                 <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div ref={searchRef} className="relative w-full sm:max-w-xs">
-                        <MagnifyingGlassIcon className="absolute inset-y-0 left-3 my-auto w-4 h-4 text-gray-400 pointer-events-none" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={e => { setSearch(e.target.value); setSearchOpen(true); }}
-                            onFocus={() => setSearchOpen(true)}
-                            placeholder="Rechercher un jeu…"
-                            className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 backdrop-blur-xl"
-                        />
-                        {search && (
-                            <button
-                                type="button"
-                                onClick={() => { setSearch(''); setSearchOpen(false); }}
-                                className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                                title="Effacer"
-                            >
-                                <XMarkIcon className="w-4 h-4" />
-                            </button>
-                        )}
-                        {searchOpen && suggestions.length > 0 && (
-                            <ul role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-stone-900 shadow-xl py-1">
-                                {suggestions.map(([key, g]) => (
-                                    <li key={key}>
-                                        <button
-                                            type="button"
-                                            role="option"
-                                            aria-selected={norm(search) === norm(g.label)}
-                                            onClick={() => { setSearch(g.label); setSearchOpen(false); }}
-                                            className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition-colors"
-                                        >
-                                            <GameIcon gameType={g.gameType} className="w-5 h-5 shrink-0 rounded" />
-                                            <span className="flex-1 truncate">{g.label}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
+                    <GameCombobox
+                        options={comboOptions}
+                        query={search}
+                        onQueryChange={setSearch}
+                        onSelect={key => setSearch(GAME_CONFIG[key as keyof typeof GAME_CONFIG]?.label ?? '')}
+                        placeholder="Rechercher un jeu…"
+                        className="w-full sm:max-w-xs"
+                        inputClassName="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-black/5 dark:border-white/10 bg-white dark:bg-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 backdrop-blur-xl"
+                        menuClassName="rounded-b-lg border border-black/5 dark:border-white/10 bg-white dark:bg-stone-900"
+                        optionHoverClassName="hover:bg-gray-50 dark:hover:bg-white/[0.06]"
+                    />
 
                     {/* Onglets de filtre par mode — n'affiche qu'un mode à la fois */}
                     <div className="inline-flex flex-wrap gap-1 rounded-xl border border-black/5 dark:border-white/10 bg-gray-100 dark:bg-white/[0.06] p-1 backdrop-blur-xl">

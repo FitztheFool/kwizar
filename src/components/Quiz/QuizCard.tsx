@@ -1,7 +1,8 @@
 // src/components/QuizCard.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { UserIcon, LockClosedIcon, CheckIcon, DocumentTextIcon, TagIcon, TrophyIcon, ClockIcon, PrinterIcon, PencilSquareIcon, TrashIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { modelLabel } from '@/lib/aiModels';
 
 interface QuizCardProps {
   quiz: {
@@ -12,6 +13,7 @@ interface QuizCardProps {
     isDraft?: boolean;
     createdAt?: string;
     imageUrl?: string | null;
+    generatedWithModel?: string | null;
     _count: {
       questions: number;
     };
@@ -21,9 +23,9 @@ interface QuizCardProps {
     } | null;
   };
   currentUserId?: string;
+  isAdmin?: boolean;
   score?: number;
   totalPoints?: number;
-  showActions?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -31,14 +33,18 @@ interface QuizCardProps {
 export default function QuizCard({
   quiz,
   currentUserId,
+  isAdmin = false,
   score,
   totalPoints,
-  showActions = false,
   onEdit,
   onDelete,
 }: QuizCardProps) {
   const isMyQuiz = currentUserId !== undefined && quiz.creator?.id === currentUserId;
   const isLocked = !quiz.isPublic && !isMyQuiz;
+  // Propriétaire ou admin peut éditer/supprimer (icônes en overlay).
+  const canManage = (isMyQuiz || isAdmin) && (!!onEdit || !!onDelete);
+
+  const genModelLabel = modelLabel(quiz.generatedWithModel);
 
   const isPerfect =
     score !== undefined &&
@@ -63,7 +69,7 @@ export default function QuizCard({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
+      className={`group bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
         ? 'border-gray-200 dark:border-gray-700 opacity-70'
         : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl'
         }`}
@@ -82,18 +88,42 @@ export default function QuizCard({
 
       {/* Badges + imprimer */}
       <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-        {!isLocked && (
-          <Link
-            href={`/quiz/${quiz.id}/print`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            title="Imprimer ce quiz"
-            aria-label="Imprimer ce quiz"
-            className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 shadow-md hover:bg-blue-500 hover:text-white transition-colors"
-          >
-            <PrinterIcon className="w-4 h-4" />
-          </Link>
+        {(canManage || !isLocked) && (
+          <div className="flex gap-1.5 items-center">
+            {canManage && onEdit && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+                title="Modifier ce quiz"
+                aria-label="Modifier ce quiz"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-blue-600 transition-colors"
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+              </button>
+            )}
+            {canManage && onDelete && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+                title="Supprimer ce quiz"
+                aria-label="Supprimer ce quiz"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-red-600 transition-colors"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            )}
+            {!isLocked && (
+              <Link
+                href={`/quiz/${quiz.id}/print`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Imprimer ce quiz"
+                aria-label="Imprimer ce quiz"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-blue-500 transition-colors"
+              >
+                <PrinterIcon className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
         )}
         {quiz.isDraft && (
           <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
@@ -143,6 +173,12 @@ export default function QuizCard({
           )}
         </div>
 
+        {genModelLabel && (
+          <p className="text-xs text-purple-600 dark:text-purple-300 mb-1.5">
+            <SparklesIcon className="w-3 h-3 inline mr-1" />Généré par {genModelLabel}
+          </p>
+        )}
+
         {formattedDate && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
             <ClockIcon className="w-3 h-3 inline mr-1" />Créé le {formattedDate}
@@ -163,22 +199,7 @@ export default function QuizCard({
       )}
 
       {/* Bouton toujours en bas */}
-      {showActions ? (
-        <div className="flex gap-3">
-          <button
-            onClick={onEdit}
-            className="flex-1 text-center py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
-          >
-            Modifier
-          </button>
-          <button
-            onClick={onDelete}
-            className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
-          >
-            Supprimer
-          </button>
-        </div>
-      ) : isLocked ? (
+      {isLocked ? (
         <button
           type="button"
           disabled

@@ -1,4 +1,3 @@
-import { NONAME } from "dns";
 
 export const GAME_CONFIG = {
     uno: {
@@ -139,7 +138,7 @@ export const GAME_CONFIG = {
         scoreLabel: 'Victoires',
         description: "Le jeu de dés et de bluff sud-américain, tendu jusqu'au bout. Surenchéris ou démasque le menteur — mais ne te trompe pas.",
         players: '2 – 6 joueurs (ou vs bot)',
-        rules: "<p>But : être le dernier joueur à avoir encore des dés.</p><ul><li>Chacun lance ses dés en secret sous son gobelet.</li><li>À tour de rôle, annonce « X dés de valeur Y », en dépassant strictement l'annonce précédente.</li><li>Les 1 (Paco) sont jokers et comptent pour n'importe quelle valeur.</li><li>Crie « Dudo » si tu n'y crois pas : on révèle. Le perdant du défi perd un dé.</li><li>À 0 dé, tu es éliminé.</li></ul>",
+        rules: "<p>But : être le dernier joueur à avoir encore des dés.</p><ul><li>Chacun lance ses dés en secret sous son gobelet.</li><li>À tour de rôle, annonce « X dés de valeur Y » : monte le nombre, la valeur, ou les deux par rapport à l'annonce précédente.</li><li>Les 1 (Paco) sont des jokers et comptent pour la valeur annoncée. Interdit d'ouvrir une manche sur des Paco.</li><li>Passer aux Paco : il suffit d'annoncer la moitié du nombre précédent (arrondi au supérieur) — ex. 11 dés → 6 Paco.</li><li>Repartir des Paco vers une valeur : il faut annoncer au moins le double + 1 — ex. 3 Paco → 7 dés.</li><li>Crie « Dudo » si tu n'y crois pas : on révèle et on compte. Le perdant du défi perd un dé.</li><li>Palifico : quand tu tombes à 1 dé, tu ouvres la manche suivante ; les Paco ne sont plus jokers et la valeur est verrouillée (on ne monte que le nombre).</li><li>Calza (variante optionnelle) : à ton tour, annonce « Calza » si tu penses l'annonce EXACTE. Juste → tu récupères un dé ; faux → tu en perds un.</li><li>À 0 dé, tu es éliminé.</li></ul>",
         score: "1 point par victoire. Le classement est basé sur le total de victoires.",
     },
     cant_stop: {
@@ -175,10 +174,10 @@ export const GAME_CONFIG = {
         mode: 'both' as const,
         higherIsBetter: true,
         scoreLabel: 'Points',
-        description: "Un jeu de sauvetage tendu sur une île qui sombre. Mets tes pions à l'abri avant que le volcan ne tout engloutisse.",
+        description: "Un jeu de sauvetage tendu sur une île qui sombre. Mets tes pions à l'abri avant que tout ne soit englouti.",
         players: '2 – 4 joueurs (ou vs bot)',
-        rules: "<p>But : sauver le plus de pions avant l'éruption.</p><ul><li>À ton tour : déplace tes pions (3 points de mouvement) vers les refuges aux coins, à la nage ou en bateau.</li><li>Retire ensuite une tuile de l'île — son effet s'applique (créature, bateau, tourbillon…).</li><li>Lance le dé créature : requin (dévore les nageurs), baleine (retourne les bateaux), serpent (détruit tout).</li><li>L'île s'engloutit par paliers : plages, puis forêts, puis montagnes.</li><li>À l'éruption, tout ce qui n'est pas à l'abri est perdu.</li></ul>",
-        score: "Chaque pion sauvé rapporte sa valeur cachée (1 à 6). Le classement est basé sur le total de points cumulés.",
+        rules: "<p>But : sauver le plus de pions avant l'engloutissement de l'île.</p><ul><li>À ton tour : déplace tes pions (3 points de mouvement) vers les refuges aux coins, à la nage ou en bateau.</li><li>Retire ensuite une tuile de l'île — son effet s'applique (créature, bateau, tourbillon…).</li><li>Lance les dés : une créature se déplace de 1 à 3 cases — requin (dévore les nageurs), pieuvre (coule les bateaux occupés), monstre marin (dévore nageurs et bateaux), dauphin (protège un nageur).</li><li>L'île s'engloutit par paliers : plages, puis forêts, puis montagnes.</li><li>À la fin, tout ce qui n'est pas à l'abri est perdu.</li></ul>",
+        score: "1 point par pion sauvé : le classement correspond au nombre total de rescapés ramenés aux refuges.",
     },
     impostor: {
         gameType: 'IMPOSTOR' as const,

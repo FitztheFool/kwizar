@@ -56,6 +56,7 @@ export function usePuissance4({
     const myColorIndex = myPlayer?.colorIndex ?? null;
     const isMyTurn = gameState?.status === 'playing' && gameState.currentTurn === myColorIndex;
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
+    const spectator = !!gameState && players.length > 0 && !myPlayer;
 
     const winSet = useMemo(() => {
         if (!gameState?.winCells) return new Set<string>();
@@ -118,22 +119,18 @@ export function usePuissance4({
         socket?.emit('p4:surrender');
     }, [socket]);
 
-    const rematch = useCallback(() => {
-        socket?.emit('p4:rematch');
-    }, [socket]);
-
     return {
         players,
         gameState,
         dropping,
         myColorIndex,
         isMyTurn,
+        spectator,
         vsBot,
         winSet,
         inactivityUserId,
         inactivityEndsAt,
         drop,
         surrender,
-        rematch,
     };
 }

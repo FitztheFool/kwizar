@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GameCombobox from '@/components/GameCombobox';
 import { GAME_OPTIONS } from '@/lib/gameConfig';
-import { ArrowUpIcon, ArrowDownIcon, XMarkIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ArrowUpIcon, ArrowDownIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 const LABEL: Record<string, string> = Object.fromEntries(GAME_OPTIONS.map(o => [o.value, o.label]));
 
@@ -84,21 +85,21 @@ export default function TrendingTab() {
                 )}
             </div>
 
-            {/* Jeux disponibles */}
+            {/* Jeux disponibles — combobox d'ajout */}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Ajouter un jeu</h3>
-                <div className="flex flex-wrap gap-2">
-                    {available.length === 0 && <span className="text-xs text-gray-400">Tous les jeux sont sélectionnés.</span>}
-                    {available.map(o => (
-                        <button
-                            key={o.value}
-                            onClick={() => add(o.value)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                            <PlusIcon className="h-3.5 w-3.5" /> {o.label}
-                        </button>
-                    ))}
-                </div>
+                {available.length === 0 ? (
+                    <span className="text-xs text-gray-400">Tous les jeux sont sélectionnés.</span>
+                ) : (
+                    <GameCombobox
+                        options={available.map(o => ({ key: o.value, label: o.label }))}
+                        onSelect={add}
+                        optionTrailing="plus"
+                        placeholder="Rechercher un jeu à ajouter…"
+                        className="max-w-sm"
+                        emptyLabel="Aucun jeu ne correspond."
+                    />
+                )}
             </div>
 
             <div className="flex items-center gap-3">

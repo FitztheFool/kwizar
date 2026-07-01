@@ -47,7 +47,11 @@ export default function TrendingCarousel() {
                 className="relative h-52 sm:h-60 select-none"
                 onMouseEnter={() => setPaused(true)}
                 onMouseLeave={() => setPaused(false)}
-                style={{ perspective: '1200px' }}
+                // overflow-x: clip → coupe les cartes latérales au bord de la colonne (pas de débordement
+                // ni de scroll horizontal) ; overflow-y: visible → laisse respirer la carte centrale (plus
+                // haute que le conteneur) et son halo. clip-path ne suffisait pas : il masque le rendu mais
+                // ne retire pas les cartes (position:absolute) de la zone de débordement de la page.
+                style={{ perspective: '1200px', overflowX: 'clip', overflowY: 'visible' }}
             >
                 {offsets.map(o => {
                     const key = games[(idx + o + n) % n];

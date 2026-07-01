@@ -53,6 +53,7 @@ export function useAbalone({
     const myColorIndex = myPlayer?.colorIndex ?? null;
     const isMyTurn = state?.phase === 'playing' && state.currentTurn === myColorIndex;
     const vsBot = players.some(p => isBot(p) && p.userId !== userId);
+    const spectator = !!state && players.length > 0 && !myPlayer;
 
     useEffect(() => {
         if (!socket || !lobbyId || !userId) return;
@@ -103,11 +104,10 @@ export function useAbalone({
     }, [isMyTurn, socket]);
 
     const surrender = useCallback(() => { socket?.emit('abalone:surrender'); }, [socket]);
-    const rematch = useCallback(() => { socket?.emit('abalone:rematch'); }, [socket]);
 
     return {
-        players, state, myColorIndex, isMyTurn, vsBot,
+        players, state, myColorIndex, isMyTurn, spectator, vsBot,
         inactivityUserId, inactivityEndsAt,
-        move, surrender, rematch,
+        move, surrender,
     };
 }

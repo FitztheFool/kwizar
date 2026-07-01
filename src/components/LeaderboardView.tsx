@@ -1,7 +1,7 @@
 // src/components/LeaderboardView.tsx
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState, useTransition } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import GameIcon from '@/components/GameIcon';
+import type { LeaderboardData } from '@/lib/leaderboard';
 import { BookOpenIcon, ChartBarIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 
 function RankBadge({ rank }: { rank: number }) {
@@ -49,57 +50,26 @@ interface PaginationData {
     totalPages: number;
 }
 
-const LIMIT = 20;
-
 
 interface Props {
     game: Game;
+    /** Classement de la page courante, calculé côté serveur (SSR). */
+    initialData?: LeaderboardData;
 }
 
-export default function LeaderboardView({ game }: Props) {
+export default function LeaderboardView({ game, initialData }: Props) {
     const { data: session } = useSession();
     const router = useRouter();
+    const [isPending, startTransition] = useTransition();
 
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-    const [config, setConfig] = useState<LeaderboardConfig | null>(null);
-    const [pagination, setPagination] = useState<PaginationData | null>(null);
-    const [page, setPage] = useState(1);
-    const [initialLoading, setInitialLoading] = useState(true);
-    const [refetching, setRefetching] = useState(false);
-
-    // On stocke le dernier (game, page) fetché pour éviter tout double appel
-    const lastFetch = useRef<{ game: Game; page: number } | null>(null);
-
-    useEffect(() => {
-        // Si game a changé, on veut fetcher page 1 — on corrige page si nécessaire
-        const targetPage = lastFetch.current?.game !== game ? 1 : page;
-
-        // Déduplique : si on a déjà fetché exactement ce (game, page), on skip
-        if (lastFetch.current?.game === game && lastFetch.current?.page === targetPage) return;
-        lastFetch.current = { game, page: targetPage };
-
-        // Si page state est désynchronisé (ex: changement de jeu), on le corrige sans re-trigger
-        if (page !== targetPage) setPage(targetPage);
-
-        const isFirst = leaderboard.length === 0 && !pagination;
-        if (isFirst) setInitialLoading(true);
-        else setRefetching(true);
-
-        fetch(`/api/leaderboard/games?game=${game}&page=${targetPage}&limit=${LIMIT}`)
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                if (data) {
-                    setLeaderboard(data.leaderboard ?? []);
-                    setConfig(data.config ?? null);
-                    setPagination(data.pagination ?? null);
-                }
-            })
-            .catch(console.error)
-            .finally(() => {
-                setInitialLoading(false);
-                setRefetching(false);
-            });
-    }, [game, page]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Données 100% serveur : dérivées des props. Le parent remonte le composant
+    // (key=`${game}-${page}`) à chaque changement de jeu/page → reseed automatique.
+    const leaderboard: LeaderboardEntry[] = initialData?.leaderboard ?? [];
+    const config = (initialData?.config as LeaderboardConfig | undefined) ?? null;
+    const pagination: PaginationData | null = initialData?.pagination ?? null;
+    const page = pagination?.page ?? 1;
+    const initialLoading = !initialData;
+    const refetching = isPending; // overlay pendant la navigation serveur
 
     const handleGameChange = (f: GameFilter) => {
         if (f === 'ALL') return;
@@ -107,7 +77,14 @@ export default function LeaderboardView({ game }: Props) {
         if (key) router.push(`/leaderboard/${key}`);
     };
 
+    // Pagination côté serveur : on navigue vers ?page=N, le serveur re-rend la page.
+    const goToPage = (p: number) => startTransition(() => {
+        router.push(`/leaderboard/${game}?page=${p}`, { scroll: false });
+    });
+
     const gameType = GAME_CONFIG[game].gameType;
+    const isSolo = GAME_CONFIG[game].mode === 'solo';
+    const [lobbyCode] = useState(() => crypto.randomUUID());
     const activeClassName = GAME_COLOR[gameType]?.badgeActive ?? 'bg-gray-800 text-white border-gray-800';
     const myEntry = leaderboard.find(e => e.userId === session?.user?.id);
     const scoreLabel = config?.scoreLabel ?? GAME_CONFIG[game].scoreLabel;
@@ -144,10 +121,15 @@ export default function LeaderboardView({ game }: Props) {
                             }
                         </p>
                     </div>
-                    {GAME_CONFIG[game].mode === 'solo' && (
+                    {isSolo ? (
                         <Link href={`/game/${game}`}
                             className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
                             Jouer
+                        </Link>
+                    ) : (
+                        <Link href={`/lobby/create/${lobbyCode}?game=${game}`}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
+                            Créez un lobby
                         </Link>
                     )}
                 </div>
@@ -288,7 +270,7 @@ export default function LeaderboardView({ game }: Props) {
                                 <Pagination
                                     currentPage={page}
                                     totalPages={pagination.totalPages}
-                                    onPageChange={setPage}
+                                    onPageChange={goToPage}
                                 />
                             </>
                         )}

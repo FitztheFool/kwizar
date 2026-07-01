@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -47,6 +48,24 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
         handleValidateAnswer, handleNextQuestion,
         status, timerEndsAt, timerDuration,
     } = useQuizPlayer({ quizId, lobbyId, resultUrl, timeMode: timeModeProp, timePerQuestion: timePerQuestionProp });
+
+    // Entrée → valider (toutes questions, ex. QCM/Vrai-Faux sans champ), puis question
+    // suivante quand le feedback est affiché. Les champs texte gèrent Entrée eux-mêmes
+    // (on ignore donc les events venant d'un INPUT/TEXTAREA pour éviter le double-submit).
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Enter') return;
+            const tag = (e.target as HTMLElement | null)?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+            if (!showFeedback) {
+                if (canProceed && !isValidating) { e.preventDefault(); handleValidateAnswer(); }
+            } else if (!isSubmitting) {
+                e.preventDefault(); handleNextQuestion();
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [showFeedback, canProceed, isValidating, isSubmitting, handleValidateAnswer, handleNextQuestion]);
 
     if (isLoadingQuiz) return <LoadingSpinner message="Chargement du quiz..." />;
 
@@ -154,6 +173,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                                         disabled={showFeedback}
                                         feedback={feedback}
                                         showFeedback={showFeedback}
+                                        onEnter={() => { if (canProceed && !isValidating) handleValidateAnswer(); }}
                                     />
                                 )}
 
@@ -169,6 +189,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                                         disabled={showFeedback}
                                         feedback={feedback}
                                         showFeedback={showFeedback}
+                                        onEnter={() => { if (canProceed && !isValidating) handleValidateAnswer(); }}
                                     />
                                 )}
                             </div>

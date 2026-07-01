@@ -216,6 +216,7 @@ model Quiz {
   isPublic           Boolean  @default(true)
   isDraft            Boolean  @default(false)
   imageUrl           String?
+  generatedWithModel String?  // id du modèle LLM ayant généré le quiz (null = manuel)
   categoryId         String?
   category           Category? @relation(fields: [categoryId], references: [id])
   createdAt          DateTime @default(now())

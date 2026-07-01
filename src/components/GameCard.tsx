@@ -62,7 +62,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
             {image && (
                 <Link href={`/leaderboard/${gameKey}`} className="block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image} alt={label} className="h-28 w-full object-cover" draggable={false} />
+                    <img src={image} alt={label} loading="lazy" decoding="async" className="h-28 w-full object-cover" draggable={false} />
                 </Link>
             )}
             <div className="flex flex-1 flex-col p-4">
@@ -79,20 +79,25 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
                 <span className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500">
                     <PersonIcon /> {g.players}
                 </span>
-                {mode === 'solo' ? (
-                    <Link href={`/game/${gameKey}`} className={ACTION_PRIMARY}>
-                        Jouer
+                <div className="flex gap-1.5">
+                    <Link href={`/leaderboard/${gameKey}`} className={ACTION_GHOST} title="Règles et classement">
+                        Règles
                     </Link>
-                ) : (
-                    <div className="flex gap-1.5">
-                        <Link href={`/lobby/all?game=${gameKey}`} className={ACTION_GHOST}>
-                            Rejoindre
+                    {mode === 'solo' ? (
+                        <Link href={`/game/${gameKey}`} className={ACTION_PRIMARY}>
+                            Jouer
                         </Link>
-                        <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`} className={ACTION_PRIMARY}>
-                            Créer
-                        </Link>
-                    </div>
-                )}
+                    ) : (
+                        <>
+                            <Link href={`/lobby/all?game=${gameKey}`} className={ACTION_GHOST}>
+                                Rejoindre
+                            </Link>
+                            <Link href={`/lobby/create/${lobbyCode}?game=${gameKey}`} className={ACTION_PRIMARY}>
+                                Créer
+                            </Link>
+                        </>
+                    )}
+                </div>
             </div>
             </div>
         </div>

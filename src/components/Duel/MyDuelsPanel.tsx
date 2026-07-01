@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Pagination from '@/components/Pagination';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const PAGE_SIZE = 10;
 
@@ -82,9 +82,17 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
 
     return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{resolvedTitle}</h2>
                 <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">{total}</span>
+                {isOwn && (
+                    <button
+                        onClick={() => router.push('/game/duel/create')}
+                        className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-400 transition-colors"
+                    >
+                        <PlusIcon className="w-4 h-4" /> Créer
+                    </button>
+                )}
             </div>
 
             <input
@@ -98,11 +106,6 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
             {decks.length === 0 ? (
                 <div className="text-center py-16">
                     <p className="text-gray-600 dark:text-gray-300 text-lg mb-2">{resolvedEmpty}</p>
-                    {isOwn && (
-                        <Link href="/game/duel/create" className="inline-block mt-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-400">
-                            Créer mon premier Duel
-                        </Link>
-                    )}
                 </div>
             ) : (
                 <>

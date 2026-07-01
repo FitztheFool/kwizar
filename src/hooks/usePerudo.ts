@@ -21,10 +21,13 @@ export interface PerudoPlayerView {
 }
 
 export interface RevealResult {
+    kind?: 'dudo' | 'calza';
     bid: Bid;
     actualCount: number;
     loserUserId: string;
     challengerUserId: string;
+    /** Calza only: whether the bid count was exactly right (challenger gains a die). */
+    calzaExact?: boolean;
     revealedDice: { userId: string; username: string; dice: number[] }[];
     pacosWild: boolean;
 }
@@ -46,6 +49,8 @@ export interface PerudoState {
     initialDice: number;
     lastBid: Bid | null;
     pacosWild: boolean;
+    palifico: boolean;
+    calzaEnabled: boolean;
     totalDice: number;
     aliveCount: number;
     lastReveal: RevealResult | null;
@@ -153,6 +158,10 @@ export function usePerudo({
         socket?.emit('perudo:dudo', { lobbyId });
     }, [socket, lobbyId]);
 
+    const calza = useCallback(() => {
+        socket?.emit('perudo:calza', { lobbyId });
+    }, [socket, lobbyId]);
+
     const surrender = useCallback(() => {
         socket?.emit('perudo:surrender', { lobbyId });
     }, [socket, lobbyId]);
@@ -171,6 +180,7 @@ export function usePerudo({
         inactivityEndsAt,
         bid,
         dudo,
+        calza,
         surrender,
     };
 }

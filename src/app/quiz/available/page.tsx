@@ -27,6 +27,7 @@ interface Quiz {
     description: string | null;
     isPublic: boolean;
     createdAt?: string;
+    generatedWithModel?: string | null;
     _count: { questions: number };
     creatorId?: string;
     category?: { name: string } | null;
@@ -148,14 +149,8 @@ export default function DashboardPage() {
     }, [fetchQuizzes, fetchMyQuizzes]);
 
     useEffect(() => {
-        /*if (status === 'unauthenticated') {
-            router.push('/login?callbackUrl=' + encodeURIComponent('/dashboard'));
-            return;
-        }*/
-        //if (status === 'authenticated') {
         fetchData();
         setActiveTab(getTabFromHash());
-        //}
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
@@ -233,8 +228,11 @@ export default function DashboardPage() {
                                             key={quiz.id}
                                             quiz={quiz}
                                             currentUserId={session?.user?.id}
+                                            isAdmin={session?.user?.role === 'ADMIN'}
                                             score={userScore?.totalScore}
                                             totalPoints={quizPoints[quiz.id] || 0}
+                                            onEdit={() => router.push(`/quiz/${quiz.id}/edit`)}
+                                            onDelete={() => handleDeleteQuiz(quiz.id)}
                                         />
                                     );
                                 })}
@@ -272,7 +270,7 @@ export default function DashboardPage() {
                     {myQuizzes.length === 0 ? (
                         <div className="text-center py-16">
                             <p className="text-gray-600 text-lg mb-2">Aucun quiz créé</p>
-                            <p className="text-gray-500 dark:text-gray-400">Créez votre premier quiz personnalisé</p>
+                            <p className="text-gray-500 dark:text-gray-400">Créez votre premier quiz</p>
                         </div>
                     ) : (
                         <>
@@ -282,7 +280,7 @@ export default function DashboardPage() {
                                         key={quiz.id}
                                         quiz={quiz}
                                         currentUserId={session?.user?.id}
-                                        showActions={true}
+                                        isAdmin={session?.user?.role === 'ADMIN'}
                                         onEdit={() => router.push(`/quiz/${quiz.id}/edit`)}
                                         onDelete={() => handleDeleteQuiz(quiz.id)}
                                     />

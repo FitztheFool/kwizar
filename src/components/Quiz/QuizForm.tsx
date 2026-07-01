@@ -35,6 +35,7 @@ type QuizFormState = {
     randomizeQuestions?: boolean;
     categoryId?: string;
     imageUrl?: string;
+    generatedWithModel?: string | null;
     questions: QuestionForm[];
 };
 
@@ -348,6 +349,7 @@ export default function QuizForm({
         randomizeQuestions: initialData?.randomizeQuestions !== undefined ? initialData.randomizeQuestions : true,
         categoryId: initialData?.categoryId ?? '',
         imageUrl: initialData?.imageUrl,
+        generatedWithModel: initialData?.generatedWithModel ?? null,
         questions: initialData?.questions?.length
             ? (initialData.questions as QuestionForm[]).map(q => ({
                 ...normalizeQuestion(q),
@@ -375,6 +377,7 @@ export default function QuizForm({
         randomizeQuestions: form.randomizeQuestions,
         categoryId: form.categoryId,
         imageUrl: form.imageUrl ?? null,
+        generatedWithModel: form.generatedWithModel ?? null,
         questions: form.questions.map((q) => ({
             id: q.id,
             text: q.text,
@@ -670,6 +673,7 @@ export default function QuizForm({
                 randomizeQuestions: form.randomizeQuestions,
                 categoryId: form.categoryId,
                 imageUrl: form.imageUrl ?? null,
+                generatedWithModel: form.generatedWithModel ?? null,
                 questions: form.questions.map((q) => ({
                     id: q.id,
                     text: q.text,

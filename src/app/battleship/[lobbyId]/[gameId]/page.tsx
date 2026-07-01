@@ -55,7 +55,7 @@ export default function BattleshipPage() {
     if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (gameNotFound) notFound();
-    if (status !== 'authenticated') { router.push('/login'); return null; }
+    if (status !== 'authenticated') return null; // logged-out déjà redirigé par proxy.ts
 
     const myUserId = meInfo.userId;
     const isMyTurn = state.currentTurnUserId === myUserId;

@@ -8,7 +8,7 @@ import type { GameLogEntry } from '@/components/GameLog';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type RoundState = 'WAITING' | 'ASKING' | 'VOTING' | 'SPY_GUESS' | 'END';
-export type Role = 'civilian' | 'spy';
+export type Role = 'civilian' | 'spy' | 'spectator';
 export type Player = { id: string; name: string };
 
 export type GameEndPayload = {

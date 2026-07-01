@@ -24,6 +24,8 @@ export interface SixState {
     mySelected: number | null;
     myHand: number[];
     myColorIndex: number | null;
+    spectator?: boolean;
+    allHands?: number[][];
     turnStartedAt: number | null;
     turnDuration: number;
     players: SixPlayer[];

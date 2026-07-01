@@ -16,6 +16,7 @@ import { plural } from '@/lib/utils';
 import TimerBar from '@/components/TimerBar';
 import GamePageHeader from '@/components/GamePageHeader';
 import SurrenderButton from '@/components/SurrenderButton';
+import SpectatorBadge from '@/components/SpectatorBadge';
 import AfkCountdown from '@/components/AfkCountdown';
 import { GameLogSidebar } from '@/components/GameLog';
 import { TrophyIcon, SparklesIcon, LockClosedIcon, CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon, ClockIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
@@ -203,13 +204,14 @@ export default function DiamantPage() {
     if (gameGuard === 'disabled') return <GameUnavailable />;
     if (status === 'loading') return <LoadingSpinner message="Vérification de la session..." />;
     if (gameNotFound) notFound();
-    if (status !== 'authenticated') { router.push('/login'); return null; }
+    if (status !== 'authenticated') return null; // logged-out déjà redirigé par proxy.ts
 
     const myUserId = meInfo.userId;
     const me = state.players.find((p) => p.userId === myUserId);
     const amInCave = me?.inCave ?? false;
     const iSurrendered = me?.surrendered ?? false;
     const canDecide = state.decisionPhase && amInCave && state.myDecision === null;
+    const spectator = state.players.length > 0 && !me;
 
     if (state.phase === 'waiting') return (
         <GameWaitingScreen gameType="diamant" gameName="Diamant" lobbyId={lobbyId} players={state.players} myUserId={myUserId} />
@@ -218,7 +220,7 @@ export default function DiamantPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
-                left={<><GameIcon gameType="diamant" className="shrink-0 w-5 h-5 text-amber-700 dark:text-amber-300" /><h1 className="hidden sm:block text-base font-black tracking-tight text-amber-800 dark:text-amber-100">Diamant</h1></>}
+                left={<><GameIcon gameType="diamant" className="shrink-0 w-5 h-5 text-amber-700 dark:text-amber-300" /><h1 className="hidden sm:block text-base font-black tracking-tight text-amber-800 dark:text-amber-100">Diamant</h1>{spectator && <SpectatorBadge />}</>}
                 center={<>
                     <span className="sm:hidden text-gray-500 dark:text-gray-400 text-xs font-semibold whitespace-nowrap">{state.round}/{state.totalRounds}</span>
                     <div className="hidden sm:flex items-center gap-2">
@@ -240,7 +242,7 @@ export default function DiamantPage() {
                             <span className="text-gray-800 dark:text-white font-black">{(me.safeDiamants ?? 0) + (me.relicPoints ?? 0)}</span>
                         </div>
                     )}
-                    {state.phase === 'playing' && <SurrenderButton onSurrender={surrender} disabled={iSurrendered} />}
+                    {state.phase === 'playing' && !spectator && <SurrenderButton onSurrender={surrender} disabled={iSurrendered} />}
                 </>}
             />
 
@@ -410,9 +412,9 @@ export default function DiamantPage() {
             {/* Game over */}
             {state.phase === 'finished' && (
                 <GameOverModal
-                    elo={myElo}
+                    elo={spectator ? null : myElo}
                     icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <TrophyIcon className="w-8 h-8 text-gray-400" />}
-                    title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
+                    title={spectator ? 'Vous avez observé cette partie' : state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

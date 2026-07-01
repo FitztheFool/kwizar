@@ -19,7 +19,8 @@ import PlayerBoard from '@/components/MilleBornes/PlayerBoard';
 import { GameLogSidebar } from '@/components/GameLog';
 import ScoreBreakdown from '@/components/MilleBornes/ScoreBreakdown';
 import { canPlayNow, canAttackTarget, canRemedyHelp, cardTitle, HAZARD_LABEL, SAFETY_LABEL } from '@/components/MilleBornes/labels';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon, EyeIcon } from '@heroicons/react/24/outline';
+import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function MilleBornesPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -113,6 +114,7 @@ export default function MilleBornesPage() {
                         <span className="font-bold">
                             Mille Bornes
                             {vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}
+                            {state.spectator && <SpectatorBadge className="ml-2" />}
                         </span>
                     </>
                 }
@@ -321,20 +323,22 @@ export default function MilleBornesPage() {
 
             {finished && (
                 <GameOverModal
-                    elo={myElo}
+                    elo={state.spectator ? null : myElo}
                     icon={
-                        isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                        state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
+                            : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : (!is2v2 && isBot(winnerScore)) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                                 : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
                     title={
-                        is2v2 && winningTeam != null
+                        state.spectator ? 'Vous avez observé cette partie'
+                            : is2v2 && winningTeam != null
                             ? (isWinner ? `Votre équipe (${winningTeam === 0 ? 'Ambre' : 'Verte'}) gagne !` : `L'équipe ${winningTeam === 0 ? 'Ambre' : 'Verte'} gagne !`)
                             : isWinner ? 'Vous avez gagné !'
                                 : isBot(winnerScore) ? 'Le bot gagne !'
                                     : `${winnerScore?.username ?? 'Adversaire'} gagne !`
                     }
-                    subtitle={isWinner ? `Arrivé à ${state.target} km` : undefined}
+                    subtitle={!state.spectator && isWinner ? `Arrivé à ${state.target} km` : undefined}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                     asModal

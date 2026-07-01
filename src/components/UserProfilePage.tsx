@@ -202,13 +202,14 @@ export default function UserProfilePage({ username, isOwnProfile = false }: Prop
     });
 
     useEffect(() => {
-        let lastHash = window.location.hash;
+        let lastHash: string | null = null; // null → le premier sync applique toujours le hash présent au montage
         const sync = () => {
             if (window.location.hash === lastHash) return;
             lastHash = window.location.hash;
             const hash = lastHash.replace('#', '');
             setActiveTab(isTabType(hash) ? hash : 'stats');
         };
+        sync(); // honore le hash initial (couvre SSR + course de navigation client)
         window.addEventListener('hashchange', sync);
         const interval = setInterval(sync, 150);
         return () => {
