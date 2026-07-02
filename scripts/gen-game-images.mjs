@@ -47,6 +47,7 @@ const GAMES = {
   duel:          { c: 'two cute distinct mascots facing off, a glossy cheeseburger on the left versus a pizza slice on the right, a big bold white VS emblem between them, clean split background cool blue versus warm orange, flat bold cartoon, iconic and recognizable', i: 'a bold VS versus emblem between two circles, vibrant gradient' },
   dames:         { c: 'a polished wooden draughts board seen in perspective with rows of glossy cream and dark-brown round checkers, a crowned king piece stacked, one piece mid-jump capturing, warm classic board-game lighting', i: 'a single stacked crowned checkers piece, cream and dark brown, warm wood gradient' },
   match3:        { c: 'a neat top-down grid of distinct glossy cut gems, a red ruby a blue sapphire a green emerald a yellow citrine, three matching gems aligned and sparkling, clean candy puzzle, bright clear cells, recognizable', i: 'three aligned glowing gems, jewel-bright gradient' },
+  demineur:      { c: 'a classic minesweeper board seen from above, a tidy grid of square cells, several revealed cells showing bold colored numbers one two three, a bright red flag planted on one cell, one exposed round black bomb with spikes resting on a red cell, clean flat and instantly recognizable', i: 'a single round black bomb with a short lit fuse sitting on a raised grid cell, slate-blue gradient' },
 };
 
 // Hash stable -> seed reproductible par image.

@@ -68,6 +68,7 @@ enum GameType {
   MATCH3
   DUEL
   DAMES
+  DEMINEUR
 }
 
 model Account {

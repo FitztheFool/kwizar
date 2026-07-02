@@ -150,7 +150,7 @@ export async function getLeaderboardData(
             const draws = data.draws;
             const score = game === 'skyjow' || game === 'just_one' ? avgScore
                 : game === 'puissance4' || game === 'battleship' || game === 'ludo' ? wins
-                : (game === 'snake' || game === 'tetris' || game === 'pacman' || game === 'breakout' || game === 'sutom' || game === 'space_invaders' || game === '2048' || game === 'flappy_bird' || game === 'plumber') ? Math.max(...data.scores)
+                : (game === 'snake' || game === 'tetris' || game === 'pacman' || game === 'breakout' || game === 'sutom' || game === 'space_invaders' || game === '2048' || game === 'flappy_bird' || game === 'plumber' || game === 'demineur') ? Math.max(...data.scores)
                     : totalScore;
             const totalRounds = roundsByUser.get(userId) ?? 0;
             const bestLevel = (game === 'pacman' || game === 'breakout') && data.rounds.length > 0
@@ -188,6 +188,7 @@ export async function getLeaderboardData(
                 case '2048':
                 case 'flappy_bird':
                 case 'plumber':
+                case 'demineur':
                     detail = `${gamesPlayed} partie${gamesPlayed > 1 ? 's' : ''}`;
                     break;
                 case 'pacman':
