@@ -670,7 +670,7 @@ export const CATEGORIES: DuelCategory[] = [
             { name: 'Frasier', img: 'https://image.tmdb.org/t/p/w500/p03cM3OBj9NE0Cvu7Wbd6gNu1BZ.jpg' },
             { name: 'Fresh Prince', img: 'https://image.tmdb.org/t/p/w500/xN3eCrHdRWY3loR5IxCJ613sGyq.jpg' },
             { name: 'Curb Your Enthusiasm', img: 'https://image.tmdb.org/t/p/w500/7nDKHiAijaP1TU8uUjpMlPKaAnj.jpg' },
-            { name: 'Superstore', img: 'https://image.tmdb.org/t/p/w500/gxTojpKEOtue85EEFlozwRbDXwJ.jpg' },
+            { name: 'Superstore', img: 'https://image.tmdb.org/t/p/w500/2tpY5qIYwH85njvjI5BnH4VNA6p.jpg' },
         ],
     },
 ];

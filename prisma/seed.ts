@@ -38,17 +38,17 @@ async function main() {
     const user = await upsert('user@quiz.app', 'User', 'USER');
 
     const numbered = await Promise.all(
-        Array.from({ length: 10 }, (_, i) =>
-            upsert(`user${i + 1}@quiz.app`, `User${i + 1}`, 'USER', i < 5 ? 'ACTIVE' : 'PENDING')
+        Array.from({ length: 20 }, (_, i) =>
+            upsert(`user${i + 1}@quiz.app`, `User${i + 1}`, 'USER', i < 12 ? 'ACTIVE' : 'PENDING')
         )
     );
-    const [user1, user2, user3, user4, user5] = numbered;
+    const [user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12] = numbered;
     console.log('✅ Utilisateurs créés');
 
     // ── Pool social : UNIQUEMENT des joueurs ACTIFS ──
     // Les amitiés, demandes d'amis et messages ne concernent QUE des comptes ACTIVE.
-    // (Bot🤖 et les comptes PENDING — User6..10 — sont volontairement exclus ; Admin est inclus.)
-    const socialUsers = [adminUser, farosUser, user, user1, user2, user3, user4, user5];
+    // (Bot🤖 et les comptes PENDING — User13..20 — sont volontairement exclus ; Admin est inclus.)
+    const socialUsers = [adminUser, farosUser, user, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12];
     const nonActive = socialUsers.filter(u => u.status !== 'ACTIVE');
     if (nonActive.length > 0) {
         throw new Error(`Seed: joueurs non-ACTIF interdits dans le social → ${nonActive.map(u => u.username).join(', ')}`);
@@ -62,39 +62,65 @@ async function main() {
             create: { requesterId, addresseeId, status },
         });
     await Promise.all([
-        // — Amis (ACCEPTED) —
+        // — Amis de Faros (ACCEPTED) : assez nombreux pour tester recherche + pagination du panneau d'invitation —
         friendship(farosUser.id, user.id, 'ACCEPTED'),
         friendship(farosUser.id, user1.id, 'ACCEPTED'),
         friendship(farosUser.id, user2.id, 'ACCEPTED'),
+        friendship(farosUser.id, user3.id, 'ACCEPTED'),
+        friendship(farosUser.id, user4.id, 'ACCEPTED'),
+        friendship(farosUser.id, user5.id, 'ACCEPTED'),
+        friendship(farosUser.id, user6.id, 'ACCEPTED'),
+        friendship(farosUser.id, user7.id, 'ACCEPTED'),
+        friendship(farosUser.id, user8.id, 'ACCEPTED'),
+        friendship(farosUser.id, user9.id, 'ACCEPTED'),
+        friendship(adminUser.id, farosUser.id, 'ACCEPTED'),
+
+        // — Amis d'Admin (ACCEPTED) —
+        friendship(adminUser.id, user1.id, 'ACCEPTED'),
+        friendship(adminUser.id, user2.id, 'ACCEPTED'),
+        friendship(adminUser.id, user3.id, 'ACCEPTED'),
+        friendship(adminUser.id, user4.id, 'ACCEPTED'),
+        friendship(adminUser.id, user5.id, 'ACCEPTED'),
+        friendship(adminUser.id, user6.id, 'ACCEPTED'),
+        friendship(adminUser.id, user7.id, 'ACCEPTED'),
+
+        // — Amis de User (ACCEPTED) —
         friendship(user.id, user1.id, 'ACCEPTED'),
+        friendship(user.id, user2.id, 'ACCEPTED'),
+        friendship(user.id, user3.id, 'ACCEPTED'),
+        friendship(user.id, user4.id, 'ACCEPTED'),
+
+        // — Amitiés entre users —
         friendship(user1.id, user2.id, 'ACCEPTED'),
         friendship(user1.id, user3.id, 'ACCEPTED'),
         friendship(user2.id, user4.id, 'ACCEPTED'),
         friendship(user2.id, user5.id, 'ACCEPTED'),
-        friendship(adminUser.id, farosUser.id, 'ACCEPTED'),
-        friendship(adminUser.id, user1.id, 'ACCEPTED'),
-        friendship(adminUser.id, user2.id, 'ACCEPTED'),
-        friendship(adminUser.id, user3.id, 'ACCEPTED'),
+        friendship(user5.id, user6.id, 'ACCEPTED'),
+        friendship(user6.id, user7.id, 'ACCEPTED'),
+        friendship(user7.id, user8.id, 'ACCEPTED'),
+        friendship(user8.id, user9.id, 'ACCEPTED'),
+        friendship(user9.id, user10.id, 'ACCEPTED'),
 
         // — Demandes reçues par Faros (incoming → badge "Amis") —
-        friendship(user3.id, farosUser.id, 'PENDING'),
-        friendship(user4.id, farosUser.id, 'PENDING'),
-        friendship(user5.id, farosUser.id, 'PENDING'),
+        friendship(user10.id, farosUser.id, 'PENDING'),
+        friendship(user11.id, farosUser.id, 'PENDING'),
+        friendship(user12.id, farosUser.id, 'PENDING'),
 
         // — Demandes reçues par User —
-        friendship(user3.id, user.id, 'PENDING'),
-        friendship(user4.id, user.id, 'PENDING'),
+        friendship(user5.id, user.id, 'PENDING'),
+        friendship(user6.id, user.id, 'PENDING'),
         friendship(adminUser.id, user.id, 'PENDING'),
 
         // — Demandes reçues par Admin (incoming → badge "Amis") —
-        friendship(user5.id, adminUser.id, 'PENDING'),
-        friendship(user4.id, adminUser.id, 'PENDING'),
+        friendship(user8.id, adminUser.id, 'PENDING'),
+        friendship(user9.id, adminUser.id, 'PENDING'),
+        friendship(user10.id, adminUser.id, 'PENDING'),
 
         // — Demandes envoyées par User (outgoing, en attente) —
-        friendship(user.id, user2.id, 'PENDING'),
-        friendship(user.id, user5.id, 'PENDING'),
+        friendship(user.id, user7.id, 'PENDING'),
+        friendship(user.id, user8.id, 'PENDING'),
     ]);
-    console.log('✅ Amitiés créées (12 acceptées, 10 en attente)');
+    console.log('✅ Amitiés créées');
 
     // ── Messages privés de test (entre joueurs ACTIFS, surtout des amis) ──
     const now = Date.now();
@@ -143,7 +169,18 @@ async function main() {
     await dm(user.id, user1.id, 'Dispo pour un Puissance 4 ?', 90, true);
     await dm(user1.id, user.id, 'Oui go 🔴🟡', 88, true);
 
-    console.log('✅ Messages privés créés (7 conversations)');
+    // Faros ↔ nouveaux amis (User3..User9)
+    await dm(user3.id, farosUser.id, 'Salut Faros, on teste le mode spectateur ?', 70, true);
+    await dm(farosUser.id, user3.id, 'Oui ! rejoins mon lobby', 68, true);
+    await dm(user4.id, farosUser.id, 'Tu es dispo ce soir ?', 40, false); // non lu côté Faros
+    await dm(farosUser.id, user5.id, 'Belle partie de Blokus 🟦', 25, true);
+    await dm(user5.id, farosUser.id, 'Merci 😄 revanche ?', 22, false); // non lu côté Faros
+    await dm(user6.id, farosUser.id, 'Ajoute-moi à la prochaine !', 12, false); // non lu côté Faros
+    await dm(farosUser.id, user7.id, 'GG au Perudo 🎲', 15, true);
+    await dm(user8.id, farosUser.id, 'On se fait un Skyjo ?', 9, false); // non lu côté Faros
+    await dm(farosUser.id, user9.id, 'Bien joué 👏', 7, true);
+
+    console.log('✅ Messages privés créés');
 
     await seedShared(prisma, randomUser.id);
 
