@@ -1,9 +1,10 @@
 // src/context/FriendsContext.tsx
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePresenceHeartbeat } from '@/hooks/usePresenceHeartbeat';
+import { useMeSummary } from '@/hooks/useMeSummary';
 
 type FriendsContextType = {
     /** Number of incoming pending friend requests (drives the header badge). */
@@ -17,42 +18,14 @@ const FriendsContext = createContext<FriendsContextType | null>(null);
 export function FriendsProvider({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
     const userId = session?.user?.id;
-    const [pendingCount, setPendingCount] = useState(0);
 
     // Heartbeat for online presence (only while logged in).
     usePresenceHeartbeat(!!userId);
 
-    const refresh = useCallback(async () => {
-        if (!userId) {
-            setPendingCount(0);
-            return;
-        }
-        try {
-            const res = await fetch('/api/friends/requests');
-            if (!res.ok) return;
-            const data = await res.json();
-            setPendingCount(Array.isArray(data.incoming) ? data.incoming.length : 0);
-        } catch {
-            /* ignore transient errors */
-        }
-    }, [userId]);
-
-    useEffect(() => {
-        if (!userId) {
-            setPendingCount(0);
-            return;
-        }
-        refresh();
-        const interval = setInterval(refresh, 30_000);
-        const onVisible = () => {
-            if (document.visibilityState === 'visible') refresh();
-        };
-        document.addEventListener('visibilitychange', onVisible);
-        return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', onVisible);
-        };
-    }, [userId, refresh]);
+    // Compteur alimenté par le résumé partagé (/api/me/summary, dédupliqué par SWR).
+    const { data, mutate } = useMeSummary();
+    const pendingCount = data?.friendRequests ?? 0;
+    const refresh = useCallback(() => { void mutate(); }, [mutate]);
 
     return (
         <FriendsContext.Provider value={{ pendingCount, refresh }}>

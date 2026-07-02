@@ -6,6 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
+import { useMeSummary } from '@/hooks/useMeSummary';
 
 export type DMMessage = {
     id: string;
@@ -65,6 +66,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
     const userId = session?.user?.id;
     const socket = useMemo(() => getLobbySocket(), []);
+    const { data: summary, mutate } = useMeSummary();
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [totalUnread, setTotalUnread] = useState(0);
@@ -78,22 +80,9 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         activeRef.current = { userId: activeUserId, dockOpen };
     }, [activeUserId, dockOpen]);
 
-    const refreshConversations = useCallback(async () => {
-        if (!userId) {
-            setConversations([]);
-            setTotalUnread(0);
-            return;
-        }
-        try {
-            const res = await fetch('/api/messages');
-            if (!res.ok) return;
-            const data = await res.json();
-            setConversations(data.conversations ?? []);
-            setTotalUnread(data.totalUnread ?? 0);
-        } catch {
-            /* transient */
-        }
-    }, [userId]);
+    // Revalide le résumé partagé (/api/me/summary) ; la liste + le badge sont ensuite
+    // réhydratés par l'effet de synchro ci-dessous.
+    const refreshConversations = useCallback(() => { void mutate(); }, [mutate]);
 
     // Debounced refresh to coalesce bursts of incoming messages.
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -206,24 +195,19 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         [userId, scheduleRefresh],
     );
 
-    // Initial load + poll fallback + refresh on focus.
+    // Liste + non-lus alimentés par le résumé partagé (chargement initial, poll 30 s
+    // et refresh au focus sont mutualisés dans useMeSummary → 1 requête pour toute l'app).
     useEffect(() => {
         if (!userId) {
             setConversations([]);
             setTotalUnread(0);
             return;
         }
-        refreshConversations();
-        const interval = setInterval(refreshConversations, 30_000);
-        const onVisible = () => {
-            if (document.visibilityState === 'visible') refreshConversations();
-        };
-        document.addEventListener('visibilitychange', onVisible);
-        return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', onVisible);
-        };
-    }, [userId, refreshConversations]);
+        if (summary) {
+            setConversations(summary.conversations);
+            setTotalUnread(summary.totalUnread);
+        }
+    }, [userId, summary]);
 
     // Realtime delivery.
     useEffect(() => {

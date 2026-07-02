@@ -1,11 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Retire les console.* en prod (garde error/warn) → moins de JS + pas de logs bruyants.
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // Transforme les imports barrel en imports directs → bundles plus petits + build plus rapide.
+    optimizePackageImports: ['@heroicons/react'],
   },
   images: {
+    // Sert AVIF/WebP quand le navigateur les supporte (images bien plus légères).
+    formats: ['image/avif', 'image/webp'],
     domains: [],
     remotePatterns: [
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },

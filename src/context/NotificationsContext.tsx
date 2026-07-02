@@ -8,6 +8,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getLobbySocket } from '@/lib/socket';
+import { useMeSummary } from '@/hooks/useMeSummary';
 
 export type InviteToast = {
     id: string; // LobbyInvite DB id
@@ -37,27 +38,17 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     const { data: session } = useSession();
     const userId = session?.user?.id;
     const socket = useMemo(() => getLobbySocket(), []);
+    const { data: summary, mutate } = useMeSummary();
     const [invites, setInvites] = useState<InviteToast[]>([]);
     const [toasts, setToasts] = useState<InviteToast[]>([]);
 
-    // Load pending invites on login (backlog goes to the bell, not the toast stack).
+    // Backlog des invitations : issu du résumé partagé (/api/me/summary). La liste
+    // serveur fait foi ; les arrivées temps réel (socket) s'ajoutent en local d'ici
+    // le prochain rafraîchissement.
     useEffect(() => {
-        if (!userId) {
-            setInvites([]);
-            setToasts([]);
-            return;
-        }
-        let active = true;
-        fetch('/api/lobby/invites')
-            .then(r => (r.ok ? r.json() : { invites: [] }))
-            .then(d => {
-                if (active && Array.isArray(d.invites)) setInvites(d.invites);
-            })
-            .catch(() => {});
-        return () => {
-            active = false;
-        };
-    }, [userId]);
+        if (!userId) { setInvites([]); setToasts([]); return; }
+        if (summary?.invites) setInvites(summary.invites);
+    }, [userId, summary?.invites]);
 
     // Realtime arrivals → bell + a capped toast.
     useEffect(() => {
@@ -89,8 +80,9 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     const dismissInvite = useCallback((id: string) => {
         setInvites(prev => prev.filter(i => i.id !== id));
         setToasts(prev => prev.filter(i => i.id !== id));
-        fetch(`/api/lobby/invites/${id}`, { method: 'DELETE' }).catch(() => {});
-    }, []);
+        // Supprime côté serveur puis resynchronise le résumé partagé.
+        fetch(`/api/lobby/invites/${id}`, { method: 'DELETE' }).then(() => mutate()).catch(() => {});
+    }, [mutate]);
 
     return (
         <NotificationsContext.Provider value={{ invites, toasts, dismissInvite, dismissToast }}>
