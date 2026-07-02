@@ -2,7 +2,7 @@
 
 import { FlagIcon } from '@heroicons/react/24/solid';
 import { useDemineur } from '@/hooks/useDemineur';
-import { MINES, type Cell } from '@/lib/demineur/engine';
+import { MINES, SAFE_CELLS, type Cell } from '@/lib/demineur/engine';
 import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
@@ -12,7 +12,7 @@ import BestScores from '@/components/SoloGame/BestScores';
 const NUM_COLOR = ['', 'text-blue-600', 'text-green-600', 'text-red-600', 'text-indigo-700', 'text-amber-700', 'text-teal-600', 'text-gray-700', 'text-gray-500'];
 
 function CellView({ cell, onReveal, onFlag }: { cell: Cell; onReveal: () => void; onFlag: () => void }) {
-    const base = 'aspect-square flex items-center justify-center font-black text-sm sm:text-base select-none rounded-[3px] transition-colors';
+    const base = 'aspect-square flex items-center justify-center font-black text-[11px] sm:text-sm leading-none select-none rounded-[2px] transition-colors';
 
     if (!cell.revealed) {
         return (
@@ -50,8 +50,8 @@ export default function DemineurPage() {
                 <BestScores me={Math.max(bestScore, displayScore)} global={Math.max(globalBest, displayScore)} />
             </div>
 
-            <div className="relative w-full max-w-[420px]">
-                <div className="grid grid-cols-9 gap-1 p-2 rounded-2xl bg-slate-400 dark:bg-slate-700 select-none">
+            <div className="relative w-full max-w-[520px]">
+                <div className="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-0.5 p-1.5 rounded-2xl bg-slate-400 dark:bg-slate-700 select-none">
                     {grid.map((row, r) =>
                         row.map((cell, c) => (
                             <CellView
@@ -72,8 +72,8 @@ export default function DemineurPage() {
                     session={session}
                     leaderboardHref="/leaderboard/demineur"
                     onReplay={startGame}
-                    title={displayScore >= 71 ? 'Gagné !' : 'Boum 💥'}
-                    titleClassName={displayScore >= 71 ? 'text-green-400' : 'text-red-400'}
+                    title={displayScore >= SAFE_CELLS ? 'Gagné !' : 'Boum 💥'}
+                    titleClassName={displayScore >= SAFE_CELLS ? 'text-green-400' : 'text-red-400'}
                     bgClassName="bg-black/80 backdrop-blur-sm rounded-2xl"
                     replayClassName="px-5 py-2.5 bg-slate-200 hover:bg-white text-slate-900 font-bold text-sm rounded-xl transition-all"
                     leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"

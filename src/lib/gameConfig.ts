@@ -420,8 +420,8 @@ export const GAME_CONFIG = {
         scoreLabel: 'Cases révélées',
         description: "Le classique de la logique : révèle toutes les cases sûres sans faire exploser une seule mine.",
         players: '1 joueur',
-        rules: "<p>But : révéler toutes les cases sans mine.</p><ul><li>Grille 9×9 avec 10 mines cachées.</li><li>Clique une case pour la révéler ; le chiffre indique le nombre de mines adjacentes.</li><li>Une case vide (0) ouvre automatiquement ses voisines.</li><li>Marque les mines suspectes d'un drapeau (clic droit ou mode drapeau).</li><li>Révéler une mine = perdu. Le premier clic est toujours sûr.</li></ul>",
-        score: "Score = nombre de cases sûres révélées (71 = grille parfaite). Seul votre meilleur score est conservé.",
+        rules: "<p>But : révéler toutes les cases sans mine.</p><ul><li>Grille 16×16 avec 40 mines cachées.</li><li>Clique une case pour la révéler ; le chiffre indique le nombre de mines adjacentes.</li><li>Une case vide (0) ouvre automatiquement ses voisines.</li><li>Marque les mines suspectes d'un drapeau (clic droit ou mode drapeau).</li><li>Révéler une mine = perdu. Le premier clic est toujours sûr.</li></ul>",
+        score: "Score = nombre de cases sûres révélées (216 = grille parfaite). Seul votre meilleur score est conservé.",
     },
 } as const;
 

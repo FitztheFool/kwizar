@@ -1,10 +1,10 @@
 // Moteur du Démineur (niveau débutant : grille 9×9, 10 mines).
 // Logique pure et immuable : chaque action renvoie une nouvelle grille.
 
-export const ROWS = 9;
-export const COLS = 9;
-export const MINES = 10;
-export const SAFE_CELLS = ROWS * COLS - MINES; // 71
+export const ROWS = 16;
+export const COLS = 16;
+export const MINES = 40;
+export const SAFE_CELLS = ROWS * COLS - MINES; // 216
 
 export interface Cell {
     mine: boolean;
