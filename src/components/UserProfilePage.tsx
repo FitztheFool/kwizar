@@ -189,12 +189,16 @@ const isTabType = (v: string): v is TabType => (VALID_TABS as string[]).includes
 interface Props {
     username: string;
     isOwnProfile?: boolean;
+    /** Profil calculé côté serveur (SSR) → seed SWR, pas de spinner au 1er rendu. */
+    initialProfile?: ProfileData;
 }
 
-export default function UserProfilePage({ username, isOwnProfile = false }: Props) {
+export default function UserProfilePage({ username, isOwnProfile = false, initialProfile }: Props) {
     const router = useRouter();
     const { data: session } = useSession();
-    const { data: profile, error: profileError, isLoading } = useSWR<ProfileData>(`/api/user/${username}`, fetcher);
+    const { data: profile, error: profileError, isLoading } = useSWR<ProfileData>(
+        `/api/user/${username}`, fetcher, { fallbackData: initialProfile },
+    );
     const [activeTab, setActiveTab] = useState<TabType>(() => {
         if (typeof window === 'undefined') return 'stats';
         const hash = window.location.hash.replace('#', '');

@@ -1,22 +1,18 @@
 // src/app/user/[username]/page.tsx
-'use client';
-import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
 import UserProfilePage from '@/components/UserProfilePage';
+import { getUserProfile } from '@/lib/userProfile';
 
-export default function UserPage() {
-    const params = useParams();
-    const router = useRouter();
-    const { data: session, status } = useSession();
-    const username = params?.username as string;
-
-    useEffect(() => {
-        if (status === 'authenticated' && session?.user?.username === username) {
-            router.replace('/dashboard');
-        }
-    }, [status, session, username]);
-
+export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
+    const { username } = await params;
     if (!username) return null;
-    return <UserProfilePage username={username} />;
+
+    const session = await auth();
+    // Son propre profil → on renvoie vers /dashboard (côté serveur, sans flash).
+    if (session?.user?.username === username) redirect('/dashboard');
+
+    // Profil calculé côté serveur → fallback SWR (rendu immédiat).
+    const initialProfile = await getUserProfile(username, session?.user?.id ?? null);
+    return <UserProfilePage username={username} initialProfile={initialProfile ?? undefined} />;
 }
