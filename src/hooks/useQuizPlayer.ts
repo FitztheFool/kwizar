@@ -35,7 +35,7 @@ export type Feedback = {
     correctAnswerIds?: string[];
 };
 
-type UserAnswer = { questionId: string; answerIds: string[] | string; text?: string };
+type UserAnswer = { questionId: string; answerIds: string[] | string; text?: string; answerId?: string; freeText?: string };
 
 type QuestionResult = {
     questionId: string;
@@ -292,8 +292,11 @@ export function useQuizPlayer({ quizId, lobbyId, resultUrl, timeMode: timeModePr
                 questionId: currentQuestion.id,
                 answerIds: selectedAnswers.length > 0 ? selectedAnswers : (selectedAnswer ?? ''),
             };
-            if (currentQuestion.type === 'TEXT') ua.text = freeTextAnswer;
-            if (currentQuestion.type === 'MULTI_TEXT') ua.text = multiTextAnswers.join('||');
+            // Champs au format GradeAnswer (answerId/freeText) pour la notation serveur
+            // du mode solo (/attempt) ; answerIds/text restent pour le serveur de lobby.
+            if (currentQuestion.type === 'TRUE_FALSE' || currentQuestion.type === 'MCQ_UNIQUE') ua.answerId = selectedAnswer ?? undefined;
+            if (currentQuestion.type === 'TEXT') { ua.text = freeTextAnswer; ua.freeText = freeTextAnswer; }
+            if (currentQuestion.type === 'MULTI_TEXT') { ua.text = multiTextAnswers.join('||'); ua.freeText = multiTextAnswers.join('||'); }
             answersRef.current = [
                 ...answersRef.current.filter(a => a.questionId !== currentQuestion.id),
                 ua,
@@ -333,8 +336,9 @@ export function useQuizPlayer({ quizId, lobbyId, resultUrl, timeMode: timeModePr
                     questionId: currentQuestion.id,
                     answerIds: selectedAnswers.length > 0 ? selectedAnswers : (selectedAnswer ?? ''),
                 };
-                if (currentQuestion.type === 'TEXT') ua.text = freeTextAnswer;
-                if (currentQuestion.type === 'MULTI_TEXT') ua.text = multiTextAnswers.join('||');
+                if (currentQuestion.type === 'TRUE_FALSE' || currentQuestion.type === 'MCQ_UNIQUE') ua.answerId = selectedAnswer ?? undefined;
+                if (currentQuestion.type === 'TEXT') { ua.text = freeTextAnswer; ua.freeText = freeTextAnswer; }
+                if (currentQuestion.type === 'MULTI_TEXT') { ua.text = multiTextAnswers.join('||'); ua.freeText = multiTextAnswers.join('||'); }
                 answersRef.current = [
                     ...answersRef.current.filter(a => a.questionId !== currentQuestion.id),
                     ua,

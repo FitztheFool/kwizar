@@ -12,11 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { id: quizId } = await params;
     const body = await req.json().catch(() => ({}));
-    const { isOwnQuiz, answers } = body as { isOwnQuiz?: boolean; answers?: GradeAnswer[] };
-
-    if (isOwnQuiz) {
-        return NextResponse.json({ ok: true, skipped: true });
-    }
+    const { answers } = body as { answers?: GradeAnswer[] };
 
     if (!Array.isArray(answers)) {
         return NextResponse.json({ error: 'answers requis' }, { status: 400 });
@@ -45,6 +41,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (!quiz.isPublic && quiz.creatorId !== session.user.id) {
         return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
+    }
+
+    // Un quiz ne rapporte pas de points à son propre créateur. Déterminé côté serveur
+    // via creatorId : ne jamais faire confiance à un flag isOwnQuiz envoyé par le client.
+    if (quiz.creatorId === session.user.id) {
+        return NextResponse.json({ ok: true, skipped: true });
     }
 
     const { score, correctAnswers, totalAnswers } = gradeQuiz(quiz.questions as any, answers);

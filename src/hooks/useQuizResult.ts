@@ -74,9 +74,9 @@ export function useQuizResult() {
         return () => window.removeEventListener('quiz:result:ready', handler);
     }, [quizId]);
 
-    useEffect(() => {
-        return () => { sessionStorage.removeItem(`quiz_result_${quizId}`); };
-    }, [quizId]);
+    // NB : on ne supprime PLUS `quiz_result_${quizId}` au démontage — sinon un F5 sur
+    // l'écran d'attente/résultats perd le payload et reste bloqué sur « Chargement… ».
+    // La clé est réécrite à chaque nouvelle partie et purgée à la fermeture de l'onglet.
 
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [playerProgress, setPlayerProgress] = useState<PlayerProgress[]>([]);
@@ -106,11 +106,30 @@ export function useQuizResult() {
             setIsHost(hostId === session?.user?.id);
         };
 
+        // Renvoi du résultat perso par le serveur (au rejoin, si on a déjà terminé).
+        // Filet de sécurité quand sessionStorage est vide (F5 dans un onglet neuf, storage purgé).
+        const onResult = (data: { score: number; totalPoints: number; questionResults: QuestionResult[]; quizTitle?: string }) => {
+            setPayload(prev => {
+                if (prev) return prev; // le storage a déjà fourni le payload (avec le bon titre)
+                const p: ResultPayload = {
+                    score: data.score,
+                    totalPoints: data.totalPoints,
+                    quizTitle: data.quizTitle ?? '',
+                    isOwnQuiz: false,
+                    questionResults: data.questionResults ?? [],
+                    lobbyCode,
+                };
+                try { if (quizId) sessionStorage.setItem(`quiz_result_${quizId}`, JSON.stringify(p)); } catch { }
+                return p;
+            });
+        };
+
         if (!socket) return;
 
         socket.on('game:leaderboard', onLeaderboard);
         socket.on('game:progress', onProgress);
         socket.on('lobby:state', onLobbyState);
+        socket.on('quiz:result', onResult);
 
         socket.on('lobby:redirectTo', ({ newLobbyId }) => {
             router.push(`/lobby/create/${newLobbyId}`);
@@ -126,6 +145,7 @@ export function useQuizResult() {
             socket.off('game:leaderboard', onLeaderboard);
             socket.off('game:progress', onProgress);
             socket.off('lobby:state', onLobbyState);
+            socket.off('quiz:result', onResult);
         };
     }, [lobbyCode, socket, session?.user?.id, session?.user?.username, session?.user?.email]);
 

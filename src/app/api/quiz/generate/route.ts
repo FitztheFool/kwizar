@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
     const validModelIds = AI_MODELS.map(m => m.id) as string[];
     const modelId: ModelId = validModelIds.includes(modelParam) ? modelParam : DEFAULT_MODEL_ID;
     const { client, modelId: resolvedModel } = getClientForModel(modelId);
+    const selectedModel = AI_MODELS.find(m => m.id === modelId)!;
 
     try {
         const [completion, imageUrl] = await Promise.all([
@@ -112,8 +113,8 @@ export async function POST(req: NextRequest) {
         try {
             json = JSON.parse(raw);
         } catch {
-            console.error('JSON invalide reçu de Groq:', raw.slice(0, 300));
-            return NextResponse.json({ error: 'Groq a retourné un JSON invalide, réessayez.' }, { status: 500 });
+            console.error(`JSON invalide reçu de ${selectedModel.badge}:`, raw.slice(0, 300));
+            return NextResponse.json({ error: `${selectedModel.label} a retourné un JSON invalide, réessayez.` }, { status: 500 });
         }
 
         const validationError = validateQuizJSON(json);
@@ -147,7 +148,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const selectedModel = AI_MODELS.find(m => m.id === modelId)!;
         // Bannière : Unsplash d'abord (rapide + factuel) ; sinon génération Flux hébergée
         // sur Cloudinary (sur-mesure pour les sujets sans photo stock) ; sinon SVG par défaut.
         const fluxBanner = imageUrl ? null : await generateQuizBanner(subject);
@@ -155,7 +155,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ...json, imageUrl: finalImageUrl, provider: selectedModel.provider, model: modelId });
 
     } catch (e: any) {
-        console.error('Erreur génération Groq:', e?.message ?? e);
-        return NextResponse.json({ error: 'Erreur lors de la génération' }, { status: 500 });
+        const status = e?.status ?? e?.response?.status;
+        console.error(`Erreur génération ${selectedModel.badge} (${resolvedModel}) [${status ?? '?'}]:`, e?.message ?? e);
+        if (status === 429) {
+            // Ex. Gemini 2.5 Pro : quota "free tier" = 0 → indisponible sans facturation.
+            return NextResponse.json(
+                { error: `${selectedModel.label} est momentanément indisponible (quota dépassé). Réessayez plus tard ou choisissez un autre modèle.` },
+                { status: 429 },
+            );
+        }
+        return NextResponse.json({ error: `Erreur lors de la génération (${selectedModel.badge}).` }, { status: 500 });
     }
 }

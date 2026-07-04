@@ -14,13 +14,6 @@ export const AI_MODELS = [
         desc: 'Ultra rapide',
     },
     {
-        id: 'gemini-2.5-pro',
-        label: 'Gemini 2.5 Pro',
-        provider: 'gemini' as const,
-        badge: 'Google',
-        desc: 'Meilleure qualité Google',
-    },
-    {
         id: 'gemini-2.5-flash',
         label: 'Gemini 2.5 Flash',
         provider: 'gemini' as const,

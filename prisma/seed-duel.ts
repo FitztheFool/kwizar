@@ -37,6 +37,9 @@ export const CATEGORIES: DuelCategory[] = [
             poke(257, 'Braségali'), poke(376, 'Métalosse'), poke(359, 'Absol'), poke(778, 'Mimiqui'),
             poke(887, 'Lanssorien'), poke(700, 'Nymphali'), poke(681, 'Exagide'), poke(487, 'Giratina'),
             poke(716, 'Xerneas'), poke(717, 'Yveltal'), poke(888, 'Zacian'), poke(890, 'Éthernatos'),
+            // Ajouts
+            poke(26, 'Raichu'), poke(65, 'Alakazam'), poke(68, 'Mackogneur'), poke(76, 'Grolem'),
+            poke(212, 'Cizayox'), poke(214, 'Scarhino'), poke(373, 'Drattak'), poke(635, 'Trioxhydre'),
         ],
     },
     {
@@ -142,6 +145,10 @@ export const CATEGORIES: DuelCategory[] = [
             flag('be', 'Belgique'), flag('no', 'Norvège'), flag('dk', 'Danemark'), flag('fi', 'Finlande'),
             flag('pl', 'Pologne'), flag('ua', 'Ukraine'), flag('ma', 'Maroc'), flag('sn', 'Sénégal'),
             flag('co', 'Colombie'), flag('pe', 'Pérou'), flag('vn', 'Vietnam'), flag('id', 'Indonésie'),
+            // Ajouts
+            flag('gb', 'Royaume-Uni'), flag('hr', 'Croatie'), flag('rs', 'Serbie'), flag('np', 'Népal'),
+            flag('bt', 'Bhoutan'), flag('il', 'Israël'), flag('jm', 'Jamaïque'), flag('eg', 'Égypte'),
+            flag('ng', 'Nigeria'), flag('cu', 'Cuba'), flag('is', 'Islande'), flag('at', 'Autriche'),
         ],
     },
     {
@@ -455,6 +462,12 @@ export const CATEGORIES: DuelCategory[] = [
             flag('au', 'Australie'), flag('nz', 'Nouvelle-Zélande'), flag('za', 'Afrique du Sud'), flag('ng', 'Nigeria'),
             flag('eg', 'Égypte'), flag('ma', 'Maroc'), flag('sn', 'Sénégal'), flag('ke', 'Kenya'),
             flag('sa', 'Arabie saoudite'), flag('qa', 'Qatar'),
+            // Ajouts
+            flag('hr', 'Croatie'), flag('rs', 'Serbie'), flag('bg', 'Bulgarie'), flag('sk', 'Slovaquie'),
+            flag('si', 'Slovénie'), flag('np', 'Népal'), flag('bt', 'Bhoutan'), flag('il', 'Israël'),
+            flag('ae', 'Émirats arabes unis'), flag('ir', 'Iran'), flag('pk', 'Pakistan'), flag('my', 'Malaisie'),
+            flag('sg', 'Singapour'), flag('gh', 'Ghana'), flag('dz', 'Algérie'), flag('tn', 'Tunisie'),
+            flag('uy', 'Uruguay'), flag('ve', 'Venezuela'), flag('jm', 'Jamaïque'), flag('cu', 'Cuba'),
         ],
     },
     {
@@ -471,6 +484,10 @@ export const CATEGORIES: DuelCategory[] = [
             poke(491, 'Darkrai'), poke(493, 'Arceus'), poke(643, 'Reshiram'), poke(644, 'Zekrom'),
             poke(646, 'Kyurem'), poke(716, 'Xerneas'), poke(717, 'Yveltal'), poke(800, 'Necrozma'),
             poke(888, 'Zacian'), poke(889, 'Zamazenta'), poke(890, 'Éthernatos'),
+            // Ajouts
+            poke(494, 'Victini'), poke(638, 'Cobaltium'), poke(639, 'Terrakium'), poke(640, 'Viridium'),
+            poke(641, 'Boréas'), poke(642, 'Fulguris'), poke(645, 'Démétéros'), poke(647, 'Keldeo'),
+            poke(718, 'Zygarde'), poke(791, 'Solgaleo'), poke(792, 'Lunala'),
         ],
     },
     {

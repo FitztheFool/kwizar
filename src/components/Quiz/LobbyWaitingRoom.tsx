@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { CheckIcon } from '@heroicons/react/24/outline';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import MeTag from '@/components/shared/MeTag';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import type { LeaderboardEntry, PlayerProgress } from '@/hooks/useQuizResult';
 
 interface Props {
@@ -32,9 +32,9 @@ export default function LobbyWaitingRoom({
     );
 
     return (
-        <div className="flex min-h-screen items-center justify-center wood-table p-4">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
             <div className="w-full max-w-lg">
-                <div className="mb-4 flex items-center justify-between rounded-xl wood-tile p-6 shadow-lg">
+                <div className="mb-4 flex items-center justify-between rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl">
                     <div>
                         <p className="font-bold text-gray-800 dark:text-gray-100">Quiz terminé !</p>
                         <p className="text-sm text-gray-400 dark:text-gray-500">
@@ -50,7 +50,7 @@ export default function LobbyWaitingRoom({
                     </span>
                 </div>
 
-                <div className="rounded-xl wood-tile p-6 shadow-lg">
+                <div className="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl">
                     <div className="mb-3 flex items-center justify-between">
                         <h2 className="font-bold text-gray-800 dark:text-gray-100">Joueurs</h2>
                         <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -81,7 +81,9 @@ export default function LobbyWaitingRoom({
                                 : 0;
                             return (
                                 <div key={player.userId} className="flex items-center gap-3">
-                                    <LoadingSpinner fullScreen={false} message="En cours..." />
+                                    <div className="shrink-0">
+                                        <LoadingSpinner fullScreen={false} size={22} />
+                                    </div>
                                     <div className="flex-1">
                                         <div className="mb-1 flex items-center justify-between">
                                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
