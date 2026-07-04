@@ -92,6 +92,7 @@ export default function ComplotPage() {
                             userId: p.userId,
                             username: p.username,
                             score: p.alive ? 'Survivant' : 'Éliminé',
+                            badges: p.surrendered ? ['Abandon'] : p.afk ? ['AFK'] : undefined,
                         }))}
                     />
                 </GameOverModal>

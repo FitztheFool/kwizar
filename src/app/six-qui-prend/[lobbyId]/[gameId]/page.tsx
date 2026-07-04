@@ -95,7 +95,7 @@ export default function SixQuiPrendPage() {
                             userId: p.userId,
                             username: p.username,
                             score: `${state.penalty[p.colorIndex]} 🐮`,
-                            badges: isBot(p) ? ['Bot'] : [],
+                            badges: isBot(p) ? ['Bot'] : p.surrendered ? ['Abandon'] : p.afk ? ['AFK'] : [],
                         }))}
                     />
                 </GameOverModal>

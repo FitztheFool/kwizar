@@ -12,6 +12,7 @@ export interface ComplotCard { char: Character | null; revealed: boolean; }
 export interface ComplotPlayer {
     userId: string; username: string; colorIndex: number;
     coins: number; alive: boolean; influence: number; cards: ComplotCard[];
+    afk?: boolean; surrendered?: boolean;
 }
 export interface Pending {
     type: ActionType; actor: number; target: number | null;

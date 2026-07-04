@@ -9,6 +9,8 @@ export interface BlokusPlayer {
     username: string;
     colorIndex: number;          // 1ʳᵉ couleur (compat)
     colorIndices?: number[];     // couleurs contrôlées (duo : 2)
+    afk?: boolean;
+    surrendered?: boolean;
 }
 
 export interface BlokusState {

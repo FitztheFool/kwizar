@@ -8,6 +8,8 @@ export interface SixPlayer {
     userId: string;
     username: string;
     colorIndex: number;
+    afk?: boolean;
+    surrendered?: boolean;
 }
 
 export interface SixState {

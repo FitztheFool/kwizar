@@ -115,6 +115,9 @@ export default function BlokusPage() {
                                     </span>
                                     {isBot(p) && <CpuChipIcon className="w-3.5 h-3.5 text-indigo-400" />}
                                     <span className="flex-1 truncate">{p.username}</span>
+                                    {p.surrendered
+                                        ? <span className="text-[10px] bg-orange-500/30 text-orange-400 px-1.5 py-0.5 rounded shrink-0">Abandon</span>
+                                        : p.afk && <span className="text-[10px] bg-red-500/30 text-red-400 px-1.5 py-0.5 rounded shrink-0">AFK</span>}
                                     <span className="tabular-nums">{playerScore(p)} cases</span>
                                 </li>
                             );
