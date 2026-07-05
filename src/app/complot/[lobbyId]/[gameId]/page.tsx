@@ -18,7 +18,7 @@ import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon } from '@heroicons/react/24/outline';
 
 const PCOLOR = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#0891b2'];
 
@@ -80,9 +80,9 @@ export default function ComplotPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={state.spectator ? null : myElo}
-                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={state.spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${winnerName ?? 'Quelqu\'un'} gagne !`}
+                    elo={myElo} spectator={state.spectator}
+                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={iWon ? 'Victoire !' : `${winnerName ?? 'Quelqu\'un'} gagne !`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}
                 >

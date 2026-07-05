@@ -18,7 +18,7 @@ import SurrenderButton from '@/components/SurrenderButton';
 import SpectatorBadge from '@/components/SpectatorBadge';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ScaleIcon } from '@heroicons/react/24/outline';
 
 const SIZE = 8;
 const coordKey = ([r, c]: Coord) => `${r}-${c}`;
@@ -204,12 +204,9 @@ export default function DamesPage() {
 
             {gameState.status === 'finished' && !modalDismissed && (
                 <GameOverModal
-                    elo={spectator ? null : myElo}
-                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
-                    title={
-                        spectator
-                            ? 'Vous avez observé cette partie'
-                            : gameState.winner === 'draw'
+                    elo={myElo} spectator={spectator}
+                    icon={gameState.winner === 'draw' ? <ScaleIcon className="w-8 h-8 text-gray-400" /> : winnerPlayer?.userId === me.userId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    title={gameState.winner === 'draw'
                                 ? 'Match nul !'
                                 : winnerPlayer?.userId === me.userId
                                     ? 'Vous avez gagné !'

@@ -412,9 +412,9 @@ export default function DiamantPage() {
             {/* Game over */}
             {state.phase === 'finished' && (
                 <GameOverModal
-                    elo={spectator ? null : myElo}
+                    elo={myElo} spectator={spectator}
                     icon={state.winnerId === myUserId ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : <TrophyIcon className="w-8 h-8 text-gray-400" />}
-                    title={spectator ? 'Vous avez observé cette partie' : state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
+                    title={state.winnerId === myUserId ? 'Victoire !' : 'Partie terminée'}
                     subtitle="Fin de l'expédition dans la grotte de Tacora"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

@@ -16,7 +16,7 @@ import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, CpuChipIcon, CheckCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, CpuChipIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function SixQuiPrendPage() {
@@ -82,9 +82,9 @@ export default function SixQuiPrendPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={state.spectator ? null : myElo}
-                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={state.spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
+                    elo={myElo} spectator={state.spectator}
+                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
                     subtitle={state.spectator ? undefined : `Tu finis avec ${state.penalty[myColorIndex ?? 0]} têtes de bœuf`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

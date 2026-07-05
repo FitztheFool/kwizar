@@ -17,7 +17,7 @@ import GameOverModal from '@/components/GameOverModal';
 import GameScoreLeaderboard from '@/components/GameScoreLeaderboard';
 import SpectatorBadge from '@/components/SpectatorBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 const WIN_EJECTED = 6;
 
@@ -108,9 +108,9 @@ export default function AbalonePage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={spectator ? null : myElo}
-                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
-                    title={spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
+                    elo={myElo} spectator={spectator}
+                    icon={iWon ? <TrophyIcon className="w-8 h-8 text-amber-500" /> : isBot(winnerPlayer) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" /> : <XCircleIcon className="w-8 h-8 text-red-400" />}
+                    title={iWon ? 'Victoire !' : isBot(winnerPlayer) ? 'Le bot gagne !' : `${winnerPlayer?.username ?? 'Adversaire'} gagne !`}
                     reason={state.reason}
                     subtitle="6 billes éjectées"
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}

@@ -533,8 +533,6 @@ export async function seedImpostorAttempts(prisma: PrismaClient, players: UserLi
 // ─── TETRIS ───────────────────────────────────────────────────────────────────
 
 export async function seedTetrisAttempts(prisma: PrismaClient, players: UserLike[]) {
-    console.log('\n🟪 Création des attempts Tetris...');
-
     function tetrisScore(): number {
         const r = Math.random();
         if (r < 0.35) return Math.floor(Math.random() * 5) * 100;                  // 0–400  (débutant)
@@ -543,31 +541,15 @@ export async function seedTetrisAttempts(prisma: PrismaClient, players: UserLike
         if (r < 0.95) return (Math.floor(Math.random() * 50) + 50) * 100;          // 5000–9900
         return (Math.floor(Math.random() * 100) + 100) * 100;                      // 10000–19900 (très bon)
     }
-
-    for (const player of players) {
-        const attemptsCount = Math.floor(Math.random() * 20) + 15; // 15–34 parties
-        for (let i = 0; i < attemptsCount; i++) {
-            await prisma.attempt.create({
-                data: {
-                    userId: player.id,
-                    score: tetrisScore(),
-                    gameType: 'TETRIS',
-                    gameId: crypto.randomUUID(),
-                    quizId: null, trapScore: 0,
-                    createdAt: daysAgo(Math.floor((i / attemptsCount) * 90), Math.floor(Math.random() * 24)),
-                },
-            });
-        }
-        console.log(`  ✅ Tetris — ${player.username} — ${attemptsCount} parties`);
-    }
-    console.log(`✅ Attempts Tetris créés pour ${players.length} joueurs`);
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'TETRIS', label: 'Tetris', emoji: '🟪',
+        scoreGen: () => ({ score: tetrisScore() }),
+    });
 }
 
 // ─── SNAKE ────────────────────────────────────────────────────────────────────
 
 export async function seedSnakeAttempts(prisma: PrismaClient, players: UserLike[]) {
-    console.log('\n🐍 Création des attempts Snake...');
-
     // Realistic distribution: most games are short, occasional long runs
     function snakeScore(): number {
         const r = Math.random();
@@ -576,31 +558,15 @@ export async function seedSnakeAttempts(prisma: PrismaClient, players: UserLike[
         if (r < 0.90) return (Math.floor(Math.random() * 15) + 15) * 10;  // 150–290
         return (Math.floor(Math.random() * 25) + 30) * 10;                 // 300–540 (très bon)
     }
-
-    for (const player of players) {
-        const attemptsCount = Math.floor(Math.random() * 20) + 15; // 15–34 parties
-        for (let i = 0; i < attemptsCount; i++) {
-            await prisma.attempt.create({
-                data: {
-                    userId: player.id,
-                    score: snakeScore(),
-                    gameType: 'SNAKE',
-                    gameId: crypto.randomUUID(),
-                    quizId: null, trapScore: 0,
-                    createdAt: daysAgo(Math.floor((i / attemptsCount) * 90), Math.floor(Math.random() * 24)),
-                },
-            });
-        }
-        console.log(`  ✅ Snake — ${player.username} — ${attemptsCount} parties`);
-    }
-    console.log(`✅ Attempts Snake créés pour ${players.length} joueurs`);
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'SNAKE', label: 'Snake', emoji: '🐍',
+        scoreGen: () => ({ score: snakeScore() }),
+    });
 }
 
 // ─── PACMAN ───────────────────────────────────────────────────────────────────
 
 export async function seedPacmanAttempts(prisma: PrismaClient, players: UserLike[]) {
-    console.log('\n👾 Création des attempts Pacman...');
-
     // Pacman: DOT_SCORE=10, PELLET_SCORE=50, GHOST_SCORE=200
     // A maze has ~150 dots + 4 pellets + up to 3 ghosts per pellet = ~8 ghosts max
     // Max per maze ≈ 1500 + 200 + 1600 = ~3300, but rarely cleared
@@ -612,28 +578,15 @@ export async function seedPacmanAttempts(prisma: PrismaClient, players: UserLike
         if (r < 0.90) return base + Math.floor(Math.random() * 1500) + 1400; // bon
         return base + Math.floor(Math.random() * 2000) + 2900;              // excellent
     }
-
-    for (const player of players) {
-        const attemptsCount = Math.floor(Math.random() * 20) + 15;
-        for (let i = 0; i < attemptsCount; i++) {
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'PACMAN', label: 'Pacman', emoji: '👾',
+        scoreGen: () => {
             // Level reached: most die on level 1-2, occasionally reach 4-5
             const r = Math.random();
             const level = r < 0.50 ? 1 : r < 0.75 ? 2 : r < 0.90 ? 3 : r < 0.97 ? 4 : 5;
-            await prisma.attempt.create({
-                data: {
-                    userId: player.id,
-                    score: pacmanScore(level),
-                    rounds: level,
-                    gameType: 'PACMAN',
-                    gameId: crypto.randomUUID(),
-                    quizId: null, trapScore: 0,
-                    createdAt: daysAgo(Math.floor((i / attemptsCount) * 90), Math.floor(Math.random() * 24)),
-                },
-            });
-        }
-        console.log(`  ✅ Pacman — ${player.username} — ${attemptsCount} parties`);
-    }
-    console.log(`✅ Attempts Pacman créés pour ${players.length} joueurs`);
+            return { score: pacmanScore(level), rounds: level };
+        },
+    });
 }
 
 // ─── LUDO ─────────────────────────────────────────────────────────────────────
@@ -820,8 +773,6 @@ export async function seedMilleBornesAttempts(prisma: PrismaClient, players: Use
 // ─── BREAKOUT ─────────────────────────────────────────────────────────────────
 
 export async function seedBreakoutAttempts(prisma: PrismaClient, players: UserLike[]) {
-    console.log('\n🧱 Création des attempts Casse-briques...');
-
     // Breakout: 8×10 grid per level, brick types 1-4 give ~10-40 pts each
     // Level 1: 4 active rows × 8 = 32 bricks ≈ 320-640 pts max
     // Higher levels denser and harder, but more point potential
@@ -833,33 +784,21 @@ export async function seedBreakoutAttempts(prisma: PrismaClient, players: UserLi
         if (r < 0.85) return base + Math.floor(Math.random() * 500) + 550;  // bon
         return base + Math.floor(Math.random() * 600) + 1050;               // très bon
     }
-
-    for (const player of players) {
-        const attemptsCount = Math.floor(Math.random() * 20) + 15;
-        for (let i = 0; i < attemptsCount; i++) {
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'BREAKOUT', label: 'Breakout', emoji: '🧱',
+        scoreGen: () => {
             // Level reached: most die early, few reach 7+
             const r = Math.random();
             const level = r < 0.40 ? 1 : r < 0.65 ? 2 : r < 0.80 ? 3 : r < 0.90 ? 4 : r < 0.95 ? 5 : r < 0.98 ? 6 : 7;
-            await prisma.attempt.create({
-                data: {
-                    userId: player.id,
-                    score: breakoutScore(level),
-                    rounds: level,
-                    gameType: 'BREAKOUT',
-                    gameId: crypto.randomUUID(),
-                    quizId: null, trapScore: 0,
-                    createdAt: daysAgo(Math.floor((i / attemptsCount) * 90), Math.floor(Math.random() * 24)),
-                },
-            });
-        }
-        console.log(`  ✅ Breakout — ${player.username} — ${attemptsCount} parties`);
-    }
-    console.log(`✅ Attempts Breakout créés pour ${players.length} joueurs`);
+            return { score: breakoutScore(level), rounds: level };
+        },
+    });
 }
 
 // ─── Solo-arcade factory ────────────────────────────────────────────────────────
-// Partagée par les jeux solo « meilleur score » (2048, Sutom, Space Invaders,
-// Flappy Bird, Plumber) : N parties par joueur, score selon distribution, sans placement.
+// Partagée par tous les jeux solo « meilleur score » (Tetris, Snake, Pacman, Breakout,
+// 2048, Sutom, Space Invaders, Flappy Bird, Plumber, Match3…) : N parties par joueur,
+// score selon distribution, niveau optionnel via `rounds`, sans placement.
 
 interface SoloGameConfig {
     gameType: string;

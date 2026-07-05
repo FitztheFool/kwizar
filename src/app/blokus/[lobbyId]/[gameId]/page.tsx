@@ -17,7 +17,7 @@ import GamePageHeader from '@/components/GamePageHeader';
 import GameOverModal from '@/components/GameOverModal';
 import SpectatorBadge from '@/components/SpectatorBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 export default function BlokusPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound } = useGamePage();
@@ -97,9 +97,9 @@ export default function BlokusPage() {
             {state.phase === 'finished' && (
                 <GameOverModal
                     asModal
-                    elo={spectator ? null : myElo}
-                    icon={spectator ? <EyeIcon className="w-8 h-8 text-purple-400" /> : <TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
-                    title={spectator ? 'Vous avez observé cette partie' : iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
+                    elo={myElo} spectator={spectator}
+                    icon={<TrophyIcon className={`w-8 h-8 ${iWon ? 'text-amber-500' : 'text-gray-400'}`} />}
+                    title={iWon ? 'Victoire !' : `${myRank + 1}ᵉ place`}
                     subtitle={spectator ? undefined : `Tu poses ${myPlayer ? playerScore(myPlayer) : 0} cases`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

@@ -184,8 +184,8 @@ export default function skyjowGamePage() {
         const MEDAL: Record<number, string> = { 0: '1', 1: '2', 2: '3' };
         return (
             <GameOverModal
-                elo={spectator ? null : myElo}
-                title={spectator ? 'Vous avez observé cette partie' : 'Fin de partie !'}
+                elo={myElo} spectator={spectator}
+                title={'Fin de partie !'}
                 subtitle={`${gameEndData.winnerUsername} remporte la victoire !`}
                 onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                 onLeave={() => router.push('/')}

@@ -19,7 +19,7 @@ import PlayerBoard from '@/components/MilleBornes/PlayerBoard';
 import { GameLogSidebar } from '@/components/GameLog';
 import ScoreBreakdown from '@/components/MilleBornes/ScoreBreakdown';
 import { canPlayNow, canAttackTarget, canRemedyHelp, cardTitle, HAZARD_LABEL, SAFETY_LABEL } from '@/components/MilleBornes/labels';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, BoltIcon } from '@heroicons/react/24/outline';
 import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function MilleBornesPage() {
@@ -323,16 +323,12 @@ export default function MilleBornesPage() {
 
             {finished && (
                 <GameOverModal
-                    elo={state.spectator ? null : myElo}
-                    icon={
-                        state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
-                            : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                    elo={myElo} spectator={state.spectator}
+                    icon={isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : (!is2v2 && isBot(winnerScore)) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                                 : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={
-                        state.spectator ? 'Vous avez observé cette partie'
-                            : is2v2 && winningTeam != null
+                    title={is2v2 && winningTeam != null
                             ? (isWinner ? `Votre équipe (${winningTeam === 0 ? 'Ambre' : 'Verte'}) gagne !` : `L'équipe ${winningTeam === 0 ? 'Ambre' : 'Verte'} gagne !`)
                             : isWinner ? 'Vous avez gagné !'
                                 : isBot(winnerScore) ? 'Le bot gagne !'

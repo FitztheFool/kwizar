@@ -21,7 +21,7 @@ import Dice from '@/components/Ludo/Dice';
 import { COLOR_CLASSES } from '@/components/Ludo/boardLayout';
 import PlayerLabel from '@/components/shared/PlayerLabel';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 export default function LudoPage() {
     const { status, router, me, lobbyId, isNotFound, setIsNotFound, modalDismissed, setModalDismissed } = useGamePage();
@@ -157,14 +157,12 @@ export default function LudoPage() {
 
             {state.phase === 'finished' && winnerLabel && !modalDismissed && (
                 <GameOverModal
-                    elo={spectator ? null : myElo}
-                    icon={
-                        spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
-                        : winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                    elo={myElo} spectator={spectator}
+                    icon={winnerLabel.isMe ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : (typeof state.winner === 'number' && isBot(state.players[state.winner])) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                         : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={spectator ? 'Vous avez observé cette partie' : winnerLabel.title}
+                    title={winnerLabel.title}
                     subtitle={winnerLabel.members}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

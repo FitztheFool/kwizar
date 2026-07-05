@@ -19,7 +19,7 @@ import Board from '@/components/CantStop/Board';
 import SplitChoice from '@/components/CantStop/SplitChoice';
 import { colorForIndex } from '@/components/CantStop/colors';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function CantStopPage() {
@@ -154,13 +154,12 @@ export default function CantStopPage() {
 
             {state.phase === 'ended' && winner && !modalDismissed && (
                 <GameOverModal
-                    elo={state.spectator ? null : myElo}
-                    icon={state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
-                        : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                    elo={myElo} spectator={state.spectator}
+                    icon={isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                         : isBot(winner) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                             : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={state.spectator ? 'Vous avez observé cette partie' : isWinner ? 'Vous avez gagné !' : isBot(winner) ? 'Le bot gagne !' : `${winner?.username} gagne !`}
+                    title={isWinner ? 'Vous avez gagné !' : isBot(winner) ? 'Le bot gagne !' : `${winner?.username} gagne !`}
                     subtitle={`${state.options.columnsToWin} colonnes revendiquées`}
                     onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
                     onLeave={() => router.push('/')}

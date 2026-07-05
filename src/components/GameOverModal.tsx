@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TrophyIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import EloDeltaList from '@/components/shared/EloDeltaList';
 
@@ -21,6 +21,8 @@ interface GameOverModalProps {
     /** Raison de fin (forfait) — affichée de façon uniforme, prioritaire sur `subtitle`. */
     reason?: 'afk' | 'surrender' | 'disconnect' | null;
     elo?: { userId: string; username?: string | null; after: number; delta: number }[] | null;
+    /** Mode spectateur : force l'icône œil + titre « Vous avez observé cette partie », masque l'ELO. */
+    spectator?: boolean;
 }
 
 /** Libellés canoniques des fins de partie — identiques pour tous les jeux. */
@@ -43,8 +45,14 @@ export default function GameOverModal({
     dismissable = true,
     reason,
     elo,
+    spectator = false,
 }: GameOverModalProps) {
     const displaySubtitle = reason ? REASON_LABEL[reason] : subtitle;
+    const displayTitle = spectator ? 'Vous avez observé cette partie' : title;
+    const displayIcon = spectator
+        ? <EyeIcon className="w-8 h-8 text-purple-400" />
+        : (icon ?? <TrophyIcon className="w-8 h-8 text-amber-500" />);
+    const displayElo = spectator ? null : elo;
     // Toujours fermable quand affiché en modal (état interne), même si la page ne passe pas onClose.
     const [dismissed, setDismissed] = useState(false);
     const close = () => { setDismissed(true); onClose?.(); };
@@ -58,7 +66,7 @@ export default function GameOverModal({
             ref={asModal ? trapRef : undefined}
             role={asModal ? 'dialog' : undefined}
             aria-modal={asModal ? true : undefined}
-            aria-label={title}
+            aria-label={displayTitle}
             className="relative glass-strong rounded-2xl p-8 max-w-md w-full mx-4 text-center space-y-4 animate-scale-in"
         >
             {closable && (
@@ -72,13 +80,13 @@ export default function GameOverModal({
             )}
             <div className="flex items-center justify-center">
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    {icon ?? <TrophyIcon className="w-8 h-8 text-amber-500" />}
+                    {displayIcon}
                 </div>
             </div>
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{displayTitle}</h2>
                 {displaySubtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{displaySubtitle}</p>}
-                <EloDeltaList elo={elo} />
+                <EloDeltaList elo={displayElo} />
             </div>
             {children && <div className="text-left w-full">{children}</div>}
             <div className="flex gap-3 pt-2">

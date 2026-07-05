@@ -21,7 +21,7 @@ import RoundRecap from '@/components/Perudo/RoundRecap';
 import { colorForIndex } from '@/components/Perudo/colors';
 import BotBadge from '@/components/shared/BotBadge';
 import { GameLogSidebar } from '@/components/GameLog';
-import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, XCircleIcon, CpuChipIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import SpectatorBadge from '@/components/SpectatorBadge';
 
 export default function PerudoPage() {
@@ -261,16 +261,12 @@ export default function PerudoPage() {
 
             {finished && (
                 <GameOverModal
-                    elo={state.spectator ? null : myElo}
-                    icon={
-                        state.spectator ? <EyeIcon className="w-8 h-8 text-purple-400" />
-                            : isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
+                    elo={myElo} spectator={state.spectator}
+                    icon={isWinner ? <TrophyIcon className="w-8 h-8 text-amber-500" />
                             : isBot(winnerEntry) ? <CpuChipIcon className="w-8 h-8 text-indigo-400" />
                                 : <XCircleIcon className="w-8 h-8 text-red-400" />
                     }
-                    title={
-                        state.spectator ? 'Vous avez observé cette partie'
-                            : isWinner ? 'Vous avez gagné !'
+                    title={isWinner ? 'Vous avez gagné !'
                             : isBot(winnerEntry) ? 'Le bot gagne !'
                                 : `${winnerEntry?.username ?? 'Adversaire'} gagne !`
                     }

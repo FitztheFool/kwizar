@@ -533,7 +533,7 @@ export default function TabooGamePage() {
                 const winner = scores[0];
                 return (
                     <GameOverModal
-                        elo={isSpectator ? null : myElo}
+                        elo={myElo} spectator={isSpectator}
                         title="Fin de partie !"
                         subtitle={isDraw ? 'Égalité !' : `Victoire de l'équipe ${winner[0] === '0' ? 'Ambre' : 'Verte'} !`}
                         onLobby={() => router.push(`/lobby/create/${lobbyId}`)}
