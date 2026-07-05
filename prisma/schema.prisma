@@ -379,7 +379,6 @@ model AppSetting {
 model DuelDeck {
   id        String   @id @default(cuid())
   title     String
-  emoji     String   @default("🆚")
   imageUrl  String?
   isPublic  Boolean  @default(true)
   isBuiltin Boolean  @default(false)

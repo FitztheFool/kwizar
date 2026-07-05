@@ -14,7 +14,6 @@ const emptyItem = (): ItemForm => ({ name: '', imageUrl: '', uploading: false })
 
 export interface DeckPayload {
     title: string;
-    emoji: string;
     isPublic: boolean;
     imageUrl: string | null;
     items: { name: string; imageUrl: string | null }[];
@@ -22,7 +21,6 @@ export interface DeckPayload {
 
 export interface DeckFormInitial {
     title: string;
-    emoji: string;
     isPublic: boolean;
     cover: string;
     items: { name: string; imageUrl: string }[];
@@ -45,7 +43,6 @@ function initialItems(initial?: DeckFormInitial): ItemForm[] {
 
 export default function DeckForm({ heading, submitLabel, cancelHref, initial, onSubmit }: Props) {
     const [title, setTitle] = useState(initial?.title ?? '');
-    const [emoji, setEmoji] = useState(initial?.emoji ?? '🆚');
     const [isPublic, setIsPublic] = useState(initial?.isPublic ?? true);
     const [cover, setCover] = useState(initial?.cover ?? '');
     const [coverUploading, setCoverUploading] = useState(false);
@@ -100,7 +97,6 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
         setSaving(true);
         const err = await onSubmit({
             title: title.trim(),
-            emoji: emoji.trim() || '🆚',
             isPublic,
             imageUrl: coverUrl,
             items: valid.map(i => ({ name: i.name.trim(), imageUrl: i.imageUrl.trim() || null })),
@@ -110,64 +106,53 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
     };
 
     return (
-        <div className="min-h-screen bg-zinc-900 text-white px-4 sm:px-8 py-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white px-4 sm:px-8 py-8">
             <div className="mx-auto max-w-2xl">
-                <Link href={cancelHref} className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-6">
+                <Link href={cancelHref} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6">
                     <ArrowLeftIcon className="w-4 h-4" /> Retour
                 </Link>
 
                 <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">{heading}</h1>
-                <p className="text-gray-400 mb-8">Ajoute un thème et les items à départager. Minimum {MIN_ITEMS}, maximum {MAX_ITEMS}.</p>
+                <p className="text-gray-500 dark:text-gray-400 mb-8">Ajoute un thème et les items à départager. Minimum {MIN_ITEMS}, maximum {MAX_ITEMS}.</p>
 
                 {/* Réglages du deck */}
-                <div className="space-y-4 rounded-xl border border-white/10 bg-zinc-800/50 p-4 mb-6">
-                    <div className="flex gap-3">
-                        <div className="flex-1">
-                            <label className="block text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Titre</label>
-                            <input
-                                value={title}
-                                onChange={e => setTitle(e.target.value)}
-                                placeholder="Le meilleur super-héros"
-                                maxLength={80}
-                                className="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            />
-                        </div>
-                        <div className="w-20">
-                            <label className="block text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Emoji</label>
-                            <input
-                                value={emoji}
-                                onChange={e => setEmoji(e.target.value)}
-                                maxLength={4}
-                                className="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-center text-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            />
-                        </div>
+                <div className="space-y-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-800/50 p-4 mb-6">
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Titre</label>
+                        <input
+                            value={title}
+                            onChange={e => setTitle(e.target.value)}
+                            placeholder="Le meilleur super-héros"
+                            maxLength={80}
+                            className="w-full rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        />
                     </div>
                     {/* Cover (optionnel) — sinon la 1re image d'item sert de couverture */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">
-                            Image de couverture <span className="text-gray-500 normal-case font-normal">(optionnel)</span>
+                        <label className="block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                            Image de couverture <span className="text-gray-400 dark:text-gray-500 normal-case font-normal">(optionnel)</span>
                         </label>
                         <div className="flex items-center gap-2">
-                            <div className="h-12 w-16 shrink-0 overflow-hidden rounded bg-zinc-700 flex items-center justify-center">
+                            <div className="h-12 w-16 shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-zinc-700 flex items-center justify-center">
                                 {cover ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={cover} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                                 ) : (
-                                    <PhotoIcon className="h-5 w-5 text-gray-500" />
+                                    <PhotoIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 )}
                             </div>
                             <input
                                 value={cover}
                                 onChange={e => setCover(e.target.value)}
                                 placeholder="URL de l'image (sinon, 1er item)"
-                                className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1.5 text-xs text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                className="flex-1 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
                             />
                             <input ref={coverInput} type="file" accept="image/*" className="hidden" onChange={e => onPickCover(e.target.files?.[0])} />
                             <button
                                 type="button"
                                 onClick={() => coverInput.current?.click()}
                                 disabled={coverUploading}
-                                className="shrink-0 rounded bg-zinc-700 px-2 py-2 text-xs font-semibold hover:bg-zinc-600 disabled:opacity-50"
+                                className="shrink-0 rounded bg-gray-200 dark:bg-zinc-700 px-2 py-2 text-xs font-semibold hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50"
                                 title="Uploader une couverture"
                             >
                                 {coverUploading ? '…' : <PhotoIcon className="h-4 w-4" />}
@@ -177,7 +162,7 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
 
                     <label className="flex items-center gap-2 text-sm">
                         <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="h-4 w-4 accent-amber-500" />
-                        <span>Public <span className="text-gray-500">— visible par tous dans la liste du Duel</span></span>
+                        <span>Public <span className="text-gray-400 dark:text-gray-500">— visible par tous dans la liste du Duel</span></span>
                     </label>
                 </div>
 
@@ -188,14 +173,14 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
 
                 <div className="space-y-2">
                     {items.map((it, idx) => (
-                        <div key={idx} className="flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-800/40 p-2">
+                        <div key={idx} className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-800/40 p-2">
                             {/* Aperçu */}
-                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-zinc-700 flex items-center justify-center">
+                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-zinc-700 flex items-center justify-center">
                                 {it.imageUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={it.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                                 ) : (
-                                    <PhotoIcon className="h-5 w-5 text-gray-500" />
+                                    <PhotoIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                                 )}
                             </div>
                             {/* Nom + URL */}
@@ -205,13 +190,13 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
                                     onChange={e => setItem(idx, { name: e.target.value })}
                                     placeholder={`Item ${idx + 1}`}
                                     maxLength={60}
-                                    className="w-full rounded border border-white/10 bg-zinc-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                    className="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-amber-400"
                                 />
                                 <input
                                     value={it.imageUrl}
                                     onChange={e => setItem(idx, { imageUrl: e.target.value })}
                                     placeholder="URL de l'image (optionnel)"
-                                    className="w-full rounded border border-white/10 bg-zinc-900 px-2 py-1 text-xs text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                    className="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-1 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
                                 />
                             </div>
                             {/* Upload */}
@@ -226,7 +211,7 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
                                 type="button"
                                 onClick={() => fileInputs.current[idx]?.click()}
                                 disabled={it.uploading}
-                                className="shrink-0 rounded bg-zinc-700 px-2 py-2 text-xs font-semibold hover:bg-zinc-600 disabled:opacity-50"
+                                className="shrink-0 rounded bg-gray-200 dark:bg-zinc-700 px-2 py-2 text-xs font-semibold hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50"
                                 title="Uploader une image"
                             >
                                 {it.uploading ? '…' : <PhotoIcon className="h-4 w-4" />}
@@ -249,12 +234,12 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
                     type="button"
                     onClick={addItem}
                     disabled={items.length >= MAX_ITEMS}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-gray-200 hover:bg-white/5 disabled:opacity-40"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-white/15 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40"
                 >
                     <PlusIcon className="w-4 h-4" /> Ajouter un item
                 </button>
 
-                {error && <p className="mt-4 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-300">{error}</p>}
+                {error && <p className="mt-4 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-600 dark:text-red-300">{error}</p>}
 
                 <div className="mt-6 flex gap-3">
                     <button
@@ -265,7 +250,7 @@ export default function DeckForm({ heading, submitLabel, cancelHref, initial, on
                     >
                         {saving ? 'Enregistrement…' : submitLabel}
                     </button>
-                    <Link href={cancelHref} className="rounded-lg border border-white/15 px-4 py-3 font-semibold text-gray-200 hover:bg-white/5">
+                    <Link href={cancelHref} className="rounded-lg border border-gray-300 dark:border-white/15 px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5">
                         Annuler
                     </Link>
                 </div>

@@ -2,7 +2,7 @@
 // La donnée des catégories intégrées vit dans ./categories (serveur/seed uniquement).
 
 export interface DuelItem { name: string; img: string; }
-export interface DuelCategory { id: string; title: string; emoji: string; img?: string; items: DuelItem[]; }
+export interface DuelCategory { id: string; title: string; img?: string; items: DuelItem[]; }
 
 export const isEmoji = (img: string) => !!img && !img.startsWith('http');
 

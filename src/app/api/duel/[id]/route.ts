@@ -33,7 +33,6 @@ export async function GET(
         return NextResponse.json({
             id: deck.id,
             title: deck.title,
-            emoji: deck.emoji,
             imageUrl: deck.imageUrl,
             isPublic: deck.isPublic,
             isBuiltin: deck.isBuiltin,
@@ -69,7 +68,6 @@ export async function PUT(
 
         const body = await request.json();
         const title = typeof body.title === 'string' ? body.title.trim() : '';
-        const emoji = typeof body.emoji === 'string' && body.emoji.trim() ? body.emoji.trim() : '🆚';
         const isPublic = body.isPublic !== false;
         const imageUrl = typeof body.imageUrl === 'string' && body.imageUrl.trim() ? body.imageUrl.trim() : null;
 
@@ -94,7 +92,6 @@ export async function PUT(
             where: { id },
             data: {
                 title,
-                emoji,
                 imageUrl,
                 isPublic,
                 items: {

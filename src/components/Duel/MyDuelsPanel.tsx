@@ -13,7 +13,6 @@ const PAGE_SIZE = 10;
 interface Deck {
     id: string;
     title: string;
-    emoji: string;
     imageUrl: string | null;
     isPublic: boolean;
     isBuiltin: boolean;
@@ -122,7 +121,7 @@ export default function MyDuelsPanel({ creatorId, title, emptyTitle }: Props = {
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={cover} alt={deck.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                                         ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-zinc-700 to-zinc-900">{deck.emoji}</div>
+                                            <div className="absolute inset-0 flex items-center justify-center text-5xl font-black text-white/90 bg-gradient-to-br from-zinc-700 to-zinc-900">{deck.title.charAt(0).toUpperCase()}</div>
                                         )}
                                         <div className="absolute inset-x-0 bottom-0 bg-black/85 px-2 py-2 text-center">
                                             <div className="text-sm font-bold text-white leading-tight truncate">{deck.title}</div>

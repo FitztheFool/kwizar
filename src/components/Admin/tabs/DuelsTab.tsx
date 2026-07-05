@@ -76,7 +76,7 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                                                     // eslint-disable-next-line @next/next/no-img-element
                                                     <img src={deck.imageUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
                                                 ) : (
-                                                    <span className="text-base">{deck.emoji}</span>
+                                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{deck.title.charAt(0).toUpperCase()}</span>
                                                 )}
                                             </div>
                                             {missing > 0 && (

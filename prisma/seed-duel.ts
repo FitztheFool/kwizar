@@ -22,7 +22,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'pokemon',
         title: 'Le meilleur Pokémon',
-        emoji: '⚡',
         items: [
             poke(25, 'Pikachu'), poke(6, 'Dracaufeu'), poke(9, 'Tortank'), poke(3, 'Florizarre'),
             poke(94, 'Ectoplasma'), poke(149, 'Dracolosse'), poke(448, 'Lucario'), poke(133, 'Évoli'),
@@ -45,7 +44,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'hokage',
         title: 'Le meilleur Hokage de Konoha',
-        emoji: '🍥',
         items: [
             { name: 'Hashirama Senju (1er)', img: 'https://static.wikia.nocookie.net/naruto/images/2/2e/Kid_Hashirama.png/revision/latest?cb=20230322145136' },
             { name: 'Tobirama Senju (2e)', img: 'https://static.wikia.nocookie.net/naruto/images/7/70/Kid_Tobirama.png/revision/latest?cb=20230322145433' },
@@ -62,7 +60,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'streamers',
         title: 'Le meilleur streamer FR',
-        emoji: '🎮',
         items: [
             { name: 'Squeezie', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Squeezie_Zack_en_Roue_Libre_2025.png/330px-Squeezie_Zack_en_Roue_Libre_2025.png' },
             { name: 'Gotaga', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Gotaga_2026.jpg/330px-Gotaga_2026.jpg' },
@@ -85,7 +82,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'nourriture',
         title: 'Le meilleur plat',
-        emoji: '🍔',
         items: [
             { name: 'Pizza', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Pizza_Margherita_stu_spivack.jpg/330px-Pizza_Margherita_stu_spivack.jpg' },
             { name: 'Burger', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/RedDot_Burger.jpg/330px-RedDot_Burger.jpg' },
@@ -110,7 +106,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'bonbons',
         title: 'Le meilleur bonbon',
-        emoji: '🍬',
         items: [
             { name: 'Fraise Tagada', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Fraise_Tagada.jpg/330px-Fraise_Tagada.jpg' },
             { name: 'Ours Haribo', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Oursons_g%C3%A9latine_march%C3%A9_Rouffignac.jpg/330px-Oursons_g%C3%A9latine_march%C3%A9_Rouffignac.jpg' },
@@ -132,7 +127,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'pays',
         title: 'Le plus beau drapeau',
-        emoji: '🏳️',
         items: [
             flag('fr', 'France'), flag('jp', 'Japon'), flag('br', 'Brésil'), flag('it', 'Italie'),
             flag('de', 'Allemagne'), flag('es', 'Espagne'), flag('ca', 'Canada'), flag('us', 'États-Unis'),
@@ -154,7 +148,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'animaux',
         title: "L'animal préféré",
-        emoji: '🐾',
         items: [
             { name: 'Chat', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Cat_August_2010-4.jpg/330px-Cat_August_2010-4.jpg' },
             { name: 'Chien', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Huskiesatrest.jpg/330px-Huskiesatrest.jpg' },
@@ -178,7 +171,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'marvel',
         title: 'Le meilleur film Marvel',
-        emoji: '🦸',
         items: [
             { name: 'Iron Man', img: 'https://upload.wikimedia.org/wikipedia/en/0/02/Iron_Man_%282008_film%29_poster.jpg' },
             { name: 'Avengers', img: 'https://upload.wikimedia.org/wikipedia/en/8/8a/The_Avengers_%282012_film%29_poster.jpg' },
@@ -201,7 +193,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'dc',
         title: 'Le meilleur film DC',
-        emoji: '🦇',
         img: 'https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg',
         items: [
             { name: 'The Dark Knight', img: 'https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg' },
@@ -224,7 +215,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'starwars',
         title: 'Le meilleur de Star Wars',
-        emoji: '🌌',
         img: 'https://upload.wikimedia.org/wikipedia/en/3/3f/The_Empire_Strikes_Back_%281980_film%29.jpg',
         items: [
             { name: 'L\'Empire contre-attaque', img: 'https://upload.wikimedia.org/wikipedia/en/3/3f/The_Empire_Strikes_Back_%281980_film%29.jpg' },
@@ -246,7 +236,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'jeuxvideo',
         title: 'Le meilleur jeu vidéo',
-        emoji: '🎮',
         img: 'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg',
         items: [
             { name: 'The Legend of Zelda: BOTW', img: 'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg' },
@@ -271,7 +260,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'boissons',
         title: 'La meilleure boisson',
-        emoji: '🥤',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/330px-Coca_Cola_Flasche_-_Original_Taste.jpg',
         items: [
             { name: 'Coca-Cola', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/330px-Coca_Cola_Flasche_-_Original_Taste.jpg' },
@@ -295,7 +283,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'desserts',
         title: 'Le meilleur dessert',
-        emoji: '🍰',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Tiramisu_-_Raffaele_Diomede.jpg/330px-Tiramisu_-_Raffaele_Diomede.jpg',
         items: [
             { name: 'Crème brûlée', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/2014_0531_Cr%C3%A8me_br%C3%BBl%C3%A9e_Doi_Mae_Salong_%28cropped%29.jpg/330px-2014_0531_Cr%C3%A8me_br%C3%BBl%C3%A9e_Doi_Mae_Salong_%28cropped%29.jpg' },
@@ -319,7 +306,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'kpop',
         title: 'Le meilleur groupe/artiste K-pop',
-        emoji: '🎤',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg/330px-BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg',
         items: [
             { name: 'BTS', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg/330px-BTS_during_a_White_House_press_conference_May_31%2C_2022_%28cropped%29.jpg' },
@@ -336,7 +322,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'footballeurs',
         title: 'Le meilleur footballeur',
-        emoji: '⚽',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Lionel_Messi_20180626.jpg/330px-Lionel_Messi_20180626.jpg',
         items: [
             { name: 'Lionel Messi', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Lionel_Messi_20180626.jpg/330px-Lionel_Messi_20180626.jpg' },
@@ -352,7 +337,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'animation',
         title: 'Le meilleur film d\'animation',
-        emoji: '🎬',
         img: 'https://upload.wikimedia.org/wikipedia/en/3/3d/The_Lion_King_poster.jpg',
         items: [
             { name: 'Le Roi Lion', img: 'https://upload.wikimedia.org/wikipedia/en/3/3d/The_Lion_King_poster.jpg' },
@@ -368,7 +352,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'monuments',
         title: 'Le plus beau monument',
-        emoji: '🏛️',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/330px-Tour_Eiffel_Wikimedia_Commons.jpg',
         items: [
             { name: 'Tour Eiffel', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/330px-Tour_Eiffel_Wikimedia_Commons.jpg' },
@@ -384,7 +367,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'voitures',
         title: 'La plus belle voiture',
-        emoji: '🏎️',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/2018_Ferrari_488_GTB_4.jpg/330px-2018_Ferrari_488_GTB_4.jpg',
         items: [
             { name: 'Ferrari 488', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/2018_Ferrari_488_GTB_4.jpg/330px-2018_Ferrari_488_GTB_4.jpg' },
@@ -404,7 +386,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'villes',
         title: 'La plus belle ville',
-        emoji: '🌆',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg/330px-La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg',
         items: [
             { name: 'Paris', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg/330px-La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg' },
@@ -423,7 +404,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'series',
         title: 'La meilleure série TV',
-        emoji: '📺',
         img: 'https://image.tmdb.org/t/p/w500/hVVxgGZFR3JaXmkstnG1IR9Qbt6.jpg',
         items: [
             { name: 'Breaking Bad', img: 'https://image.tmdb.org/t/p/w500/hVVxgGZFR3JaXmkstnG1IR9Qbt6.jpg' },
@@ -447,7 +427,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'drapeaux-monde',
         title: 'Le plus beau drapeau du monde',
-        emoji: '🌍',
         items: [
             flag('fr', 'France'), flag('de', 'Allemagne'), flag('it', 'Italie'), flag('es', 'Espagne'),
             flag('pt', 'Portugal'), flag('gb', 'Royaume-Uni'), flag('ie', 'Irlande'), flag('nl', 'Pays-Bas'),
@@ -473,7 +452,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'pokemon-legendaire',
         title: 'Le meilleur Pokémon légendaire',
-        emoji: '✨',
         items: [
             poke(144, 'Artikodin'), poke(145, 'Électhor'), poke(146, 'Sulfura'), poke(150, 'Mewtwo'),
             poke(151, 'Mew'), poke(243, 'Raikou'), poke(244, 'Entei'), poke(245, 'Suicune'),
@@ -493,7 +471,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'catch',
         title: 'Le meilleur catcheur (WWE)',
-        emoji: '🤼',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/John_Cena_by_Gage_Skidmore.jpg/330px-John_Cena_by_Gage_Skidmore.jpg',
         items: [
             { name: 'John Cena', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/John_Cena_by_Gage_Skidmore.jpg/330px-John_Cena_by_Gage_Skidmore.jpg' },
@@ -521,7 +498,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'ufc',
         title: 'Le meilleur combattant UFC',
-        emoji: '🥋',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Conor_McGregor_2025.jpeg/330px-Conor_McGregor_2025.jpeg',
         items: [
             { name: 'Conor McGregor', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Conor_McGregor_2025.jpeg/330px-Conor_McGregor_2025.jpeg' },
@@ -548,7 +524,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'boxe',
         title: 'Le meilleur boxeur',
-        emoji: '🥊',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Muhammad_Ali_NYWTS.jpg/330px-Muhammad_Ali_NYWTS.jpg',
         items: [
             { name: 'Mohamed Ali', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Muhammad_Ali_NYWTS.jpg/330px-Muhammad_Ali_NYWTS.jpg' },
@@ -567,7 +542,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'f1',
         title: 'Le meilleur pilote de F1',
-        emoji: '🏁',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg/330px-Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg',
         items: [
             { name: 'Lewis Hamilton', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg/330px-Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg' },
@@ -591,7 +565,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'nba',
         title: 'Le meilleur joueur NBA',
-        emoji: '🏀',
         img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Michael_Jordan_in_2014.jpg/330px-Michael_Jordan_in_2014.jpg',
         items: [
             { name: 'Michael Jordan', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Michael_Jordan_in_2014.jpg/330px-Michael_Jordan_in_2014.jpg' },
@@ -609,7 +582,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'horreur',
         title: 'Le meilleur film d\'horreur',
-        emoji: '👻',
         img: 'https://image.tmdb.org/t/p/w500/cnniZQGtjK8kh2tsjih4GtkX6bl.jpg',
         items: [
             { name: 'The Shining', img: 'https://image.tmdb.org/t/p/w500/cnniZQGtjK8kh2tsjih4GtkX6bl.jpg' },
@@ -637,7 +609,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'acteurs',
         title: 'Le meilleur acteur',
-        emoji: '🎭',
         img: 'https://image.tmdb.org/t/p/w500/mkdRcVIQl4WZhDf1vXKWTD7HZrZ.jpg',
         items: [
             { name: 'Leonardo DiCaprio', img: 'https://image.tmdb.org/t/p/w500/mkdRcVIQl4WZhDf1vXKWTD7HZrZ.jpg' },
@@ -667,7 +638,6 @@ export const CATEGORIES: DuelCategory[] = [
     {
         id: 'sitcoms',
         title: 'La meilleure sitcom',
-        emoji: '😂',
         img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg',
         items: [
             { name: 'Friends', img: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg' },
@@ -704,7 +674,6 @@ export async function seedDuelDecks(prisma: PrismaClient, ownerId: string) {
         const cover = cat.img ?? cat.items.find(it => !isEmoji(it.img))?.img ?? null;
         const base = {
             title: cat.title,
-            emoji: cat.emoji,
             imageUrl: cover,
             isPublic: true,
             isBuiltin: true,

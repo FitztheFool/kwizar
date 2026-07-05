@@ -15,7 +15,6 @@ type DeckCategory = DuelCategory & { deckId: string; ownerId: string; creatorNam
 interface DeckDTO {
     id: string;
     title: string;
-    emoji: string;
     imageUrl: string | null;
     isPublic: boolean;
     isBuiltin: boolean;
@@ -27,7 +26,6 @@ function deckToCategory(d: DeckDTO): DeckCategory {
     return {
         id: `deck:${d.id}`,
         title: d.title,
-        emoji: d.emoji || '🆚',
         img: d.imageUrl ?? undefined,
         items: d.items.map((i) => ({ name: i.name, img: i.imageUrl ?? '' })),
         deckId: d.id,
@@ -83,7 +81,7 @@ function CategoryCard({ category, matchedItems, onClick, badge, onDelete, author
                     loading="lazy" />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-zinc-700 to-zinc-900">
-                    {category.emoji}
+                    {category.title.charAt(0).toUpperCase()}
                 </div>
             )}
 
@@ -184,18 +182,18 @@ export default function DuelPage() {
         [decks, q],
     );
 
-    // Phase « catégorie » : page sombre type TierMaker, pleine largeur.
+    // Phase « catégorie » : grille type TierMaker, pleine largeur, thème clair/sombre.
     if (phase === 'category') {
         return (
-            <div className="min-h-screen bg-zinc-900 text-white px-4 sm:px-8 py-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white px-4 sm:px-8 py-8">
                 <div className="mx-auto max-w-6xl">
-                    <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-6">
+                    <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6">
                         <ArrowLeftIcon className="w-4 h-4" /> Accueil
                     </Link>
 
                     {/* Titre type « Create a Tier List for Anything » */}
                     <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3">Crée un Duel sur n&apos;importe quoi</h1>
-                    <p className="text-gray-400 max-w-2xl mb-8">
+                    <p className="text-gray-500 dark:text-gray-400 max-w-2xl mb-8">
                         Choisis une catégorie, puis élimine à chaque duel l&apos;item que tu préfères le moins
                         jusqu&apos;à désigner ton favori.
                     </p>
@@ -208,13 +206,13 @@ export default function DuelPage() {
                             value={query}
                             onChange={e => setQuery(e.target.value)}
                             placeholder="Rechercher une catégorie ou un item…"
-                            className="w-full pl-10 pr-10 py-3 text-sm rounded-lg border border-white/10 bg-zinc-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="w-full pl-10 pr-10 py-3 text-sm rounded-lg border border-gray-300 dark:border-white/10 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                         {query && (
                             <button
                                 type="button"
                                 onClick={() => setQuery('')}
-                                className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-7 h-7 text-gray-400 hover:text-white"
+                                className="absolute inset-y-0 right-2 my-auto flex items-center justify-center w-7 h-7 text-gray-400 hover:text-gray-700 dark:hover:text-white"
                                 title="Effacer"
                             >
                                 <XMarkIcon className="w-5 h-5" />

@@ -7,7 +7,6 @@ import DeckForm, { DeckFormInitial, DeckPayload } from '@/components/Duel/DeckFo
 
 interface DeckDTO {
     title: string;
-    emoji: string;
     imageUrl: string | null;
     isPublic: boolean;
     items: { name: string; imageUrl: string | null }[];
@@ -31,7 +30,6 @@ export default function DuelEditPage({ params }: { params: Promise<{ id: string 
                 const d: DeckDTO = await res.json();
                 setInitial({
                     title: d.title,
-                    emoji: d.emoji,
                     isPublic: d.isPublic,
                     cover: d.imageUrl ?? '',
                     items: d.items.map(i => ({ name: i.name, imageUrl: i.imageUrl ?? '' })),

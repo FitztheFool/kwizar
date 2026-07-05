@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
             decks: decks.map((d) => ({
                 id: d.id,
                 title: d.title,
-                emoji: d.emoji,
                 imageUrl: d.imageUrl,
                 isPublic: d.isPublic,
                 isBuiltin: d.isBuiltin,
@@ -87,7 +86,6 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
         const title = typeof body.title === 'string' ? body.title.trim() : '';
-        const emoji = typeof body.emoji === 'string' && body.emoji.trim() ? body.emoji.trim() : '🆚';
         const isPublic = body.isPublic !== false;
         const imageUrl = typeof body.imageUrl === 'string' && body.imageUrl.trim() ? body.imageUrl.trim() : null;
 
@@ -111,7 +109,6 @@ export async function POST(request: NextRequest) {
         const deck = await prisma.duelDeck.create({
             data: {
                 title,
-                emoji,
                 imageUrl,
                 isPublic,
                 creatorId: session.user.id,
