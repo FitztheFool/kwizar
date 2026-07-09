@@ -92,7 +92,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
     const showElo = leaderboard.some(e => e.elo != null);
 
     return (
-        <div className="w-full mx-auto max-w-7xl min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-8">
+        <div className="w-full mx-auto max-w-7xl min-h-screen p-4 md:p-8">
 
             <div className="glass rounded-2xl p-6 md:p-8 w-full">
 

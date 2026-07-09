@@ -235,7 +235,7 @@ export default function UserProfilePage({ username, isOwnProfile = false, initia
     );
 
     if (profileError || !profile) return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">Joueur introuvable</p>
                 <p className="text-gray-500 mb-6">Ce profil n'existe pas ou n'est pas accessible.</p>
@@ -247,7 +247,7 @@ export default function UserProfilePage({ username, isOwnProfile = false, initia
     const displayName = profile.name || username;
 
     return (
-        <main className="flex-1 bg-gray-50 dark:bg-gray-950">
+        <main className="flex-1">
             <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-4">
                 {/* ── Bannière members only ── */}
                 {isOwnProfile && <MembersOnlyBanner isPending={session?.user?.role !== 'GUEST' && session?.user?.status === 'PENDING'} />}
