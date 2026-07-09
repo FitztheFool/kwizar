@@ -45,7 +45,10 @@ export async function POST(
         data: { image: imageUrl },
     });
 
-    return NextResponse.json({ imageUrl: `${imageUrl}?t=${Date.now()}` });
+    // Renvoie exactement l'URL persistée : chaque upload Cloudinary produit un public_id
+    // et une version (/v…/) uniques, donc l'URL change déjà à chaque changement d'avatar.
+    // Y ajouter un ?t= ferait diverger l'état client de celui de la base.
+    return NextResponse.json({ imageUrl });
 }
 
 // Supprime l'avatar personnalisé → retour à l'avatar par défaut (initiales).
