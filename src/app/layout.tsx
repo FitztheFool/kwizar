@@ -13,6 +13,7 @@ import { MessagesProvider } from '@/context/MessagesContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { CommandPaletteProvider } from '@/context/CommandPaletteContext';
 import DeferredOverlays from '@/components/Layout/DeferredOverlays';
+import GridBackground from '@/components/GridBackground';
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="fr" suppressHydrationWarning className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
             <body className={dmSans.className}>
+                <GridBackground />
                 <Providers>
                     <FriendsProvider>
                         <MessagesProvider>

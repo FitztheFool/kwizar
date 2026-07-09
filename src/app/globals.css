@@ -19,24 +19,63 @@
 }
 
 @layer base {
+  /* ── Accent thématisé ─────────────────────────────────────────────────────
+     Light = bleu, Dark = rouge (movix). Toute la marque (boutons, underlines,
+     grille de fond, halos, focus) lit ces variables → un seul point de bascule.
+     Valeurs en "R G B" pour pouvoir composer avec des alphas : rgb(var(--accent) / .3)
+  */
+  :root {
+    --accent-50: 239 246 255;
+    --accent-100: 219 234 254;
+    --accent-200: 191 219 254;
+    --accent-300: 147 197 253;
+    --accent-400: 96 165 250;
+    --accent-500: 37 99 235;   /* blue-600 — accent principal */
+    --accent-600: 29 78 216;
+    --accent-700: 30 64 175;
+    --accent-800: 30 58 138;
+    --accent-900: 23 46 111;
+    --accent: 37 99 235;       /* alias du 500 */
+    --accent-hot: 59 130 246;  /* extrémité claire du dégradé */
+  }
+
+  .dark {
+    --accent-50: 253 236 238;
+    --accent-100: 251 208 213;
+    --accent-200: 245 161 171;
+    --accent-300: 238 107 124;
+    --accent-400: 229 56 79;
+    --accent-500: 229 9 20;    /* movix red */
+    --accent-600: 194 8 18;
+    --accent-700: 155 8 16;
+    --accent-800: 120 10 16;
+    --accent-900: 92 10 15;
+    --accent: 229 9 20;
+    --accent-hot: 255 45 61;
+  }
+
   body {
     @apply min-h-dvh flex flex-col text-gray-900 transition-colors duration-200;
     background-color: #fafaf9; /* stone-50 — neutral app base (matches dashboard) */
+    background-image:
+      radial-gradient(60rem 60rem at 12% -12%, rgb(var(--accent) / 0.06), transparent 60%),
+      radial-gradient(50rem 50rem at 100% -5%, rgb(var(--accent) / 0.04), transparent 55%);
+    background-attachment: fixed;
   }
 
   .dark body {
     @apply text-gray-100;
-    /* Modern dark base with a faint felt→amber radial glow. */
-    background-color: #0b0f14;
+    /* Cinematic near-black base (movix). Le "cadrillage" interactif est fourni par
+       le composant global GridBackground ; ici on ne garde que la base + les halos. */
+    background-color: #08080a;
     background-image:
-      radial-gradient(60rem 60rem at 15% -10%, rgba(42, 128, 84, 0.10), transparent 60%),
-      radial-gradient(50rem 50rem at 100% 0%, rgba(217, 119, 6, 0.08), transparent 55%);
-    background-attachment: fixed;
+      radial-gradient(60rem 60rem at 12% -12%, rgb(var(--accent) / 0.12), transparent 60%),
+      radial-gradient(50rem 50rem at 100% -5%, rgb(var(--accent) / 0.08), transparent 55%);
   }
 
   /* Visible keyboard-focus indicator across the app (mouse clicks unaffected). */
   :focus-visible {
-    outline: 2px solid #f59e0b; /* amber-500 — brand accent, visible on both themes */
+    outline: 2px solid rgb(var(--accent));
     outline-offset: 2px;
   }
 }
@@ -91,6 +130,17 @@
 
   .card {
     @apply glass rounded-2xl p-6;
+  }
+
+  /* Movix-style section header: title with a short red underline accent. */
+  .section-title {
+    @apply relative inline-flex items-center gap-2 pb-2 font-black tracking-tight;
+  }
+  .section-title::after {
+    content: '';
+    @apply absolute left-0 -bottom-0 h-[3px] w-10 rounded-full;
+    background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-hot)));
+    box-shadow: 0 0 12px rgb(var(--accent) / 0.55);
   }
 }
 

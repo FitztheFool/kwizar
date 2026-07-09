@@ -3,14 +3,11 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr';
-import Link from 'next/link';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
 import GameCard from '@/components/GameCard';
 import GameCombobox from '@/components/GameCombobox';
 import TrendingCarousel from '@/components/TrendingCarousel';
-import { PlayIcon, PlusIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-
-type Stats = { parties: number; points: number };
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 /** Normalise pour une recherche insensible aux accents/casse (comme admin#games). */
 const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -83,16 +80,7 @@ function GameSection({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-function fmt(n: number): string {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0', '') + 'M';
-    if (n >= 1_000) return (n / 1_000).toFixed(1).replace('.0', '') + 'k';
-    return n.toString();
-}
-
 export default function HomePage() {
-    const [lobbyCode, setCode] = useState('');
-    const { data: stats } = useSWR<Stats>('/api/stats', fetcher);
-    const { data: lobbyCount } = useSWR<{ count: number | null }>('/api/lobby/count', fetcher, { refreshInterval: 15_000 });
     const { data: enabledData } = useSWR<{ enabled: string[] }>('/api/games/enabled', fetcher);
 
     // Tant que la liste n'est pas chargée, on n'exclut rien (évite un flash vide).
@@ -147,64 +135,14 @@ export default function HomePage() {
     ].map(([key, g]) => ({ key, label: g.label, gameType: g.gameType }))
         .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
-    useEffect(() => { setCode(crypto.randomUUID()); }, []);
-
     return (
         <div className="min-h-screen">
 
-            {/* ── Hero (modern dark / glassy) ──────────────────────────────────── */}
-            <section className="relative overflow-hidden border-b border-white/5">
-                {/* Dark base + accent glows */}
-                <div className="absolute inset-0 -z-10 bg-gradient-to-br from-felt-900 via-stone-950 to-stone-950" />
-                <div className="absolute -left-24 -top-24 -z-10 h-96 w-96 rounded-full bg-felt-500/20 blur-3xl" />
-                <div className="absolute -top-10 right-0 -z-10 h-80 w-80 rounded-full bg-primary-500/20 blur-3xl" />
-                <div className="relative mx-auto max-w-5xl px-6 py-12 md:py-20">
-                    <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-                        {/* Left: title + CTAs */}
-                        <div>
-                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary-300/80">
-                                La table de jeu qui ne dort jamais
-                            </p>
-                            <h1 className="mb-5 font-display text-4xl font-bold leading-[1.02] tracking-tight text-white md:text-6xl">
-                                Jouez. Rivalisez.{' '}
-                                <span className="bg-accent-gradient bg-clip-text text-transparent">Grimpez.</span>
-                            </h1>
-                            <div className="flex flex-wrap gap-3">
-                                <Link href="/lobby/all"
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent-gradient px-5 py-2.5 text-sm font-bold text-white shadow-glow transition hover:brightness-110 active:scale-[0.98]">
-                                    <PlayIcon className="h-4 w-4" />Rejoindre une partie
-                                </Link>
-                                <Link href={`/lobby/create/${lobbyCode}`}
-                                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.06] px-5 py-2.5 text-sm font-bold text-white backdrop-blur-xl transition hover:bg-white/[0.1] active:scale-[0.98]">
-                                    <PlusIcon className="h-4 w-4" />Créer un lobby
-                                </Link>
-                            </div>
-                        </div>
-                        {/* Right: live stats — glass tokens */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:shrink-0">
-                            {([
-                                { value: lobbyCount?.count != null ? fmt(lobbyCount.count) : null, label: 'lobbies en cours' },
-                                { value: fmt(nbJeux), label: 'jeux' },
-                                { value: stats ? fmt(stats.parties) : null, label: 'parties' },
-                                { value: stats ? fmt(stats.points) : null, label: 'points' },
-                            ] as const).map(({ value, label }) => (
-                                <div key={label} className="flex min-w-[90px] flex-col items-center justify-center gap-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-center shadow-glass backdrop-blur-xl">
-                                    <span className="font-display text-2xl font-bold text-white">
-                                        {value ?? <span className="text-white/30">—</span>}
-                                    </span>
-                                    <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">{label}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             {/* ── Games by mode ──────────────────────────────────────────────── */}
-            <section className="max-w-5xl mx-auto px-6 py-10">
+            <section className="max-w-5xl mx-auto px-6 pt-10 pb-10">
                 <TrendingCarousel />
 
-                <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight tracking-tight mb-5">Nos jeux</h2>
+                <h2 className="section-title text-3xl md:text-4xl text-gray-900 dark:text-white leading-tight mb-6">Nos jeux</h2>
 
                 {/* Recherche (combobox autocomplétée) + onglets de filtre par mode */}
                 <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

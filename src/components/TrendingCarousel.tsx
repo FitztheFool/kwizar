@@ -38,9 +38,9 @@ export default function TrendingCarousel() {
 
     return (
         <section className="mb-10">
-            <div className="mb-4 flex items-center gap-2">
-                <FireIcon className="h-5 w-5 text-clay-500" />
-                <h2 className="text-lg font-black tracking-tight text-gray-900 dark:text-white">En tendances</h2>
+            <div className="mb-5 flex items-center gap-2">
+                <FireIcon className="h-5 w-5 text-primary-500" />
+                <h2 className="section-title text-lg text-gray-900 dark:text-white">En tendances</h2>
             </div>
 
             <div
@@ -77,7 +77,7 @@ export default function TrendingCarousel() {
                                 transform: `translateX(${translate}%) scale(${scale})`,
                                 opacity,
                                 zIndex: z,
-                                boxShadow: isCenter ? '0 18px 50px -12px rgba(180,84,65,0.55)' : '0 8px 24px -12px rgba(0,0,0,0.5)',
+                                boxShadow: isCenter ? '0 18px 55px -12px rgb(var(--accent) / 0.6)' : '0 8px 24px -12px rgba(0,0,0,0.5)',
                             }}
                             tabIndex={isCenter ? 0 : -1}
                         >
@@ -87,7 +87,7 @@ export default function TrendingCarousel() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
                             {isCenter && (
-                                <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-clay-500/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-lg">
+                                <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary-600/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-lg">
                                     <FireIcon className="h-3 w-3" /> Tendance
                                 </span>
                             )}
@@ -97,7 +97,7 @@ export default function TrendingCarousel() {
                                 {isCenter && (
                                     <div className="mt-0.5 flex items-center gap-3 text-[11px] text-gray-200">
                                         <span>{g.players}</span>
-                                        <span className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all font-bold text-clay-300">Jouer →</span>
+                                        <span className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all font-bold text-primary-300">Jouer →</span>
                                     </div>
                                 )}
                             </div>
@@ -114,7 +114,7 @@ export default function TrendingCarousel() {
                             key={k}
                             onClick={() => setIdx(i)}
                             aria-label={`Aller au jeu ${i + 1}`}
-                            className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-clay-500' : 'w-1.5 bg-gray-300 dark:bg-white/20 hover:bg-gray-400'}`}
+                            className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-primary-500' : 'w-1.5 bg-gray-300 dark:bg-white/20 hover:bg-gray-400'}`}
                         />
                     ))}
                 </div>

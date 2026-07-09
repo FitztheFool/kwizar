@@ -13,18 +13,19 @@ module.exports = {
         extend: {
             colors: {
                 gray: colors.stone,
-                // ── Brand "Kwizar" — amber / brass primary ──
+                // ── Brand "Kwizar" — accent thématisé (bleu en light, rouge movix en dark).
+                // Les valeurs vivent dans globals.css (:root / .dark) → un seul point de bascule.
                 primary: {
-                    50: '#fdf6ec',
-                    100: '#f9e7c9',
-                    200: '#f2cd91',
-                    300: '#eab059',
-                    400: '#e29632',
-                    500: '#d97706',
-                    600: '#bd6306',
-                    700: '#9a5009',
-                    800: '#7c400d',
-                    900: '#67360f',
+                    50: 'rgb(var(--accent-50) / <alpha-value>)',
+                    100: 'rgb(var(--accent-100) / <alpha-value>)',
+                    200: 'rgb(var(--accent-200) / <alpha-value>)',
+                    300: 'rgb(var(--accent-300) / <alpha-value>)',
+                    400: 'rgb(var(--accent-400) / <alpha-value>)',
+                    500: 'rgb(var(--accent-500) / <alpha-value>)',
+                    600: 'rgb(var(--accent-600) / <alpha-value>)',
+                    700: 'rgb(var(--accent-700) / <alpha-value>)',
+                    800: 'rgb(var(--accent-800) / <alpha-value>)',
+                    900: 'rgb(var(--accent-900) / <alpha-value>)',
                 },
                 // ── Felt green (multiplayer / success accents) ──
                 felt: {
@@ -66,12 +67,14 @@ module.exports = {
                 // Soft layered elevation for glass surfaces (dark-first).
                 glass: '0 1px 0 0 rgba(255,255,255,0.05) inset, 0 8px 30px -12px rgba(0,0,0,0.6)',
                 'glass-lg': '0 1px 0 0 rgba(255,255,255,0.06) inset, 0 24px 60px -20px rgba(0,0,0,0.7)',
-                glow: '0 0 0 1px rgba(217,119,6,0.25), 0 8px 30px -8px rgba(217,119,6,0.35)',
+                glow: '0 0 0 1px rgb(var(--accent) / 0.3), 0 8px 30px -8px rgb(var(--accent) / 0.45)',
                 'glow-felt': '0 0 0 1px rgba(42,128,84,0.3), 0 8px 30px -8px rgba(42,128,84,0.4)',
+                'glow-accent': '0 0 0 1px rgb(var(--accent) / 0.35), 0 10px 40px -10px rgb(var(--accent) / 0.55)',
             },
             backgroundImage: {
-                'accent-gradient': 'linear-gradient(135deg, #2a8054 0%, #d97706 100%)',
-                'accent-gradient-soft': 'linear-gradient(135deg, rgba(42,128,84,0.18) 0%, rgba(217,119,6,0.18) 100%)',
+                // Rampe d'accent : accent → accent-hot (rouge movix en dark, bleu en light).
+                'accent-gradient': 'linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hot)) 100%)',
+                'accent-gradient-soft': 'linear-gradient(135deg, rgb(var(--accent) / 0.20) 0%, rgb(var(--accent-hot) / 0.14) 100%)',
                 'glass-sheen': 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%)',
             },
             keyframes: {
