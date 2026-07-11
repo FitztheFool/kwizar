@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { hash } from 'bcryptjs';
-import { randomBytes } from 'crypto';
 import { sendVerificationEmail } from '@/lib/mail';
+import { issueVerificationToken } from '@/lib/verificationToken';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function PATCH(req: NextRequest) {
@@ -73,14 +73,7 @@ export async function PATCH(req: NextRequest) {
     });
 
     // Créer le token de vérification et envoyer l'email
-    const token = randomBytes(32).toString('hex');
-    await prisma.verificationToken.create({
-        data: {
-            identifier: email,
-            token,
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-    });
+    const token = await issueVerificationToken(email, 24 * 60 * 60 * 1000);
 
     await sendVerificationEmail(email, token).catch(err =>
         console.error('Erreur envoi email de vérification (claim):', err)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
 import prisma from '@/lib/prisma';
 import { sendPasswordResetEmail } from '@/lib/mail';
+import { issueVerificationToken } from '@/lib/verificationToken';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -26,13 +26,9 @@ export async function POST(req: NextRequest) {
     const email = user?.email;
 
     if (user && email && user.status !== 'BANNED') {
-        // Supprimer les anciens tokens pour cet email
-        await prisma.verificationToken.deleteMany({ where: { identifier: email } });
-
-        const token = randomBytes(32).toString('hex');
-        await prisma.verificationToken.create({
-            data: { identifier: email, token, expires: new Date(Date.now() + 60 * 60 * 1000) },
-        });
+        // Purge les anciens tokens et n'en persiste que l'empreinte : le token en
+        // clair ne quitte le serveur que par email.
+        const token = await issueVerificationToken(email, 60 * 60 * 1000);
 
         await sendPasswordResetEmail(email, token).catch(err =>
             console.error('[forgot-password] sendPasswordResetEmail error:', err)

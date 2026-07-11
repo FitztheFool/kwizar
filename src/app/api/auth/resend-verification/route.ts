@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
 import prisma from '@/lib/prisma';
 import { sendVerificationEmail } from '@/lib/mail';
+import { issueVerificationToken } from '@/lib/verificationToken';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -25,16 +25,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
     }
 
-    await prisma.verificationToken.deleteMany({ where: { identifier: user.email } });
-
-    const token = randomBytes(32).toString('hex');
-    await prisma.verificationToken.create({
-        data: {
-            identifier: user.email,
-            token,
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-    });
+    const token = await issueVerificationToken(user.email, 24 * 60 * 60 * 1000);
 
     try {
         await sendVerificationEmail(user.email, token);

@@ -1,8 +1,8 @@
-import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireRegistered } from '@/lib/authGuard';
 import { sendVerificationEmail } from '@/lib/mail';
+import { issueVerificationToken } from '@/lib/verificationToken';
 
 export async function PATCH(
     req: NextRequest,
@@ -40,11 +40,7 @@ export async function PATCH(
         throw e;
     }
 
-    await prisma.verificationToken.deleteMany({ where: { identifier: trimmed } });
-    const token = randomBytes(32).toString('hex');
-    await prisma.verificationToken.create({
-        data: { identifier: trimmed, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
-    });
+    const token = await issueVerificationToken(trimmed, 24 * 60 * 60 * 1000);
     await sendVerificationEmail(trimmed, token).catch(err =>
         console.error('[update-email] sendVerificationEmail failed:', err)
     );
