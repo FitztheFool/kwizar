@@ -3,9 +3,13 @@ import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
 import { GAME_CONFIG, gameIconUrl, gameCoverUrl, type GameType as GameKey } from '@/lib/gameConfig';
 import { GAME_ENUM_BY_KEY, ALL_GAME_ENUMS } from '@/lib/gameSettings';
+import { sanitizeContentHtml } from '@/lib/sanitizeHtml';
 
 // Champs de contenu surchargeables par l'admin (override en base sinon défaut config).
 const OVERRIDE_FIELDS = ['imageUrl', 'coverUrl', 'label', 'description', 'rules', 'score', 'players', 'scoreLabel'] as const;
+
+// Sous-ensemble rendu via dangerouslySetInnerHTML → assaini à l'écriture.
+const HTML_FIELDS = new Set<string>(['description', 'rules', 'score']);
 
 // Liste des jeux avec leurs valeurs effectives + défauts + drapeaux « custom » (admin uniquement).
 export async function GET() {
@@ -93,7 +97,10 @@ export async function PATCH(req: NextRequest) {
     if (typeof enabled === 'boolean') update.enabled = enabled;
     for (const field of OVERRIDE_FIELDS) {
         const value = body[field];
-        if (value !== undefined) update[field] = (typeof value === 'string' ? value.trim() : '') || null;
+        if (value === undefined) continue;
+        const trimmed = typeof value === 'string' ? value.trim() : '';
+        // Ces trois champs sont rendus en HTML brut sur la page de classement.
+        update[field] = (HTML_FIELDS.has(field) ? sanitizeContentHtml(trimmed) : trimmed) || null;
     }
 
     if (Object.keys(update).length === 0) {

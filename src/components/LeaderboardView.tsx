@@ -12,6 +12,7 @@ import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import GameIcon from '@/components/GameIcon';
+import { sanitizeContentHtml } from '@/lib/sanitizeHtml';
 import type { LeaderboardData } from '@/lib/leaderboard';
 import { BookOpenIcon, ChartBarIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 
@@ -141,7 +142,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</h2>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
-                                dangerouslySetInnerHTML={{ __html: config?.description ?? GAME_CONFIG[game].description }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(config?.description ?? GAME_CONFIG[game].description) }}
                             />
                         </div>
                     )}
@@ -150,7 +151,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><BookOpenIcon className="w-3.5 h-3.5" /> Règles</p>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
-                                dangerouslySetInnerHTML={{ __html: config?.rules ?? GAME_CONFIG[game].rules ?? '' }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(config?.rules ?? GAME_CONFIG[game].rules ?? '') }}
                             />
                         </div>
                     )}
@@ -159,7 +160,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><ChartBarIcon className="w-3.5 h-3.5" /> Calcul des points</p>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
-                                dangerouslySetInnerHTML={{ __html: config?.score ?? GAME_CONFIG[game].score ?? '' }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeContentHtml(config?.score ?? GAME_CONFIG[game].score ?? '') }}
                             />
                         </div>
                     )}
