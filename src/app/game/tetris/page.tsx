@@ -8,6 +8,7 @@ import { W, H } from '@/lib/tetris/constants';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
+import { gameThemeVars } from '@/lib/theme/games';
 
 export default function TetrisPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,21 +26,10 @@ export default function TetrisPage() {
     } = useTetris(canvasRef);
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+        <div style={gameThemeVars('tetris')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <SoloGameHeader leaderboardHref="/leaderboard/tetris">
-                <span className="text-purple-600/40 text-xs">▼▼</span>
-                <span
-                    className="text-purple-600 dark:text-purple-400 font-arcade text-base sm:text-lg uppercase"
-                    style={{
-                        textShadow: '0 0 20px rgba(192,132,252,0.5), 0 0 40px rgba(192,132,252,0.2)',
-                    }}
-                >
-                    TETRIS
-                </span>
-                <span className="text-purple-600/40 text-xs">▼▼</span>
-            </SoloGameHeader>
+            <SoloGameHeader game="tetris" title="TETRIS" ornament="▼▼" />
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] mb-4 grid grid-cols-5 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
@@ -51,8 +41,7 @@ export default function TetrisPage() {
 
             {/* ── Canvas ── */}
             <div
-                className="relative rounded-2xl overflow-hidden"
-                style={{ boxShadow: '0 0 0 1px rgba(192,132,252,0.2), 0 0 40px rgba(192,132,252,0.08)' }}
+                className="relative rounded-2xl overflow-hidden shadow-game-glow"
             >
                 <canvas
                     ref={canvasRef}
@@ -63,19 +52,14 @@ export default function TetrisPage() {
                 />
 
                 <SoloGameOverlay
+                    game="tetris"
                     phase={phase}
                     displayScore={displayScore}
                     displayLevel={displayLevel}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/tetris"
                     onReplay={startGame}
-                    bgClassName="bg-black/80 backdrop-blur-sm"
-                    scoreClassName="text-white"
-                    newBestClassName="text-purple-400"
-                    replayClassName="px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm rounded-xl transition-all"
-                    leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                 />
             </div>
 
@@ -84,8 +68,7 @@ export default function TetrisPage() {
                 <div className="mt-6 flex flex-col items-center gap-3">
                     <button
                         onClick={startGame}
-                        className="flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
-                        style={{ boxShadow: '0 4px 24px rgba(250,204,21,0.35)' }}
+                        className="flex items-center gap-3 px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
                     >
                         <TetrisBlockIcon />
                         JOUER

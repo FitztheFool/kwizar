@@ -7,6 +7,7 @@ import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
+import { gameThemeVars } from '@/lib/theme/games';
 
 // 6 gemmes : couleur + forme (lisible pour daltoniens).
 const GEMS: { bg: string; glyph: string }[] = [
@@ -22,12 +23,8 @@ export default function Match3Page() {
     const { board, selected, timeLeft, phase, displayScore, bestScore, globalBest, isNewBest, submitState, session, startGame, select } = useMatch3();
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
-            <SoloGameHeader leaderboardHref="/leaderboard/match3">
-                <span className="text-fuchsia-500/40 text-xs tracking-widest">◆◆</span>
-                <span className="text-fuchsia-600 dark:text-fuchsia-400 font-black text-2xl tracking-[0.04em]">Aligne-3</span>
-                <span className="text-fuchsia-500/40 text-xs tracking-widest">◆◆</span>
-            </SoloGameHeader>
+        <div style={gameThemeVars('match3')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+            <SoloGameHeader game="match3" title="Aligne-3" ornament="◆◆" />
 
             <div className="w-full max-w-[420px] mb-4 grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" align="left" />
@@ -61,26 +58,21 @@ export default function Match3Page() {
                 </div>
 
                 <SoloGameOverlay
+                    game="match3"
                     phase={phase}
                     displayScore={displayScore}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/match3"
                     onReplay={startGame}
                     title="Game Over"
-                    titleClassName="text-fuchsia-400"
-                    bgClassName="bg-black/80 backdrop-blur-sm rounded-2xl"
-                    replayClassName="px-5 py-2.5 bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold text-sm rounded-xl transition-all"
-                    leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                 />
             </div>
 
             {phase === 'idle' && (
                 <div className="mt-6 flex flex-col items-center gap-4">
                     <button onClick={startGame}
-                        className="px-10 py-4 bg-fuchsia-500 hover:bg-fuchsia-400 active:scale-95 text-white font-black text-lg rounded-2xl transition-all"
-                        style={{ boxShadow: '0 4px 24px rgba(217,70,239,0.35)' }}>
+                        className="px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-white font-black text-lg rounded-2xl transition-all">
                         JOUER
                     </button>
                     <p className="text-gray-500 dark:text-white/30 text-xs tracking-wide text-center">

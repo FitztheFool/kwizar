@@ -8,6 +8,7 @@ import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
+import { gameThemeVars } from '@/lib/theme/games';
 
 const KEYBOARD = [
     ['A', 'Z', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -46,12 +47,8 @@ export default function SutomPage() {
     const triesUsed = rows.length;
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
-            <SoloGameHeader leaderboardHref="/leaderboard/sutom">
-                <span className="text-red-500/40 text-xs tracking-widest">▮</span>
-                <span className="text-red-600 dark:text-red-400 font-black text-2xl tracking-[0.2em] uppercase">SUTOM</span>
-                <span className="text-red-500/40 text-xs tracking-widest">▮</span>
-            </SoloGameHeader>
+        <div style={gameThemeVars('sutom')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+            <SoloGameHeader game="sutom" title="SUTOM" />
 
             <div className="w-full max-w-[440px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="ESSAIS" value={phase === 'idle' ? '—' : `${triesUsed}/${MAX_TRIES}`} color="text-gray-900 dark:text-white" align="left" />
@@ -86,8 +83,7 @@ export default function SutomPage() {
                         Devinez le mot mystère en {MAX_TRIES} essais. La première lettre et la longueur sont données.
                     </p>
                     <button onClick={start} disabled={loading}
-                        className="px-10 py-4 bg-red-600 hover:bg-red-500 active:scale-95 disabled:opacity-60 text-white font-black text-lg rounded-2xl transition-all"
-                        style={{ boxShadow: '0 4px 24px rgba(220,38,38,0.35)' }}>
+                        className="px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 disabled:opacity-60 text-white font-black text-lg rounded-2xl transition-all">
                         {loading ? 'Chargement…' : 'JOUER'}
                     </button>
                 </div>
@@ -146,18 +142,14 @@ export default function SutomPage() {
                     )}
 
                     <SoloGameOverlay
+                    game="sutom"
                         phase={phase}
                         displayScore={displayScore}
                         isNewBest={isNewBest}
                         submitState={submitState}
                         session={session}
-                        leaderboardHref="/leaderboard/sutom"
                         onReplay={start}
                         title={won ? '🎉 Gagné !' : 'Perdu'}
-                        titleClassName={won ? 'text-red-500' : 'text-gray-400'}
-                        bgClassName="bg-black/80 backdrop-blur-sm rounded-2xl"
-                        replayClassName="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition-all"
-                        leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                     >
                         {!won && <div className="text-sm text-gray-300">Le mot était : <span className="font-black text-white tracking-wider">{answer}</span></div>}
                     </SoloGameOverlay>

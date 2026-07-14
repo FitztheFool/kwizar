@@ -8,6 +8,7 @@ import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
 import AdminDebugControl from '@/components/SoloGame/AdminDebugControl';
+import { gameThemeVars } from '@/lib/theme/games';
 
 export default function SpaceInvadersPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,15 +21,8 @@ export default function SpaceInvadersPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
-            <SoloGameHeader leaderboardHref="/leaderboard/space_invaders">
-                <span className="text-emerald-500/40 text-xs tracking-widest">▾▾▾</span>
-                <span className="text-emerald-500 dark:text-emerald-400 font-arcade text-base sm:text-lg uppercase"
-                    style={{ textShadow: '0 0 20px rgba(16,185,129,0.5)' }}>
-                    INVADERS
-                </span>
-                <span className="text-emerald-500/40 text-xs tracking-widest">▾▾▾</span>
-            </SoloGameHeader>
+        <div style={gameThemeVars('space_invaders')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+            <SoloGameHeader game="space_invaders" title="INVADERS" ornament="▾▾▾" />
 
             <div className="w-full max-w-[420px] mb-2 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<StarIcon className="w-3 h-3 text-yellow-500" />} label="SCORE" value={displayScore} color="text-gray-900 dark:text-white" align="left" />
@@ -44,23 +38,18 @@ export default function SpaceInvadersPage() {
                 <span className="font-bold tracking-widest uppercase">Vague {wave}</span>
             </div>
 
-            <div className="relative w-full max-w-[420px] rounded-2xl overflow-hidden"
-                style={{ boxShadow: '0 0 0 1px rgba(16,185,129,0.2), 0 0 40px rgba(16,185,129,0.08)' }}>
+            <div className="relative w-full max-w-[420px] rounded-2xl overflow-hidden shadow-game-glow">
                 <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} className="block w-full bg-[#0a0a14]" style={{ touchAction: 'none' }} />
 
                 <SoloGameOverlay
+                    game="space_invaders"
                     phase={phase}
                     displayScore={displayScore}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/space_invaders"
                     onReplay={() => startGame(debugLevel)}
                     title="Game Over"
-                    titleClassName="text-emerald-400"
-                    bgClassName="bg-black/80 backdrop-blur-sm"
-                    replayClassName="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm rounded-xl transition-all"
-                    leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                 />
             </div>
 
@@ -68,8 +57,7 @@ export default function SpaceInvadersPage() {
                 <div className="mt-6 flex flex-col items-center gap-4">
                     {isAdmin && <AdminDebugControl value={debugLevel} onChange={setDebugLevel} />}
                     <button onClick={() => startGame(debugLevel)}
-                        className="px-10 py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-black text-lg rounded-2xl transition-all"
-                        style={{ boxShadow: '0 4px 24px rgba(16,185,129,0.35)' }}>
+                        className="px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-black font-black text-lg rounded-2xl transition-all">
                         JOUER
                     </button>
                     <p className="text-gray-400 dark:text-white/25 text-xs tracking-wide text-center">

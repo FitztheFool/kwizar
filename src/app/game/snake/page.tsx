@@ -9,6 +9,7 @@ import { COLS, ROWS, CELL } from '@/lib/snake/constants';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
+import { gameThemeVars } from '@/lib/theme/games';
 
 export default function SnakePage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,21 +27,10 @@ export default function SnakePage() {
     } = useSnake(canvasRef);
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+        <div style={gameThemeVars('snake')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <SoloGameHeader leaderboardHref="/leaderboard/snake">
-                <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
-                <span
-                    className="text-green-600 dark:text-green-400 font-arcade text-base sm:text-lg uppercase"
-                    style={{
-                        textShadow: '0 0 20px rgba(34,197,94,0.5), 0 0 40px rgba(34,197,94,0.2)',
-                    }}
-                >
-                    SNAKE
-                </span>
-                <span className="text-green-600/40 text-xs tracking-widest">~~~</span>
-            </SoloGameHeader>
+            <SoloGameHeader game="snake" title="SNAKE" ornament="~~~" />
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
@@ -50,8 +40,7 @@ export default function SnakePage() {
 
             {/* ── Canvas ── */}
             <div
-                className="relative w-full max-w-[440px] rounded-2xl overflow-hidden"
-                style={{ boxShadow: '0 0 0 1px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)' }}
+                className="relative w-full max-w-[440px] rounded-2xl overflow-hidden shadow-game-glow"
             >
                 <canvas
                     ref={canvasRef}
@@ -62,18 +51,13 @@ export default function SnakePage() {
                 />
 
                 <SoloGameOverlay
+                    game="snake"
                     phase={phase}
                     displayScore={displayScore}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/snake"
                     onReplay={startGame}
-                    bgClassName="bg-black/80 backdrop-blur-sm"
-                    scoreClassName="text-white"
-                    newBestClassName="text-green-400"
-                    replayClassName="px-5 py-2.5 bg-green-500 hover:bg-green-400 text-black font-bold text-sm rounded-xl transition-all"
-                    leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                 >
                     <ColorPicker value={colorIndex} onChange={setColorIndex} />
                 </SoloGameOverlay>
@@ -85,8 +69,7 @@ export default function SnakePage() {
                     <ColorPicker value={colorIndex} onChange={setColorIndex} />
                     <button
                         onClick={startGame}
-                        className="flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
-                        style={{ boxShadow: '0 4px 24px rgba(250,204,21,0.35)' }}
+                        className="flex items-center gap-3 px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
                     >
                         <SnakeIcon />
                         JOUER

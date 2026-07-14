@@ -10,6 +10,7 @@ import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
 import AdminDebugControl from '@/components/SoloGame/AdminDebugControl';
+import { gameThemeVars } from '@/lib/theme/games';
 
 const POWER_LEGEND = [
     { bonus: true,  src: '/breakout/bonus/WI.png', label: 'Palette large',   desc: '+50% largeur' },
@@ -73,21 +74,10 @@ export default function BreakoutPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+        <div style={gameThemeVars('breakout')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <SoloGameHeader leaderboardHref="/leaderboard/breakout" maxWidthClass="max-w-[440px] md:max-w-[620px]">
-                <span className="text-cyan-600/40 text-xs">▸▸</span>
-                <span
-                    className="text-cyan-600 dark:text-cyan-400 font-arcade text-base sm:text-lg uppercase"
-                    style={{
-                        textShadow: '0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.2)',
-                    }}
-                >
-                    BREAKOUT
-                </span>
-                <span className="text-cyan-600/40 text-xs">◂◂</span>
-            </SoloGameHeader>
+            <SoloGameHeader game="breakout" title="BREAKOUT" ornament="▸▸" maxWidthClass="max-w-[440px] md:max-w-[620px]" />
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] md:max-w-[620px] mb-4 grid grid-cols-5 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
@@ -101,8 +91,7 @@ export default function BreakoutPage() {
             <div className="relative w-full max-w-[400px] flex flex-col items-center gap-4">
 
                 <div
-                    className="relative w-full rounded-2xl overflow-hidden"
-                    style={{ boxShadow: '0 0 0 1px rgba(34,211,238,0.2), 0 0 40px rgba(34,211,238,0.08)' }}
+                    className="relative w-full rounded-2xl overflow-hidden shadow-game-glow"
                 >
                     <canvas
                         ref={canvasRef}
@@ -113,19 +102,14 @@ export default function BreakoutPage() {
                     />
 
                     <SoloGameOverlay
+                    game="breakout"
                         phase={phase}
                         displayScore={displayScore}
                         displayLevel={displayLevel}
                         isNewBest={isNewBest}
                         submitState={submitState}
                         session={session}
-                        leaderboardHref="/leaderboard/breakout"
                         onReplay={() => startGame(debugLevel)}
-                        bgClassName="bg-black/80 backdrop-blur-sm"
-                        scoreClassName="text-white"
-                        newBestClassName="text-cyan-400"
-                        replayClassName="px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm rounded-xl transition-all"
-                        leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                     />
                 </div>
 
@@ -140,8 +124,7 @@ export default function BreakoutPage() {
                         {isAdmin && <AdminDebugControl value={debugLevel} onChange={setDebugLevel} />}
                         <button
                             onClick={() => startGame(debugLevel)}
-                            className="flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
-                            style={{ boxShadow: '0 4px 24px rgba(250,204,21,0.35)' }}
+                            className="flex items-center gap-3 px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
                         >
                             <BallIcon />
                             JOUER

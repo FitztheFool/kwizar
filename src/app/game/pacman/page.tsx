@@ -9,6 +9,7 @@ import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
 import AdminDebugControl from '@/components/SoloGame/AdminDebugControl';
+import { gameThemeVars } from '@/lib/theme/games';
 
 export default function PacmanPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,21 +30,10 @@ export default function PacmanPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+        <div style={gameThemeVars('pacman')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
-            <SoloGameHeader leaderboardHref="/leaderboard/pacman">
-                <span className="text-blue-500/40 text-xs tracking-widest">•••</span>
-                <span
-                    className="text-yellow-500 dark:text-yellow-400 font-arcade text-base sm:text-lg uppercase"
-                    style={{
-                        textShadow: '0 0 20px rgba(250,204,21,0.5), 0 0 40px rgba(250,204,21,0.2)',
-                    }}
-                >
-                    PAC-MAN
-                </span>
-                <span className="text-blue-500/40 text-xs tracking-widest">•••</span>
-            </SoloGameHeader>
+            <SoloGameHeader game="pacman" title="PAC-MAN" ornament="•••" />
 
             {/* ── Stats bar ── */}
             <div className="w-full max-w-[440px] mb-4 grid grid-cols-5 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
@@ -55,9 +45,8 @@ export default function PacmanPage() {
 
             {/* ── Canvas ── */}
             <div
-                className="relative w-full max-w-[440px] rounded-2xl overflow-hidden"
+                className="relative w-full max-w-[440px] rounded-2xl overflow-hidden shadow-game-glow"
                 style={{
-                    boxShadow: '0 0 0 1px rgba(59,130,246,0.25), 0 0 40px rgba(59,130,246,0.12)',
                 }}
             >
                 <canvas
@@ -69,17 +58,15 @@ export default function PacmanPage() {
                 />
 
                 <SoloGameOverlay
+                    game="pacman"
                     phase={phase}
                     displayScore={displayScore}
                     displayLevel={displayLevel}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/pacman"
                     onReplay={() => startGame(debugLevel)}
                     title="Game Over"
-                    titleClassName="text-yellow-400"
-                    replayClassName="px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm rounded-xl transition-all"
                 />
             </div>
 
@@ -89,8 +76,7 @@ export default function PacmanPage() {
                     {isAdmin && <AdminDebugControl value={debugLevel} onChange={setDebugLevel} />}
                     <button
                         onClick={() => startGame(debugLevel)}
-                        className="group relative flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
-                        style={{ boxShadow: '0 4px 24px rgba(250,204,21,0.35), 0 0 0 0 rgba(250,204,21,0)' }}
+                        className="group relative flex items-center gap-3 px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-black font-black text-lg rounded-2xl transition-all duration-150"
                     >
                         <PacmanIcon />
                         JOUER

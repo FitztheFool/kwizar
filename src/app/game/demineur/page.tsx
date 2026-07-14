@@ -7,6 +7,7 @@ import SoloGameOverlay from '@/components/SoloGameOverlay';
 import SoloGameHeader from '@/components/SoloGame/SoloGameHeader';
 import StatCell from '@/components/SoloGame/StatCell';
 import BestScores from '@/components/SoloGame/BestScores';
+import { gameThemeVars } from '@/lib/theme/games';
 
 // Couleurs classiques des chiffres du démineur (1..8).
 const NUM_COLOR = ['', 'text-blue-600', 'text-green-600', 'text-red-600', 'text-indigo-700', 'text-amber-700', 'text-teal-600', 'text-gray-700', 'text-gray-500'];
@@ -38,12 +39,8 @@ export default function DemineurPage() {
         flagMode, setFlagMode, minesLeft, startGame, reveal, flag } = useDemineur();
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
-            <SoloGameHeader leaderboardHref="/leaderboard/demineur">
-                <span className="text-slate-400/40 text-xs tracking-widest">▮▮</span>
-                <span className="text-slate-700 dark:text-slate-200 font-black text-3xl tracking-[0.05em]">DÉMINEUR</span>
-                <span className="text-slate-400/40 text-xs tracking-widest">▮▮</span>
-            </SoloGameHeader>
+        <div style={gameThemeVars('demineur')} className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
+            <SoloGameHeader game="demineur" title="DÉMINEUR" />
 
             <div className="w-full max-w-[420px] mb-4 grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-gray-200 dark:border-white/[0.07] bg-gray-200 dark:bg-white/[0.04]">
                 <StatCell icon={<FlagIcon className="w-3 h-3 text-red-500" />} label="MINES" value={minesLeft} color="text-gray-900 dark:text-white" align="left" />
@@ -65,18 +62,14 @@ export default function DemineurPage() {
                 </div>
 
                 <SoloGameOverlay
+                    game="demineur"
                     phase={phase}
                     displayScore={displayScore}
                     isNewBest={isNewBest}
                     submitState={submitState}
                     session={session}
-                    leaderboardHref="/leaderboard/demineur"
                     onReplay={startGame}
                     title={displayScore >= SAFE_CELLS ? 'Gagné !' : 'Boum 💥'}
-                    titleClassName={displayScore >= SAFE_CELLS ? 'text-green-400' : 'text-red-400'}
-                    bgClassName="bg-black/80 backdrop-blur-sm rounded-2xl"
-                    replayClassName="px-5 py-2.5 bg-slate-200 hover:bg-white text-slate-900 font-bold text-sm rounded-xl transition-all"
-                    leaderboardClassName="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl transition-all"
                 />
             </div>
 
@@ -95,8 +88,7 @@ export default function DemineurPage() {
             {phase === 'idle' && (
                 <div className="mt-6 flex flex-col items-center gap-4">
                     <button onClick={startGame}
-                        className="px-10 py-4 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white font-black text-lg rounded-2xl transition-all"
-                        style={{ boxShadow: '0 4px 24px rgba(51,65,85,0.35)' }}>
+                        className="px-10 py-4 bg-game hover:brightness-110 hover:shadow-game-glow active:scale-95 text-white font-black text-lg rounded-2xl transition-all">
                         JOUER
                     </button>
                     <p className="text-gray-500 dark:text-white/30 text-xs tracking-wide text-center">
