@@ -244,6 +244,7 @@ export default function skyjowGamePage() {
 
             {/* ── Header ── */}
             <GamePageHeader
+                    game="skyjow"
                 left={<>
                     <GameIcon gameType="skyjow" className="shrink-0 w-5 h-5 text-gray-700 dark:text-gray-300" />
                     <span className="hidden sm:inline font-bold text-gray-900 dark:text-white">Skyjow</span>

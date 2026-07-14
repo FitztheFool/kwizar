@@ -101,6 +101,7 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
+                    game="taboo"
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                     right={
@@ -162,6 +163,7 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
+                    game="taboo"
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                     right={
@@ -243,6 +245,7 @@ export default function TabooGamePage() {
             <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
                 
                 <GamePageHeader
+                    game="taboo"
                     left={TABOO_LEFT}
                     center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                     right={
@@ -390,6 +393,7 @@ export default function TabooGamePage() {
             
 
             <GamePageHeader
+                    game="taboo"
                 left={TABOO_LEFT}
                 center={<ScoreBar scores={game.scores} myTeam={myTeam} currentTeam={game.currentTeam} />}
                 right={

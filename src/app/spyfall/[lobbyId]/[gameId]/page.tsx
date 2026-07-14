@@ -104,6 +104,7 @@ export default function SpyfallPage() {
 
     const header = (
         <GamePageHeader
+                    game="spyfall"
             left={<><GameIcon gameType="spyfall" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Spyfall</span></>}
             center={<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 {roundState === 'ASKING' && <span className="font-semibold text-gray-900 dark:text-white">Échange {Math.min(exchangeCount + 1, totalExchanges)}/{totalExchanges}</span>}

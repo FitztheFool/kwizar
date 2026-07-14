@@ -220,6 +220,7 @@ export default function DiamantPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
+                    game="diamant"
                 left={<><GameIcon gameType="diamant" className="shrink-0 w-5 h-5 text-amber-700 dark:text-amber-300" /><h1 className="hidden sm:block text-base font-black tracking-tight text-amber-800 dark:text-amber-100">Diamant</h1>{spectator && <SpectatorBadge />}</>}
                 center={<>
                     <span className="sm:hidden text-gray-500 dark:text-gray-400 text-xs font-semibold whitespace-nowrap">{state.round}/{state.totalRounds}</span>

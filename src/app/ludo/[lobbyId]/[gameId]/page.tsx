@@ -75,6 +75,7 @@ export default function LudoPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
+                    game="ludo"
                 left={
                     <>
                         <GameIcon gameType="ludo" className="w-5 h-5 text-gray-700 dark:text-gray-300" />

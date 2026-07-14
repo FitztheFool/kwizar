@@ -362,6 +362,7 @@ export default function JustOnePage() {
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
 
             <GamePageHeader
+                    game="just_one"
                 left={<><GameIcon gameType="just_one" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Just One</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="text-center leading-tight">
                     {round > 0 && <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">Manche {round}/13 · <span className="text-blue-500">{score} pt{score !== 1 ? 's' : ''}</span></p>}

@@ -70,6 +70,7 @@ export default function AbalonePage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
+                    game="abalone"
                 left={<><GameIcon gameType="abalone" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">Abalone{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={
                     <div className="flex items-center gap-2">

@@ -261,6 +261,7 @@ export default function YahtzeePage() {
             )}
 
             <GamePageHeader
+                    game="yahtzee"
                 left={
                     <><GameIcon gameType="yahtzee" className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                         <div>

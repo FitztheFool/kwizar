@@ -59,6 +59,7 @@ export default function SixQuiPrendPage() {
     return (
         <div className="flex-1 flex flex-col bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-white">
             <GamePageHeader
+                    game="six_qui_prend"
                 left={<><GameIcon gameType="six_qui_prend" className="w-5 h-5 text-gray-700 dark:text-gray-300" /><span className="font-bold">6 qui prend!{vsBot && <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">vs Bot</span>}</span>{state.spectator && <SpectatorBadge className="ml-2" />}</>}
                 center={<div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60vw]">{players.map(p => <PlayerTag key={p.colorIndex} p={p} />)}</div>}
                 right={state.phase !== 'finished' && !state.spectator && <SurrenderButton onSurrender={surrender} />}
