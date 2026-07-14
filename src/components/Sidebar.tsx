@@ -31,16 +31,15 @@ import { useMessages } from '@/context/MessagesContext';
 import { useFriends } from '@/context/FriendsContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
-// ─── Color system ─────────────────────────────────────────────────────────────
-type Color = 'blue' | 'green' | 'yellow' | 'red' | 'gray' | 'purple';
-
-const COLOR: Record<Color, { active: string; activeBorder: string; activeDot: string; activeIcon: string }> = {
-    blue: { active: 'text-primary-700 dark:text-primary-300', activeBorder: 'border-l-primary-500', activeDot: 'bg-primary-500', activeIcon: 'text-primary-500' },
-    green: { active: 'text-green-700 dark:text-green-300', activeBorder: 'border-l-green-500', activeDot: 'bg-green-500', activeIcon: 'text-green-500' },
-    yellow: { active: 'text-yellow-700 dark:text-yellow-300', activeBorder: 'border-l-yellow-500', activeDot: 'bg-yellow-500', activeIcon: 'text-yellow-500' },
-    red: { active: 'text-red-700 dark:text-red-300', activeBorder: 'border-l-red-500', activeDot: 'bg-red-500', activeIcon: 'text-red-500' },
-    gray: { active: 'text-gray-900 dark:text-white', activeBorder: 'border-l-gray-500', activeDot: 'bg-gray-900 dark:bg-white', activeIcon: 'text-gray-700 dark:text-gray-200' },
-    purple: { active: 'text-purple-700 dark:text-purple-300', activeBorder: 'border-l-purple-500', activeDot: 'bg-purple-500', activeIcon: 'text-purple-500' },
+// ─── Style de l'élément actif ─────────────────────────────────────────────────
+// Il existait une map COLOR de 6 teintes et une prop `color` passée par 15 appels…
+// 5 entrées sur 6 étaient mortes. Un seul style d'élément actif, néon à l'accent :
+// c'est la sélection courante, donc une affordance — elle a le droit de briller.
+const ACTIVE = {
+    text: 'text-gray-900 dark:text-white',
+    border: 'border-l-primary-500',
+    dot: 'bg-primary-500',
+    icon: 'text-primary-500',
 };
 
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -48,19 +47,16 @@ type IconComponent = React.ComponentType<{ className?: string }>;
 const INACTIVE = 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200';
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
-function NavLink({ href, Icon, label, isActive, collapsed, color, badge }: {
+function NavLink({ href, Icon, label, isActive, collapsed, badge }: {
     href: string; Icon: IconComponent; label: string;
-    isActive: boolean; collapsed: boolean; color: Color; badge?: number;
+    isActive: boolean; collapsed: boolean; badge?: number;
 }) {
-    // All sidebar tabs share the Dashboard's selected style: white in dark, black in light.
-    const c = COLOR.gray;
-    void color;
     return (
         <Link href={href} title={label}
-            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left border-l-2 ${isActive ? `${c.active} ${c.activeBorder} bg-gray-50 dark:bg-gray-800/40` : `${INACTIVE} border-l-transparent`}`}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left border-l-2 ${isActive ? `${ACTIVE.text} ${ACTIVE.border} bg-gray-50 dark:bg-gray-800/40` : `${INACTIVE} border-l-transparent`}`}
         >
             <span className="relative flex-shrink-0">
-                <Icon className={`w-5 h-5 ${isActive ? c.activeIcon : ''}`} />
+                <Icon className={`w-5 h-5 ${isActive ? ACTIVE.icon : ''}`} />
                 {badge != null && badge > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
                         {badge > 99 ? '99+' : badge}
@@ -70,7 +66,7 @@ function NavLink({ href, Icon, label, isActive, collapsed, color, badge }: {
             {!collapsed && (
                 <>
                     <span className="flex-1 truncate">{label}</span>
-                    {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${c.activeDot}`} />}
+                    {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${ACTIVE.dot}`} />}
                 </>
             )}
         </Link>
@@ -78,40 +74,34 @@ function NavLink({ href, Icon, label, isActive, collapsed, color, badge }: {
 }
 
 // ─── SubNavLink ───────────────────────────────────────────────────────────────
-function SubNavLink({ href, Icon, label, isActive, color }: {
+function SubNavLink({ href, Icon, label, isActive }: {
     href: string; Icon: IconComponent; label: string;
-    isActive: boolean; color: Color;
+    isActive: boolean;
 }) {
-    // All sidebar tabs share the Dashboard's selected style: white in dark, black in light.
-    const c = COLOR.gray;
-    void color;
     return (
         <Link href={href}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? `${c.active}` : INACTIVE}`}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? `${ACTIVE.text}` : INACTIVE}`}
         >
-            <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? c.activeIcon : ''}`} />
+            <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? ACTIVE.icon : ''}`} />
             <span className="truncate">{label}</span>
-            {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${c.activeDot}`} />}
+            {isActive && <span className={`ml-auto w-1.5 h-1.5 rounded-full ${ACTIVE.dot}`} />}
         </Link>
     );
 }
 
 // ─── SectionToggle ────────────────────────────────────────────────────────────
-function SectionToggle({ Icon, label, isActive, isOpen, collapsed, color, onClick, badge }: {
+function SectionToggle({ Icon, label, isActive, isOpen, collapsed, onClick, badge }: {
     Icon: IconComponent; label: string; isActive: boolean; isOpen: boolean;
-    collapsed: boolean; color: Color; onClick: () => void; badge?: number;
+    collapsed: boolean; onClick: () => void; badge?: number;
 }) {
-    // All sidebar tabs share the Dashboard's selected style: white in dark, black in light.
-    const c = COLOR.gray;
-    void color;
     return (
         <button onClick={onClick} title={label}
             aria-label={collapsed ? label : undefined}
             aria-expanded={isOpen}
-            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left border-l-2 ${isActive ? `${c.active} ${c.activeBorder} bg-gray-50 dark:bg-gray-800/40` : `${INACTIVE} border-l-transparent`}`}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left border-l-2 ${isActive ? `${ACTIVE.text} ${ACTIVE.border} bg-gray-50 dark:bg-gray-800/40` : `${INACTIVE} border-l-transparent`}`}
         >
             <span className="relative flex-shrink-0">
-                <Icon className={`w-5 h-5 ${isActive ? c.activeIcon : ''}`} />
+                <Icon className={`w-5 h-5 ${isActive ? ACTIVE.icon : ''}`} />
                 {badge != null && badge > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-gray-900">
                         {badge > 99 ? '99+' : badge}
@@ -255,20 +245,20 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                         <SectionToggle
                             Icon={SignalIcon} label="Lobby"
                             isActive={lobbySectionActive} isOpen={lobbyMenuOpen}
-                            collapsed={collapsed} color="green"
+                            collapsed={collapsed}
                             badge={lobbyCount}
                             onClick={() => { if (collapsed) openIfCollapsed(); else setLobbyMenuOpen(prev => !prev); }}
                         />
                         {!collapsed && lobbyMenuOpen && (
                             <div className="ml-3 mt-0.5 mb-1 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                                <SubNavLink href={`/lobby/create/${lobbyCode}`} Icon={PlusIcon} label="Créer un lobby" isActive={isCreatingLobby} color="green" />
-                                <SubNavLink href="/lobby/all" Icon={MagnifyingGlassIcon} label="Voir les lobbies" isActive={pathname === '/lobby/all'} color="green" />
+                                <SubNavLink href={`/lobby/create/${lobbyCode}`} Icon={PlusIcon} label="Créer un lobby" isActive={isCreatingLobby} />
+                                <SubNavLink href="/lobby/all" Icon={MagnifyingGlassIcon} label="Voir les lobbies" isActive={pathname === '/lobby/all'} />
                             </div>
                         )}
 
-                        <NavLink href="/" Icon={PuzzlePieceIcon} label="Jeux" isActive={pathname === '/'} collapsed={collapsed} color="purple" />
+                        <NavLink href="/" Icon={PuzzlePieceIcon} label="Jeux" isActive={pathname === '/'} collapsed={collapsed} />
 
-                        <NavLink href="/leaderboard/uno" Icon={TrophyIcon} label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} color="yellow" />
+                        <NavLink href="/leaderboard/uno" Icon={TrophyIcon} label="Classement" isActive={pathname.startsWith('/leaderboard/')} collapsed={collapsed} />
                     </>
                 )}
 
@@ -277,18 +267,18 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 <SectionToggle
                     Icon={QuestionMarkCircleIcon} label="Quiz"
                     isActive={quizSectionActive} isOpen={quizMenuOpen}
-                    collapsed={collapsed} color="blue"
+                    collapsed={collapsed}
                     onClick={() => { if (collapsed) openIfCollapsed(); else setQuizMenuOpen(prev => !prev); }}
                 />
                 {!collapsed && quizMenuOpen && (
                     <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-700 pl-3">
-                        <SubNavLink href="/quiz/available" Icon={ListBulletIcon} label="Quiz disponibles" isActive={pathname === '/quiz/available'} color="blue" />
-                        {canCreateQuiz && <SubNavLink href="/dashboard#quizzes" Icon={BookmarkIcon} label="Mes quiz" isActive={pathname === '/dashboard'} color="blue" />}
+                        <SubNavLink href="/quiz/available" Icon={ListBulletIcon} label="Quiz disponibles" isActive={pathname === '/quiz/available'} />
+                        {canCreateQuiz && <SubNavLink href="/dashboard#quizzes" Icon={BookmarkIcon} label="Mes quiz" isActive={pathname === '/dashboard'} />}
                         {canCreateQuiz && (
                             <>
                                 <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
-                                <SubNavLink href="/quiz/generate" Icon={SparklesIcon} label="Générer (IA)" isActive={pathname === '/quiz/generate'} color="blue" />
-                                <SubNavLink href="/quiz/create" Icon={PlusIcon} label="Créer un quiz" isActive={pathname === '/quiz/create'} color="blue" />
+                                <SubNavLink href="/quiz/generate" Icon={SparklesIcon} label="Générer (IA)" isActive={pathname === '/quiz/generate'} />
+                                <SubNavLink href="/quiz/create" Icon={PlusIcon} label="Créer un quiz" isActive={pathname === '/quiz/create'} />
                             </>
                         )}
                     </div>
@@ -312,7 +302,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                             }
                             isActive={pathname.startsWith('/friends') || pathname.startsWith('/messages')}
                             collapsed={collapsed}
-                            color="gray"
+                           
                             badge={(showFriends ? pendingCount : 0) + (showMessages ? totalUnread : 0)}
                         />
                     </>
@@ -321,15 +311,15 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                 {/* ── COMPTE ── */}
                 {(isAuthenticated || isAdmin) && <SectionHeader label="Compte" collapsed={collapsed} />}
                 {isAuthenticated && (
-                    <NavLink href="/dashboard" Icon={Squares2X2Icon} label="Dashboard" isActive={pathname === '/dashboard'} collapsed={collapsed} color="gray" />
+                    <NavLink href="/dashboard" Icon={Squares2X2Icon} label="Dashboard" isActive={pathname === '/dashboard'} collapsed={collapsed} />
                 )}
-                <NavLink href="/settings" Icon={Cog6ToothIcon} label="Paramètres" isActive={pathname === '/settings'} collapsed={collapsed} color="gray" />
+                <NavLink href="/settings" Icon={Cog6ToothIcon} label="Paramètres" isActive={pathname === '/settings'} collapsed={collapsed} />
                 {isAuthenticated && isAdmin && (
-                    <NavLink href="/admin" Icon={ShieldCheckIcon} label="Administration" isActive={pathname === '/admin'} collapsed={collapsed} color="red" />
+                    <NavLink href="/admin" Icon={ShieldCheckIcon} label="Administration" isActive={pathname === '/admin'} collapsed={collapsed} />
                 )}
 
                 {!isAuthenticated && (
-                    <NavLink href="/login" Icon={LockClosedIcon} label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} color="blue" />
+                    <NavLink href="/login" Icon={LockClosedIcon} label="Se connecter" isActive={pathname === '/login'} collapsed={collapsed} />
                 )}
             </nav>
         </aside>

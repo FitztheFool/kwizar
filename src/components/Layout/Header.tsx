@@ -14,14 +14,17 @@ export default function Header() {
   const showBanner = isGuestRole || (!isAnonymous && isPending);
   const isBlue = !isAnonymous && isPending;
 
+  // Bannières sémantiques : `info` (vérification d'email en attente) et `warning`
+  // (compte invité, supprimé chaque jour). Ces tokens basculent avec le thème, à la
+  // différence des blue-*/amber-* codés en dur qu'ils remplacent.
   const bannerBase = "px-4 py-2 flex items-center justify-center gap-3 text-sm border-b";
   const bannerColor = isBlue
-    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700/50"
-    : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50";
-  const textColor = isBlue ? "text-blue-700 dark:text-blue-300" : "text-amber-700 dark:text-amber-300";
+    ? "bg-info/10 border-info/25"
+    : "bg-warning/10 border-warning/25";
+  const textColor = isBlue ? "text-info" : "text-warning";
   const linkColor = isBlue
-    ? "text-blue-800 dark:text-blue-200 hover:text-blue-900 dark:hover:text-white"
-    : "text-amber-800 dark:text-amber-200 hover:text-amber-900 dark:hover:text-white";
+    ? "text-info hover:brightness-125"
+    : "text-warning hover:brightness-125";
 
   return (
     <>

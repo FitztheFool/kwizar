@@ -57,7 +57,7 @@ export default function UserMenu() {
                     {name}
                 </span>
                 {isAdmin && (
-                    <span className="hidden sm:inline text-[9px] font-black px-1 rounded bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30">ADMIN</span>
+                    <span className="hidden sm:inline text-[9px] font-black px-1 rounded bg-danger/15 text-danger border border-danger/30">ADMIN</span>
                 )}
                 <ChevronDownIcon className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
@@ -65,7 +65,7 @@ export default function UserMenu() {
             {open && (
                 <div
                     role="menu"
-                    className="absolute right-0 mt-2 w-56 rounded-xl p-1 animate-scale-in origin-top-right z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-glass-lg"
+                    className="absolute right-0 mt-2 w-56 rounded-xl p-1 animate-scale-in origin-top-right z-50 glass-strong"
                 >
                     <div className="px-2.5 py-2 mb-1 border-b border-gray-100 dark:border-gray-700">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>
@@ -96,7 +96,7 @@ export default function UserMenu() {
                         type="button"
                         role="menuitem"
                         onClick={() => { setOpen(false); signOut({ callbackUrl: '/' }); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-danger hover:bg-danger/10 transition-colors"
                     >
                         <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
                         Déconnexion

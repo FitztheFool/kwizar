@@ -1,15 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { userInitials } from '@/lib/userColor';
-
-// Single brand gradient used everywhere a user is rendered without a picture
-// (sidebar, profile, settings, admin table, waiting screen, …) so the same
-// "A" looks the same in every surface.
-const AVATAR_GRADIENT = 'from-sky-400 to-indigo-500';
+import { userInitials, userColorClass } from '@/lib/userColor';
 
 interface Props {
-    /** Unused — kept for backward compatibility. Avatar color is uniform. */
+    /**
+     * Graine de la couleur d'avatar. À défaut, on retombe sur `name` — toujours fourni
+     * et stable par personne, donc la couleur reste la même sur toutes les surfaces.
+     */
     seed?: string;
     /** Display name used for initials and alt text. */
     name: string;
@@ -41,23 +39,27 @@ const DOT_SIZE: Record<NonNullable<Props['size']>, string> = {
 };
 
 export default function UserAvatar({
-    seed: _seed, name, image, size = 'md', shape = 'square', online, className = '',
+    seed, name, image, size = 'md', shape = 'square', online, className = '',
 }: Props) {
     const radius = shape === 'round' ? 'rounded-full' : 'rounded-xl';
     const sizeCls = SIZE_CLASS[size];
     const dotCls = DOT_SIZE[size];
+    // userColorClass() existait déjà mais n'était pas branché : tout le monde héritait
+    // d'un dégradé sky→indigo figé — du bleu en dur, incohérent avec le thème rouge.
+    // L'identité de la personne est un axe légitime, distinct de la marque et du jeu.
+    const gradient = userColorClass(seed ?? name);
 
     return (
         <div className={`relative ${sizeCls} shrink-0 ${className}`}>
             {image ? (
                 <Image src={image} alt={name} fill sizes="80px" className={`object-cover ${radius}`} />
             ) : (
-                <div className={`w-full h-full bg-gradient-to-br ${AVATAR_GRADIENT} flex items-center justify-center text-white font-black ${radius} shadow-sm`}>
+                <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black ${radius} shadow-sm`}>
                     {userInitials(name)}
                 </div>
             )}
             {online && (
-                <span className={`absolute -bottom-0.5 -right-0.5 ${dotCls} rounded-full bg-emerald-500 border-2 border-white dark:border-gray-950`} />
+                <span className={`absolute -bottom-0.5 -right-0.5 ${dotCls} rounded-full bg-success border-2 border-white dark:border-gray-950`} />
             )}
         </div>
     );
