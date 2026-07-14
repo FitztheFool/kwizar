@@ -1,111 +1,176 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
- * Fond de grille interactif global (style movix), monté une fois dans le layout racine.
- * Fixé au viewport, derrière tout le contenu. La case sous le curseur + ses 8 voisines
- * (arêtes ET diagonales) s'illuminent en rouge. Suivi via mousemove sur window → réagit
- * sur toutes les pages, même sous le contenu. On ne re-render que lorsque la case active
- * change (pas à chaque pixel) pour rester fluide.
+ * Fond global — monté une fois dans le layout racine, fixé au viewport, derrière tout.
+ *
+ * Quatre couches empilées, **zéro state React** :
+ *   1. halos d'ambiance   — deux blooms radiaux fixes, donnent la profondeur
+ *   2. grille de points   — texture discrète (28px), pas une architecture
+ *   3. halo au curseur    — deux lueurs interpolées qui suivent la souris
+ *   4. grain              — bruit SVG, casse le côté « plat » des aplats
+ *
+ * La version précédente rendait jusqu'à ~1000 <div> et re-rendait tout le tableau à
+ * chaque changement de case : d'où l'effet raide et blocky. Ici, le curseur n'écrit que
+ * deux variables CSS (--mx / --my) via `style.setProperty` dans une boucle rAF. React ne
+ * re-render jamais. Le navigateur ne fait que recomposer un gradient — sur GPU.
+ *
+ * Couleur : `--halo-rgb` suit l'accent de marque (bleu en clair, rouge en sombre), ou la
+ * couleur du jeu quand `useGameAccent()` est monté sur une page de jeu.
  */
 
-const CELL = 46; // px — taille d'une case
+/** Inertie du halo : plus bas = plus traînant. C'est LE paramètre de « feeling ». */
+const EASE_NEAR = 0.14;
+/** Le halo large traîne davantage → effet de parallaxe, sensation de profondeur. */
+const EASE_FAR = 0.06;
+
+/** Bruit ~300 octets, en data: URI — aucune requête réseau, aucun souci de CSP. */
+const NOISE_SVG =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
 export default function GridBackground() {
-    const [dims, setDims] = useState({ cols: 0, rows: 0 });
-    const [active, setActive] = useState<number | null>(null);
-    const activeRef = useRef<number | null>(null);
-    const colsRef = useRef(0);
+    const rootRef = useRef<HTMLDivElement>(null);
 
-    // Nombre de colonnes/lignes d'après le viewport (recalculé au resize).
     useEffect(() => {
-        const recalc = () => {
-            const cols = Math.ceil(window.innerWidth / CELL);
-            const rows = Math.ceil(window.innerHeight / CELL);
-            colsRef.current = cols;
-            setDims({ cols, rows });
-        };
-        recalc();
-        window.addEventListener('resize', recalc);
-        return () => window.removeEventListener('resize', recalc);
-    }, []);
+        const root = rootRef.current;
+        if (!root) return;
 
-    // Suivi curseur global. setState uniquement quand la case change → pas de jank.
-    useEffect(() => {
-        const onMove = (e: MouseEvent) => {
-            const cols = colsRef.current;
-            if (!cols) return;
-            const c = Math.floor(e.clientX / CELL);
-            const r = Math.floor(e.clientY / CELL);
-            const idx = r * cols + c;
-            if (idx !== activeRef.current) {
-                activeRef.current = idx;
-                setActive(idx);
-            }
+        // Mouvement réduit : pas de suivi du tout, on garde le fond statique.
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (reduced.matches) return;
+
+        // Cible = position réelle du curseur. Courant = position affichée, qui converge
+        // vers la cible. C'est cet écart qui fait « lumière qui suit » plutôt que
+        // « collée au curseur ».
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight / 2;
+        let nearX = targetX, nearY = targetY;
+        let farX = targetX, farY = targetY;
+
+        let frame = 0;
+        let moved = false;
+
+        const onMove = (e: PointerEvent) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+            moved = true;
         };
-        const onOut = (e: MouseEvent) => {
-            if (!e.relatedTarget) { activeRef.current = null; setActive(null); }
+
+        const tick = () => {
+            nearX += (targetX - nearX) * EASE_NEAR;
+            nearY += (targetY - nearY) * EASE_NEAR;
+            farX += (targetX - farX) * EASE_FAR;
+            farY += (targetY - farY) * EASE_FAR;
+
+            root.style.setProperty('--mx', `${nearX.toFixed(1)}px`);
+            root.style.setProperty('--my', `${nearY.toFixed(1)}px`);
+            root.style.setProperty('--fx', `${farX.toFixed(1)}px`);
+            root.style.setProperty('--fy', `${farY.toFixed(1)}px`);
+
+            frame = requestAnimationFrame(tick);
         };
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('mouseout', onOut);
+
+        // Le halo ne se révèle qu'au premier mouvement : pas de lueur fantôme au chargement.
+        // On pilote une variable CSS (et non une classe conditionnelle Tailwind) : un
+        // sélecteur arbitraire type `[[data-active]_&]` n'était pas généré par Tailwind,
+        // et les halos restaient invisibles.
+        const start = () => {
+            if (!moved) return;
+            root.style.setProperty('--halo-on', '1');
+            window.removeEventListener('pointermove', start);
+        };
+
+        window.addEventListener('pointermove', onMove, { passive: true });
+        window.addEventListener('pointermove', start, { passive: true });
+        frame = requestAnimationFrame(tick);
+
         return () => {
-            window.removeEventListener('mousemove', onMove);
-            window.removeEventListener('mouseout', onOut);
+            cancelAnimationFrame(frame);
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointermove', start);
         };
     }, []);
-
-    const { cols, rows } = dims;
-    const total = cols * rows;
-
-    // Diamant autour du curseur (distance de Manhattan ≤ RADIUS) → forme en losange, pas un carré.
-    // Map index → distance : 0 = centre, plus loin = plus faible.
-    const RADIUS = 2;
-    const lit = new Map<number, number>();
-    if (active != null && cols) {
-        const r0 = Math.floor(active / cols);
-        const c0 = active % cols;
-        for (let dr = -RADIUS; dr <= RADIUS; dr++) {
-            const room = RADIUS - Math.abs(dr);
-            for (let dc = -room; dc <= room; dc++) {
-                const r = r0 + dr, c = c0 + dc;
-                if (r >= 0 && r < rows && c >= 0 && c < cols) {
-                    lit.set(r * cols + c, Math.abs(dr) + Math.abs(dc));
-                }
-            }
-        }
-    }
-
-    if (!total) return null;
 
     return (
         <div
+            ref={rootRef}
             aria-hidden
-            className="pointer-events-none fixed inset-0 -z-10 grid [mask-image:radial-gradient(ellipse_120%_120%_at_50%_40%,black,transparent_92%)]"
-            style={{
-                gridTemplateColumns: `repeat(${cols}, ${CELL}px)`,
-                gridAutoRows: `${CELL}px`,
-            }}
+            className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+            style={{ '--mx': '50vw', '--my': '40vh', '--fx': '50vw', '--fy': '40vh' } as React.CSSProperties}
         >
-            {Array.from({ length: total }, (_, i) => {
-                const dist = lit.get(i); // undefined = éteinte, 0 = centre, 1..RADIUS = anneaux
-                // Intensité décroissante avec la distance (fondu en losange).
-                const t = dist == null ? 0 : 1 - dist / (RADIUS + 1);
-                return (
-                    <div
-                        key={i}
-                        className="border-r border-b border-primary-500/10 transition-[background-color,box-shadow] duration-300 ease-out"
-                        style={
-                            dist != null
-                                ? {
-                                      backgroundColor: `rgb(var(--accent) / ${(0.12 * t).toFixed(3)})`,
-                                      boxShadow: `inset 0 0 ${Math.round(20 * t)}px rgb(var(--accent) / ${(0.28 * t).toFixed(3)})${dist === 0 ? ', 0 0 16px rgb(var(--accent) / 0.22)' : ''}`,
-                                  }
-                                : undefined
-                        }
-                    />
-                );
-            })}
+            {/* 1. Ambiance — deux blooms fixes. Donnent le relief avant toute interaction. */}
+            <div
+                className="absolute inset-0 opacity-70"
+                style={{
+                    backgroundImage: `
+                        radial-gradient(60rem 60rem at 12% -12%, rgb(var(--accent) / 0.10), transparent 60%),
+                        radial-gradient(50rem 50rem at 100% -5%, rgb(var(--accent) / 0.07), transparent 55%)
+                    `,
+                }}
+            />
+
+            {/* 2. Grille de points — texture, pas architecture. Estompée sur les bords
+                   pour ne jamais concurrencer le contenu. */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(circle at center, rgb(var(--halo-rgb) / 0.55) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                    opacity: 0.16,
+                    maskImage:
+                        'radial-gradient(ellipse 110% 95% at 50% 30%, black 35%, transparent 92%)',
+                    WebkitMaskImage:
+                        'radial-gradient(ellipse 110% 95% at 50% 30%, black 35%, transparent 92%)',
+                }}
+            />
+
+            {/* 3a. Les points s'allument près du curseur — mêmes points, révélés par un
+                    masque circulaire centré sur la souris. C'est l'effet « les cases
+                    s'illuminent », mais sans un seul nœud DOM par case. */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(circle at center, rgb(var(--halo-rgb) / 0.9) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                    maskImage:
+                        'radial-gradient(200px circle at var(--mx) var(--my), black 0%, transparent 70%)',
+                    WebkitMaskImage:
+                        'radial-gradient(200px circle at var(--mx) var(--my), black 0%, transparent 70%)',
+                    opacity: 'var(--halo-on, 0)',
+                    transition: 'opacity 700ms ease-out',
+                }}
+            />
+
+            {/* 3b. Lueur large et lente — la profondeur (parallaxe). */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background:
+                        'radial-gradient(520px circle at var(--fx) var(--fy), rgb(var(--halo-rgb) / 0.07), transparent 65%)',
+                    opacity: 'var(--halo-on, 0)',
+                    transition: 'opacity 1000ms ease-out',
+                }}
+            />
+
+            {/* 3c. Lueur proche et vive — le point chaud sous le curseur. */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background:
+                        'radial-gradient(260px circle at var(--mx) var(--my), rgb(var(--halo-rgb) / 0.10), transparent 68%)',
+                    opacity: 'var(--halo-on, 0)',
+                    transition: 'opacity 500ms ease-out',
+                }}
+            />
+
+            {/* 4. Grain — corrige le côté « plat » des dégradés lisses. */}
+            <div
+                className="absolute inset-0 opacity-[0.035] dark:opacity-[0.05] mix-blend-overlay"
+                style={{ backgroundImage: NOISE_SVG, backgroundSize: '140px 140px' }}
+            />
         </div>
     );
 }

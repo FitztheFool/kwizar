@@ -73,15 +73,14 @@ export default function BreakoutPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
+        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
             <SoloGameHeader leaderboardHref="/leaderboard/breakout" maxWidthClass="max-w-[440px] md:max-w-[620px]">
                 <span className="text-cyan-600/40 text-xs">▸▸</span>
                 <span
-                    className="text-cyan-600 dark:text-cyan-400 font-black text-xl tracking-[0.12em] uppercase"
+                    className="text-cyan-600 dark:text-cyan-400 font-arcade text-base sm:text-lg uppercase"
                     style={{
-                        fontFamily: '"Press Start 2P", "Courier New", monospace',
                         textShadow: '0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.2)',
                     }}
                 >

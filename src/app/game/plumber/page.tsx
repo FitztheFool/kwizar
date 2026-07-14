@@ -28,11 +28,11 @@ export default function PlumberPage() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
+        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
             <SoloGameHeader leaderboardHref="/leaderboard/plumber">
                 <span className="text-rose-500/40 text-xs tracking-widest">★★★</span>
-                <span className="text-rose-500 dark:text-rose-400 font-black text-xl tracking-[0.15em] uppercase"
-                    style={{ fontFamily: '"Press Start 2P", "Courier New", monospace', textShadow: '0 0 20px rgba(244,63,94,0.5)' }}>
+                <span className="text-rose-500 dark:text-rose-400 font-arcade text-base sm:text-lg uppercase"
+                    style={{ textShadow: '0 0 20px rgba(244,63,94,0.5)' }}>
                     PLUMBER
                 </span>
                 <span className="text-rose-500/40 text-xs tracking-widest">★★★</span>

@@ -110,7 +110,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-gray-200 dark:border-gray-700 flex-shrink-0">
                         <GameIcon gameType={gameType} className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                     </div>
                     <div className="flex-1">
@@ -138,7 +138,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                 {/* Description / Rules / Score */}
                 <div className="mb-6 space-y-2">
                     {(config?.description ?? GAME_CONFIG[game].description) && (
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-black/[0.02] dark:bg-white/[0.03] px-5 py-4">
                             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><RectangleGroupIcon className="w-3.5 h-3.5" /> Description</h2>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
@@ -147,7 +147,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                         </div>
                     )}
                     {(config?.rules ?? GAME_CONFIG[game].rules) && (
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-black/[0.02] dark:bg-white/[0.03] px-5 py-4">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><BookOpenIcon className="w-3.5 h-3.5" /> Règles</p>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
@@ -156,7 +156,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                         </div>
                     )}
                     {(config?.score ?? GAME_CONFIG[game].score) && (
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-5 py-4">
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-black/[0.02] dark:bg-white/[0.03] px-5 py-4">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1"><ChartBarIcon className="w-3.5 h-3.5" /> Calcul des points</p>
                             <div
                                 className="text-sm text-gray-700 dark:text-gray-200 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_p]:mb-1 [&_p:last-child]:mb-0"
@@ -212,7 +212,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
 
                         <div className="w-full overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                             <table className="w-full divide-y divide-gray-100">
-                                <thead className="bg-gray-50 dark:bg-gray-800">
+                                <thead className="bg-black/[0.03] dark:bg-white/[0.04]">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joueur</th>
@@ -221,7 +221,7 @@ export default function LeaderboardView({ game, initialData }: Props) {
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Détail</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+                                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {leaderboard.map(entry => {
                                         const isMe = entry.userId === session?.user?.id;
                                         const isPodium = entry.rank <= 3;

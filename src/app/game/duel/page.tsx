@@ -185,7 +185,7 @@ export default function DuelPage() {
     // Phase « catégorie » : grille type TierMaker, pleine largeur, thème clair/sombre.
     if (phase === 'category') {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white px-4 sm:px-8 py-8">
+            <div className="min-h-screen bg-transparent text-gray-900 dark:text-white px-4 sm:px-8 py-8">
                 <div className="mx-auto max-w-6xl">
                     <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6">
                         <ArrowLeftIcon className="w-4 h-4" /> Accueil

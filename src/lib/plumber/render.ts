@@ -4,6 +4,23 @@ import {
 } from './constants';
 import type { Player, World } from './engine';
 
+/**
+ * Famille de la fonte arcade, telle que résolue par le navigateur.
+ *
+ * next/font génère un nom de famille hashé : impossible d'écrire `"Press Start 2P"` en dur
+ * dans un contexte canvas (ce que faisait l'ancien code — d'où un rendu en Courier New).
+ * On lit donc `--font-arcade` sur la racine du document. Mis en cache : `getComputedStyle`
+ * force un recalcul de style, hors de question à chaque frame.
+ */
+let arcadeFamily: string | null = null;
+function arcadeFontFamily(): string {
+    if (arcadeFamily) return arcadeFamily;
+    if (typeof window === 'undefined') return 'monospace';
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--font-arcade').trim();
+    arcadeFamily = v ? `${v}, monospace` : 'monospace';
+    return arcadeFamily;
+}
+
 export function drawScene(ctx: CanvasRenderingContext2D, world: World, player: Player) {
     drawSky(ctx, world);
     drawTiles(ctx, world);
@@ -191,7 +208,7 @@ function drawQuestion(ctx: CanvasRenderingContext2D, x: number, y: number, timeM
     ctx.fillRect(x + 2, y + 2, 3, 1);
     // ? glyph
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 11px "Press Start 2P", "Courier New", monospace';
+    ctx.font = `bold 11px ${arcadeFontFamily()}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('?', x + TILE / 2, y + TILE / 2 + 1);

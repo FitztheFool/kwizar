@@ -27,7 +27,24 @@ module.exports = {
                     800: 'rgb(var(--accent-800) / <alpha-value>)',
                     900: 'rgb(var(--accent-900) / <alpha-value>)',
                 },
-                // ── Felt green (multiplayer / success accents) ──
+                // ── Couleur du jeu courant ────────────────────────────────────────
+                // UNE seule utilitaire (`bg-game`, `text-game`, `border-game/20`…) qui
+                // résout vers la couleur des 34 jeux, via --game-rgb posé par useGameTheme.
+                // Source : src/lib/theme/games.ts. Repli sur l'accent hors page de jeu.
+                game: 'rgb(var(--game-rgb) / <alpha-value>)',
+
+                // ── Tokens sémantiques ────────────────────────────────────────────
+                // Distincts de la marque : en dark l'accent EST rouge, donc `danger`
+                // doit rester lisible comme « erreur » et non comme « marque ».
+                success: 'rgb(var(--success) / <alpha-value>)',
+                danger: 'rgb(var(--danger) / <alpha-value>)',
+                warning: 'rgb(var(--warning) / <alpha-value>)',
+                info: 'rgb(var(--info) / <alpha-value>)',
+
+                // ── DÉPRÉCIÉ — ancienne charte, en cours de retrait ───────────────
+                // felt : double rôle (accent multi + « bonne réponse » quiz) → sera
+                // scindé en MODE_THEME.multi et `success`. clay → MODE_THEME.both.
+                // Conservés tant que leurs ~60 usages ne sont pas migrés (lots 3 et 7).
                 felt: {
                     50: '#edf7f1',
                     100: '#d2ebdc',
@@ -57,6 +74,10 @@ module.exports = {
             fontFamily: {
                 sans: ['var(--font-body)', 'sans-serif'],
                 display: ['var(--font-heading)', 'sans-serif'],
+                // Arcade — titres de jeu et gros chiffres de score UNIQUEMENT.
+                // Était référencée en inline dans 7 pages mais jamais chargée : tout
+                // s'affichait en Courier New. Chargée via next/font dans app/layout.tsx.
+                arcade: ['var(--font-arcade)', 'ui-monospace', 'monospace'],
             },
             borderRadius: {
                 xl: '0.875rem',
@@ -68,26 +89,23 @@ module.exports = {
                 glass: '0 1px 0 0 rgba(255,255,255,0.05) inset, 0 8px 30px -12px rgba(0,0,0,0.6)',
                 'glass-lg': '0 1px 0 0 rgba(255,255,255,0.06) inset, 0 24px 60px -20px rgba(0,0,0,0.7)',
                 glow: '0 0 0 1px rgb(var(--accent) / 0.3), 0 8px 30px -8px rgb(var(--accent) / 0.45)',
-                'glow-felt': '0 0 0 1px rgba(42,128,84,0.3), 0 8px 30px -8px rgba(42,128,84,0.4)',
-                'glow-accent': '0 0 0 1px rgb(var(--accent) / 0.35), 0 10px 40px -10px rgb(var(--accent) / 0.55)',
+                'glow-felt': '0 0 0 1px rgba(42,128,84,0.3), 0 8px 30px -8px rgba(42,128,84,0.4)', // déprécié avec felt
+                // Néon du jeu courant — réservé aux affordances (hover, focus, CTA actif).
+                'game-glow': '0 0 0 1px rgb(var(--game-rgb) / 0.25), 0 8px 32px -8px rgb(var(--game-rgb) / 0.4)',
+                'game-glow-lg': '0 0 0 1px rgb(var(--game-rgb) / 0.35), 0 0 60px -10px rgb(var(--game-rgb) / 0.55)',
             },
             backgroundImage: {
                 // Rampe d'accent : accent → accent-hot (rouge movix en dark, bleu en light).
                 'accent-gradient': 'linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hot)) 100%)',
-                'accent-gradient-soft': 'linear-gradient(135deg, rgb(var(--accent) / 0.20) 0%, rgb(var(--accent-hot) / 0.14) 100%)',
-                'glass-sheen': 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%)',
+                'game-gradient': 'linear-gradient(135deg, rgb(var(--game-rgb)) 0%, rgb(var(--game-rgb) / 0.55) 100%)',
             },
             keyframes: {
                 'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
-                'slide-up': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
                 'scale-in': { from: { opacity: '0', transform: 'scale(0.96)' }, to: { opacity: '1', transform: 'scale(1)' } },
-                shimmer: { '100%': { transform: 'translateX(100%)' } },
             },
             animation: {
                 'fade-in': 'fade-in 0.2s ease-out',
-                'slide-up': 'slide-up 0.25s ease-out',
                 'scale-in': 'scale-in 0.18s ease-out',
-                shimmer: 'shimmer 1.6s infinite',
             },
         },
     },

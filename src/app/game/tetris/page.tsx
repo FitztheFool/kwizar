@@ -25,15 +25,14 @@ export default function TetrisPage() {
     } = useTetris(canvasRef);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
+        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
             <SoloGameHeader leaderboardHref="/leaderboard/tetris">
                 <span className="text-purple-600/40 text-xs">▼▼</span>
                 <span
-                    className="text-purple-600 dark:text-purple-400 font-black text-xl tracking-[0.12em] uppercase"
+                    className="text-purple-600 dark:text-purple-400 font-arcade text-base sm:text-lg uppercase"
                     style={{
-                        fontFamily: '"Press Start 2P", "Courier New", monospace',
                         textShadow: '0 0 20px rgba(192,132,252,0.5), 0 0 40px rgba(192,132,252,0.2)',
                     }}
                 >

@@ -29,15 +29,14 @@ export default function PacmanPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#07070f] flex flex-col items-center pt-4 pb-14 px-4">
+        <div className="min-h-screen bg-transparent flex flex-col items-center pt-4 pb-14 px-4">
 
             {/* ── Header ── */}
             <SoloGameHeader leaderboardHref="/leaderboard/pacman">
                 <span className="text-blue-500/40 text-xs tracking-widest">•••</span>
                 <span
-                    className="text-yellow-500 dark:text-yellow-400 font-black text-2xl tracking-[0.15em] uppercase"
+                    className="text-yellow-500 dark:text-yellow-400 font-arcade text-base sm:text-lg uppercase"
                     style={{
-                        fontFamily: '"Press Start 2P", "Courier New", monospace',
                         textShadow: '0 0 20px rgba(250,204,21,0.5), 0 0 40px rgba(250,204,21,0.2)',
                     }}
                 >

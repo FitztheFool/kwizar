@@ -1,7 +1,7 @@
 // src/components/Footer.tsx
 export default function Footer() {
     return (
-        <footer className="bg-gray-100 text-gray-500 border-t border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800">
+        <footer className="text-gray-500 border-t border-black/5 dark:text-gray-400 dark:border-white/10">
             <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
                 <div className="text-center space-y-2">
                     <p className="text-lg font-semibold text-gray-800 dark:text-white">
