@@ -20,10 +20,12 @@ function PersonIcon() {
     );
 }
 
-// L'action principale prend la couleur du jeu — c'est la vitrine du système : une
-// seule classe (`bg-game`) résout vers la teinte des 34 jeux, via --game-rgb.
+// « Jouer »/« Créer » est une ACTION, pas une identité de jeu : sur une grille de 34
+// cartes, un bouton par couleur de jeu vire au sapin de Noël. L'action garde donc
+// l'accent de marque, uniforme partout. La couleur du jeu reste sur ce qui l'identifie
+// vraiment : le halo de la carte au survol et l'icône.
 const ACTION_PRIMARY =
-    'rounded-lg px-2.5 py-1 text-[11px] font-bold text-black bg-game hover:brightness-110 transition active:scale-95';
+    'rounded-lg px-2.5 py-1 text-[11px] font-bold text-white bg-accent-gradient hover:brightness-110 transition active:scale-95';
 const ACTION_GHOST =
     'rounded-lg px-2.5 py-1 text-[11px] font-bold glass text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-white/[0.08] transition active:scale-95';
 
