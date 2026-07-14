@@ -42,9 +42,9 @@ module.exports = {
                 info: 'rgb(var(--info) / <alpha-value>)',
 
                 // ── DÉPRÉCIÉ — ancienne charte, en cours de retrait ───────────────
-                // felt : double rôle (accent multi + « bonne réponse » quiz) → sera
-                // scindé en MODE_THEME.multi et `success`. clay → MODE_THEME.both.
-                // Conservés tant que leurs ~60 usages ne sont pas migrés (lots 3 et 7).
+                // `clay` est supprimé (plus aucun usage). `felt` survit dans 16 fichiers
+                // (quiz + lobby/social) : son double rôle — accent multi ET « bonne
+                // réponse » — sera scindé en MODE_THEME.multi et `success` aux lots 6-7.
                 felt: {
                     50: '#edf7f1',
                     100: '#d2ebdc',
@@ -56,19 +56,6 @@ module.exports = {
                     700: '#1a553a',
                     800: '#174330',
                     900: '#133829',
-                },
-                // ── Clay / terracotta (third accent) ──
-                clay: {
-                    50: '#fbf0ed',
-                    100: '#f6dad2',
-                    200: '#ecb6a8',
-                    300: '#df8d78',
-                    400: '#cf6750',
-                    500: '#b45441',
-                    600: '#9a4435',
-                    700: '#7d372c',
-                    800: '#652f27',
-                    900: '#552a24',
                 },
             },
             fontFamily: {

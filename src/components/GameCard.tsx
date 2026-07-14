@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { GAME_CONFIG, gameCoverUrl, type GameMode } from '@/lib/gameConfig';
+import { gameThemeVars, type GameKey } from '@/lib/theme/games';
 import GameIcon from '@/components/GameIcon';
 import { fetcher } from '@/lib/swr';
 import { cn } from '@/lib/cn';
@@ -19,19 +20,10 @@ function PersonIcon() {
     );
 }
 
-const MODE_GLOW: Record<GameMode, string> = {
-    solo: 'hover:shadow-glow',
-    both: 'hover:shadow-[0_8px_30px_-8px_rgba(180,84,65,0.45)]',
-    multi: 'hover:shadow-glow-felt',
-};
-const MODE_ICON: Record<GameMode, string> = {
-    solo: 'text-primary-400',
-    both: 'text-clay-400',
-    multi: 'text-felt-400',
-};
-
+// L'action principale prend la couleur du jeu — c'est la vitrine du système : une
+// seule classe (`bg-game`) résout vers la teinte des 34 jeux, via --game-rgb.
 const ACTION_PRIMARY =
-    'rounded-lg px-2.5 py-1 text-[11px] font-bold text-white bg-accent-gradient hover:brightness-110 transition active:scale-95';
+    'rounded-lg px-2.5 py-1 text-[11px] font-bold text-black bg-game hover:brightness-110 transition active:scale-95';
 const ACTION_GHOST =
     'rounded-lg px-2.5 py-1 text-[11px] font-bold glass text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-white/[0.08] transition active:scale-95';
 
@@ -54,9 +46,13 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
 
     return (
         <div
+            // --game-rgb descend par la cascade : tous les `*-game` de la carte
+            // (glow, icône, bouton) résolvent vers la couleur de CE jeu.
+            style={gameThemeVars(gameKey as GameKey)}
             className={cn(
-                'glass flex flex-col overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5',
-                MODE_GLOW[mode],
+                'glass flex flex-col overflow-hidden rounded-2xl transition-all duration-200',
+                // Néon au survol seulement : la carte au repos reste mate.
+                'hover:-translate-y-0.5 hover:shadow-game-glow hover:border-game/30',
             )}
         >
             {image && (
@@ -68,7 +64,7 @@ export default function GameCard({ gameKey, mode }: GameCardProps) {
             <div className="flex flex-1 flex-col p-4">
             <Link href={`/leaderboard/${gameKey}`} className="block min-w-0 flex-1">
                 {!image && (
-                    <span className={cn('mb-2 block', MODE_ICON[mode])}>
+                    <span className="mb-2 block text-game">
                         <GameIcon gameType={g.gameType} className="h-8 w-8" />
                     </span>
                 )}

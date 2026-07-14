@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr';
 import { GAME_CONFIG, gameCoverUrl } from '@/lib/gameConfig';
+import { GAME_THEME, gameThemeVars, type GameKey } from '@/lib/theme/games';
 import { FireIcon } from '@heroicons/react/24/solid';
 
 export default function TrendingCarousel() {
@@ -74,10 +75,15 @@ export default function TrendingCarousel() {
                             aria-label={label}
                             className="group absolute left-1/2 top-1/2 w-[68%] sm:w-[460px] aspect-[16/9] -ml-[34%] sm:-ml-[230px] -mt-[19%] sm:-mt-[129px] rounded-2xl overflow-hidden ring-1 ring-black/10 dark:ring-white/10 transition-all duration-500 ease-out"
                             style={{
+                                ...gameThemeVars(key as GameKey),
                                 transform: `translateX(${translate}%) scale(${scale})`,
                                 opacity,
                                 zIndex: z,
-                                boxShadow: isCenter ? '0 18px 55px -12px rgb(var(--accent) / 0.6)' : '0 8px 24px -12px rgba(0,0,0,0.5)',
+                                // La diapo centrale rayonne de la couleur de SON jeu, pas de
+                                // l'accent de marque : c'est ce jeu qu'on met en avant.
+                                boxShadow: isCenter
+                                    ? `0 18px 55px -12px ${GAME_THEME[key as GameKey].hex}99`
+                                    : '0 8px 24px -12px rgba(0,0,0,0.5)',
                             }}
                             tabIndex={isCenter ? 0 : -1}
                         >
@@ -97,7 +103,7 @@ export default function TrendingCarousel() {
                                 {isCenter && (
                                     <div className="mt-0.5 flex items-center gap-3 text-[11px] text-gray-200">
                                         <span>{g.players}</span>
-                                        <span className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all font-bold text-primary-300">Jouer →</span>
+                                        <span className="opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all font-bold text-game">Jouer →</span>
                                     </div>
                                 )}
                             </div>

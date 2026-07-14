@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr';
 import { GAME_CONFIG, type GameMode } from '@/lib/gameConfig';
+import { MODE_THEME } from '@/lib/theme/games';
 import GameCard from '@/components/GameCard';
 import GameCombobox from '@/components/GameCombobox';
 import TrendingCarousel from '@/components/TrendingCarousel';
@@ -22,11 +23,9 @@ const GAMES_BY_MODE = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const MODE_DOT: Record<GameMode, string> = {
-    solo: 'bg-primary-500',
-    both: 'bg-clay-500',
-    multi: 'bg-felt-600',
-};
+// Le point de mode lit MODE_THEME (source unique) : `clay`/`felt` étaient les
+// dernières traces de l'ancienne charte à cet endroit.
+
 
 // ── Filtre par mode (onglets) ─────────────────────────────────────────────────
 type Filter = GameMode | 'all';
@@ -57,7 +56,10 @@ function GameSection({
                 aria-expanded={open}
                 className="w-full flex items-center gap-3 mb-4 group text-left"
             >
-                <div className={`w-2 h-2 rounded-full ${MODE_DOT[mode]}`} />
+                <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: MODE_THEME[mode].hex }}
+                />
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                     {label}
                 </h3>
