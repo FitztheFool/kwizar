@@ -71,7 +71,7 @@ export default function QuizCard({
     <div
       className={`group bg-white dark:bg-gray-900 rounded-xl p-4 sm:p-6 border-2 transition-all relative flex flex-col h-full ${isLocked
         ? 'border-gray-200 dark:border-gray-700 opacity-70'
-        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:shadow-xl'
+        : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 hover:shadow-xl'
         }`}
     >
       {quiz.imageUrl && (
@@ -95,7 +95,7 @@ export default function QuizCard({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
                 title="Modifier ce quiz"
                 aria-label="Modifier ce quiz"
-                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-blue-600 transition-colors"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-primary-600 transition-colors"
               >
                 <PencilSquareIcon className="w-4 h-4" />
               </button>
@@ -105,7 +105,7 @@ export default function QuizCard({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
                 title="Supprimer ce quiz"
                 aria-label="Supprimer ce quiz"
-                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-red-600 transition-colors"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-danger transition-colors"
               >
                 <TrashIcon className="w-4 h-4" />
               </button>
@@ -118,7 +118,7 @@ export default function QuizCard({
                 onClick={(e) => e.stopPropagation()}
                 title="Imprimer ce quiz"
                 aria-label="Imprimer ce quiz"
-                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-blue-500 transition-colors"
+                className="z-10 inline-flex items-center justify-center w-8 h-8 rounded-md bg-black/60 text-white shadow-md hover:bg-primary-500 transition-colors"
               >
                 <PrinterIcon className="w-4 h-4" />
               </Link>
@@ -131,7 +131,7 @@ export default function QuizCard({
           </span>
         )}
         {isMyQuiz && (
-          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+          <span className="bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
             <UserIcon className="w-3 h-3" />Créé par moi
           </span>
         )}
@@ -141,7 +141,7 @@ export default function QuizCard({
           </span>
         )}
         {isPerfect && (
-          <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
+          <span className="bg-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-md inline-flex items-center gap-1">
             <CheckIcon className="w-3 h-3" />Complété
           </span>
         )}
@@ -162,12 +162,12 @@ export default function QuizCard({
             <DocumentTextIcon className="w-3.5 h-3.5" />{quiz._count.questions} questions
           </span>
           {quiz.category && (
-            <span className="flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-medium">
+            <span className="flex items-center gap-1 bg-primary-500/15 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-full font-medium">
               <TagIcon className="w-3 h-3" />{quiz.category.name}
             </span>
           )}
           {hasPlayed && (
-            <span className={`flex items-center gap-1 font-semibold ${isPerfect ? 'text-green-600' : 'text-orange-500'}`}>
+            <span className={`flex items-center gap-1 font-semibold ${isPerfect ? 'text-success' : 'text-warning'}`}>
               <TrophyIcon className="w-3.5 h-3.5" />{score}/{totalPoints} pts
             </span>
           )}
@@ -191,7 +191,7 @@ export default function QuizCard({
           <UserIcon className="w-3 h-3 inline mr-1" />Créé par{' '}
           <Link
             href={currentUserId === quiz.creator.id ? '/dashboard#stats' : `/user/${quiz.creator.username}#stats`}
-            className="font-semibold text-blue-600 hover:underline transition-colors"
+            className="font-semibold text-primary-600 hover:underline transition-colors"
           >
             {quiz.creator.username}
           </Link>

@@ -12,17 +12,17 @@ interface Props {
 
 export default function AnswerOption({ label, text, isSelected, showCorrect, showWrong, disabled, onClick }: Props) {
     const rowCls = showCorrect
-        ? 'border-felt-500 bg-felt-500/20 text-felt-800 dark:text-felt-100 ring-2 ring-felt-500/40'
+        ? 'border-success bg-success/15 text-success ring-2 ring-success/40'
         : showWrong
-            ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
+            ? 'border-danger/40 bg-danger/10 text-danger'
             : isSelected
                 ? 'border-primary-400 bg-primary-500/30 text-amber-950 dark:text-amber-50 ring-2 ring-primary-400/60 shadow-md'
                 : 'border-amber-700/30 bg-amber-900/20 text-amber-900 dark:text-amber-100 hover:border-amber-700/60 hover:bg-amber-900/30 cursor-pointer';
 
     const badgeCls = showCorrect
-        ? 'bg-felt-600 text-white'
+        ? 'bg-success text-white'
         : showWrong
-            ? 'bg-red-400 text-white'
+            ? 'bg-danger text-white'
             : isSelected
                 ? 'bg-primary-500 text-stone-950'
                 : 'bg-amber-900/30 text-amber-900 dark:text-amber-100';

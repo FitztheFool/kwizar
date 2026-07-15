@@ -60,7 +60,7 @@ export default function QuizResults({
     const totalCount = questionResults.length;
 
     return (
-        <div className={hideHeader ? '' : 'min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900'}>
+        <div className={hideHeader ? '' : 'min-h-screen'}>
             <div className={hideHeader ? '' : 'max-w-3xl mx-auto px-4 py-12 sm:px-6 lg:px-8'}>
 
                 {/* ── Carte score ── */}
@@ -71,13 +71,13 @@ export default function QuizResults({
                                 {percentage >= 80
                                     ? <TrophyIcon className="w-16 h-16 text-amber-500" />
                                     : percentage >= 60
-                                        ? <HandThumbUpIcon className="w-16 h-16 text-blue-500" />
-                                        : <BookOpenIcon className="w-16 h-16 text-indigo-400" />}
+                                        ? <HandThumbUpIcon className="w-16 h-16 text-info" />
+                                        : <BookOpenIcon className="w-16 h-16 text-primary-400" />}
                             </div>
                             <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Quiz terminé !</h2>
                             <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">{quizTitle}</p>
 
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-6 mb-6">
+                            <div className="bg-accent-gradient text-white rounded-xl p-6 mb-6">
                                 <p className="text-lg font-semibold opacity-90 mb-1">{score}/{totalPoints} pts</p>
                                 <p className="text-5xl font-bold mb-1">
                                     {correctCount}/{totalCount}{' '}
@@ -104,7 +104,7 @@ export default function QuizResults({
                             <div className="flex gap-3 justify-center flex-wrap">
 {extraActions.map((action, i) => (
                                     <button key={i} onClick={action.onClick}
-                                        className={`px-6 py-3 rounded-lg transition-colors font-medium ${action.variant === 'primary' ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-600 text-white hover:bg-gray-700'}`}>
+                                        className={`px-6 py-3 rounded-lg transition-colors font-medium ${action.variant === 'primary' ? 'bg-accent-gradient text-white hover:brightness-110' : 'bg-gray-600 text-white hover:bg-gray-700'}`}>
                                         {action.label}
                                     </button>
                                 ))}
@@ -120,8 +120,8 @@ export default function QuizResults({
                 )}
 
                 {isOwnQuiz && (
-                    <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300 rounded-xl px-5 py-4 mb-6 shadow-sm">
-                        <InformationCircleIcon className="w-5 h-5 shrink-0 text-blue-500" />
+                    <div className="flex items-center gap-3 bg-info/10 border border-info/30 text-info rounded-xl px-5 py-4 mb-6 shadow-sm">
+                        <InformationCircleIcon className="w-5 h-5 shrink-0 text-info" />
                         <p className="text-sm">Ce quiz étant le vôtre, il ne vous rapporte pas de points au classement.</p>
                     </div>
                 )}
@@ -174,7 +174,7 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                     </p>
                     <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 font-medium">{result.points} pts</span>
                 </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-info mt-1">
                     <CheckCircleIcon className="inline-block w-3.5 h-3.5 align-text-bottom mr-1" /><span className="font-medium">{result.correctAnswerText}</span>
                 </p>
             </div>
@@ -187,9 +187,9 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                     const correctAnswers = result.correctAnswerText.split(', ').map(c => norm(c));
 
                     return (
-                        <div key={entry.userId} className={`flex items-center gap-3 px-5 py-3 ${isMe ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                        <div key={entry.userId} className={`flex items-center gap-3 px-5 py-3 ${isMe ? 'bg-info/5' : ''}`}>
                             <span className={`text-lg w-5 text-center font-bold ${playerResult
-                                ? (gotPoints ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400')
+                                ? (gotPoints ? 'text-success' : 'text-danger')
                                 : 'text-gray-300 dark:text-gray-600'
                                 }`}>
                                 {playerResult ? (gotPoints ? <CheckIcon className="w-5 h-5 inline-block" /> : <XMarkIcon className="w-5 h-5 inline-block" />) : '—'}
@@ -207,14 +207,14 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                                                 ? norm(ans) === correctAnswers[i]
                                                 : correctAnswers.includes(norm(ans));
                                             return (
-                                                <span key={i} className={`font-medium ${isGood ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                                                <span key={i} className={`font-medium ${isGood ? 'text-success' : 'text-danger'}`}>
                                                     {ans}{i < playerResult.userAnswerText.split(', ').length - 1 ? ',' : ''}
                                                 </span>
                                             );
                                         })}
                                     </span>
                                 ) : (
-                                    <span className={`text-xs flex-1 ${gotPoints ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    <span className={`text-xs flex-1 ${gotPoints ? 'text-success' : 'text-danger'}`}>
                                         {playerResult.userAnswerText}
                                     </span>
                                 )
@@ -222,7 +222,7 @@ function QuestionCard({ result, index, leaderboard, currentUserId }: {
                                 <span className="text-xs flex-1 text-gray-400 dark:text-gray-500 italic">Aucune réponse</span>
                             )}
 
-                            <span className={`text-xs font-bold shrink-0 ${gotPoints ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                            <span className={`text-xs font-bold shrink-0 ${gotPoints ? 'text-success' : 'text-gray-400 dark:text-gray-500'}`}>
                                 {playerResult ? `${playerResult.earnedPoints}/${playerResult.points} pts` : '—'}
                             </span>
                         </div>

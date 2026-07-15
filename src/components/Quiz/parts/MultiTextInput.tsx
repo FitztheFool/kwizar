@@ -29,8 +29,8 @@ export default function MultiTextInput({ values, count, onChange, disabled, feed
                 return (
                     <div key={i} className="flex items-center gap-2">
                         <span className={`shrink-0 w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center
-                            ${isFieldCorrect ? 'bg-felt-500/20 text-felt-700 dark:text-felt-200'
-                                : isFieldWrong ? 'bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400'
+                            ${isFieldCorrect ? 'bg-success/15 text-success'
+                                : isFieldWrong ? 'bg-danger/10 text-danger'
                                     : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                             {isFieldCorrect ? <CheckIcon className="w-4 h-4" /> : isFieldWrong ? <XMarkIcon className="w-4 h-4" /> : i + 1}
                         </span>
@@ -43,15 +43,15 @@ export default function MultiTextInput({ values, count, onChange, disabled, feed
                             autoFocus={i === 0}
                             placeholder={`Réponse ${i + 1}…`}
                             className={`flex-1 px-4 py-3 rounded-xl border-2 text-amber-950 dark:text-amber-100 placeholder-amber-700/50 dark:placeholder-amber-200/40 focus:outline-none transition-colors disabled:opacity-60
-                                ${isFieldCorrect ? 'border-felt-500 bg-felt-500/20'
-                                    : isFieldWrong ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
+                                ${isFieldCorrect ? 'border-success bg-success/15'
+                                    : isFieldWrong ? 'border-danger/40 bg-danger/10'
                                         : 'border-amber-700/30 bg-amber-900/20 focus:border-amber-700/70 focus:bg-amber-900/30'}`}
                         />
                     </div>
                 );
             })}
             {showFeedback && !feedback?.isCorrect && feedback?.correctAnswerText && (
-                <p className="text-sm text-felt-700 dark:text-felt-300 px-1">
+                <p className="text-sm text-success px-1">
                     Bonne(s) réponse(s) : <strong>{feedback.correctAnswerText}</strong>
                 </p>
             )}

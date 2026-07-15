@@ -215,7 +215,7 @@ export default function QuizPlayer({ quizId, lobbyId, resultUrl, loginCallbackUr
                         <button
                             onClick={handleNextQuestion}
                             disabled={isSubmitting}
-                            className="w-full py-3.5 rounded-xl bg-felt-600 hover:bg-felt-500 active:bg-felt-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-lg shadow-black/20"
+                            className="w-full py-3.5 rounded-xl bg-accent-gradient hover:brightness-110 disabled:opacity-50 text-white font-semibold transition-all duration-150 disabled:cursor-not-allowed shadow-glow"
                         >
                             {isSubmitting ? 'Envoi en cours...' : isLastQuestion ? 'Voir mes résultats' : 'Question suivante →'}
                         </button>
