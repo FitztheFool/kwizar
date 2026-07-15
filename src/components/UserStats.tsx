@@ -179,8 +179,6 @@ export default function UserStats({ username }: Props) {
                     <GameFilterPills
                         value={gameFilter}
                         onChange={handleFilterChange}
-                        activeClassName="bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white"
-                        inactiveClassName="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         allowedGameTypes={Object.keys(activeGameStats)}
                     />
                 </div>

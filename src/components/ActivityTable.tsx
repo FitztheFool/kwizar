@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useGameLabels } from '@/hooks/useGameLabels';
-import { GAME_COLOR } from '@/lib/gameColor';
+import { gameThemeVarsByType } from '@/lib/theme/games';
 import PlayerButton from '@/components/PlayerButton';
 import GameIcon from '@/components/GameIcon';
 import { NoSymbolIcon, ClockIcon, UsersIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -116,9 +116,10 @@ export default function ActivityTable({
                                 {/* Jeu */}
                                 <td className="px-3 py-2 whitespace-nowrap">
                                     <span
-                                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${GAME_COLOR[row.gameType]?.badge ??
-                                            'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                                            }`}
+                                        // Une seule expression pour les 34 jeux : --game-rgb
+                                        // porte la teinte, `bg-game`/`text-game` la lisent.
+                                        style={gameThemeVarsByType(row.gameType)}
+                                        className="text-xs font-semibold px-2 py-0.5 rounded-full bg-game/15 text-game"
                                     >
                                         <GameIcon gameType={row.gameType} className="w-3 h-3 inline mr-1" />
                                         {labelOf(row.gameType)}

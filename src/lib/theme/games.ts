@@ -102,3 +102,17 @@ export function gameThemeByType(gameType: string): GameTheme | undefined {
     const key = GAME_KEY_BY_TYPE[gameType] as GameKey | undefined;
     return key ? GAME_THEME[key] : undefined;
 }
+
+/**
+ * Variables CSS depuis une valeur d'enum Prisma — pour les surfaces qui manipulent des
+ * `gameType` plutôt que des clés (classement, tableau d'activité, cartes de stats).
+ * Retombe silencieusement sur l'accent de marque si le jeu est inconnu.
+ */
+export function gameThemeVarsByType(gameType: string): React.CSSProperties {
+    const theme = gameThemeByType(gameType);
+    if (!theme) return {};
+    return {
+        '--game-rgb': theme.rgb.join(' '),
+        '--game-hex': theme.hex,
+    } as React.CSSProperties;
+}

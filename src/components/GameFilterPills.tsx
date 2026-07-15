@@ -16,9 +16,6 @@ const ALL_OPTIONS: (GameOption & { gameType: string })[] = Object.entries(GAME_C
 interface Props {
     value: GameFilter;
     onChange: (value: GameFilter) => void;
-    /** Conservés pour compat des appelants (non utilisés). */
-    activeClassName?: string;
-    inactiveClassName?: string;
     showAll?: boolean;
     allowedGameTypes?: string[];
 }

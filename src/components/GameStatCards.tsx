@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 import { useGameLabels } from '@/hooks/useGameLabels';
-import { GAME_COLOR } from '@/lib/gameColor';
+import { gameThemeVarsByType } from '@/lib/theme/games';
 import { plural } from '@/lib/utils';
 import GameIcon from '@/components/GameIcon';
 
@@ -129,28 +129,29 @@ export default function GameStatCards({ gameStats, ranks = {}, eloRanks = {}, hi
         <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {visible.map(([type, stat]) => {
-                    const c = GAME_COLOR[type]?.card ?? {
-                        border: 'border-gray-200 dark:border-gray-700',
-                        bg: 'bg-gray-50 dark:bg-gray-800/50',
-                        label: 'text-gray-600 dark:text-gray-400',
-                    };
                     const secondary = getSecondaryStat(type, stat, hideWinRate);
                     const bar = hideWinRate ? null : getBar(type, stat);
 
                     const rankVal = ranks[type];
                     return (
-                        <div key={type} className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
+                        <div
+                            key={type}
+                            // La teinte identifie le jeu de cette ligne de stats. Fond très
+                            // léger : elle informe, elle ne réclame pas d'action.
+                            style={gameThemeVarsByType(type)}
+                            className="rounded-xl border border-game/25 bg-game/[0.06] p-3"
+                        >
                             {/* Header */}
                             <div className="flex items-center justify-between gap-1 mb-2">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0" />
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${c.label}`}>
+                                    <GameIcon gameType={type} className="w-3.5 h-3.5 shrink-0 text-game" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider truncate text-game">
                                         {labelOf(type)}
                                     </span>
                                     {rankVal && rankVal <= 3 && <RankBadge rank={rankVal} />}
                                 </div>
                                 {bar && (
-                                    <span className={`text-xs font-bold shrink-0 ${c.label}`}>{bar.label}</span>
+                                    <span className="text-xs font-bold shrink-0 text-game">{bar.label}</span>
                                 )}
                             </div>
 

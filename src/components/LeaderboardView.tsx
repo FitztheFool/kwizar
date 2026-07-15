@@ -6,13 +6,13 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GAME_CONFIG, GameType as Game } from '@/lib/gameConfig';
-import { GAME_COLOR } from '@/lib/gameColor';
 import Pagination from '@/components/Pagination';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import GameIcon from '@/components/GameIcon';
 import { sanitizeContentHtml } from '@/lib/sanitizeHtml';
+import { gameThemeVarsByType } from '@/lib/theme/games';
 import type { LeaderboardData } from '@/lib/leaderboard';
 import { BookOpenIcon, ChartBarIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 
@@ -86,7 +86,6 @@ export default function LeaderboardView({ game, initialData }: Props) {
     const gameType = GAME_CONFIG[game].gameType;
     const isSolo = GAME_CONFIG[game].mode === 'solo';
     const [lobbyCode] = useState(() => crypto.randomUUID());
-    const activeClassName = GAME_COLOR[gameType]?.badgeActive ?? 'bg-gray-800 text-white border-gray-800';
     const myEntry = leaderboard.find(e => e.userId === session?.user?.id);
     const scoreLabel = config?.scoreLabel ?? GAME_CONFIG[game].scoreLabel;
     const label = config?.label ?? GAME_CONFIG[game].label;
@@ -104,14 +103,13 @@ export default function LeaderboardView({ game, initialData }: Props) {
                         value={gameType}
                         onChange={handleGameChange}
                         showAll={false}
-                        activeClassName={activeClassName}
                     />
                 </div>
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-gray-200 dark:border-gray-700 flex-shrink-0">
-                        <GameIcon gameType={gameType} className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                    <div style={gameThemeVarsByType(gameType)} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-game/10 border border-game/25 flex-shrink-0">
+                        <GameIcon gameType={gameType} className="w-7 h-7 text-game" />
                     </div>
                     <div className="flex-1">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Classement {label}</h1>
@@ -124,12 +122,12 @@ export default function LeaderboardView({ game, initialData }: Props) {
                     </div>
                     {isSolo ? (
                         <Link href={`/game/${game}`}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
+                            className="px-4 py-2 bg-accent-gradient hover:brightness-110 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
                             Jouer
                         </Link>
                     ) : (
                         <Link href={`/lobby/create/${lobbyCode}?game=${game}`}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
+                            className="px-4 py-2 bg-accent-gradient hover:brightness-110 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-px shrink-0">
                             Créez un lobby
                         </Link>
                     )}
