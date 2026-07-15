@@ -31,10 +31,10 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
             <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{lobby.title}</h3>
                 <span className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${isWaiting
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                    ? 'bg-success/15 text-success'
+                    : 'bg-info/15 text-info'
                     }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isWaiting ? 'bg-green-500' : 'bg-blue-500'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${isWaiting ? 'bg-success' : 'bg-info'}`} />
                     {isWaiting ? 'En attente' : 'En cours'}
                 </span>
             </div>
@@ -60,7 +60,7 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
                     </span>
                     <button
                         onClick={() => onPlayersClick(lobby.id, lobby.playerNames ?? [])}
-                        className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                        className="font-semibold text-primary-600 dark:text-primary-400 hover:underline"
                     >
                         {lobby.currentPlayers}/{lobby.maxPlayers}
                     </button>
@@ -74,7 +74,7 @@ export default function LobbyCard({ lobby, onJoin, onPlayersClick }: LobbyCardPr
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                        className="bg-accent-gradient h-2 rounded-full transition-all duration-500"
                         style={{ width: `${(lobby.currentPlayers / lobby.maxPlayers) * 100}%` }}
                     />
                 </div>

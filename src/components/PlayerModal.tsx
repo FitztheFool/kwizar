@@ -24,7 +24,7 @@ interface Player {
 }
 
 const TEAM_LABEL: Record<number, string> = { 0: 'Ambre', 1: 'Verte' };
-const TEAM_DOT: Record<number, string> = { 0: 'bg-primary-500', 1: 'bg-felt-600' };
+const TEAM_DOT: Record<number, string> = { 0: 'bg-primary-500', 1: 'bg-emerald-600' };
 
 function TeamBadge({ team }: { team: number }) {
     return (
@@ -101,9 +101,9 @@ export default function PlayerModal({ gameId, players, onClose, onDeleted }: Pla
                             <div className="flex items-center gap-2">
                                 <span className="flex items-center">
                                     {p.abandon
-                                        ? <NoSymbolIcon className="w-4 h-4 text-red-500" title="Abandon" />
+                                        ? <NoSymbolIcon className="w-4 h-4 text-danger" title="Abandon" />
                                         : p.afk
-                                            ? <ClockIcon className="w-4 h-4 text-amber-500" title="AFK" />
+                                            ? <ClockIcon className="w-4 h-4 text-warning" title="AFK" />
                                             : p.placement != null
                                                 ? <RankBadge placement={p.placement} />
                                                 : null
@@ -117,7 +117,7 @@ export default function PlayerModal({ gameId, players, onClose, onDeleted }: Pla
                                 ) : (
                                     <Link
                                         href={session?.user?.username === p.username ? '/dashboard' : `/user/${p.username}`}
-                                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                                        className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline"
                                         onClick={onClose}
                                     >
                                         {p.username}
@@ -139,7 +139,7 @@ export default function PlayerModal({ gameId, players, onClose, onDeleted }: Pla
                     <button
                         onClick={handleDelete}
                         disabled={deleting}
-                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-danger/40 text-danger text-sm font-semibold hover:bg-danger/10 transition-colors disabled:opacity-50"
                     >
                         <TrashIcon className="w-4 h-4" />
                         {deleting ? 'Suppression…' : 'Supprimer cette partie (admin)'}

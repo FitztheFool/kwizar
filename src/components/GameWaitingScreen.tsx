@@ -77,7 +77,7 @@ export default function GameWaitingScreen({ gameType, gameName, lobbyId, players
             {/* Header */}
             <header className="shrink-0 h-14 border-b border-gray-200/60 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm px-6 flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" style={{ animation: 'gws-live 1.6s ease-in-out infinite' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500" style={{ animation: 'gws-live 1.6s ease-in-out infinite' }} />
                     <span className="text-[10px] font-black tracking-[0.3em] text-gray-500 dark:text-gray-400 uppercase">Kwizar</span>
                 </div>
                 <span className="text-xs text-gray-400 dark:text-white/40 tracking-widest uppercase font-bold">En attente</span>
@@ -100,7 +100,7 @@ export default function GameWaitingScreen({ gameType, gameName, lobbyId, players
                             }}
                         />
                         <div
-                            className="w-24 h-24 rounded-3xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center"
+                            className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center"
                             style={{ animation: 'gws-ring 2s ease-in-out infinite' }}
                         >
                             <GameIcon gameType={gameType} className="w-12 h-12 text-white" />
@@ -113,9 +113,9 @@ export default function GameWaitingScreen({ gameType, gameName, lobbyId, players
                         <h1 className="text-3xl font-black tracking-tight inline-flex items-baseline gap-1">
                             Démarrage
                             <span className="inline-flex items-end gap-0.5 ml-0.5 pb-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out infinite' }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out 0.2s infinite' }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out 0.4s infinite' }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out infinite' }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-warning" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out 0.2s infinite' }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" style={{ animation: 'gws-pulse-dot 1.2s ease-in-out 0.4s infinite' }} />
                             </span>
                         </h1>
 
@@ -176,7 +176,7 @@ export default function GameWaitingScreen({ gameType, gameName, lobbyId, players
 
                     {/* server status line */}
                     <div className="flex items-center gap-2 -mt-2 text-[11px] font-medium text-gray-400 dark:text-white/40">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" style={{ animation: 'gws-live 1.4s ease-in-out infinite' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-warning" style={{ animation: 'gws-live 1.4s ease-in-out infinite' }} />
                         Connexion au serveur de jeu…
                     </div>
                 </div>

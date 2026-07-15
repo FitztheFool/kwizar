@@ -32,8 +32,8 @@ export function MembersOnlyBanner({ isPending = false }: { isPending?: boolean }
         <div
             role="alert"
             className={`flex items-center gap-3 rounded-xl border px-5 py-4 shadow-sm ${isPending
-                ? 'border-blue-300 bg-blue-50 text-blue-800'
-                : 'border-amber-300 bg-amber-50 text-amber-800'}`}
+                ? 'border-info/30 bg-info/10 text-info'
+                : 'border-warning/30 bg-warning/10 text-warning'}`}
         >
             <LockClosedIcon className="w-5 h-5 shrink-0" />
             <p className="text-sm font-medium">
@@ -41,7 +41,7 @@ export function MembersOnlyBanner({ isPending = false }: { isPending?: boolean }
             </p>
             <button
                 onClick={() => setVisible(false)}
-                className={`ml-auto transition ${isPending ? 'text-blue-500 hover:text-blue-700' : 'text-amber-500 hover:text-amber-700'}`}
+                className={`ml-auto transition hover:brightness-125 ${isPending ? 'text-info' : 'text-warning'}`}
                 aria-label="Fermer"
             >
                 <XMarkIcon className="w-4 h-4" />

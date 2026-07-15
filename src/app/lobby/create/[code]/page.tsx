@@ -907,14 +907,14 @@ export default function LobbyCodePage() {
                                         const teamBots = botSlots.filter(b => teams?.[b.userId] === team);
                                         const myTeamLocal = session?.user?.id ? teams?.[session.user.id] : undefined;
                                         return (
-                                            <div key={team} className={`rounded-xl border p-3 space-y-2 ${team === 0 ? 'border-primary-500/30 bg-primary-500/5' : 'border-felt-500/30 bg-felt-500/5'}`}>
+                                            <div key={team} className={`rounded-xl border p-3 space-y-2 ${team === 0 ? 'border-primary-500/30 bg-primary-500/5' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
                                                 <div className="flex items-center justify-between">
-                                                    <span className={`text-xs font-semibold ${team === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-felt-700 dark:text-felt-400'}`}>
-                                                        <span className={`w-2 h-2 rounded-full inline-block mr-1 ${team === 0 ? 'bg-primary-500' : 'bg-felt-600'}`} />{team === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
+                                                    <span className={`text-xs font-semibold ${team === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                                                        <span className={`w-2 h-2 rounded-full inline-block mr-1 ${team === 0 ? 'bg-primary-500' : 'bg-emerald-600'}`} />{team === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
                                                     </span>
                                                     <button onClick={() => socket?.emit('lobby:setTeam', { team })}
                                                         className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-all ${myTeamLocal === team
-                                                            ? (team === 0 ? 'bg-primary-500 text-white' : 'bg-felt-600 text-white')
+                                                            ? (team === 0 ? 'bg-primary-500 text-white' : 'bg-emerald-600 text-white')
                                                             : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
                                                         {myTeamLocal === team ? <><CheckIcon className="w-3 h-3 inline mr-0.5" />Rejoint</> : 'Rejoindre'}
                                                     </button>
@@ -922,14 +922,14 @@ export default function LobbyCodePage() {
                                                 <div className="space-y-1">
                                                     {teamPlayers.map(p => (
                                                         <div key={p.userId} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-primary-400' : 'bg-felt-500'}`} />
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-primary-400' : 'bg-emerald-500'}`} />
                                                             {p.username}
                                                             {p.userId === hostId && <StarIcon className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />}
                                                         </div>
                                                     ))}
                                                     {teamBots.map(b => (
                                                         <div key={b.userId} className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 italic">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-primary-400' : 'bg-felt-500'}`} />
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${team === 0 ? 'bg-primary-400' : 'bg-emerald-500'}`} />
                                                             {b.username}
                                                         </div>
                                                     ))}
