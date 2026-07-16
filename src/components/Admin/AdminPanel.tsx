@@ -226,11 +226,14 @@ export default function AdminPanel() {
 
     const activeConfig = TAB_CONFIG.find(t => t.key === activeTab)!;
 
+    // Version A — deux dalles de verre (sidebar + contenu) posées directement sur le
+    // fond, séparées par un gap : le fond transparaît entre et à travers. Pas de
+    // panneau opaque au-dessus.
     return (
-        <div className="flex gap-0 min-h-[600px] glass rounded-2xl overflow-hidden">
+        <div className="flex gap-3 min-h-[600px]">
 
-            {/* Sidebar — transparente : elle vit dans le conteneur glass. */}
-            <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-black/5 dark:border-white/10">
+            {/* Sidebar en verre. */}
+            <aside className="hidden md:flex flex-col w-52 shrink-0 glass rounded-2xl overflow-hidden">
                 <div className="px-4 pt-5 pb-4 border-b border-gray-200 dark:border-gray-800">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Administration</p>
                 </div>
@@ -251,8 +254,8 @@ export default function AdminPanel() {
                 </nav>
             </aside>
 
-            {/* Main content */}
-            <div className="flex-1 min-w-0 flex flex-col">
+            {/* Main content — dalle de verre. */}
+            <div className="flex-1 min-w-0 flex flex-col glass rounded-2xl overflow-hidden">
 
                 {/* Mobile nav : menu déroulant (tous les onglets accessibles sans scroll horizontal) */}
                 <div className="md:hidden px-4 py-3 border-b border-gray-100 dark:border-gray-800">

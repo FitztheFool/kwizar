@@ -53,6 +53,11 @@
 
     /* Couleur du halo du fond. Suit l'accent, ou le jeu sur une page de jeu. */
     --halo-rgb: var(--accent);
+
+    /* Fond plus présent en clair : les points et les blooms colorés donnent au verre
+       blanc quelque chose à flouter, sinon l'effet glass disparaît sur fond clair. */
+    --dots-opacity: 0.32;
+    --ambient-opacity: 1;
   }
 
   .dark {
@@ -76,12 +81,18 @@
     --danger: 248 113 113;  /* red-400 */
     --warning: 251 191 36;  /* amber-400 */
     --info: 56 189 248;     /* sky-400 */
+
+    /* Fond plus discret en sombre : le contraste avec le fond noir suffit. */
+    --dots-opacity: 0.16;
+    --ambient-opacity: 0.7;
   }
 
   body {
     @apply min-h-dvh flex flex-col text-gray-900 transition-colors duration-200;
-    /* Base plate. Tout l'ambiant (points, halo, grain) vit dans GridBackground. */
-    background-color: #fafaf9;
+    /* Base légèrement teintée (gris-bleuté froid, pas blanc pur) : donne au verre
+       blanc des cartes un fond à flouter, sinon `bg-white/85` se fond dans le blanc
+       et l'effet glass disparaît en clair. */
+    background-color: #eef1f6;
   }
 
   .dark body {
@@ -115,12 +126,15 @@
 }
 
 @layer components {
-  /* Surface de verre — s'adapte au clair et au sombre. */
+  /* Surface de verre — s'adapte au clair et au sombre.
+     En clair, le fond de l'app est quasi-blanc : un simple bg-white/70 se fondait
+     dedans (rien à flouter, bordure invisible). On remonte l'opacité, on marque la
+     bordure et on ajoute une ombre portée pour que la carte « flotte » vraiment. */
   .glass {
-    @apply bg-white/70 dark:bg-white/[0.04] backdrop-blur-xl border border-black/[0.06] dark:border-white/10 shadow-glass;
+    @apply bg-white/55 dark:bg-white/[0.04] backdrop-blur-xl border border-black/[0.08] dark:border-white/10 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.12)] dark:shadow-glass;
   }
   .glass-strong {
-    @apply bg-white/80 dark:bg-white/[0.06] backdrop-blur-2xl border border-black/[0.06] dark:border-white/10 shadow-glass-lg;
+    @apply bg-white/70 dark:bg-white/[0.06] backdrop-blur-2xl border border-black/10 dark:border-white/10 shadow-[0_8px_28px_-8px_rgba(0,0,0,0.18)] dark:shadow-glass-lg;
   }
 
   .btn-primary {

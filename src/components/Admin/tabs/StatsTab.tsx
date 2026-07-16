@@ -74,7 +74,7 @@ export default function StatsTab({
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 {STAT_CARDS.map(({ key, label, icon: Icon, color, bg }) => (
-                    <div key={key} className="bg-black/[0.02] dark:bg-white/[0.03] rounded-xl border border-black/5 dark:border-white/10 p-4">
+                    <div key={key} className="rounded-xl border border-black/8 dark:border-white/10 p-4">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">{label(statValues[key])}</p>
@@ -92,7 +92,7 @@ export default function StatsTab({
 
             {/* Stats par jeu */}
             {Object.values(stats.totals.gameStats).some(v => v.count > 0) && (
-                <div className="bg-black/[0.02] dark:bg-white/[0.03] rounded-xl border border-black/5 dark:border-white/10 p-4">
+                <div className="rounded-xl border border-black/8 dark:border-white/10 p-4">
                     <CollapseSection title="Statistiques par jeu" defaultOpen={false}>
                         <GameStatCards gameStats={stats.totals.gameStats} hideWinRate defaultExpanded />
                     </CollapseSection>
@@ -100,7 +100,7 @@ export default function StatsTab({
             )}
 
             {/* Top quiz */}
-            <div className="bg-black/[0.02] dark:bg-white/[0.03] rounded-xl border border-black/5 dark:border-white/10 p-4">
+            <div className="rounded-xl border border-black/8 dark:border-white/10 p-4">
                 <CollapseSection title="Quiz les plus joués" defaultOpen={false}>
                     <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 mt-1">
                         <table className="w-full text-sm">
@@ -131,7 +131,7 @@ export default function StatsTab({
             </div>
 
             {/* Activité */}
-            <div className="bg-black/[0.02] dark:bg-white/[0.03] rounded-xl border border-black/5 dark:border-white/10 p-4">
+            <div className="rounded-xl border border-black/8 dark:border-white/10 p-4">
                 <CollapseSection title="Activité récente">
                     <div className="flex flex-wrap gap-2 items-center mb-3">
                         <select

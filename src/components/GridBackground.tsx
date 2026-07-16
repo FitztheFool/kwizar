@@ -99,10 +99,12 @@ export default function GridBackground() {
             className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
             style={{ '--mx': '50vw', '--my': '40vh', '--fx': '50vw', '--fy': '40vh' } as React.CSSProperties}
         >
-            {/* 1. Ambiance — deux blooms fixes. Donnent le relief avant toute interaction. */}
+            {/* 1. Ambiance — deux blooms fixes. Donnent le relief avant toute interaction,
+                   et surtout : du contenu coloré à flouter pour le verre en clair. */}
             <div
-                className="absolute inset-0 opacity-70"
+                className="absolute inset-0"
                 style={{
+                    opacity: 'var(--ambient-opacity, 0.7)',
                     backgroundImage: `
                         radial-gradient(60rem 60rem at 12% -12%, rgb(var(--accent) / 0.10), transparent 60%),
                         radial-gradient(50rem 50rem at 100% -5%, rgb(var(--accent) / 0.07), transparent 55%)
@@ -118,7 +120,9 @@ export default function GridBackground() {
                     backgroundImage:
                         'radial-gradient(circle at center, rgb(var(--halo-rgb) / 0.55) 1px, transparent 1px)',
                     backgroundSize: '28px 28px',
-                    opacity: 0.16,
+                    // Plus marqué en clair : sur fond quasi-blanc, des points trop pâles
+                    // disparaissent (--dots-opacity vaut 0.28 en light, 0.16 en dark).
+                    opacity: 'var(--dots-opacity, 0.16)',
                     maskImage:
                         'radial-gradient(ellipse 110% 95% at 50% 30%, black 35%, transparent 92%)',
                     WebkitMaskImage:
