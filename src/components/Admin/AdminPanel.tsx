@@ -227,10 +227,10 @@ export default function AdminPanel() {
     const activeConfig = TAB_CONFIG.find(t => t.key === activeTab)!;
 
     return (
-        <div className="flex gap-0 min-h-[600px] bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div className="flex gap-0 min-h-[600px] glass rounded-2xl overflow-hidden">
 
-            {/* Sidebar */}
-            <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            {/* Sidebar — transparente : elle vit dans le conteneur glass. */}
+            <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-black/5 dark:border-white/10">
                 <div className="px-4 pt-5 pb-4 border-b border-gray-200 dark:border-gray-800">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Administration</p>
                 </div>
@@ -240,8 +240,8 @@ export default function AdminPanel() {
                             key={key}
                             onClick={() => { setActiveTab(key); scrollToSection(key); }}
                             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${activeTab === key
-                                ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                                ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-100'
                                 }`}
                         >
                             <Icon className="w-4 h-4 shrink-0" />
@@ -258,12 +258,12 @@ export default function AdminPanel() {
                 <div className="md:hidden px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                     <label htmlFor="admin-tab-select" className="sr-only">Section d&apos;administration</label>
                     <div className="relative">
-                        <activeConfig.icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500 dark:text-red-400" />
+                        <activeConfig.icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-500 dark:text-primary-400" />
                         <select
                             id="admin-tab-select"
                             value={activeTab}
                             onChange={(e) => { const key = e.target.value as AdminTab; setActiveTab(key); scrollToSection(key); }}
-                            className="w-full appearance-none rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-semibold pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full appearance-none rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-semibold pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                             {TAB_CONFIG.map(({ key, label }) => (
                                 <option key={key} value={key}>{label}</option>
@@ -275,14 +275,14 @@ export default function AdminPanel() {
 
                 {/* Content header */}
                 <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-                    <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-                        <activeConfig.icon className="w-4 h-4 text-red-500 dark:text-red-400" />
+                    <div className="w-8 h-8 rounded-lg bg-primary-500/15 flex items-center justify-center shrink-0">
+                        <activeConfig.icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
                         <h2 className="text-base font-semibold text-gray-900 dark:text-white">{activeConfig.label}</h2>
                         {activeTab === 'quizzes' && quizCategoryName && (
                             <p className="text-xs text-gray-400 dark:text-gray-500">
-                                Filtrés par : <span className="font-medium text-red-500">{quizCategoryName}</span>
+                                Filtrés par : <span className="font-medium text-primary-600 dark:text-primary-400">{quizCategoryName}</span>
                             </p>
                         )}
                     </div>
