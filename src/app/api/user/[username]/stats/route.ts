@@ -115,8 +115,17 @@ export async function GET(
             orderBy: { createdAt: 'desc' },
         });
 
-        const totalGames = distinctGames.length;
-        const totalPages = Math.ceil(totalGames / pageSize);
+        // « Parties jouées » = somme des parties par jeu, comme le calcule l'admin
+        // (StatsTab). distinctGames.length (distinct par gameId seul) pouvait diverger
+        // d'une unité de la somme des count par (gameId, gameType) : une seule méthode
+        // évite tout écart entre le chiffre du profil et les stats par jeu.
+        const totalGames = gameTypeFilter
+            ? (gameStats[gameTypeFilter]?.count ?? 0)
+            : Object.values(gameStats).reduce((sum, s) => sum + s.count, 0);
+        // La pagination de l'activité reste indexée sur les parties distinctes (une
+        // ligne = une partie), triées par date — c'est le rôle propre de distinctGames.
+        const paginableGames = distinctGames.length;
+        const totalPages = Math.ceil(paginableGames / pageSize);
         const paginatedGameIds = distinctGames.slice(skip, skip + pageSize).map(g => g.gameId);
 
         const recentAttempts = await prisma.attempt.findMany({
@@ -212,7 +221,7 @@ export async function GET(
             gameStats,
             totalGames,
             recentActivity,
-            pagination: { page, pageSize, totalGames, totalPages },
+            pagination: { page, pageSize, totalGames: paginableGames, totalPages },
         });
     } catch (err) {
         console.error('[stats] error:', err);
