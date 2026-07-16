@@ -16,7 +16,11 @@ interface GameOverModalProps {
     onClose?: () => void;
     lobbyLabel?: string;
     asModal?: boolean;
-    /** Modal en overlay mais NON fermable (pas de ×, pas de clic-extérieur ni Échap). */
+    /**
+     * Autorise la fermeture (×, clic-extérieur, Échap). **Faux par défaut** : une modal
+     * de fin de partie fermée laisse un plateau vide qu'on ne peut plus rouvrir. Aucun
+     * jeu ne demandait `true` ; à passer explicitement si un écran a une raison de l'être.
+     */
     dismissable?: boolean;
     /** Raison de fin (forfait) — affichée de façon uniforme, prioritaire sur `subtitle`. */
     reason?: 'afk' | 'surrender' | 'disconnect' | null;
@@ -42,7 +46,7 @@ export default function GameOverModal({
     onClose,
     lobbyLabel,
     asModal = false,
-    dismissable = true,
+    dismissable = false,
     reason,
     elo,
     spectator = false,
@@ -92,7 +96,7 @@ export default function GameOverModal({
             <div className="flex gap-3 pt-2">
                 <button
                     onClick={onLobby}
-                    className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-all"
+                    className="flex-1 py-3 rounded-xl bg-accent-gradient hover:brightness-110 text-white font-bold text-sm transition-all"
                 >
                     {lobbyLabel ?? 'Retour au lobby'}
                 </button>
@@ -118,7 +122,7 @@ export default function GameOverModal({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4">
             {card}
         </div>
     );
