@@ -206,10 +206,10 @@ export default function Chat({ messages, teamMessages, onSend, currentUserId, te
                     ${activeTab === 'team'
                                                 ? teamColor === 0
                                                     ? 'bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400'
-                                                    : 'bg-white dark:bg-slate-900 text-felt-700 dark:text-felt-400'
+                                                    : 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400'
                                                 : 'text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 hover:bg-white/10 dark:hover:bg-slate-700/50'
                                             }`}>
-                                        <span className={`inline-block w-2 h-2 rounded-full mr-1 ${teamColor === 0 ? 'bg-primary-500' : 'bg-felt-600'}`} />{teamColor === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
+                                        <span className={`inline-block w-2 h-2 rounded-full mr-1 ${teamColor === 0 ? 'bg-primary-500' : 'bg-emerald-600'}`} />{teamColor === 0 ? 'Équipe Ambre' : 'Équipe Verte'}
                                         {unreadTeam > 0 && (
                                             <span className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
                                                 {unreadTeam}

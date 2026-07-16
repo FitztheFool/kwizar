@@ -52,7 +52,7 @@ export default function UsersTab({
 }: Props) {
     const { data: session } = useSession();
 
-    const selectCls = 'text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400';
+    const selectCls = 'text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500';
 
     return (
         <div id="admin-users" className="scroll-mt-24 space-y-4">
@@ -65,7 +65,7 @@ export default function UsersTab({
                         value={userQuery}
                         onChange={e => setUserQuery(e.target.value)}
                         placeholder="Rechercher (username ou email)…"
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                 </div>
                 <select value={userSort} onChange={e => setUserSort(e.target.value as UserSort)} className={selectCls}>
@@ -131,7 +131,7 @@ export default function UsersTab({
                                         <UserAvatar name={user.username} image={user.image} size="sm" shape="square" />
                                     </td>
                                     <td className="px-4 py-2.5 font-semibold text-xs whitespace-nowrap">
-                                        <Link href={session?.user?.username === user.username ? '/dashboard' : `/user/${user.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{user.username}</Link>
+                                        <Link href={session?.user?.username === user.username ? '/dashboard' : `/user/${user.username}`} className="text-primary-600 dark:text-primary-400 hover:underline">{user.username}</Link>
                                     </td>
                                     <td className="px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{user.email}</td>
                                     <td className="px-4 py-2.5">

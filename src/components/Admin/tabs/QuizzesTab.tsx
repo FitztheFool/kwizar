@@ -49,12 +49,12 @@ export default function QuizzesTab({ quizzes, quizPage, quizTotalPages, categori
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Rechercher par titre…"
-                    className="flex-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="flex-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <select
                     value={categoryId}
                     onChange={e => setCategoryId(e.target.value)}
-                    className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                     <option value="" className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">— Toutes les catégories —</option>
                     {categories.map(c => <option key={c.id} value={c.id} className="text-gray-900 bg-white dark:text-white dark:bg-gray-800">{c.name}</option>)}
@@ -77,10 +77,10 @@ export default function QuizzesTab({ quizzes, quizPage, quizTotalPages, categori
                             {quizzes.map(quiz => (
                                 <tr key={quiz.id} className="hover:bg-white dark:hover:bg-gray-900 transition-colors">
                                     <td className="px-3 py-2 font-medium max-w-[180px]">
-                                        <Link href={`/quiz/${quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs truncate block">{quiz.title}</Link>
+                                        <Link href={`/quiz/${quiz.id}`} className="text-primary-600 dark:text-primary-400 hover:underline text-xs truncate block">{quiz.title}</Link>
                                     </td>
                                     <td className="px-3 py-2 text-xs">
-                                        <Link href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/user/${quiz.creator.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">{quiz.creator.username}</Link>
+                                        <Link href={session?.user?.username === quiz.creator.username ? '/dashboard' : `/user/${quiz.creator.username}`} className="text-primary-600 dark:text-primary-400 hover:underline">{quiz.creator.username}</Link>
                                     </td>
                                     <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">{quiz.category?.name ?? '—'}</td>
                                     <td className="px-3 py-2 text-xs text-gray-700 dark:text-gray-300 font-semibold">{quiz._count.questions}</td>

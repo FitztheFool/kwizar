@@ -46,8 +46,8 @@ export default function ForgotPasswordPage() {
 
                     {done ? (
                         <div className="py-4 text-center space-y-3">
-                            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-                                <EnvelopeIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            <div className="w-12 h-12 rounded-full bg-success/15 flex items-center justify-center mx-auto">
+                                <EnvelopeIcon className="w-6 h-6 text-success" />
                             </div>
                             <p className="text-gray-700 dark:text-gray-300 font-medium">Email envoyé !</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">

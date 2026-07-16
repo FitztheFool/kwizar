@@ -36,7 +36,7 @@ export default function DuelsTab({ duels, page, totalPages, onFetch, onDelete }:
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Rechercher par titre ou item…"
-                    className="flex-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="flex-1 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                     type="button"

@@ -40,7 +40,7 @@ export default function WordGroupsTab({ groups = [], page, totalPages, onFetch, 
                         value={newTheme}
                         onChange={e => setNewTheme(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter' && newTheme.trim()) { onCreate(newTheme.trim()); setNewTheme(''); } }}
-                        className="flex-1 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        className="flex-1 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                     <button
                         onClick={() => { if (newTheme.trim()) { onCreate(newTheme.trim()); setNewTheme(''); } }}
@@ -57,7 +57,7 @@ export default function WordGroupsTab({ groups = [], page, totalPages, onFetch, 
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Rechercher…"
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                 </div>
             </div>
@@ -94,7 +94,7 @@ export default function WordGroupsTab({ groups = [], page, totalPages, onFetch, 
                             <div className="flex items-center gap-1 shrink-0">
                                 {editing?.id === g.id ? (
                                     <>
-                                        <button onClick={() => { onRename(editing.id, editing.theme); setEditing(null); }} className="inline-flex items-center gap-1 text-[10px] font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded-lg transition-colors">
+                                        <button onClick={() => { onRename(editing.id, editing.theme); setEditing(null); }} className="inline-flex items-center gap-1 text-[10px] font-semibold text-white bg-accent-gradient hover:brightness-110 px-2 py-1 rounded-lg transition-colors">
                                             <CheckIcon className="w-3 h-3" />
                                             Sauvegarder
                                         </button>
@@ -105,7 +105,7 @@ export default function WordGroupsTab({ groups = [], page, totalPages, onFetch, 
                                     </>
                                 ) : (
                                     <>
-                                        <button onClick={() => setEditing({ id: g.id, theme: g.theme })} className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border border-blue-200 dark:border-blue-800">
+                                        <button onClick={() => setEditing({ id: g.id, theme: g.theme })} className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary-600 dark:text-primary-400 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border border-blue-200 dark:border-blue-800">
                                             <PencilSquareIcon className="w-3 h-3" />
                                             Renommer
                                         </button>

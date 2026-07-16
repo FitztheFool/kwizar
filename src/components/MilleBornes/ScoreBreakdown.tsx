@@ -11,7 +11,7 @@ interface Props {
 }
 
 const TEAM_LABEL: Record<0 | 1, string> = { 0: 'Ambre', 1: 'Verte' };
-const TEAM_DOT: Record<0 | 1, string> = { 0: 'bg-primary-500', 1: 'bg-felt-600' };
+const TEAM_DOT: Record<0 | 1, string> = { 0: 'bg-primary-500', 1: 'bg-emerald-600' };
 
 export default function ScoreBreakdown({ scores, myUserId, winnerUserId, winningTeam = null }: Props) {
     const is2v2 = scores.some(s => s.team != null);

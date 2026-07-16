@@ -40,23 +40,6 @@ module.exports = {
                 danger: 'rgb(var(--danger) / <alpha-value>)',
                 warning: 'rgb(var(--warning) / <alpha-value>)',
                 info: 'rgb(var(--info) / <alpha-value>)',
-
-                // ── DÉPRÉCIÉ — ancienne charte, en cours de retrait ───────────────
-                // `clay` est supprimé (plus aucun usage). `felt` survit dans 16 fichiers
-                // (quiz + lobby/social) : son double rôle — accent multi ET « bonne
-                // réponse » — sera scindé en MODE_THEME.multi et `success` aux lots 6-7.
-                felt: {
-                    50: '#edf7f1',
-                    100: '#d2ebdc',
-                    200: '#a7d7bb',
-                    300: '#72bd94',
-                    400: '#449d6e',
-                    500: '#2a8054',
-                    600: '#1f6b47',
-                    700: '#1a553a',
-                    800: '#174330',
-                    900: '#133829',
-                },
             },
             fontFamily: {
                 sans: ['var(--font-body)', 'sans-serif'],
@@ -76,7 +59,6 @@ module.exports = {
                 glass: '0 1px 0 0 rgba(255,255,255,0.05) inset, 0 8px 30px -12px rgba(0,0,0,0.6)',
                 'glass-lg': '0 1px 0 0 rgba(255,255,255,0.06) inset, 0 24px 60px -20px rgba(0,0,0,0.7)',
                 glow: '0 0 0 1px rgb(var(--accent) / 0.3), 0 8px 30px -8px rgb(var(--accent) / 0.45)',
-                'glow-felt': '0 0 0 1px rgba(42,128,84,0.3), 0 8px 30px -8px rgba(42,128,84,0.4)', // déprécié avec felt
                 // Néon du jeu courant — réservé aux affordances (hover, focus, CTA actif).
                 'game-glow': '0 0 0 1px rgb(var(--game-rgb) / 0.25), 0 8px 32px -8px rgb(var(--game-rgb) / 0.4)',
                 'game-glow-lg': '0 0 0 1px rgb(var(--game-rgb) / 0.35), 0 0 60px -10px rgb(var(--game-rgb) / 0.55)',

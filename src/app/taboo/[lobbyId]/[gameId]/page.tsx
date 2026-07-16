@@ -140,7 +140,7 @@ export default function TabooGamePage() {
     // ── Récap du tour ─────────────────────────────────────────────────────────
     if (game.phase === 'recap') {
         const teamWhoJustPlayed = game.currentTeam;
-        const teamColor = teamWhoJustPlayed === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-felt-700 dark:text-felt-400';
+        const teamColor = teamWhoJustPlayed === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-emerald-700 dark:text-emerald-400';
         const teamLabel = teamWhoJustPlayed === 0 ? (<><TeamDot team="0" className="w-4 h-4" /> Équipe Ambre</>) : (<><TeamDot team="1" className="w-4 h-4" /> Équipe Verte</>);
 
         const resultLabel = game.lastTurnResult === 'validated'
@@ -236,7 +236,7 @@ export default function TabooGamePage() {
             ? (game.players.find(p => p.userId === currentOratorId)?.username ?? '?')
             : '?';
         const teamLabel = game.currentTeam === 0 ? (<><TeamDot team="0" className="w-4 h-4" /> Équipe Ambre</>) : (<><TeamDot team="1" className="w-4 h-4" /> Équipe Verte</>);
-        const teamColor = game.currentTeam === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-felt-700 dark:text-felt-400';
+        const teamColor = game.currentTeam === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-emerald-700 dark:text-emerald-400';
         const playingTeamPlayers = game.players.filter(p => p.team === game.currentTeam);
         const guessers = playingTeamPlayers.filter(p => p.userId !== currentOratorId);
         const myTeamPlayers = game.players.filter(p => p.team === myTeam);

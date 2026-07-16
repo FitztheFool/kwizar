@@ -157,13 +157,13 @@ export default function MilleBornesPage() {
                         <div className="space-y-2">
                             {teamProgress.map(tp => (
                                 <div key={tp.team} className="flex items-center gap-2">
-                                    <span className={`flex items-center gap-1 w-28 shrink-0 text-xs font-bold ${tp.team === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-felt-700 dark:text-felt-400'}`}>
-                                        <span className={`w-2.5 h-2.5 rounded-full ${tp.team === 0 ? 'bg-primary-500' : 'bg-felt-600'}`} />
+                                    <span className={`flex items-center gap-1 w-28 shrink-0 text-xs font-bold ${tp.team === 0 ? 'text-primary-600 dark:text-primary-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                                        <span className={`w-2.5 h-2.5 rounded-full ${tp.team === 0 ? 'bg-primary-500' : 'bg-emerald-600'}`} />
                                         {tp.team === 0 ? 'Ambre' : 'Verte'}
                                         {tp.mine && <span className="text-gray-400 dark:text-gray-500 font-normal">(vous)</span>}
                                     </span>
                                     <div className="flex-1 h-3 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
-                                        <div className={`h-full transition-[width] duration-700 ease-out ${tp.team === 0 ? 'bg-gradient-to-r from-primary-400 to-primary-600' : 'bg-gradient-to-r from-felt-400 to-felt-600'}`} style={{ width: `${tp.pct}%` }} />
+                                        <div className={`h-full transition-[width] duration-700 ease-out ${tp.team === 0 ? 'bg-gradient-to-r from-primary-400 to-primary-600' : 'bg-gradient-to-r from-emerald-400 to-emerald-600'}`} style={{ width: `${tp.pct}%` }} />
                                     </div>
                                     <span className="w-20 shrink-0 text-right font-mono text-sm font-bold text-gray-900 dark:text-white tabular-nums">
                                         {tp.value}<span className="text-[10px] text-gray-400 font-normal"> km</span>

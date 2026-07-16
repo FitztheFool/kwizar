@@ -115,7 +115,7 @@ export default function StatsTab({
                                 {stats.topQuizzes.map((quiz, i) => (
                                     <tr key={quiz.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                         <td className="px-4 py-2.5 font-medium">
-                                            <Link href={`/quiz/${quiz.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-xs">{i + 1}. {quiz.title}</Link>
+                                            <Link href={`/quiz/${quiz.id}`} className="text-primary-600 dark:text-primary-400 hover:underline text-xs">{i + 1}. {quiz.title}</Link>
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400 tabular-nums">{quiz.questionCount}</td>
                                         <td className="px-4 py-2.5 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 tabular-nums">{quiz.playCount}</td>
@@ -137,7 +137,7 @@ export default function StatsTab({
                         <select
                             value={activityPeriod}
                             onChange={e => setActivityPeriod(Number(e.target.value))}
-                            className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+                            className="text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg px-3 py-1.5 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                             <option value={-1}>Aujourd'hui</option>
                             <option value={1}>Dernières 24h</option>
@@ -153,7 +153,7 @@ export default function StatsTab({
                                 value={activityUserQuery}
                                 onChange={e => setActivityUserQuery(e.target.value)}
                                 placeholder="Filtrer par joueur…"
-                                className="pl-8 pr-8 py-1.5 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg text-gray-700 dark:text-gray-300 w-44 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                className="pl-8 pr-8 py-1.5 text-xs border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-lg text-gray-700 dark:text-gray-300 w-44 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             />
                             {activityUserQuery && (
                                 <button onClick={() => setActivityUserQuery('')} className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">

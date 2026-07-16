@@ -63,7 +63,7 @@ export default function VerifyEmailPage() {
                 {state === 'success' && (
                     <>
                         <div className="flex justify-center mb-4">
-                            <CheckCircleIcon className="w-16 h-16 text-green-500" />
+                            <CheckCircleIcon className="w-16 h-16 text-success" />
                         </div>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Email confirmé !</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Vous allez être redirigé vers la page de connexion…</p>

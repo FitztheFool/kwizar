@@ -25,7 +25,7 @@ interface Props {
 }
 
 const TEAM_LABEL: Record<0 | 1, string> = { 0: 'Ambre', 1: 'Verte' };
-const TEAM_DOT: Record<0 | 1, string> = { 0: 'bg-primary-500', 1: 'bg-felt-600' };
+const TEAM_DOT: Record<0 | 1, string> = { 0: 'bg-primary-500', 1: 'bg-emerald-600' };
 
 type Tone = 'go' | 'stop' | 'warn' | 'idle';
 const TONE_CARD: Record<Tone, string> = {

@@ -66,7 +66,7 @@ function ChooseUsernameForm() {
     if (fetching) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner message="Chargement..." /></div>;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
+        <div className="min-h-screen flex items-center justify-center px-4">
             <div className="max-w-md w-full">
                 <div className="card">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Choisissez un pseudo</h2>

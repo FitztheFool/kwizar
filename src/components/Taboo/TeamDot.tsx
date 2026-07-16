@@ -5,5 +5,5 @@ interface Props {
 
 export default function TeamDot({ team, className = 'w-3 h-3' }: Props) {
     const isTeam0 = String(team) === '0';
-    return <span className={`inline-block rounded-full ${className} ${isTeam0 ? 'bg-primary-500' : 'bg-felt-600'} align-middle`} />;
+    return <span className={`inline-block rounded-full ${className} ${isTeam0 ? 'bg-primary-500' : 'bg-emerald-600'} align-middle`} />;
 }
