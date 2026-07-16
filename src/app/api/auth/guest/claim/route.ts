@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Compte déjà finalisé' }, { status: 400 });
     }
 
-    const { allowed, retryAfter } = checkRateLimit(`guest-claim:${session.user.id}:${getIp(req)}`, 5, 15 * 60 * 1000);
+    const { allowed, retryAfter } = await checkRateLimit(`guest-claim:${session.user.id}:${getIp(req)}`, 5, 15 * 60 * 1000);
     if (!allowed) {
         return NextResponse.json(
             { error: 'Trop de tentatives. Réessayez plus tard.' },

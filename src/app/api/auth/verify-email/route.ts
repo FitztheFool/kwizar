@@ -4,7 +4,7 @@ import { consumeVerificationToken } from '@/lib/verificationToken';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
-    const { allowed, retryAfter } = checkRateLimit(`verify-email:${getIp(req)}`, 20, 15 * 60 * 1000);
+    const { allowed, retryAfter } = await checkRateLimit(`verify-email:${getIp(req)}`, 20, 15 * 60 * 1000);
     if (!allowed) {
         return NextResponse.json(
             { error: 'Trop de tentatives. Réessayez plus tard.' },

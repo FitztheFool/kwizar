@@ -5,7 +5,7 @@ import { issueVerificationToken } from '@/lib/verificationToken';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
-    const { allowed, retryAfter } = checkRateLimit(`resend-verify:${getIp(req)}`, 1, 3 * 60 * 1000);
+    const { allowed, retryAfter } = await checkRateLimit(`resend-verify:${getIp(req)}`, 1, 3 * 60 * 1000);
     if (!allowed) {
         return NextResponse.json(
             { error: 'Trop de tentatives. Réessayez dans quelques minutes.' },

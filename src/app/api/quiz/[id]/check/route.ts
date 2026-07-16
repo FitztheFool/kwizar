@@ -19,7 +19,7 @@ export async function POST(
 
         const { id: quizId } = await params;
         const ip = getIp(request);
-        const rl = checkRateLimit(`quiz-check:${userId ?? 'anon'}:${ip}:${quizId}`, 120, 60_000);
+        const rl = await checkRateLimit(`quiz-check:${userId ?? 'anon'}:${ip}:${quizId}`, 120, 60_000);
         if (!rl.allowed) {
             return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 });
         }

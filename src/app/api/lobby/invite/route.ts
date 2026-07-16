@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
     const me = session.user.id;
 
-    const { allowed, retryAfter } = checkRateLimit(`lobby-invite:${me}:${getIp(req)}`, 30, 60_000);
+    const { allowed, retryAfter } = await checkRateLimit(`lobby-invite:${me}:${getIp(req)}`, 30, 60_000);
     if (!allowed) {
         return NextResponse.json(
             { error: 'Trop d’invitations, réessayez plus tard.' },

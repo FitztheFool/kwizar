@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
     const me = session.user.id;
 
-    const { allowed, retryAfter } = checkRateLimit(
+    const { allowed, retryAfter } = await checkRateLimit(
         `friend-req:${me}:${getIp(req)}`,
         20,
         60 * 60 * 1000,

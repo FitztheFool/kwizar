@@ -94,8 +94,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 // Anti brute-force / credential stuffing : limite par IP + identifiant.
                 const ip = ipFromRequest(request);
                 const id = String(credentials.identifier).toLowerCase().slice(0, 100);
-                const rlId = checkRateLimit(`login:${ip}:${id}`, 8, 15 * 60_000);   // 8 essais / 15 min sur un compte
-                const rlIp = checkRateLimit(`login-ip:${ip}`, 40, 15 * 60_000);     // 40 essais / 15 min depuis une IP
+                const rlId = await checkRateLimit(`login:${ip}:${id}`, 8, 15 * 60_000);   // 8 essais / 15 min sur un compte
+                const rlIp = await checkRateLimit(`login-ip:${ip}`, 40, 15 * 60_000);     // 40 essais / 15 min depuis une IP
                 if (!rlId.allowed || !rlIp.allowed) throw new RateLimitError();
 
                 const user = await prisma.user.findFirst({

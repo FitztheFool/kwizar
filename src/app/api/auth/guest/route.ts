@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         if (ip === 'unknown') {
             return NextResponse.json({ error: 'IP requise' }, { status: 400 });
         }
-        const rl = checkRateLimit(`guest-create:${ip}`, 5, 60 * 60_000);
+        const rl = await checkRateLimit(`guest-create:${ip}`, 5, 60 * 60_000);
         if (!rl.allowed) {
             return NextResponse.json(
                 { error: 'Trop de comptes invités créés. Réessayez plus tard.' },
