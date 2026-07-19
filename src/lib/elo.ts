@@ -10,6 +10,7 @@ export const ELO_GAME_TYPES: ReadonlySet<GameType> = new Set<GameType>([
     'QUIZ', 'UNO', 'TABOO', 'SKYJOW', 'YAHTZEE', 'PUISSANCE4', 'BATTLESHIP',
     'DIAMANT', 'IMPOSTOR', 'SPYFALL', 'LUDO', 'PERUDO', 'CANT_STOP', 'MILLE_BORNES',
     'ATLANTIDE', 'ABALONE', 'BLOKUS', 'SIX_QUI_PREND', 'TANKS', 'COMPLOT', 'DAMES',
+    'BACKGAMMON',
 ]);
 
 export const DEFAULT_RATING = 1000;

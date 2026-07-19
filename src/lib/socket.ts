@@ -52,6 +52,7 @@ const GAME_SERVERS = {
     tanks:        { url: process.env.NEXT_PUBLIC_TANKS_SERVER_URL          ?? "http://localhost:10020", name: "Tanks Socket" },
     complot:      { url: process.env.NEXT_PUBLIC_COMPLOT_SERVER_URL        ?? "http://localhost:10021", name: "Complot Socket" },
     dames:        { url: process.env.NEXT_PUBLIC_DAMES_SERVER_URL          ?? "http://localhost:10022", name: "Dames Socket" },
+    backgammon:   { url: process.env.NEXT_PUBLIC_BACKGAMMON_SERVER_URL     ?? "http://localhost:10023", name: "Backgammon Socket" },
 } as const;
 
 export type GameSocketKey = keyof typeof GAME_SERVERS;
@@ -119,3 +120,4 @@ export const getSixQuiPrendSocket = () => getGameSocket('sixQuiPrend');
 export const getTanksSocket = () => getGameSocket('tanks');
 export const getComplotSocket = () => getGameSocket('complot');
 export const getDamesSocket = () => getGameSocket('dames');
+export const getBackgammonSocket = () => getGameSocket('backgammon');

@@ -49,6 +49,7 @@ const GAME_SERVER_URL_BY_TYPE: Partial<Record<GameType, string | undefined>> = {
     tanks: process.env.NEXT_PUBLIC_TANKS_SERVER_URL,
     complot: process.env.NEXT_PUBLIC_COMPLOT_SERVER_URL,
     dames: process.env.NEXT_PUBLIC_DAMES_SERVER_URL,
+    backgammon: process.env.NEXT_PUBLIC_BACKGAMMON_SERVER_URL,
 };
 
 type Player = { userId: string; username: string };

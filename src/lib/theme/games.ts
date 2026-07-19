@@ -75,6 +75,7 @@ export const GAME_THEME: Record<GameKey, GameTheme> = {
     complot: t('#b45309', 180, 83, 9), // amber-700
     tanks: t('#65a30d', 101, 163, 13), // lime-600
     dames: t('#a16207', 161, 98, 7), // yellow-700
+    backgammon: t('#0d9488', 13, 148, 136), // teal-600
 };
 
 /** Accent par mode de jeu — remplace les hex en dur de gameConfig (SOLO/BOTH/MULTI). */

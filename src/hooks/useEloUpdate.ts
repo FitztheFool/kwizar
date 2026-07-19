@@ -10,7 +10,7 @@ import {
     getPuissance4Socket, getBattleshipSocket, getDiamantSocket, getImpostorSocket,
     getSpyfallSocket, getLudoSocket, getPerudoSocket, getCantStopSocket, getMilleBornesSocket,
     getAtlantideSocket, getAbaloneSocket, getBlokusSocket, getSixQuiPrendSocket, getTanksSocket, getComplotSocket,
-    getDamesSocket,
+    getDamesSocket, getBackgammonSocket,
 } from '@/lib/socket';
 
 export interface EloResult {
@@ -43,6 +43,7 @@ const SOCKET_GETTERS: Record<string, () => Socket | null> = {
     tanks: getTanksSocket,
     complot: getComplotSocket,
     dames: getDamesSocket,
+    backgammon: getBackgammonSocket,
 };
 
 /**

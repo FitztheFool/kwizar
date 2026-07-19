@@ -24,6 +24,7 @@ const ALLOWED_ENV_KEYS = [
     'NEXT_PUBLIC_TANKS_SERVER_URL',
     'NEXT_PUBLIC_COMPLOT_SERVER_URL',
     'NEXT_PUBLIC_DAMES_SERVER_URL',
+    'NEXT_PUBLIC_BACKGAMMON_SERVER_URL',
 ];
 
 function allowedUpstreams(): Set<string> {
