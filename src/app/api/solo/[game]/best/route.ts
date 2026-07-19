@@ -30,6 +30,7 @@ const SOLO_GAMES: Record<string, GameType> = {
     plumber: 'PLUMBER',
     match3: 'MATCH3',
     demineur: 'DEMINEUR',
+    sudoku: 'SUDOKU',
 };
 
 export async function GET(

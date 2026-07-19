@@ -70,6 +70,7 @@ enum GameType {
   DAMES
   DEMINEUR
   BACKGAMMON
+  SUDOKU
 }
 
 model Account {

@@ -404,6 +404,17 @@ export const GAME_CONFIG = {
         rules: "<p>But : faire le plus gros score avant la fin du chrono.</p><ul><li>Clique deux gemmes voisines pour les échanger.</li><li>Un échange n'est valide que s'il aligne au moins 3 gemmes identiques (en ligne ou en colonne).</li><li>Les gemmes alignées explosent, celles du dessus tombent et de nouvelles arrivent : les enchaînements (cascades) rapportent plus de points… et plus de temps.</li><li>Chaque alignement rallonge le chrono (gros combos = gros bonus). Bien jouer prolonge la partie ; elle s'arrête quand le temps est épuisé.</li></ul>",
         score: "Score = gemmes détruites × multiplicateur de cascade. Seul votre meilleur score est conservé.",
     },
+    sudoku: {
+        gameType: 'SUDOKU' as const,
+        label: 'Sudoku',
+        mode: 'solo' as const,
+        higherIsBetter: true,
+        scoreLabel: 'Meilleur score',
+        description: "Le casse-tête de chiffres par excellence. Remplis la grille sans erreur — chaque ligne, colonne et bloc doit contenir les chiffres de 1 à 9.",
+        players: '1 joueur',
+        rules: "<p>But : compléter la grille 9×9 sans épuiser tes 3 vies.</p><ul><li>Chaque ligne, colonne et bloc 3×3 doit contenir les chiffres de 1 à 9, sans répétition.</li><li>Choisis ta difficulté : facile (38 indices), moyen (32) ou difficile (27).</li><li>Une erreur coûte une vie ; à la troisième, la partie s'arrête.</li><li>Le mode notes (crayon) permet d'annoter les candidats d'une case.</li><li>Résous la grille rapidement pour maximiser le bonus de temps.</li></ul>",
+        score: "10 points par case correcte × multiplicateur de difficulté (×1/×2/×3), plus un bonus de rapidité si la grille est résolue. Seul votre meilleur score est conservé.",
+    },
     demineur: {
         gameType: 'DEMINEUR' as const,
         label: 'Démineur',
@@ -452,7 +463,7 @@ const PLAYER_RANGE: Record<GameType, [number, number]> = {
     impostor: [4, 8], spyfall: [3, 8], abalone: [2, 2], blokus: [2, 4], six_qui_prend: [2, 10], tanks: [2, 2], complot: [2, 6], dames: [2, 2], backgammon: [2, 2],
     snake: [1, 1], pacman: [1, 1], breakout: [1, 1], tetris: [1, 1], sutom: [1, 1],
     space_invaders: [1, 1], '2048': [1, 1], flappy_bird: [1, 1], plumber: [1, 1], match3: [1, 1], duel: [1, 1],
-    demineur: [1, 1],
+    demineur: [1, 1], sudoku: [1, 1],
 };
 
 // Liste des effectifs jouables (ex. uno → [2,3,4,5,6,7,8]) pour les sélecteurs.

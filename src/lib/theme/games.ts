@@ -50,6 +50,7 @@ export const GAME_THEME: Record<GameKey, GameTheme> = {
     sutom: t('#f59e0b', 245, 158, 11), // amber-500
     match3: t('#e879f9', 232, 121, 249), // fuchsia-400
     demineur: t('#64748b', 100, 116, 139), // slate-500
+    sudoku: t('#0284c7', 2, 132, 199), // sky-600
     duel: t('#f59e0b', 245, 158, 11), // amber-500
 
     // ── Multijoueur ──
