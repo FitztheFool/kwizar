@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 import { requireRegistered } from '@/lib/authGuard';
+import { recomputeElo } from '@/lib/eloBackfill';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -49,7 +50,23 @@ export async function DELETE(
         }
     }
 
+    // La suppression emporte les attempts en cascade : on note les types de jeu
+    // concernés pour recalculer l'ELO après coup (sinon les notes dérivent).
+    const affected = await prisma.attempt.findMany({
+        where: { userId: session.user.id },
+        select: { gameType: true },
+        distinct: ['gameType'],
+    });
+
     await prisma.user.delete({ where: { id: session.user.id } });
+
+    if (affected.length > 0) {
+        try {
+            await recomputeElo(prisma, affected.map(a => a.gameType as string));
+        } catch (err) {
+            console.error('[DELETE delete-account] recomputeElo', err);
+        }
+    }
 
     return NextResponse.json({ success: true, type: 'hard' });
 }

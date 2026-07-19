@@ -4,6 +4,7 @@ import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { recomputeElo } from '@/lib/eloBackfill';
 
 export async function GET(
   request: NextRequest,
@@ -263,7 +264,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
     }
 
+    // La suppression emporte les attempts en cascade : on note les types de jeu
+    // concernés pour recalculer l'ELO après coup (sinon les notes dérivent).
+    const affected = await prisma.attempt.findMany({
+      where: { quizId: id },
+      select: { gameType: true },
+      distinct: ['gameType'],
+    });
+
     await prisma.quiz.delete({ where: { id } });
+
+    if (affected.length > 0) {
+      try {
+        await recomputeElo(prisma, affected.map(a => a.gameType as string));
+      } catch (err) {
+        console.error('[DELETE /api/quiz/[id]] recomputeElo', err);
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
+import { recomputeElo } from '@/lib/eloBackfill';
 
 type SortKey = 'createdAt_desc' | 'createdAt_asc' | 'username_asc' | 'username_desc';
 
@@ -141,6 +142,23 @@ export async function DELETE(req: NextRequest) {
     const target = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
     if (target?.role === 'ADMIN') return NextResponse.json({ error: 'Impossible de supprimer un admin' }, { status: 403 });
 
+    // La suppression emporte les attempts en cascade : on note les types de jeu
+    // concernés pour recalculer l'ELO après coup (sinon les notes dérivent).
+    const affected = await prisma.attempt.findMany({
+        where: { userId },
+        select: { gameType: true },
+        distinct: ['gameType'],
+    });
+
     await prisma.user.delete({ where: { id: userId } });
+
+    if (affected.length > 0) {
+        try {
+            await recomputeElo(prisma, affected.map(a => a.gameType as string));
+        } catch (err) {
+            console.error('[DELETE /api/admin/users] recomputeElo', err);
+        }
+    }
+
     return NextResponse.json({ success: true });
 }
