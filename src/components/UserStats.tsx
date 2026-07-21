@@ -10,6 +10,7 @@ import GameIcon from '@/components/GameIcon';
 import PlayerModal from '@/components/PlayerModal';
 import GameFilterPills, { GameFilter } from '@/components/GameFilterPills';
 import GameStatCards from '@/components/GameStatCards';
+import AchievementGallery from '@/components/AchievementGallery';
 import StatChip from '@/components/StatChip';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import ActivityTable, { type ActivityRow } from '@/components/ActivityTable';
@@ -169,6 +170,9 @@ export default function UserStats({ username }: Props) {
                     <GameStatCards gameStats={activeGameStats} ranks={ranks} eloRanks={eloRanks} />
                 </div>
             )}
+
+            {/* ── Succès ── */}
+            <AchievementGallery stats={{ totalGames: stats.totalGames, gameStats: stats.gameStats, ranks }} />
 
             {/* ── Activité récente ── */}
             <div className="glass rounded-2xl p-4">
