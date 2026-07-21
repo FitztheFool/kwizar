@@ -147,6 +147,9 @@ model User {
   sentLobbyInvites     LobbyInvite[] @relation("LobbyInviteFrom")
   receivedLobbyInvites LobbyInvite[] @relation("LobbyInviteTo")
 
+  achievements  UserAchievement[]
+  notifications Notification[]
+
   @@map("users")
 }
 
@@ -408,4 +411,39 @@ model DuelDeckItem {
 
   @@index([deckId])
   @@map("duel_deck_items")
+}
+
+// Succès débloqués — persistés une fois acquis (@@unique = idempotent).
+// La définition des succès vit dans src/lib/achievements.ts ; ici on ne stocke que
+// l'id de succès débloqué et sa date.
+model UserAchievement {
+  id            String   @id @default(cuid())
+  achievementId String // clé de ACHIEVEMENTS (ex. "wins-100")
+  unlockedAt    DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+// Notification générique. Seul le type "achievement" est branché pour l'instant ;
+// amis/messages pourront réutiliser le modèle sans refonte.
+model Notification {
+  id        String    @id @default(cuid())
+  type      String // "achievement"
+  title     String
+  body      String?
+  icon      String? // clé d'icône SVG côté client (ex. l'id du succès)
+  link      String? // ex. /user/<username>#stats
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
 }

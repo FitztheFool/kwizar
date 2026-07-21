@@ -40,7 +40,7 @@ export function serializeMessage(m: {
  * Fire-and-forget: the message is already persisted, so a transient failure
  * just means the recipient sees it on the next fetch/poll instead of instantly.
  */
-export async function pushToUser(userId: string, event: 'dm:message' | 'dm:read' | 'lobby:invited', payload: unknown): Promise<void> {
+export async function pushToUser(userId: string, event: 'dm:message' | 'dm:read' | 'lobby:invited' | 'notification', payload: unknown): Promise<void> {
     const base = process.env.NEXT_PUBLIC_LOBBY_SERVER_URL;
     const key = process.env.INTERNAL_API_KEY;
     if (!base || !key) return;

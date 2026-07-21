@@ -35,7 +35,6 @@ export interface Achievement {
     id: string;
     label: string;
     description: string;
-    icon: string; // emoji — pas d'asset à charger
     tier: AchievementTier;
     /** Progression vers le déblocage. unlocked = current >= target. */
     progress: (s: AchievementStats) => { current: number; target: number };
@@ -58,31 +57,31 @@ export const TOTAL_GAME_COUNT = 36;
 
 export const ACHIEVEMENTS: Achievement[] = [
     // ── Assiduité (nombre de parties) ──
-    { id: 'games-10',  label: 'Premiers pas',   description: 'Jouer 10 parties',   icon: '🎮', tier: 'bronze', progress: s => ({ current: s.totalGames, target: 10 }) },
-    { id: 'games-100', label: 'Habitué',        description: 'Jouer 100 parties',  icon: '🕹️', tier: 'silver', progress: s => ({ current: s.totalGames, target: 100 }) },
-    { id: 'games-500', label: 'Vétéran',        description: 'Jouer 500 parties',  icon: '🏛️', tier: 'gold',   progress: s => ({ current: s.totalGames, target: 500 }) },
+    { id: 'games-10',  label: 'Premiers pas',   description: 'Jouer 10 parties', tier: 'bronze', progress: s => ({ current: s.totalGames, target: 10 }) },
+    { id: 'games-100', label: 'Habitué',        description: 'Jouer 100 parties', tier: 'silver', progress: s => ({ current: s.totalGames, target: 100 }) },
+    { id: 'games-500', label: 'Vétéran',        description: 'Jouer 500 parties', tier: 'gold',   progress: s => ({ current: s.totalGames, target: 500 }) },
 
     // ── Victoires ──
-    { id: 'wins-1',   label: 'Première victoire', description: 'Gagner 1 partie',   icon: '✨', tier: 'bronze', progress: s => ({ current: sumWins(s), target: 1 }) },
-    { id: 'wins-25',  label: 'Compétiteur',      description: 'Gagner 25 parties', icon: '🏅', tier: 'silver', progress: s => ({ current: sumWins(s), target: 25 }) },
-    { id: 'wins-100', label: 'Champion',         description: 'Gagner 100 parties',icon: '🏆', tier: 'gold',   progress: s => ({ current: sumWins(s), target: 100 }) },
+    { id: 'wins-1',   label: 'Première victoire', description: 'Gagner 1 partie', tier: 'bronze', progress: s => ({ current: sumWins(s), target: 1 }) },
+    { id: 'wins-25',  label: 'Compétiteur',      description: 'Gagner 25 parties', tier: 'silver', progress: s => ({ current: sumWins(s), target: 25 }) },
+    { id: 'wins-100', label: 'Champion',         description: 'Gagner 100 parties', tier: 'gold',   progress: s => ({ current: sumWins(s), target: 100 }) },
 
     // ── Variété ──
-    { id: 'variety-5',   label: 'Curieux',      description: 'Jouer 5 jeux différents',   icon: '🎲', tier: 'bronze', progress: s => ({ current: distinctGamesPlayed(s), target: 5 }) },
-    { id: 'variety-15',  label: 'Éclectique',   description: 'Jouer 15 jeux différents',  icon: '🌈', tier: 'silver', progress: s => ({ current: distinctGamesPlayed(s), target: 15 }) },
-    { id: 'variety-all', label: 'Touche-à-tout',description: 'Jouer à tous les jeux',     icon: '🗺️', tier: 'gold',   progress: s => ({ current: distinctGamesPlayed(s), target: TOTAL_GAME_COUNT }) },
+    { id: 'variety-5',   label: 'Curieux',      description: 'Jouer 5 jeux différents', tier: 'bronze', progress: s => ({ current: distinctGamesPlayed(s), target: 5 }) },
+    { id: 'variety-15',  label: 'Éclectique',   description: 'Jouer 15 jeux différents', tier: 'silver', progress: s => ({ current: distinctGamesPlayed(s), target: 15 }) },
+    { id: 'variety-all', label: 'Touche-à-tout',description: 'Jouer à tous les jeux', tier: 'gold',   progress: s => ({ current: distinctGamesPlayed(s), target: TOTAL_GAME_COUNT }) },
 
     // ── Classement (podium = #1 sur un jeu) ──
-    { id: 'podium-1', label: 'Sur le podium', description: 'Être #1 sur un jeu',    icon: '🥇', tier: 'silver', progress: s => ({ current: podiumCount(s), target: 1 }) },
-    { id: 'podium-3', label: 'Multi-titré',   description: 'Être #1 sur 3 jeux',    icon: '👑', tier: 'gold',   progress: s => ({ current: podiumCount(s), target: 3 }) },
+    { id: 'podium-1', label: 'Sur le podium', description: 'Être #1 sur un jeu', tier: 'silver', progress: s => ({ current: podiumCount(s), target: 1 }) },
+    { id: 'podium-3', label: 'Multi-titré',   description: 'Être #1 sur 3 jeux', tier: 'gold',   progress: s => ({ current: podiumCount(s), target: 3 }) },
 
     // ── ELO ──
-    { id: 'elo-1100', label: 'Aguerri',   description: 'Atteindre 1100 d’ELO', icon: '📈', tier: 'silver', progress: s => ({ current: bestElo(s), target: 1100 }) },
-    { id: 'elo-1300', label: 'Redoutable',description: 'Atteindre 1300 d’ELO', icon: '⚡', tier: 'gold',   progress: s => ({ current: bestElo(s), target: 1300 }) },
+    { id: 'elo-1100', label: 'Aguerri',   description: 'Atteindre 1100 d’ELO', tier: 'silver', progress: s => ({ current: bestElo(s), target: 1100 }) },
+    { id: 'elo-1300', label: 'Redoutable',description: 'Atteindre 1300 d’ELO', tier: 'gold',   progress: s => ({ current: bestElo(s), target: 1300 }) },
 
     // ── Score cumulé ──
-    { id: 'points-10k',  label: 'Collectionneur', description: 'Cumuler 10 000 points',  icon: '💎', tier: 'silver', progress: s => ({ current: sumPoints(s), target: 10_000 }) },
-    { id: 'points-100k', label: 'Amasseur',       description: 'Cumuler 100 000 points', icon: '💰', tier: 'gold',   progress: s => ({ current: sumPoints(s), target: 100_000 }) },
+    { id: 'points-10k',  label: 'Collectionneur', description: 'Cumuler 10 000 points', tier: 'silver', progress: s => ({ current: sumPoints(s), target: 10_000 }) },
+    { id: 'points-100k', label: 'Amasseur',       description: 'Cumuler 100 000 points', tier: 'gold',   progress: s => ({ current: sumPoints(s), target: 100_000 }) },
 ];
 
 export interface EvaluatedAchievement extends Achievement {

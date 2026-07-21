@@ -15,10 +15,16 @@ export async function GET() {
     }
     const me = session.user.id;
 
-    const [friendRequests, invites, conv] = await Promise.all([
+    const [friendRequests, invites, conv, notifications] = await Promise.all([
         prisma.friendship.count({ where: { status: 'PENDING', addresseeId: me } }),
         getPendingInvites(me),
         getConversations(me),
+        // Backlog de la cloche : notifs non-lues récentes (les temps réel arrivent par socket).
+        prisma.notification.findMany({
+            where: { userId: me, readAt: null },
+            orderBy: { createdAt: 'desc' },
+            take: 30,
+        }),
     ]);
 
     return NextResponse.json({
@@ -26,5 +32,6 @@ export async function GET() {
         invites,
         conversations: conv.conversations,
         totalUnread: conv.totalUnread,
+        notifications,
     });
 }

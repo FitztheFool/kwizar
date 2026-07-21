@@ -6,7 +6,7 @@
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { fetcher } from '@/lib/swr';
-import type { InviteToast } from '@/context/NotificationsContext';
+import type { InviteToast, AppNotification } from '@/context/NotificationsContext';
 import type { Conversation } from '@/context/MessagesContext';
 
 export interface MeSummary {
@@ -14,6 +14,7 @@ export interface MeSummary {
     invites: InviteToast[];
     conversations: Conversation[];
     totalUnread: number;
+    notifications: AppNotification[];
 }
 
 export function useMeSummary() {

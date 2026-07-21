@@ -18,15 +18,33 @@ export type InviteToast = {
     fromUsername: string | null;
 };
 
+export type AppNotification = {
+    id: string;
+    type: string;   // "achievement"
+    title: string;
+    body: string | null;
+    icon: string | null;  // clé d'icône (résolue en SVG côté affichage)
+    link: string | null;
+    createdAt: string;
+};
+
 type NotificationsContextType = {
     /** All pending invites — shown in the notification center. */
     invites: InviteToast[];
     /** Transient realtime arrivals — shown as toasts (capped). */
     toasts: InviteToast[];
+    /** Unread notifications (achievements…) — shown in the notification center. */
+    notifications: AppNotification[];
+    /** Notifications arrived in realtime — shown as toasts (capped). */
+    notifToasts: AppNotification[];
     /** Remove everywhere + delete server-side (join / explicit dismiss). */
     dismissInvite: (id: string) => void;
     /** Hide a toast only; it stays in the notification center. */
     dismissToast: (id: string) => void;
+    /** Mark a notification read (removes it from the bell) + hide any toast. */
+    markNotifRead: (id: string) => void;
+    /** Hide a notification toast only; it stays in the bell until read. */
+    dismissNotifToast: (id: string) => void;
 };
 
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
@@ -41,14 +59,23 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     const { data: summary, mutate } = useMeSummary();
     const [invites, setInvites] = useState<InviteToast[]>([]);
     const [toasts, setToasts] = useState<InviteToast[]>([]);
+    const [notifications, setNotifications] = useState<AppNotification[]>([]);
+    const [notifToasts, setNotifToasts] = useState<AppNotification[]>([]);
 
     // Backlog des invitations : issu du résumé partagé (/api/me/summary). La liste
     // serveur fait foi ; les arrivées temps réel (socket) s'ajoutent en local d'ici
     // le prochain rafraîchissement.
     useEffect(() => {
-        if (!userId) { setInvites([]); setToasts([]); return; }
+        if (!userId) { setInvites([]); setToasts([]); setNotifications([]); setNotifToasts([]); return; }
         if (summary?.invites) setInvites(summary.invites);
     }, [userId, summary?.invites]);
+
+    // Backlog des notifications (achievements…) : issu du résumé partagé. Chargé au login →
+    // une notif reçue hors-ligne n'est pas perdue.
+    useEffect(() => {
+        if (!userId) return;
+        if (summary?.notifications) setNotifications(summary.notifications);
+    }, [userId, summary?.notifications]);
 
     // Realtime arrivals → bell + a capped toast.
     useEffect(() => {
@@ -58,9 +85,16 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
             setInvites(prev => [...prev.filter(i => i.lobbyId !== data.lobbyId), data]);
             setToasts(prev => [...prev.filter(i => i.lobbyId !== data.lobbyId), data].slice(-MAX_TOASTS));
         };
+        const onNotification = (n: AppNotification) => {
+            if (!n?.id) return;
+            setNotifications(prev => [n, ...prev.filter(x => x.id !== n.id)]);
+            setNotifToasts(prev => [n, ...prev.filter(x => x.id !== n.id)].slice(0, MAX_TOASTS));
+        };
         socket.on('lobby:invited', onInvited);
+        socket.on('notification', onNotification);
         return () => {
             socket.off('lobby:invited', onInvited);
+            socket.off('notification', onNotification);
         };
     }, [socket, userId]);
 
@@ -73,8 +107,31 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         return () => timers.forEach(clearTimeout);
     }, [toasts]);
 
+    // Auto-dismiss des toasts de notification (ils restent dans la cloche jusqu'à lecture).
+    useEffect(() => {
+        if (notifToasts.length === 0) return;
+        const timers = notifToasts.map(t =>
+            setTimeout(() => setNotifToasts(prev => prev.filter(x => x.id !== t.id)), TOAST_TTL_MS),
+        );
+        return () => timers.forEach(clearTimeout);
+    }, [notifToasts]);
+
     const dismissToast = useCallback((id: string) => {
         setToasts(prev => prev.filter(i => i.id !== id));
+    }, []);
+
+    const dismissNotifToast = useCallback((id: string) => {
+        setNotifToasts(prev => prev.filter(i => i.id !== id));
+    }, []);
+
+    const markNotifRead = useCallback((id: string) => {
+        setNotifications(prev => prev.filter(i => i.id !== id));
+        setNotifToasts(prev => prev.filter(i => i.id !== id));
+        fetch('/api/notifications/read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+        }).catch(() => {});
     }, []);
 
     const dismissInvite = useCallback((id: string) => {
@@ -85,7 +142,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     }, [mutate]);
 
     return (
-        <NotificationsContext.Provider value={{ invites, toasts, dismissInvite, dismissToast }}>
+        <NotificationsContext.Provider value={{ invites, toasts, notifications, notifToasts, dismissInvite, dismissToast, markNotifRead, dismissNotifToast }}>
             {children}
         </NotificationsContext.Provider>
     );

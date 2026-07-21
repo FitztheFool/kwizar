@@ -21,6 +21,7 @@ import { useMessages } from '@/context/MessagesContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { useGameLabels } from '@/hooks/useGameLabels';
+import { achievementIcon } from '@/components/achievementIcons';
 
 type IncomingRequest = {
     friendshipId: string;
@@ -30,7 +31,7 @@ type IncomingRequest = {
 export default function NotificationCenter() {
     const router = useRouter();
     const { pendingCount, refresh: refreshFriends } = useFriends();
-    const { invites, dismissInvite } = useNotifications();
+    const { invites, dismissInvite, notifications, markNotifRead } = useNotifications();
     const { conversations, openThread } = useMessages();
     const { friends: friendsEnabled, messages: messagesEnabled } = useFeatureFlags();
 
@@ -41,7 +42,7 @@ export default function NotificationCenter() {
 
     const visibleRequests = friendsEnabled ? requests : [];
     const unreadConversations = (messagesEnabled ? conversations : []).filter(c => c.unreadCount > 0);
-    const total = (friendsEnabled ? pendingCount : 0) + invites.length + unreadConversations.length;
+    const total = (friendsEnabled ? pendingCount : 0) + invites.length + unreadConversations.length + notifications.length;
 
     const loadRequests = useCallback(async () => {
         try {
@@ -111,7 +112,13 @@ export default function NotificationCenter() {
         openThread(userId);
     };
 
-    const isEmpty = visibleRequests.length === 0 && invites.length === 0 && unreadConversations.length === 0;
+    const openNotif = (n: { id: string; link: string | null }) => {
+        markNotifRead(n.id);
+        setOpen(false);
+        if (n.link) router.push(n.link);
+    };
+
+    const isEmpty = visibleRequests.length === 0 && invites.length === 0 && unreadConversations.length === 0 && notifications.length === 0;
 
     return (
         <div className="relative shrink-0" ref={ref}>
@@ -200,6 +207,34 @@ export default function NotificationCenter() {
                                                     <XMarkIcon className="w-4 h-4" />
                                                 </button>
                                             </div>
+                                        );
+                                    })}
+                                </Section>
+                            )}
+
+                            {/* Succès débloqués */}
+                            {notifications.length > 0 && (
+                                <Section label="Succès">
+                                    {notifications.map(n => {
+                                        const Icon = achievementIcon(n.icon);
+                                        return (
+                                            <button
+                                                key={n.id}
+                                                onClick={() => openNotif(n)}
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                                            >
+                                                <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+                                                    <Icon className="w-4 h-4" aria-hidden />
+                                                </div>
+                                                <span className="flex-1 min-w-0">
+                                                    <span className="block text-sm font-semibold text-gray-900 dark:text-white truncate">{n.title}</span>
+                                                    {n.body && <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">{n.body}</span>}
+                                                </span>
+                                                <XMarkIcon
+                                                    className="w-4 h-4 shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                                    onClick={(e) => { e.stopPropagation(); markNotifRead(n.id); }}
+                                                />
+                                            </button>
                                         );
                                     })}
                                 </Section>

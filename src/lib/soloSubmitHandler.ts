@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { verifySoloToken } from '@/lib/soloToken';
 import prisma from '@/lib/prisma';
 import { Prisma, type GameType } from '@/generated/prisma/client';
+import { syncAchievements } from '@/lib/achievementSync';
 
 const DEFAULT_MIN_DURATION_MS = 10_000;
 
@@ -66,6 +67,10 @@ export function createSoloSubmitHandler({
                 }
                 throw e;
             }
+
+            // Détection des succès en tâche de fond : ne doit jamais retarder ni faire
+            // échouer la sauvegarde du score. syncAchievements avale ses propres erreurs.
+            void syncAchievements(session.user.id);
 
             return NextResponse.json({ ok: true });
         } catch (err) {

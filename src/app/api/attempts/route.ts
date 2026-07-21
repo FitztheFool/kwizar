@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { GameType } from '@/generated/prisma/client';
 import { timingSafeEqual } from 'crypto';
 import { computeElo, isEloGame, DEFAULT_RATING, BOT_RATING, EloParticipant } from '@/lib/elo';
+import { syncAchievements } from '@/lib/achievementSync';
 
 interface ScoreEntry {
     userId: string;
@@ -230,6 +231,11 @@ export async function POST(req: NextRequest) {
                 userId, username: usernameById.get(userId) ?? null, before: o.before, after: o.after, delta: o.delta,
             }));
         });
+
+        // Détection des succès pour chaque joueur humain, en tâche de fond : ne doit ni
+        // retarder ni faire échouer la sauvegarde de la partie. syncAchievements avale ses
+        // erreurs. (Les bots ont un userId `bot-*` filtré en amont par validScores.)
+        for (const p of prepared) void syncAchievements(p.userId);
 
         return NextResponse.json({ ok: true, saved: validScores.length, elo: eloResults });
     } catch (error) {
