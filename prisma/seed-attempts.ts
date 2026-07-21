@@ -1067,6 +1067,155 @@ export async function seedAbaloneAttempts(prisma: PrismaClient, players: UserLik
     console.log(`✅ ${total} parties Abalone créées`);
 }
 
+// ─── Factory 1v1 « victoires » ────────────────────────────────────────────────
+// Partagée par les jeux à deux (Dames, Backgammon, Tanks) : gagnant score 1 /
+// placement 1, perdant 0 / placement 2, avec ~35% de parties contre un bot.
+// Même logique qu'Abalone, généralisée.
+
+async function seedDuelGame(
+    prisma: PrismaClient,
+    players: UserLike[],
+    cfg: { gameType: string; label: string; emoji: string; total?: number; daysSpread?: number },
+): Promise<void> {
+    const { gameType, label, emoji, total = 40, daysSpread = 70 } = cfg;
+    console.log(`\n${emoji} Création des parties ${label}...`);
+
+    for (let g = 0; g < total; g++) {
+        const gameId = crypto.randomUUID();
+        const vsBot = Math.random() < 0.35;
+        const winnerIndex = Math.random() < 0.5 ? 0 : 1;
+        const date = daysAgo(Math.floor((g / total) * daysSpread), Math.floor(Math.random() * 24));
+
+        if (vsBot) {
+            const [p1] = shufflePlayers(players);
+            const humanWins = winnerIndex === 0;
+            const bot: BotEntry = { username: BOT_NAMES[0], score: humanWins ? 0 : 1, placement: humanWins ? 2 : 1 };
+            const { abandon, afk } = randomLeaveFlags(humanWins);
+            await prisma.attempt.create({
+                data: {
+                    userId: p1.id, score: humanWins ? 1 : 0, gameType: gameType as any,
+                    placement: humanWins ? 1 : 2, gameId, quizId: null, trapScore: 0,
+                    abandon, afk, vsBot: true, botScores: [bot], createdAt: date,
+                },
+            });
+        } else {
+            const [p1, p2] = shufflePlayers(players);
+            const pair = [p1, p2];
+            for (let p = 0; p < 2; p++) {
+                const isWinner = p === winnerIndex;
+                const { abandon, afk } = randomLeaveFlags(isWinner);
+                await prisma.attempt.create({
+                    data: {
+                        userId: pair[p].id, score: isWinner ? 1 : 0, gameType: gameType as any,
+                        placement: isWinner ? 1 : 2, gameId, quizId: null, trapScore: 0,
+                        abandon, afk, vsBot: false, createdAt: new Date(date.getTime() + p * 1000),
+                    },
+                });
+            }
+        }
+        console.log(`  ✅ ${label} ${g + 1}/${total}`);
+    }
+    console.log(`✅ ${total} parties ${label} créées`);
+}
+
+// ─── DAMES ──────────────────────────────────────────────────────────────────────
+
+export async function seedDamesAttempts(prisma: PrismaClient, players: UserLike[]) {
+    await seedDuelGame(prisma, players, { gameType: 'DAMES', label: 'Dames', emoji: '⛃' });
+}
+
+// ─── BACKGAMMON ──────────────────────────────────────────────────────────────────
+
+export async function seedBackgammonAttempts(prisma: PrismaClient, players: UserLike[]) {
+    await seedDuelGame(prisma, players, { gameType: 'BACKGAMMON', label: 'Backgammon', emoji: '🎲' });
+}
+
+// ─── TANKS ───────────────────────────────────────────────────────────────────────
+
+export async function seedTanksAttempts(prisma: PrismaClient, players: UserLike[]) {
+    await seedDuelGame(prisma, players, { gameType: 'TANKS', label: 'Tanks', emoji: '💥' });
+}
+
+// ─── COMPLOT ──────────────────────────────────────────────────────────────────────
+// Multi (2–6 joueurs), dernier survivant. Un seul gagnant (placement 1, score 1),
+// les autres 0. Même modèle « un vainqueur » que Perudo/Can't Stop.
+
+export async function seedComplotAttempts(prisma: PrismaClient, players: UserLike[]) {
+    console.log('\n🃏 Création des parties Complot...');
+    const total = 40;
+    const dates = Array.from({ length: total }, (_, g) =>
+        daysAgo(Math.floor((g / total) * 80), Math.floor(Math.random() * 36)),
+    ).sort((a, b) => a.getTime() - b.getTime());
+
+    for (let g = 0; g < total; g++) {
+        const gameId = crypto.randomUUID();
+        const cap = Math.min(6, players.length);
+        const playerCount = Math.floor(Math.random() * (cap - 1)) + 2;
+        const ranked = shufflePlayers(players).slice(0, playerCount);
+
+        for (let p = 0; p < ranked.length; p++) {
+            const isWinner = p === 0;
+            const { abandon, afk } = randomLeaveFlags(isWinner);
+            await prisma.attempt.create({
+                data: {
+                    userId: ranked[p].id, score: isWinner ? 1 : 0,
+                    gameType: 'COMPLOT', placement: p + 1,
+                    gameId, quizId: null, trapScore: 0, abandon, afk, vsBot: false,
+                    createdAt: new Date(dates[g].getTime() + p * 1000),
+                },
+            });
+        }
+        console.log(`  ✅ Complot ${g + 1}/${total} — ${playerCount} joueurs`);
+    }
+    console.log(`✅ ${total} parties Complot créées`);
+}
+
+// ─── DÉMINEUR ─────────────────────────────────────────────────────────────────────
+
+export async function seedDemineurAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = cases révélées (grille 16×16, 40 mines → 216 cases sûres max).
+    function demineurScore(): number {
+        const r = Math.random();
+        if (r < 0.40) return Math.floor(Math.random() * 60) + 10;        // 10–70   (saute vite sur une mine)
+        if (r < 0.75) return Math.floor(Math.random() * 90) + 70;        // 70–160
+        if (r < 0.93) return Math.floor(Math.random() * 46) + 160;       // 160–206
+        return 216;                                                       // grille résolue
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'DEMINEUR', label: 'Démineur', emoji: '💣',
+        scoreGen: () => ({ score: demineurScore() }),
+    });
+}
+
+// ─── SUDOKU ─────────────────────────────────────────────────────────────────────
+
+export async function seedSudokuAttempts(prisma: PrismaClient, players: UserLike[]) {
+    // Score = points selon difficulté et rapidité ; échec possible (abandon → petit score).
+    function sudokuScore(): number {
+        const r = Math.random();
+        if (r < 0.25) return Math.floor(Math.random() * 300) + 50;       // 50–350   (facile / lent)
+        if (r < 0.70) return Math.floor(Math.random() * 700) + 350;      // 350–1050
+        if (r < 0.92) return Math.floor(Math.random() * 900) + 1050;     // 1050–1950
+        return Math.floor(Math.random() * 1050) + 1950;                  // 1950–3000 (difficile / rapide)
+    }
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'SUDOKU', label: 'Sudoku', emoji: '🔢',
+        minAttempts: 10, attemptsSpread: 15,
+        scoreGen: () => ({ score: sudokuScore() }),
+    });
+}
+
+// ─── DUEL ─────────────────────────────────────────────────────────────────────────
+// Jeu de préférences « sans enjeu » : score symbolique, peu de parties par joueur.
+
+export async function seedDuelAttempts(prisma: PrismaClient, players: UserLike[]) {
+    await seedSoloAttempts(prisma, players, {
+        gameType: 'DUEL', label: 'Duel', emoji: '🆚',
+        minAttempts: 4, attemptsSpread: 8, daysSpread: 60,
+        scoreGen: () => ({ score: Math.floor(Math.random() * 8) + 1 }),  // 1–8 (nb de duels tranchés)
+    });
+}
+
 // ─── MATCH-3 (Aligne-3) ─────────────────────────────────────────────────────────
 
 export async function seedMatch3Attempts(prisma: PrismaClient, players: UserLike[]) {

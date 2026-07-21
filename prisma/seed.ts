@@ -18,6 +18,8 @@ import {
     seedFlappyBirdAttempts, seedPlumberAttempts, seedAtlantideAttempts,
     seedSpyfallAttempts, seedBlokusAttempts, seedSixQuiPrendAttempts,
     seedAbaloneAttempts, seedMatch3Attempts,
+    seedDamesAttempts, seedBackgammonAttempts, seedTanksAttempts,
+    seedComplotAttempts, seedDemineurAttempts, seedSudokuAttempts, seedDuelAttempts,
 } from './seed-attempts';
 import { backfillElo } from './backfill-elo';
 
@@ -214,6 +216,13 @@ async function main() {
     await seedSixQuiPrendAttempts(prisma, allPlayers);
     await seedAbaloneAttempts(prisma, allPlayers);
     await seedMatch3Attempts(prisma, allPlayers);
+    await seedDamesAttempts(prisma, allPlayers);
+    await seedBackgammonAttempts(prisma, allPlayers);
+    await seedTanksAttempts(prisma, allPlayers);
+    await seedComplotAttempts(prisma, allPlayers);
+    await seedDemineurAttempts(prisma, allPlayers);
+    await seedSudokuAttempts(prisma, allPlayers);
+    await seedDuelAttempts(prisma, allPlayers);
 
     // Calcul des notes ELO à partir des parties seedées
     await backfillElo(prisma);
