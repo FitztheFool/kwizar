@@ -33,6 +33,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Username manquant.' }, { status: 400 });
     }
 
+    // Le JWT peut porter un id qui n'existe plus (compte supprimé, base re-seedée
+    // depuis la connexion). Sans ce contrôle, l'INSERT plus bas échoue en violation
+    // de clé étrangère (P2003) → 500 opaque. On force une reconnexion à la place.
+    const meExists = await prisma.user.findUnique({ where: { id: me }, select: { id: true } });
+    if (!meExists) {
+        return NextResponse.json(
+            { error: 'Session expirée, reconnectez-vous.' },
+            { status: 401 },
+        );
+    }
+
     const target = await prisma.user.findUnique({
         where: { username },
         select: { id: true, deletedAt: true, status: true },

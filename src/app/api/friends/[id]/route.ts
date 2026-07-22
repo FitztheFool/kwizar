@@ -13,6 +13,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const me = session.user.id;
     const { id } = await params;
 
+    // JWT dont l'id ne correspond plus à aucun compte (base re-seedée / compte supprimé) :
+    // sans ça, l'appelant tomberait sur un 404 trompeur au lieu d'un signal de reconnexion.
+    const meExists = await prisma.user.findUnique({ where: { id: me }, select: { id: true } });
+    if (!meExists) {
+        return NextResponse.json({ error: 'Session expirée, reconnectez-vous.' }, { status: 401 });
+    }
+
     const f = await prisma.friendship.findUnique({
         where: { id },
         select: { id: true, requesterId: true, addresseeId: true },
