@@ -291,7 +291,7 @@ export default function Sidebar({ isOpen, onClose, isAuthenticated, userRole, is
                     <>
                         <SectionHeader label="Social" collapsed={collapsed} />
                         <NavLink
-                            href={showMessages ? '/messages' : '/friends'}
+                            href="/friends"
                             Icon={showMessages ? ChatBubbleLeftRightIcon : UsersIcon}
                             label={
                                 showFriends && showMessages
