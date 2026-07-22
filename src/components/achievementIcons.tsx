@@ -19,6 +19,8 @@ import {
     SparklesIcon,
     SwatchIcon,
     TrophyIcon,
+    UserPlusIcon,
+    CheckBadgeIcon,
 } from '@heroicons/react/24/solid';
 
 export type AchievementIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -73,4 +75,17 @@ const BY_ID: Record<string, AchievementIcon> = {
 /** Icône d'un succès. Repli sur le trophée pour tout id inconnu (succès ajouté plus tard). */
 export function achievementIcon(id: string | null | undefined): AchievementIcon {
     return (id && BY_ID[id]) || TrophyIcon;
+}
+
+/**
+ * Icône d'une notification, selon son type. Les succès résolvent par leur clé d'icône
+ * (`icon` = id de succès) ; les autres types ont une icône fixe.
+ */
+export function notificationIcon(type: string, icon: string | null | undefined): AchievementIcon {
+    switch (type) {
+        case 'friend_request': return UserPlusIcon;
+        case 'friend_accept': return CheckBadgeIcon;
+        case 'achievement':
+        default: return achievementIcon(icon);
+    }
 }

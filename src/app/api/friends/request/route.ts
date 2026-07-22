@@ -4,6 +4,13 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { checkRateLimit, getIp } from '@/lib/rateLimit';
 import { isFeatureEnabled } from '@/lib/appSettings';
+import { notifyUser } from '@/lib/notify';
+
+/** Username d'un utilisateur pour les messages de notification (repli « Un joueur »). */
+async function friendName(userId: string): Promise<string> {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+    return u?.username ?? 'Un joueur';
+}
 
 export async function POST(req: NextRequest) {
     const session = await auth();
@@ -78,11 +85,27 @@ export async function POST(req: NextRequest) {
             where: { id: existing.id },
             data: { status: 'ACCEPTED' },
         });
+        // On vient d'accepter la demande de `target` → on le prévient qu'on est amis.
+        const meName = await friendName(me);
+        void notifyUser(target.id, {
+            type: 'friend_accept',
+            title: 'Demande acceptée',
+            body: `${meName} a accepté votre demande d'ami`,
+            link: `/user/${meName}`,
+        });
         return NextResponse.json({ status: 'friends', friendshipId: updated.id });
     }
 
     const created = await prisma.friendship.create({
         data: { requesterId: me, addresseeId: target.id, status: 'PENDING' },
+    });
+    // Prévient le destinataire de la nouvelle demande (temps réel + cloche).
+    const meName = await friendName(me);
+    void notifyUser(target.id, {
+        type: 'friend_request',
+        title: "Demande d'ami",
+        body: `${meName} souhaite vous ajouter`,
+        link: '/friends',
     });
     return NextResponse.json({ status: 'pending_out', friendshipId: created.id }, { status: 201 });
 }

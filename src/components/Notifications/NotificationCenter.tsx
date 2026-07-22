@@ -21,7 +21,7 @@ import { useMessages } from '@/context/MessagesContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { useGameLabels } from '@/hooks/useGameLabels';
-import { achievementIcon } from '@/components/achievementIcons';
+import { notificationIcon } from '@/components/achievementIcons';
 
 type IncomingRequest = {
     friendshipId: string;
@@ -216,7 +216,7 @@ export default function NotificationCenter() {
                             {notifications.length > 0 && (
                                 <Section label="Succès">
                                     {notifications.map(n => {
-                                        const Icon = achievementIcon(n.icon);
+                                        const Icon = notificationIcon(n.type, n.icon);
                                         return (
                                             <button
                                                 key={n.id}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { isFeatureEnabled } from '@/lib/appSettings';
+import { notifyUser } from '@/lib/notify';
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
@@ -24,12 +25,23 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     const f = await prisma.friendship.findUnique({
         where: { id },
-        select: { id: true, status: true, addresseeId: true },
+        select: { id: true, status: true, addresseeId: true, requesterId: true },
     });
     if (!f || f.status !== 'PENDING' || f.addresseeId !== me) {
         return NextResponse.json({ error: 'Demande introuvable.' }, { status: 404 });
     }
 
     await prisma.friendship.update({ where: { id }, data: { status: 'ACCEPTED' } });
+
+    // Prévient le demandeur que sa demande a été acceptée (boucle jusque-là muette).
+    const meUser = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
+    const meName = meUser?.username ?? 'Un joueur';
+    void notifyUser(f.requesterId, {
+        type: 'friend_accept',
+        title: 'Demande acceptée',
+        body: `${meName} a accepté votre demande d'ami`,
+        link: `/user/${meName}`,
+    });
+
     return NextResponse.json({ ok: true });
 }

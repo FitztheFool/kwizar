@@ -6,7 +6,7 @@ import { PlayIcon, XMarkIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { useNotifications } from '@/context/NotificationsContext';
 import { GAME_LABEL_MAP } from '@/lib/gameConfig';
 import { useGameLabels } from '@/hooks/useGameLabels';
-import { achievementIcon } from '@/components/achievementIcons';
+import { notificationIcon } from '@/components/achievementIcons';
 
 export default function Toasts() {
     const { toasts, dismissInvite, dismissToast, notifToasts, markNotifRead, dismissNotifToast } = useNotifications();
@@ -18,7 +18,7 @@ export default function Toasts() {
         <div role="status" aria-live="polite" className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-4 sm:translate-x-0 z-[60] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
             {/* Toasts de succès débloqués */}
             {notifToasts.map(n => {
-                const Icon = achievementIcon(n.icon);
+                const Icon = notificationIcon(n.type, n.icon);
                 const go = () => {
                     markNotifRead(n.id);
                     if (n.link) router.push(n.link);
