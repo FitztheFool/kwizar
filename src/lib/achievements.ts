@@ -57,7 +57,8 @@ export const TOTAL_GAME_COUNT = 36;
 
 export const ACHIEVEMENTS: Achievement[] = [
     // ── Assiduité (nombre de parties) ──
-    { id: 'games-10',  label: 'Premiers pas',   description: 'Jouer 10 parties', tier: 'bronze', progress: s => ({ current: s.totalGames, target: 10 }) },
+    { id: 'games-1',   label: 'Première partie', description: 'Jouer 1 partie',   tier: 'bronze', progress: s => ({ current: s.totalGames, target: 1 }) },
+    { id: 'games-10',  label: 'Premiers pas',    description: 'Jouer 10 parties', tier: 'bronze', progress: s => ({ current: s.totalGames, target: 10 }) },
     { id: 'games-100', label: 'Habitué',        description: 'Jouer 100 parties', tier: 'silver', progress: s => ({ current: s.totalGames, target: 100 }) },
     { id: 'games-500', label: 'Vétéran',        description: 'Jouer 500 parties', tier: 'gold',   progress: s => ({ current: s.totalGames, target: 500 }) },
 

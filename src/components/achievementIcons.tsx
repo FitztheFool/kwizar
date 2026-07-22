@@ -14,6 +14,7 @@ import {
     CubeIcon,
     GlobeAltIcon,
     MapIcon,
+    PlayIcon,
     PuzzlePieceIcon,
     SparklesIcon,
     SwatchIcon,
@@ -51,6 +52,7 @@ export function GemIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 const BY_ID: Record<string, AchievementIcon> = {
+    'games-1': PlayIcon,
     'games-10': PuzzlePieceIcon,
     'games-100': CubeIcon,
     'games-500': BuildingLibraryIcon,
