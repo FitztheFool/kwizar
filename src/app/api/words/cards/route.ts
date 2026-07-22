@@ -6,7 +6,8 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const size = Math.min(Math.max(parseInt(searchParams.get('size') ?? '7', 10), 3), 20);
 
-        const words = await prisma.word.findMany({ select: { word: true } });
+        // Exclut les mots marqués (noms propres, ambigus…) du tirage Taboo.
+        const words = await prisma.word.findMany({ where: { excludedFromTaboo: false }, select: { word: true } });
         const shuffled = words.map(w => w.word).sort(() => Math.random() - 0.5);
 
         const cards = [];

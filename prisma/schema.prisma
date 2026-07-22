@@ -337,6 +337,9 @@ model Word {
   id          String    @id @default(cuid())
   word        String    @unique
   description String?
+  // Exclu du tirage Taboo (nom propre, mot ambigu…) sans être supprimé : réversible,
+  // et le mot reste disponible pour d'autres usages.
+  excludedFromTaboo Boolean @default(false)
   createdAt   DateTime  @default(now())
   wordGroupId String
   wordGroup   WordGroup @relation(fields: [wordGroupId], references: [id])

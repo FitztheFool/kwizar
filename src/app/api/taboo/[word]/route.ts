@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const exclude = searchParams.get('exclude')?.split(',').filter(Boolean) ?? [];
 
     const total = await prisma.word.count({
-        where: { word: { notIn: exclude } },
+        where: { word: { notIn: exclude }, excludedFromTaboo: false },
     });
 
     if (total === 0) {
@@ -31,6 +31,7 @@ export async function GET(req: Request) {
             where: {
                 word: { notIn: exclude },
                 id: { notIn: Array.from(usedIds) },
+                excludedFromTaboo: false,
             },
             skip,
             select: { id: true, word: true },

@@ -4,7 +4,10 @@ import prisma from '@/lib/prisma';
 
 export async function GET() {
     try {
-        const groups = await prisma.wordGroup.findMany({ include: { words: true } });
+        // Exclut les mots marqués (noms propres, ambigus…) du tirage Taboo.
+        const groups = await prisma.wordGroup.findMany({
+            include: { words: { where: { excludedFromTaboo: false } } },
+        });
 
         const cards = groups
             .filter(g => g.words.length > 0)
